@@ -5,44 +5,62 @@ public class SmoothFollow : MonoBehaviour
     [Header("Target")]
     public Transform target;
 
-    [Header("Position Settings")]
-    public Vector3 offset = new Vector3(0f, 5f, -10f);
-    public float smoothSpeed = 5f;
+    [Header("Offset")]
+    public Vector3 offset = new Vector3(0f, 3f, -6f);
 
-    [Header("Rotation Settings")]
-    public bool smoothRotation = true;
-    public float rotationSpeed = 5f;
+    [Header("Smooth Settings")]
+    public float followSpeed = 8f;
+    public float rotationSpeed = 8f;
+
+    [Header("Collision Settings")]
+    public float collisionRadius = 0.3f;
+    public float minDistance = 1.5f;
+    public LayerMask collisionLayers;
+
+    private float currentDistance;
+
+    void Start()
+    {
+        currentDistance = offset.magnitude;
+    }
 
     void LateUpdate()
     {
-        if (target == null)
-            return;
+        if (target == null) return;
 
-        // Desired position
-        Vector3 desiredPosition = target.position + offset;
+        Vector3 direction = offset.normalized;
 
-        // Smooth position
-        Vector3 smoothedPosition = Vector3.Lerp(
+        float desiredDistance = offset.magnitude;
+
+        RaycastHit hit;
+
+        // Check if something blocks the camera
+        if (Physics.SphereCast(
+            target.position,
+            collisionRadius,
+            direction,
+            out hit,
+            desiredDistance,
+            collisionLayers))
+        {
+            desiredDistance = Mathf.Clamp(hit.distance, minDistance, offset.magnitude);
+        }
+
+        currentDistance = Mathf.Lerp(currentDistance, desiredDistance, Time.deltaTime * 10f);
+
+        Vector3 desiredPosition = target.position + direction * currentDistance;
+
+        transform.position = Vector3.Lerp(
             transform.position,
             desiredPosition,
-            smoothSpeed * Time.deltaTime
+            followSpeed * Time.deltaTime
         );
 
-        transform.position = smoothedPosition;
-
-        // Optional smooth rotation
-        if (smoothRotation)
-        {
-            Quaternion desiredRotation = Quaternion.LookRotation(target.position - transform.position);
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                desiredRotation,
-                rotationSpeed * Time.deltaTime
-            );
-        }
-        else
-        {
-            transform.LookAt(target);
-        }
+        Quaternion lookRotation = Quaternion.LookRotation(target.position - transform.position);
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            lookRotation,
+            rotationSpeed * Time.deltaTime
+        );
     }
 }
