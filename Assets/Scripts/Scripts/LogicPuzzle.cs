@@ -24,10 +24,12 @@ public class LogicPuzzle : MonoBehaviour
     private bool puzzleCompleted = false;
     private Coroutine reviewCoroutine;
     private PuzzleManager puzzleManager;
-    private bool isActivePuzzle = false;
+    private bool isActivePuzzle = true;
 
     [Header("Logic Type")]
     [SerializeField] private LogicType logicType;
+    // Add this so the PuzzleManager can read the type!
+    public LogicType PuzzleLogicType => logicType;
 
     [Header("Expected Values (Top → Bottom)")]
     [SerializeField] private bool[] expectedP = new bool[4];
@@ -302,7 +304,7 @@ public class LogicPuzzle : MonoBehaviour
     {
         Debug.Log("Review time started!");
 
-        float remaining = 30f;
+        float remaining = 10f;
 
         while (remaining > 0)
         {
