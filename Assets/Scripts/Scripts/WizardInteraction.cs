@@ -1,6 +1,7 @@
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class WizardInteraction : MonoBehaviour
 {
@@ -72,13 +73,16 @@ public class WizardInteraction : MonoBehaviour
         // NEW: Checks if the choice buttons are currently visible
         bool isWaitingForChoice = choicesPanel != null && choicesPanel.activeSelf;
 
+        // Check if the E key was pressed this frame
+        bool eKeyPressed = Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame;
+
         // Start dialogue with 'E' if we aren't already talking
-        if (playerInRange && !isDisplaying && Input.GetKeyDown(KeyCode.E))
+        if (playerInRange && !isDisplaying && eKeyPressed)
         {
             StartDialogue();
         }
         // Allow desktop users to also advance text with 'E'
-        else if (isDisplaying && !isWaitingForChoice && Input.GetKeyDown(KeyCode.E))
+        else if (isDisplaying && !isWaitingForChoice && eKeyPressed)
         {
             AdvanceDialogue();
         }
