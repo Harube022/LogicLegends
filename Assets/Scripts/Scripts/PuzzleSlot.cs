@@ -5,6 +5,7 @@ public class PuzzleSlot : MonoBehaviour
     public string correctID;
     [SerializeField] private Transform snapPoint;
 
+    [HideInInspector] public GatePuzzle gatePuzzle; // Assigned automatically by GatePuzzle.Start()
     private TowerPiece currentPiece;
 
     public bool IsCorrect()
@@ -36,6 +37,9 @@ public class PuzzleSlot : MonoBehaviour
             grab.SetSlot(this);
         }
 
+        // Notify GatePuzzle to check the new state
+        if (gatePuzzle != null) gatePuzzle.CheckPuzzleState();
+
         return true;
     }
 
@@ -44,6 +48,8 @@ public class PuzzleSlot : MonoBehaviour
         if (currentPiece == piece)
         {
             currentPiece = null;
+            // Notify GatePuzzle that a piece was removed
+            if (gatePuzzle != null) gatePuzzle.CheckPuzzleState();
         }
     }
 }
