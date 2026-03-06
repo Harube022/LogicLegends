@@ -6,42 +6,104 @@ public class GatePuzzle : MonoBehaviour
 
     [SerializeField] private GameObject gateClosed;
     [SerializeField] private GameObject gateOpen;
+    [SerializeField] private HealthManager healthManager;
 
     private bool isOpen;
+    private bool hasPenalized; // Tracks if we already took a heart for this specific wrong setup
 
-    private void Update()
+    private void Start()
     {
-        bool allFilled = true;
+        // Automatically give each slot a reference to this GatePuzzle manager
+        foreach (var slot in slots)
+        {
+            slot.gatePuzzle = this;
+        }
+    }
 
+    // private void Update()
+    // {
+    //     bool allFilled = true;
+
+    //     foreach (PuzzleSlot slot in slots)
+    //     {
+    //         if (!slot.HasObject())
+    //         {
+    //             allFilled = false;
+    //             break;
+    //         }
+    //     }
+
+    //     // If something missing → must be closed
+    //     if (!allFilled)
+    //     {
+    //         CloseGate();
+    //         return;
+    //     }
+
+    //     // check correctness
+    //     foreach (PuzzleSlot slot in slots)
+    //     {
+    //         if (!slot.IsCorrect())
+    //         {
+    //             Debug.Log("There's an error.");
+    //             CloseGate();
+    //             return;
+    //         }
+    //     }
+
+    //     // all correct
+    //     OpenGate();
+    // }
+
+    
+    // Called by PuzzleSlot.cs ONLY when a piece is added or removed
+    public void CheckPuzzleState()
+    {
+        bool isComplete = true;
+        bool hasError = false;
+
+        // Check every slot on the board
         foreach (PuzzleSlot slot in slots)
         {
             if (!slot.HasObject())
             {
-                allFilled = false;
-                break;
+                isComplete = false; // The puzzle isn't fully filled out yet
             }
-        }
-
-        // If something missing → must be closed
-        if (!allFilled)
-        {
-            CloseGate();
-            return;
-        }
-
-        // check correctness
-        foreach (PuzzleSlot slot in slots)
-        {
-            if (!slot.IsCorrect())
+            else if (!slot.IsCorrect())
             {
-                Debug.Log("There's an error.");
-                CloseGate();
-                return;
+                hasError = true; // There is a block placed, but it's the WRONG one!
             }
         }
 
-        // all correct
-        OpenGate();
+        // 1. If there is ANY wrong block currently placed on the board
+        if (hasError)
+        {
+            Debug.Log("There's an error.");
+            CloseGate();
+
+            // Deduct a heart if we haven't already for this specific mistake
+            if (!hasPenalized)
+            {
+                if (healthManager != null) healthManager.TakeDamage();
+                hasPenalized = true;
+            }
+            
+            return; // Stop running the rest of the code
+        }
+
+        // 2. If there are NO errors on the board right now (it's either empty or partially correct)
+        // We reset the penalty flag. This means if they make a mistake again, they lose another heart.
+        hasPenalized = false; 
+
+        // 3. Are all slots filled perfectly?
+        if (isComplete)
+        {
+            OpenGate();
+        }
+        else
+        {
+            CloseGate(); // Partially filled but correct, keep gate closed until finished
+        }
     }
 
     private void OpenGate()
