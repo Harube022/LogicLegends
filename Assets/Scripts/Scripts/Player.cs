@@ -164,13 +164,50 @@ public class Player : MonoBehaviour
         Vector3 capsuleBottom = transform.position;
         Vector3 capsuleTop = transform.position + Vector3.up * playerHeight;
 
+        // // ===== NORMAL MOVE =====
+        // if (!Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, moveDir, moveDistance))
+        // {
+        //     transform.position += moveDir * moveDistance;
+        // }
+        // else
+        // {
+        //     // ===== TRY STEP UP =====
+        //     float stepHeight = 0.6f; // how high we can climb
+
+        //     Vector3 stepUp = Vector3.up * stepHeight;
+
+        //     Vector3 newBottom = capsuleBottom + stepUp;
+        //     Vector3 newTop = capsuleTop + stepUp;
+
+        //     if (!Physics.CapsuleCast(newBottom, newTop, playerRadius, moveDir, moveDistance))
+        //     {
+        //         transform.position += stepUp;                 // lift
+        //         transform.position += moveDir * moveDistance; // move
+        //     }
+        //     // else → real wall → stop
+        // }
         // ===== NORMAL MOVE =====
-        if (!Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, moveDir, moveDistance))
+        // We add 'out RaycastHit hit' so we can get information about what we bumped into
+        if (!Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, moveDir, out RaycastHit hit, moveDistance))
         {
             transform.position += moveDir * moveDistance;
         }
         else
         {
+            // ---> NEW PUSH LOGIC START <---
+            // Check if the object blocking us has a Rigidbody attached
+            Rigidbody hitRb = hit.collider.attachedRigidbody;
+
+            // If it does, and it's allowed to be moved by physics (!isKinematic), push it!
+            if (hitRb != null && !hitRb.isKinematic)
+            {
+                float pushForce = 200f; // Tweak this number until the pushing feels right!
+                
+                // Apply force in the direction the player is walking
+                hitRb.AddForce(moveDir * pushForce, ForceMode.Force);
+            }
+            // ---> NEW PUSH LOGIC END <---
+
             // ===== TRY STEP UP =====
             float stepHeight = 0.6f; // how high we can climb
 
