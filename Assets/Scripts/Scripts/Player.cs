@@ -214,7 +214,7 @@ public class Player : MonoBehaviour
             // If it does, and it's allowed to be moved by physics (!isKinematic), push it!
             if (hitRb != null && !hitRb.isKinematic)
             {
-                float pushForce = 100f; // Tweak this number until the pushing feels right!
+                float pushForce = 500f; // Tweak this number until the pushing feels right!
                 
                 // Apply force in the direction the player is walking
                 hitRb.AddForce(moveDir * pushForce, ForceMode.Force);

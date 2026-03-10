@@ -1,6 +1,8 @@
 using UnityEngine;
+using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.InputSystem;
 
 public class WizardInteraction : MonoBehaviour
 {
@@ -29,8 +31,8 @@ public class WizardInteraction : MonoBehaviour
     [Tooltip("Drag the 'Talk to Wizard' text from the Objectives Scroll here")]
     [SerializeField] private TextMeshProUGUI wizardObjectiveText;
 
-    [Tooltip("Drag the Negation_Task GameObject here")]
-    [SerializeField] private GameObject negationTaskObject;
+    [Tooltip("Drag the specific task GameObject to activate after talking here")]
+    [SerializeField] private GameObject taskToActivate;
 
     // Talk Talk to Wizard Lefyahj again
     [Tooltip("Drag the new 'Talk to Wizard Lefyahj again' GameObject here")]
@@ -39,16 +41,16 @@ public class WizardInteraction : MonoBehaviour
     [SerializeField] private TextMeshProUGUI finalObjectiveText;
 
     [Header("Dialogue Content")]
-    [TextArea(2, 4)]
+    [TextArea(2, 3)]
     [Tooltip("Type each page of dialogue into a new element here.")]
     [SerializeField] private string[] dialogueLines; 
 
     [Header("Final Dialogue Content")]
-    [TextArea(2, 4)]
+    [TextArea(2, 3)]
     [SerializeField] private string[] finalDialogueLines;
 
-    [Header("Scene Management")]
-    [SerializeField] private string mainMenuSceneName = "Main Menu";
+    [Tooltip("Type the name of the scene to load when 'Let's Go' is clicked")]
+    [SerializeField] private string nextSceneName;
 
     public bool areAllTasksCompleted = false; // Tells the wizard the tables are done
     private bool isReadingFinalDialogue = false; // Tracks which dialogue array to read from
@@ -209,7 +211,7 @@ public class WizardInteraction : MonoBehaviour
     public void ChooseLetsGo()
     {
         // Make sure your Main Menu scene is added to your Build Settings!
-        SceneManager.LoadScene(mainMenuSceneName);
+        SceneManager.LoadScene(nextSceneName);
     }
 
     // ----------------------------------
@@ -222,9 +224,9 @@ public class WizardInteraction : MonoBehaviour
         currentLineIndex = 0;
         
         // Show the interact button again if the player is still standing there
-        scrollPanel.SetActive(true);
+        // scrollPanel.SetActive(true);
         gameplayInterfacePanel.SetActive(true);
-        rulesButton.SetActive(true);
+        // rulesButton.SetActive(true);
 
         // --- YOU MISSED THIS PART! This gives you your movement back ---
         if (playerControlScript != null) 
@@ -233,14 +235,13 @@ public class WizardInteraction : MonoBehaviour
         }
 
 
-        // --- NEW CODE: Cross out the objective! ---
-        if (!hasTalkedToWizard && wizardObjectiveText != null && !isReadingFinalDialogue)
+    if (!hasTalkedToWizard && wizardObjectiveText != null && !isReadingFinalDialogue)
         {
-            hasTalkedToWizard = true; // Mark as completed
-            
-            // Wraps the text in strikethrough tags and makes it green
+            hasTalkedToWizard = true; 
             wizardObjectiveText.text = "<color=#008000><s>" + wizardObjectiveText.text + "</s></color>";
-            if (negationTaskObject != null) negationTaskObject.SetActive(true);
+            
+            // Now it activates whatever puzzle you dragged into the Inspector!
+            if (taskToActivate != null) taskToActivate.SetActive(true); 
         }
     }
 }

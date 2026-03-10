@@ -112,7 +112,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void LoadSolo()
     {
-        SceneManager.LoadScene("MAP1_LEVEL1");
+        SceneManager.LoadScene("Stage 1");
     }
 
     public void LoadLogicGarden()
