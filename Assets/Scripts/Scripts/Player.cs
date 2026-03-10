@@ -62,6 +62,19 @@ public class Player : MonoBehaviour
             }
         }
 
+        // ---> ADD THIS NEW BLOCK HERE <---
+        // ===== CHECK LEVER =====
+        if (Physics.Raycast(rayStart, transform.forward, out RaycastHit leverHit, interactionDistance))
+        {
+            // If the object we looked at has our LeverController script on it...
+            if (leverHit.transform.TryGetComponent(out LeverController lever))
+            {
+                lever.ToggleLever(); // Flip it!
+                return; // Stop running the rest of the interact code
+            }
+        }
+        // ---> END OF NEW BLOCK <---
+
         // ===== IF HOLDING OBJECT =====
         if (heldObject != null)
         {
@@ -201,7 +214,7 @@ public class Player : MonoBehaviour
             // If it does, and it's allowed to be moved by physics (!isKinematic), push it!
             if (hitRb != null && !hitRb.isKinematic)
             {
-                float pushForce = 200f; // Tweak this number until the pushing feels right!
+                float pushForce = 100f; // Tweak this number until the pushing feels right!
                 
                 // Apply force in the direction the player is walking
                 hitRb.AddForce(moveDir * pushForce, ForceMode.Force);

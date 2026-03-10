@@ -15,13 +15,16 @@ public class PressurePlate : MonoBehaviour
     // This keeps track of how many things are on the plate
     // (useful so the plate doesn't turn off if the player and boulder are BOTH on it, and the player steps off)
     private int objectsOnPlate = 0; 
+    private bool isLocked = false; // ---> NEW: Keeps track of if the puzzle is solved
+    public bool isPressed = false;
 
     private void OnTriggerEnter(Collider other)
     {
-        // Check if the object stepping on the plate is the Player OR the Boulder
-        // (Assuming your boulder has a Rigidbody, it will trigger this too)
+        // If the puzzle is already solved, don't do anything else!
+        if (isLocked) return;
+
         if (other.CompareTag("Player") || other.attachedRigidbody != null)
-        {
+        {   
             objectsOnPlate++;
             UpdateVineVisuals();
         }
@@ -29,6 +32,9 @@ public class PressurePlate : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        // If the puzzle is already solved, don't do anything else!
+        if (isLocked) return;
+
         if (other.CompareTag("Player") || other.attachedRigidbody != null)
         {
             objectsOnPlate--;
@@ -46,10 +52,20 @@ public class PressurePlate : MonoBehaviour
         if (objectsOnPlate > 0)
         {
             vineRenderer.material = onMaterial;
+            isPressed = true;
         }
         else // Otherwise, turn it off
         {
             vineRenderer.material = offMaterial;
+            isPressed = false;
         }
+    }
+
+    // ---> NEW: The GateController will call this when both plates are pressed
+    public void LockPlateOn()
+    {
+        isLocked = true;
+        isPressed = true;
+        vineRenderer.material = onMaterial; // Force it to stay yellow
     }
 }
