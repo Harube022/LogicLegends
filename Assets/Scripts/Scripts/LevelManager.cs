@@ -4,30 +4,52 @@ using TMPro;
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance;
+    [Header("Challenge Environments")]
+    public GameObject challenge1Area;
+    public GameObject challenge2Area;
+    public GameObject challenge3Area;
 
-    [Header("Game State")]
+    [Header("Global Game State")]
     public int playerHearts = 3;
+    
+    [Header("Challenge 1: Timer")]
     public float timeRemaining = 180f;
     private bool isTimerRunning = false;
-
-    [Header("UI References")]
     [Tooltip("Drag your Timer Text here")]
     public TextMeshProUGUI timerText; 
-    
-    // ---> NEW: Array to hold your heart icons <---
+
+    [Header("UI References")]
     [Tooltip("Drag your 3 Heart GameObjects here from the Canvas")]
     public GameObject[] heartIcons; 
 
-    [Header("Reset References")]
+    [Header("Current Progress")]
     public Transform player;
+    [Tooltip("The place the player will respawn if they fail their CURRENT challenge")]
+    public Transform currentRespawnPoint; 
+    [Tooltip("The very first respawn point (the oval)")]
     public Transform ovalRespawnPoint;
+    
+    [Header("Challenge 1 Reset References")]
     public LeverController leverController;
     public GateController andGateController;
     public ResettableObject[] boulders;
 
+    [Tooltip("Drag the Wizard here so we can reset his dialogue")]
+    public WizardInteraction startingWizard;
+
+    private void Start()
+    {
+        HideTimer(); 
+    }
     private void Awake()
     {
         if (Instance == null) Instance = this;
+        
+        // Ensure we have a starting respawn point when the game loads
+        if (currentRespawnPoint == null && ovalRespawnPoint != null)
+        {
+            currentRespawnPoint = ovalRespawnPoint;
+        }
     }
 
     private void Update()
@@ -44,60 +66,119 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    public void StartTimer() 
-    { 
-        isTimerRunning = true; 
-    }
+    // --- GLOBAL HEALTH & RESPAWN METHODS ---
 
-    public void StopTimer() 
-    { 
-        isTimerRunning = false; 
+    // Any script can call this to deduct a heart!
+    public void LoseHeartAndRespawn()
+    {
+        playerHearts--;
+        UpdateHeartsUI();
+
+        if (playerHearts <= 0)
+        {
+            Debug.Log("Game Over! Restarting the whole stage.");
+            RestartEntireStage(); 
+        }
+        else
+        {
+            Debug.Log("Lost 1 heart. Respawning at current checkpoint...");
+            player.position = currentRespawnPoint.position;
+            
+            Rigidbody playerRb = player.GetComponent<Rigidbody>();
+            if (playerRb != null) playerRb.linearVelocity = Vector3.zero; 
+        }
     }
 
     private void HandleTimeout()
     {
         isTimerRunning = false;
         playerHearts--;
-        
-        // ---> NEW: Update the hearts on screen! <---
         UpdateHeartsUI(); 
 
         if (playerHearts <= 0)
         {
-            Debug.Log("Game Over! No hearts left.");
-            // We will add Game Over logic here later
+            Debug.Log("Game Over! Restarting the whole stage.");
+            RestartEntireStage();
         }
         else
         {
             Debug.Log("Time's up! Lost 1 heart. Respawning...");
             timeRemaining = 180f; 
-            RespawnPlayer();
-            ResetPuzzles();
+            player.position = currentRespawnPoint.position;
+            
+            Rigidbody playerRb = player.GetComponent<Rigidbody>();
+            if (playerRb != null) playerRb.linearVelocity = Vector3.zero;
+
+            ResetChallenge1();
             StartTimer(); 
         }
     }
 
-    // ---> NEW: Method to turn off the heart icons <---
+    // Method to completely reset the game back to Challenge 1
+    public void RestartEntireStage()
+{
+    // 1. Refill Hearts
+    playerHearts = 3;
+    UpdateHeartsUI();
+
+    // 2. Teleport back to the very beginning (the oval)
+    player.position = ovalRespawnPoint.position;
+    currentRespawnPoint = ovalRespawnPoint; 
+
+    // 3. Reset the timer but DON'T start it! 
+    timeRemaining = 180f;
+    HideTimer(); // <--- CHANGED: This stops and hides it instead of starting it
+
+    // 4. Reset the puzzles for Challenge 1
+    ResetChallenge1();
+
+    // 5. Reset the visibility so they see Challenge 1 again
+    if (challenge1Area != null) challenge1Area.SetActive(true);
+    if (challenge2Area != null) challenge2Area.SetActive(false);
+    if (challenge3Area != null) challenge3Area.SetActive(false);
+
+    // ---> NEW: Reset the Wizard so they have to talk to him again <---
+    if (startingWizard != null)
+    {
+        startingWizard.ResetWizardStatus();
+    }
+}
     private void UpdateHeartsUI()
     {
-        // Loop through all the hearts in the array
         for (int i = 0; i < heartIcons.Length; i++)
         {
-            if (heartIcons[i] != null)
-            {
-                // If the index is less than our current hearts, turn it on. Otherwise, turn it off.
-                // Example: If playerHearts is 2, index 0 and 1 stay ON, index 2 turns OFF.
-                heartIcons[i].SetActive(i < playerHearts);
-            }
+            if (heartIcons[i] != null) heartIcons[i].SetActive(i < playerHearts);
         }
     }
 
-    private void RespawnPlayer()
+    // --- PROGRESSION METHODS ---
+
+    // ChallengeTransition calls this to update where the player respawns
+    public void UpdateRespawnPoint(Transform newCheckpoint)
     {
-        player.position = ovalRespawnPoint.position;
+        currentRespawnPoint = newCheckpoint;
     }
 
-    private void ResetPuzzles()
+    // --- CHALLENGE 1 SPECIFIC METHODS ---
+
+    public void StartTimer() 
+    { 
+        isTimerRunning = true; 
+
+        if (timerText != null) 
+        {
+            timerText.gameObject.SetActive(true); 
+        }
+    }
+    public void StopTimer() { isTimerRunning = false; }
+    
+    public void HideTimer()
+    {
+        isTimerRunning = false; 
+        if (timerText != null) timerText.gameObject.SetActive(false); 
+    }
+
+    private void ResetChallenge1()
     {
         if (leverController != null) leverController.ResetLever();
         if (andGateController != null) andGateController.ResetGate();

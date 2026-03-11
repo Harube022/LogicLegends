@@ -59,6 +59,7 @@ public class WizardInteraction : MonoBehaviour
     private bool playerInRange = false;
     private bool isDisplaying = false;
     private bool hasTalkedToWizard = false;
+    private string originalObjectiveString;
 
     private void Start()
     {
@@ -67,6 +68,11 @@ public class WizardInteraction : MonoBehaviour
 
         if (choicesPanel != null) choicesPanel.SetActive(false);
         if (finalObjectiveObject != null) finalObjectiveObject.SetActive(false);
+
+        if (wizardObjectiveText != null)
+    {
+        originalObjectiveString = wizardObjectiveText.text;
+    }
     }
 
     private void Update()
@@ -242,8 +248,24 @@ public class WizardInteraction : MonoBehaviour
             
             // Now it activates whatever puzzle you dragged into the Inspector!
             if (taskToActivate != null) taskToActivate.SetActive(true); 
-            
+
             if (LevelManager.Instance != null) LevelManager.Instance.StartTimer();
+        }
+    }
+    public void ResetWizardStatus()
+    {
+        hasTalkedToWizard = false;
+
+        // Un-cross the objective text
+        if (wizardObjectiveText != null && !string.IsNullOrEmpty(originalObjectiveString))
+        {
+            wizardObjectiveText.text = originalObjectiveString;
+        }
+
+        // Hide the puzzle elements again until they talk to him
+        if (taskToActivate != null) 
+        {
+            taskToActivate.SetActive(false);
         }
     }
 }
