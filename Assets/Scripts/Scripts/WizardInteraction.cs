@@ -242,6 +242,8 @@ public class WizardInteraction : MonoBehaviour
             
             // Now it activates whatever puzzle you dragged into the Inspector!
             if (taskToActivate != null) taskToActivate.SetActive(true); 
+            
+            if (LevelManager.Instance != null) LevelManager.Instance.StartTimer();
         }
     }
 }

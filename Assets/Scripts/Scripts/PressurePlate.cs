@@ -68,4 +68,12 @@ public class PressurePlate : MonoBehaviour
         isPressed = true;
         vineRenderer.material = onMaterial; // Force it to stay yellow
     }
+
+    public void ResetPlate()
+    {
+        isLocked = false;
+        isPressed = false;
+        objectsOnPlate = 0; // Clear the weight
+        vineRenderer.material = offMaterial; // Turn off the glow
+    }
 }

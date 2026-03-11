@@ -26,12 +26,25 @@ public class GateController : MonoBehaviour
             // Open the gate!
             closeGateObj.SetActive(false);
             openGateObj.SetActive(true);
+
+            // STOP TIMER
+            if (LevelManager.Instance != null) LevelManager.Instance.StopTimer();
         }
         else
         {
             // Keep it closed (or close it if someone steps off)
             closeGateObj.SetActive(true);
             openGateObj.SetActive(false);
+            
         }
+    }
+
+    public void ResetGate()
+    {
+        isSolved = false;
+        leftPlate.ResetPlate();
+        rightPlate.ResetPlate();
+        closeGateObj.SetActive(true);
+        openGateObj.SetActive(false);
     }
 }

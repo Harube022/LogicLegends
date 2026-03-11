@@ -56,4 +56,10 @@ public class LeverController : MonoBehaviour
             vineRenderer.material = isOn ? vineOnMaterial : vineOffMaterial;
         }
     }
+
+    public void ResetLever()
+    {
+        isOn = false;
+        UpdateVisuals();
+    }
 }
