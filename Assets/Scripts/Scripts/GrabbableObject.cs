@@ -6,6 +6,7 @@ public class GrabbableObject : MonoBehaviour
     private bool isHeld;
 
     private PuzzleSlot currentSlot;
+    private FruitBasket currentBasket;
 
     private Rigidbody rb;
     private Collider col;
@@ -21,6 +22,12 @@ public class GrabbableObject : MonoBehaviour
         currentSlot = slot;
     }
 
+    // ---> NEW: Method to save the basket <---
+    public void SetBasket(FruitBasket basket)
+    {
+        currentBasket = basket;
+    }
+
     public void Grab(Transform holdPoint)
     {
         this.holdPoint = holdPoint;
@@ -34,6 +41,13 @@ public class GrabbableObject : MonoBehaviour
             }
 
             currentSlot = null;
+        }
+        
+        // ---> NEW: If we are picking this up out of a basket, tell the basket it's empty! <---
+        if (currentBasket != null)
+        {
+            currentBasket.RemoveFruit();
+            currentBasket = null;
         }
 
         // ?? Disable physics completely

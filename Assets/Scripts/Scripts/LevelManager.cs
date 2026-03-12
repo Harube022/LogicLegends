@@ -22,6 +22,14 @@ public class LevelManager : MonoBehaviour
     [Tooltip("Drag your 3 Heart GameObjects here from the Canvas")]
     public GameObject[] heartIcons; 
 
+    [Header("UI Objectives Reset")]
+    [Tooltip("Drag the Ch1_Objectives parent object here")]
+    public GameObject challenge1ObjectiveUI;
+    [Tooltip("Drag the Ch2_Objectives parent object here")]
+    public GameObject challenge2ObjectiveUI;
+    [Tooltip("Drag the Ch3_Objectives parent object here")]
+    public GameObject challenge3ObjectiveUI;
+
     [Header("Current Progress")]
     public Transform player;
     [Tooltip("The place the player will respawn if they fail their CURRENT challenge")]
@@ -33,6 +41,10 @@ public class LevelManager : MonoBehaviour
     public LeverController leverController;
     public GateController andGateController;
     public ResettableObject[] boulders;
+
+    [Header("Challenge 2 Reset References")]
+    public FruitBasket challenge2Basket;
+    public ResettableObject[] challenge2Fruits;
 
     [Tooltip("Drag the Wizard here so we can reset his dialogue")]
     public WizardInteraction startingWizard;
@@ -86,6 +98,8 @@ public class LevelManager : MonoBehaviour
             
             Rigidbody playerRb = player.GetComponent<Rigidbody>();
             if (playerRb != null) playerRb.linearVelocity = Vector3.zero; 
+
+            ResetChallenge2();
         }
     }
 
@@ -131,17 +145,23 @@ public class LevelManager : MonoBehaviour
 
     // 4. Reset the puzzles for Challenge 1
     ResetChallenge1();
+    ResetChallenge2();
 
     // 5. Reset the visibility so they see Challenge 1 again
     if (challenge1Area != null) challenge1Area.SetActive(true);
     if (challenge2Area != null) challenge2Area.SetActive(false);
     if (challenge3Area != null) challenge3Area.SetActive(false);
 
-    // ---> NEW: Reset the Wizard so they have to talk to him again <---
+    // 6. Reset the Wizard so they have to talk to him again <---
     if (startingWizard != null)
     {
         startingWizard.ResetWizardStatus();
     }
+
+    // 7. Reset the Objective UI Text back to Challenge 1 <---
+        if (challenge1ObjectiveUI != null) challenge1ObjectiveUI.SetActive(true);
+        if (challenge2ObjectiveUI != null) challenge2ObjectiveUI.SetActive(false);
+        if (challenge3ObjectiveUI != null) challenge3ObjectiveUI.SetActive(false);
 }
     private void UpdateHeartsUI()
     {
@@ -186,6 +206,17 @@ public class LevelManager : MonoBehaviour
         foreach (var boulder in boulders)
         {
             if (boulder != null) boulder.ResetPosition();
+        }
+    }
+
+    private void ResetChallenge2()
+    {
+        if (challenge2Basket != null) challenge2Basket.ClearBasket();
+        
+        // Loop through all fruits and force them back to the trees
+        foreach (var fruit in challenge2Fruits)
+        {
+            if (fruit != null) fruit.ResetPosition();
         }
     }
 

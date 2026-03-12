@@ -2,6 +2,12 @@ using UnityEngine;
 
 public class ChallengeTransition : MonoBehaviour
 {
+    [Header("UI Transition")]
+    [Tooltip("Drag the Challenge 1 Objectives Parent here")]
+    [SerializeField] private GameObject oldObjectiveUI;
+    [Tooltip("Drag the Challenge 2 Objectives Parent here")]
+    [SerializeField] private GameObject newObjectiveUI;
+
     [Header("Teleport Settings")]
     [Tooltip("Drag the empty GameObject where the player should start Challenge 2 here")]
     [SerializeField] private Transform challenge2StartPoint;
@@ -25,6 +31,10 @@ public class ChallengeTransition : MonoBehaviour
             // 2. Swap which challenge is visible!
             if (challengeToHide != null) challengeToHide.SetActive(false);
             if (challengeToShow != null) challengeToShow.SetActive(true);
+
+            // 2.5 Swap the UI Objectives!
+            if (oldObjectiveUI != null) oldObjectiveUI.SetActive(false);
+            if (newObjectiveUI != null) newObjectiveUI.SetActive(true);
 
             // 3. Update LevelManager
             if (LevelManager.Instance != null)

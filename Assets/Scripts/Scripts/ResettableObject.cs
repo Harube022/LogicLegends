@@ -6,9 +6,10 @@ public class ResettableObject : MonoBehaviour
     private Quaternion startRot;
     private Rigidbody rb;
 
-    private void Start()
+    // ---> CHANGED from Start() to Awake() <---
+    // This guarantees it perfectly captures the starting position before the player can touch it!
+    private void Awake()
     {
-        // Remember our starting spot when the game loads!
         startPos = transform.position;
         startRot = transform.rotation;
         rb = GetComponent<Rigidbody>();
@@ -16,15 +17,23 @@ public class ResettableObject : MonoBehaviour
 
     public void ResetPosition()
     {
-        // Snap back to the start
+        // 1. Force the object to drop out of the player's hand just in case!
+        GrabbableObject grabbable = GetComponent<GrabbableObject>();
+        if (grabbable != null)
+        {
+            grabbable.Drop();
+        }
+
+        // 2. Snap back to the start
         transform.position = startPos;
         transform.rotation = startRot;
 
-        // Kill any momentum so the boulder doesn't keep rolling after teleporting
+        // 3. Reset all physics so it doesn't get stuck floating
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = false; // Turn gravity back on!
         }
     }
 }

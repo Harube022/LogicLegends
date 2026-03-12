@@ -45,15 +45,19 @@ public class Player : MonoBehaviour
         jumpBufferTimer = jumpBufferTime;
     }
 
-    private void GameInput_OnInteractAction(object sender, System.EventArgs e)
+private void GameInput_OnInteractAction(object sender, System.EventArgs e)
     {
         Debug.Log("INTERACT PRESSED");
 
         float interactionDistance = 2f;
-        Vector3 rayStart = transform.position + Vector3.up * 1f;
+        // 1. Lowered the starting point so it doesn't shoot over objects on the ground!
+        Vector3 rayStart = transform.position + Vector3.up * 0.5f; 
+        
+        // 2. We use a SphereCast (a thick tube) instead of a Raycast for precise interactions
+        float castRadius = 0.5f; 
 
         // ===== CHECK PORTAL FIRST =====
-        if (Physics.Raycast(rayStart, transform.forward, out RaycastHit portalHit, interactionDistance))
+        if (Physics.SphereCast(rayStart, castRadius, transform.forward, out RaycastHit portalHit, interactionDistance))
         {
             if (portalHit.transform.TryGetComponent(out Portal portal))
             {
@@ -62,29 +66,36 @@ public class Player : MonoBehaviour
             }
         }
 
-        // ---> ADD THIS NEW BLOCK HERE <---
         // ===== CHECK LEVER =====
-        if (Physics.Raycast(rayStart, transform.forward, out RaycastHit leverHit, interactionDistance))
+        if (Physics.SphereCast(rayStart, castRadius, transform.forward, out RaycastHit leverHit, interactionDistance))
         {
-            // If the object we looked at has our LeverController script on it...
             if (leverHit.transform.TryGetComponent(out LeverController lever))
             {
-                lever.ToggleLever(); // Flip it!
-                return; // Stop running the rest of the interact code
+                lever.ToggleLever(); 
+                return; 
             }
         }
-        // ---> END OF NEW BLOCK <---
 
         // ===== IF HOLDING OBJECT =====
         if (heldObject != null)
         {
-            TowerPiece piece = heldObject.GetComponent<TowerPiece>();
-
-            if (Physics.Raycast(rayStart, transform.forward, out RaycastHit hit, interactionDistance))
+            if (Physics.SphereCast(rayStart, castRadius, transform.forward, out RaycastHit hit, interactionDistance))
             {
+                // 1. Try to put it in the Fruit Basket
+                if (hit.transform.TryGetComponent(out FruitBasket basket) && !basket.HasFruit())
+                {
+                    GameObject fruitObj = heldObject.gameObject;
+                    heldObject.Drop(); 
+                    basket.PlaceFruit(fruitObj); 
+                    heldObject = null;
+                    return;
+                }
+
+                // 2. Try to put it in a Puzzle Slot
                 if (hit.transform.TryGetComponent(out PuzzleSlot slot))
                 {
-                    if (slot.TryPlace(piece))
+                    TowerPiece piece = heldObject.GetComponent<TowerPiece>();
+                    if (piece != null && slot.TryPlace(piece))
                     {
                         heldObject.Drop();
                         heldObject = null;
@@ -93,20 +104,28 @@ public class Player : MonoBehaviour
                 }
             }
 
+            // 3. Otherwise, just drop it on the ground
             heldObject.Drop();
             heldObject = null;
             return;
         }
 
         // ===== IF NOT HOLDING, TRY GRAB =====
-        int mask = ~LayerMask.GetMask("PuzzleSlot");
+        
+        // We create a generous "Interaction Bubble" in front of the player for picking up items!
+        Vector3 grabCenter = transform.position + transform.forward * 1f + Vector3.up * 0.5f;
+        
+        // Get EVERYTHING inside a 1.2 meter radius of that spot
+        Collider[] hitColliders = Physics.OverlapSphere(grabCenter, 1.2f); 
 
-        if (Physics.Raycast(rayStart, transform.forward, out RaycastHit grabHit, interactionDistance, mask))
+        foreach (Collider col in hitColliders)
         {
-            if (grabHit.transform.TryGetComponent(out GrabbableObject grabbable))
+            // If anything inside the bubble has the GrabbableObject script, grab it!
+            if (col.TryGetComponent(out GrabbableObject grabbable))
             {
                 heldObject = grabbable;
                 grabbable.Grab(holdPoint);
+                return; // We grabbed one, stop checking!
             }
         }
     }
