@@ -44,19 +44,18 @@ public class FruitBasket : MonoBehaviour
         currentFruit = null;
     }
 
-    public void ClearBasket()
+public void ClearBasket()
     {
         if (currentFruit != null)
         {
-            // 1. Teleport the fruit safely back to the tree FIRST
+            // 1. Tell the fruit's own script to handle the teleport and physics!
             ResettableObject resettable = currentFruit.GetComponent<ResettableObject>();
-            if (resettable != null) resettable.ResetPosition();
+            if (resettable != null) 
+            {
+                resettable.ResetPosition();
+            }
 
-            // 2. THEN turn physics/gravity back on so it can fall naturally
-            Rigidbody rb = currentFruit.GetComponent<Rigidbody>();
-            if (rb != null) rb.isKinematic = false;
-
-            // 3. Clear the basket's memory
+            // 2. Clear the basket's memory completely
             currentFruit = null;
         }
     }

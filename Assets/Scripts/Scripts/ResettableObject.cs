@@ -16,13 +16,16 @@ public class ResettableObject : MonoBehaviour
     }
 
     public void ResetPosition()
-    {
+    {      
         // 1. Force the object to drop out of the player's hand just in case!
         GrabbableObject grabbable = GetComponent<GrabbableObject>();
         if (grabbable != null)
         {
             grabbable.Drop();
         }
+
+        // ---> NEW: Temporarily turn off physics so Unity doesn't fight the teleport! <---
+        if (rb != null) rb.isKinematic = true;
 
         // 2. Snap back to the start
         transform.position = startPos;
