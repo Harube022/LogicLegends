@@ -46,6 +46,12 @@ public class LevelManager : MonoBehaviour
     public FruitBasket challenge2Basket;
     public ResettableObject[] challenge2Fruits;
 
+    [Tooltip("Drag the Challenge 2 Wizard here")]
+    public WizardInteraction challenge2Wizard;
+
+    [Tooltip("Drag the Challenge 3 Wizard here")]
+    public WizardInteraction challenge3Wizard;
+
     [Tooltip("Drag the Wizard here so we can reset his dialogue")]
     public WizardInteraction startingWizard;
 
@@ -130,39 +136,49 @@ public class LevelManager : MonoBehaviour
 
     // Method to completely reset the game back to Challenge 1
     public void RestartEntireStage()
-{
-    // 1. Refill Hearts
-    playerHearts = 3;
-    UpdateHeartsUI();
-
-    // 2. Teleport back to the very beginning (the oval)
-    player.position = ovalRespawnPoint.position;
-    currentRespawnPoint = ovalRespawnPoint; 
-
-    // 3. Reset the timer but DON'T start it! 
-    timeRemaining = 180f;
-    HideTimer(); // <--- CHANGED: This stops and hides it instead of starting it
-
-    // 4. Reset the puzzles for Challenge 1
-    ResetChallenge1();
-    ResetChallenge2();
-
-    // 5. Reset the visibility so they see Challenge 1 again
-    if (challenge1Area != null) challenge1Area.SetActive(true);
-    if (challenge2Area != null) challenge2Area.SetActive(false);
-    if (challenge3Area != null) challenge3Area.SetActive(false);
-
-    // 6. Reset the Wizard so they have to talk to him again <---
-    if (startingWizard != null)
     {
-        startingWizard.ResetWizardStatus();
-    }
+        // 1. Refill Hearts
+        playerHearts = 3;
+        UpdateHeartsUI();
 
-    // 7. Reset the Objective UI Text back to Challenge 1 <---
-        if (challenge1ObjectiveUI != null) challenge1ObjectiveUI.SetActive(true);
-        if (challenge2ObjectiveUI != null) challenge2ObjectiveUI.SetActive(false);
-        if (challenge3ObjectiveUI != null) challenge3ObjectiveUI.SetActive(false);
-}
+        // 2. Teleport back to the very beginning (the oval)
+        player.position = ovalRespawnPoint.position;
+        currentRespawnPoint = ovalRespawnPoint; 
+
+        // 3. Reset the timer but DON'T start it! 
+        timeRemaining = 180f;
+        HideTimer(); // <--- CHANGED: This stops and hides it instead of starting it
+
+        // 4. Reset the puzzles for Challenge 1
+        ResetChallenge1();
+        ResetChallenge2();
+
+        // 5. Reset the visibility so they see Challenge 1 again
+        if (challenge1Area != null) challenge1Area.SetActive(true);
+        if (challenge2Area != null) challenge2Area.SetActive(false);
+        if (challenge3Area != null) challenge3Area.SetActive(false);
+
+        // 6. Reset the Wizard so they have to talk to him again <---
+        if (startingWizard != null)
+        {
+            startingWizard.ResetWizardStatus();
+        }
+
+        if (challenge2Wizard != null)
+        {
+            challenge2Wizard.ResetWizardStatus();
+        }
+
+        if (challenge3Wizard != null)
+        {
+            challenge3Wizard.ResetWizardStatus();
+        }
+
+        // 7. Reset the Objective UI Text back to Challenge 1 <---
+            if (challenge1ObjectiveUI != null) challenge1ObjectiveUI.SetActive(true);
+            if (challenge2ObjectiveUI != null) challenge2ObjectiveUI.SetActive(false);
+            if (challenge3ObjectiveUI != null) challenge3ObjectiveUI.SetActive(false);
+    }
     private void UpdateHeartsUI()
     {
         for (int i = 0; i < heartIcons.Length; i++)

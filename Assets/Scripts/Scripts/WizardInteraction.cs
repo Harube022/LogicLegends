@@ -251,5 +251,8 @@ public class WizardInteraction : MonoBehaviour
             wizardObjectiveText.text = originalObjectiveString;
         }
         if (taskToActivate != null) taskToActivate.SetActive(false);
+
+        if (gate3Open != null) gate3Open.SetActive(false);
+        if (gate3Closed != null) gate3Closed.SetActive(true);
     }
 }

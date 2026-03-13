@@ -6,37 +6,45 @@ public class ResettableObject : MonoBehaviour
     private Quaternion startRot;
     private Rigidbody rb;
 
-    // ---> CHANGED from Start() to Awake() <---
-    // This guarantees it perfectly captures the starting position before the player can touch it!
     private void Awake()
     {
-        startPos = transform.position;
+        // TRICK 1: Add a tiny bit of height (0.5f) so the fruit spawns slightly in the air 
+        // and drops cleanly instead of getting wedged in the floor's collider!
+        startPos = transform.position + new Vector3(0, 0.5f, 0);
         startRot = transform.rotation;
         rb = GetComponent<Rigidbody>();
     }
 
     public void ResetPosition()
     {      
-        // 1. Force the object to drop out of the player's hand just in case!
+        // 1. Force the object to drop out of the player's hand and forget the basket
         GrabbableObject grabbable = GetComponent<GrabbableObject>();
         if (grabbable != null)
         {
             grabbable.Drop();
+            grabbable.SetBasket(null); // Completely erase its memory of the basket
         }
 
-        // ---> NEW: Temporarily turn off physics so Unity doesn't fight the teleport! <---
-        if (rb != null) rb.isKinematic = true;
+        // 2. Shut off physics temporarily
+        if (rb != null) 
+        {
+            rb.isKinematic = true;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
 
-        // 2. Snap back to the start
+        // 3. Teleport the fruit
         transform.position = startPos;
         transform.rotation = startRot;
 
-        // 3. Reset all physics so it doesn't get stuck floating
+        // TRICK 2: Force Unity's physics engine to instantly update its spatial maps. 
+        // This stops it from accidentally snapping the fruit back to the basket!
+        Physics.SyncTransforms(); 
+
+        // 4. Turn gravity back on so it falls nicely to the grass
         if (rb != null)
         {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.isKinematic = false; // Turn gravity back on!
+            rb.isKinematic = false; 
         }
     }
 }
