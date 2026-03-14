@@ -7,6 +7,7 @@ public class GrabbableObject : MonoBehaviour
 
     private PuzzleSlot currentSlot;
     private FruitBasket currentBasket;
+    private TorchPedestal currentPedestal;
 
     private Rigidbody rb;
     private Collider col;
@@ -22,7 +23,6 @@ public class GrabbableObject : MonoBehaviour
         currentSlot = slot;
     }
 
-    // ---> NEW: Method to save the basket <---
     public void SetBasket(FruitBasket basket)
     {
         currentBasket = basket;
@@ -43,14 +43,11 @@ public class GrabbableObject : MonoBehaviour
             currentSlot = null;
         }
         
-        // ---> NEW: If we are picking this up out of a basket, tell the basket it's empty! <---
-        if (currentBasket != null)
         {
             currentBasket.RemoveFruit();
             currentBasket = null;
         }
 
-        // ?? Disable physics completely
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;
@@ -90,5 +87,10 @@ public class GrabbableObject : MonoBehaviour
             transform.position = holdPoint.position;
             transform.rotation = holdPoint.rotation;
         }
+    }
+
+    public void SetPedestal(TorchPedestal pedestal)
+    {
+        currentPedestal = pedestal;
     }
 }

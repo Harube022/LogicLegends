@@ -21,10 +21,18 @@ public class ResettableObject : MonoBehaviour
         GrabbableObject grabbable = GetComponent<GrabbableObject>();
         if (grabbable != null)
         {
+            grabbable.enabled = true;
             grabbable.Drop();
             grabbable.SetBasket(null); // Completely erase its memory of the basket
         }
 
+        // ---> NEW: If this is a Torch, reset its flame! <---
+        TorchItem torch = GetComponent<TorchItem>();
+        if (torch != null)
+        {
+            torch.ResetFlame();
+        }
+        
         // 2. Shut off physics temporarily
         if (rb != null) 
         {
@@ -45,6 +53,7 @@ public class ResettableObject : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = false; 
+            rb.useGravity = true;
         }
     }
 }

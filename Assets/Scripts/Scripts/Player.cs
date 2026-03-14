@@ -50,10 +50,7 @@ private void GameInput_OnInteractAction(object sender, System.EventArgs e)
         Debug.Log("INTERACT PRESSED");
 
         float interactionDistance = 2f;
-        // 1. Lowered the starting point so it doesn't shoot over objects on the ground!
         Vector3 rayStart = transform.position + Vector3.up * 0.5f; 
-        
-        // 2. We use a SphereCast (a thick tube) instead of a Raycast for precise interactions
         float castRadius = 0.5f; 
 
         // ===== CHECK PORTAL FIRST =====
@@ -72,6 +69,16 @@ private void GameInput_OnInteractAction(object sender, System.EventArgs e)
             if (leverHit.transform.TryGetComponent(out LeverController lever))
             {
                 lever.ToggleLever(); 
+                return; 
+            }
+        }
+
+        // ---> FIXED: CHECK PLACED TORCH WITH EMPTY HANDS <---
+        if (Physics.SphereCast(rayStart, castRadius, transform.forward, out RaycastHit emptyHandHit, interactionDistance))
+        {
+            if (emptyHandHit.transform.TryGetComponent(out TorchPedestal fullPed) && fullPed.CurrentTorch != null)
+            {
+                fullPed.OpenTorchUI(); // Open UI to choose Lit/Unlit!
                 return; 
             }
         }
@@ -102,30 +109,45 @@ private void GameInput_OnInteractAction(object sender, System.EventArgs e)
                         return;
                     }
                 }
+
+                // 3. Try to put it in a Torch Pedestal
+                if (hit.transform.TryGetComponent(out TorchPedestal ped) && ped.CurrentTorch == null) 
+                {
+                    GameObject torchObj = heldObject.gameObject;
+                    heldObject.Drop(); 
+                    ped.PlaceTorch(torchObj); 
+                    heldObject = null;
+                    return;
+                }
+
+                // ---> FIXED: CHECK PLACED TORCH WHILE HOLDING SOMETHING <---
+                if (Physics.SphereCast(rayStart, castRadius, transform.forward, out RaycastHit holdingHit, interactionDistance))
+                {
+                    if (holdingHit.transform.TryGetComponent(out TorchPedestal holdingPed) && holdingPed.CurrentTorch != null) 
+                    {
+                        holdingPed.OpenTorchUI(); 
+                        return; 
+                    }
+                } 
             }
 
-            // 3. Otherwise, just drop it on the ground
+            // Otherwise, just drop it on the ground
             heldObject.Drop();
             heldObject = null;
             return;
         }
 
         // ===== IF NOT HOLDING, TRY GRAB =====
-        
-        // We create a generous "Interaction Bubble" in front of the player for picking up items!
         Vector3 grabCenter = transform.position + transform.forward * 1f + Vector3.up * 0.5f;
-        
-        // Get EVERYTHING inside a 1.2 meter radius of that spot
         Collider[] hitColliders = Physics.OverlapSphere(grabCenter, 1.2f); 
 
         foreach (Collider col in hitColliders)
         {
-            // If anything inside the bubble has the GrabbableObject script, grab it!
             if (col.TryGetComponent(out GrabbableObject grabbable))
             {
                 heldObject = grabbable;
                 grabbable.Grab(holdPoint);
-                return; // We grabbed one, stop checking!
+                return; 
             }
         }
     }

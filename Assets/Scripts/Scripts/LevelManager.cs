@@ -46,6 +46,10 @@ public class LevelManager : MonoBehaviour
     public FruitBasket challenge2Basket;
     public ResettableObject[] challenge2Fruits;
 
+    [Header("Truth Table Challenge 1 Reset References")]
+    public TorchPedestal[] truthTablePedestals;
+    public ResettableObject[] truthTableTorches;
+
     [Tooltip("Drag the Challenge 2 Wizard here")]
     public WizardInteraction challenge2Wizard;
 
@@ -106,6 +110,7 @@ public class LevelManager : MonoBehaviour
             if (playerRb != null) playerRb.linearVelocity = Vector3.zero; 
 
             ResetChallenge2();
+            ResetTruthTable();
         }
     }
 
@@ -130,6 +135,8 @@ public class LevelManager : MonoBehaviour
             if (playerRb != null) playerRb.linearVelocity = Vector3.zero;
 
             ResetChallenge1();
+            ResetChallenge2();
+            ResetTruthTable();
             StartTimer(); 
         }
     }
@@ -152,6 +159,7 @@ public class LevelManager : MonoBehaviour
         // 4. Reset the puzzles for Challenge 1
         ResetChallenge1();
         ResetChallenge2();
+        ResetTruthTable();
 
         // 5. Reset the visibility so they see Challenge 1 again
         if (challenge1Area != null) challenge1Area.SetActive(true);
@@ -233,6 +241,21 @@ public class LevelManager : MonoBehaviour
         foreach (var fruit in challenge2Fruits)
         {
             if (fruit != null) fruit.ResetPosition();
+        }
+    }
+
+    private void ResetTruthTable()
+    {
+        // 1. Clear pedestals first
+        foreach (var ped in truthTablePedestals)
+        {
+            if (ped != null) ped.ClearPedestal();
+        }
+        
+        // 2. Force torches back to spawn
+        foreach (var torch in truthTableTorches)
+        {
+            if (torch != null) torch.ResetPosition();
         }
     }
 
