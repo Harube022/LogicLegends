@@ -112,4 +112,9 @@ public class ThirdPersonCameraController : MonoBehaviour
         // Apply final position
         transform.position = targetPosition + (direction * currentDistance);
     }
+
+    public void SetPlayerTarget(Transform newTarget)
+    {
+        player = newTarget;
+    }
 }

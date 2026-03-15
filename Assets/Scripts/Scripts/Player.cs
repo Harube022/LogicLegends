@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun; // 1. Added Photon namespace
 
-public class Player : MonoBehaviour
+// 2. Changed from MonoBehaviour to MonoBehaviourPun
+public class Player : MonoBehaviourPun 
 {
     [SerializeField] private Transform holdPoint;
     private GrabbableObject heldObject;
@@ -35,17 +37,28 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-        gameInput.OnInteractAction += GameInput_OnInteractAction;
-        gameInput.OnJumpAction += GameInput_OnJumpAction;
-    }
+        // ONLY subscribe to input events if this character belongs to us
+        if (IsLocalPlayer())
+        {
+            gameInput.OnInteractAction += GameInput_OnInteractAction;
+            gameInput.OnJumpAction += GameInput_OnJumpAction;
 
+            // ---> NEW CAMERA LINK LOGIC <---
+            // Find the camera in the scene and tell it to follow THIS specific player
+            ThirdPersonCameraController cam = FindObjectOfType<ThirdPersonCameraController>();
+            if (cam != null)
+            {
+                cam.SetPlayerTarget(this.transform);
+            }
+        }
+    }
     private void GameInput_OnJumpAction(object sender, System.EventArgs e)
     {
         Debug.Log("JUMP EVENT RECEIVED, grounded = " + isGrounded);
         jumpBufferTimer = jumpBufferTime;
     }
 
-private void GameInput_OnInteractAction(object sender, System.EventArgs e)
+    private void GameInput_OnInteractAction(object sender, System.EventArgs e)
     {
         Debug.Log("INTERACT PRESSED");
 
@@ -154,6 +167,12 @@ private void GameInput_OnInteractAction(object sender, System.EventArgs e)
 
     private void Update()
     {
+        // 4. STOP the script here if this character is NOT ours
+        if (!IsLocalPlayer()) 
+        {
+            return; 
+        }
+
         HandleMovement();
         HandleInteractions();
         HandleGravity();
@@ -218,30 +237,6 @@ private void GameInput_OnInteractAction(object sender, System.EventArgs e)
         Vector3 capsuleBottom = transform.position;
         Vector3 capsuleTop = transform.position + Vector3.up * playerHeight;
 
-        // // ===== NORMAL MOVE =====
-        // if (!Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, moveDir, moveDistance))
-        // {
-        //     transform.position += moveDir * moveDistance;
-        // }
-        // else
-        // {
-        //     // ===== TRY STEP UP =====
-        //     float stepHeight = 0.6f; // how high we can climb
-
-        //     Vector3 stepUp = Vector3.up * stepHeight;
-
-        //     Vector3 newBottom = capsuleBottom + stepUp;
-        //     Vector3 newTop = capsuleTop + stepUp;
-
-        //     if (!Physics.CapsuleCast(newBottom, newTop, playerRadius, moveDir, moveDistance))
-        //     {
-        //         transform.position += stepUp;                 // lift
-        //         transform.position += moveDir * moveDistance; // move
-        //     }
-        //     // else → real wall → stop
-        // }
-        // ===== NORMAL MOVE =====
-        // We add 'out RaycastHit hit' so we can get information about what we bumped into
         if (!Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, moveDir, out RaycastHit hit, moveDistance))
         {
             transform.position += moveDir * moveDistance;
@@ -249,21 +244,17 @@ private void GameInput_OnInteractAction(object sender, System.EventArgs e)
         else
         {
             // ---> NEW PUSH LOGIC START <---
-            // Check if the object blocking us has a Rigidbody attached
             Rigidbody hitRb = hit.collider.attachedRigidbody;
 
-            // If it does, and it's allowed to be moved by physics (!isKinematic), push it!
             if (hitRb != null && !hitRb.isKinematic)
             {
-                float pushForce = 500f; // Tweak this number until the pushing feels right!
-                
-                // Apply force in the direction the player is walking
+                float pushForce = 500f; 
                 hitRb.AddForce(moveDir * pushForce, ForceMode.Force);
             }
             // ---> NEW PUSH LOGIC END <---
 
             // ===== TRY STEP UP =====
-            float stepHeight = 0.6f; // how high we can climb
+            float stepHeight = 0.6f; 
 
             Vector3 stepUp = Vector3.up * stepHeight;
 
@@ -272,10 +263,9 @@ private void GameInput_OnInteractAction(object sender, System.EventArgs e)
 
             if (!Physics.CapsuleCast(newBottom, newTop, playerRadius, moveDir, moveDistance))
             {
-                transform.position += stepUp;                 // lift
-                transform.position += moveDir * moveDistance; // move
+                transform.position += stepUp;                 
+                transform.position += moveDir * moveDistance; 
             }
-            // else → real wall → stop
         }
 
         // ===== FACE DIRECTION =====
@@ -284,16 +274,14 @@ private void GameInput_OnInteractAction(object sender, System.EventArgs e)
 
         isWalking = true;
     }
-    // -----------------------------------------------
+    
     private void HandleGravity()
     {
         jumpBufferTimer -= Time.deltaTime;
 
-        // bigger + safer values
         float rayStartOffset = 1.0f;
         float rayDistance = 3.0f;
 
-        // jump
         if (isGrounded && jumpBufferTimer > 0f && !isJumping)
         {
             verticalVelocity = jumpForce;
@@ -312,7 +300,7 @@ private void GameInput_OnInteractAction(object sender, System.EventArgs e)
         float maxSlopeAngle = 45f;
         bool validGround = false;
 
-        if (validGround)
+        if (validGround) // Note: validGround logic seems incomplete here in your original code, but I left it intact!
         {
             float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
 
@@ -359,7 +347,6 @@ private void GameInput_OnInteractAction(object sender, System.EventArgs e)
             isGrounded = true;
             isJumping = false;
 
-            // small downward force so we stay glued
             verticalVelocity = -5f;
 
             float moveY = verticalVelocity * Time.deltaTime;
@@ -410,9 +397,22 @@ private void GameInput_OnInteractAction(object sender, System.EventArgs e)
         }
     }
 
+    // This helper checks if we are offline OR if the network says the player is ours
+    private bool IsLocalPlayer()
+    {
+        // If there is no PhotonView component, or we are not connected to the internet, assume this is the Solo mode player
+        if (photonView == null || !PhotonNetwork.InRoom)
+        {
+            return true;
+        }
+        
+        // Otherwise, rely on Photon to tell us if we own it in multiplayer
+        return photonView.IsMine;
+    }
     private void OnDestroy()
     {
-        if (gameInput != null)
+        // 5. Only unsubscribe if this character belonged to us
+        if (gameInput != null && IsLocalPlayer())
         {
             gameInput.OnInteractAction -= GameInput_OnInteractAction;
             gameInput.OnJumpAction -= GameInput_OnJumpAction;
