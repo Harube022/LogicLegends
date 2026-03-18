@@ -2,12 +2,14 @@ using UnityEngine;
 
 public class GrabbableObject : MonoBehaviour
 {
-    private Transform holdPoint;
-    private bool isHeld;
+    [Header("Current State")]
+    [SerializeField] private Transform holdPoint;
+    [SerializeField] private bool isHeld;
 
-    private PuzzleSlot currentSlot;
-    private FruitBasket currentBasket;
-    private TorchPedestal currentPedestal;
+    [Header("Active Puzzle Connections")]
+    [SerializeField] private PuzzleSlot currentSlot;
+    [SerializeField] private FruitBasket currentBasket;
+    [SerializeField] private TorchPedestal currentPedestal;
 
     private Rigidbody rb;
     private Collider col;
@@ -43,9 +45,16 @@ public class GrabbableObject : MonoBehaviour
             currentSlot = null;
         }
         
+        if (currentBasket != null)
         {
             currentBasket.RemoveFruit();
             currentBasket = null;
+        }
+
+        if (currentPedestal != null)
+        {
+            currentPedestal.RemoveTorch();
+            currentPedestal = null;
         }
 
         if (rb != null)

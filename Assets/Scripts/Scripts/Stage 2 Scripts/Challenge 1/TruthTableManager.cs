@@ -3,7 +3,7 @@ using UnityEngine;
 public class TruthTableManager : MonoBehaviour
 {
     [SerializeField] private TorchPedestal[] answerPedestals;
-    
+
     [Header("Portals")]
     [Tooltip("Drag the CLOSED portal asset here")]
     [SerializeField] private GameObject closedPortal;
@@ -34,6 +34,9 @@ public class TruthTableManager : MonoBehaviour
             // ---> NEW: Swap the portals! <---
             if (closedPortal != null) closedPortal.SetActive(false);
             if (openPortal != null) openPortal.SetActive(true);
+
+            // STOP TIMER
+            if (LevelManager.Instance != null) LevelManager.Instance.StopTimer();
         }
     }
 }

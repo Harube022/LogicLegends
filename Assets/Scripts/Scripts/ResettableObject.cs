@@ -16,7 +16,8 @@ public class ResettableObject : MonoBehaviour
     }
 
     public void ResetPosition()
-    {      
+    {   
+        gameObject.SetActive(true);   
         // 1. Force the object to drop out of the player's hand and forget the basket
         GrabbableObject grabbable = GetComponent<GrabbableObject>();
         if (grabbable != null)
@@ -33,12 +34,24 @@ public class ResettableObject : MonoBehaviour
             torch.ResetFlame();
         }
         
+        // // 2. Shut off physics temporarily
+        // if (rb != null) 
+        // {
+        //     rb.isKinematic = true;
+        //     rb.linearVelocity = Vector3.zero;
+        //     rb.angularVelocity = Vector3.zero;
+        // }
         // 2. Shut off physics temporarily
         if (rb != null) 
         {
+            // ---> FIXED: Only zero out velocity if it is NOT kinematic yet! <---
+            if (!rb.isKinematic)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+            
             rb.isKinematic = true;
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
         }
 
         // 3. Teleport the fruit

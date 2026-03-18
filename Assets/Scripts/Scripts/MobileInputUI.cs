@@ -12,7 +12,7 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
 
     private void Awake()
     {
-        gameInput = FindObjectOfType<GameInput>();
+        gameInput = FindFirstObjectByType<GameInput>();
     }
 
     public void OnDrag(PointerEventData eventData)

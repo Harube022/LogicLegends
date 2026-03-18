@@ -1792,7 +1792,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8509042442033702939, guid: 36a1fa3ebc2a3be40b2e993e51dac7b9, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 73.18299
+      value: 87.65299
       objectReference: {fileID: 0}
     - target: {fileID: 8509042442033702939, guid: 36a1fa3ebc2a3be40b2e993e51dac7b9, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2596,6 +2596,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c812007f88e44264da962f4695a9e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrabbableObject
+  holdPoint: {fileID: 0}
+  isHeld: 0
+  currentSlot: {fileID: 0}
+  currentBasket: {fileID: 0}
+  currentPedestal: {fileID: 0}
 --- !u!65 &452375009
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3228,6 +3233,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c812007f88e44264da962f4695a9e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrabbableObject
+  holdPoint: {fileID: 0}
+  isHeld: 0
+  currentSlot: {fileID: 0}
+  currentBasket: {fileID: 0}
+  currentPedestal: {fileID: 0}
 --- !u!65 &551942813
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -7552,6 +7562,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c812007f88e44264da962f4695a9e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrabbableObject
+  holdPoint: {fileID: 0}
+  isHeld: 0
+  currentSlot: {fileID: 0}
+  currentBasket: {fileID: 0}
+  currentPedestal: {fileID: 0}
 --- !u!65 &1252623653
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -9199,7 +9214,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6468329135324665564, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 70.75
+      value: 85.22
       objectReference: {fileID: 0}
     - target: {fileID: 6468329135324665564, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_LocalPosition.z
@@ -9247,7 +9262,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8276406520434365177, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_Center.z
-      value: 0.25
+      value: 0.16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9525,7 +9540,7 @@ Transform:
   m_GameObject: {fileID: 1633862083}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 487.98993, y: 74.18299, z: 421.00998}
+  m_LocalPosition: {x: 487.98993, y: 88.65299, z: 421.00998}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -11010,6 +11025,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c812007f88e44264da962f4695a9e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrabbableObject
+  holdPoint: {fileID: 0}
+  isHeld: 0
+  currentSlot: {fileID: 0}
+  currentBasket: {fileID: 0}
+  currentPedestal: {fileID: 0}
 --- !u!65 &2013016051
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -11317,6 +11337,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c812007f88e44264da962f4695a9e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrabbableObject
+  holdPoint: {fileID: 0}
+  isHeld: 0
+  currentSlot: {fileID: 0}
+  currentBasket: {fileID: 0}
+  currentPedestal: {fileID: 0}
 --- !u!65 &2058598797
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -17761,7 +17786,7 @@ MonoBehaviour:
   challenge1Area: {fileID: 8758383128937427821}
   challenge2Area: {fileID: 2049296791}
   challenge3Area: {fileID: 344839328}
-  playerHearts: 5
+  playerHearts: 3
   timeRemaining: 180
   timerText: {fileID: 3467750432166665153}
   heartIcons:
@@ -17787,6 +17812,8 @@ MonoBehaviour:
   - {fileID: 2058598792}
   truthTablePedestals: []
   truthTableTorches: []
+  matrixMounds: []
+  matrixSeeds: []
   challenge2Wizard: {fileID: 1654202828}
   challenge3Wizard: {fileID: 833367261}
   startingWizard: {fileID: 3311622527578925723}

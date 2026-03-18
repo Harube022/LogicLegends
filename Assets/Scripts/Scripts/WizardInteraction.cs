@@ -75,8 +75,22 @@ public class WizardInteraction : MonoBehaviour
     private void Update()
     {
         bool isWaitingForChoice = choicesPanel != null && choicesPanel.activeSelf;
-        if (playerInRange && !isDisplaying && Input.GetKeyDown(KeyCode.E)) StartDialogue();
-        else if (isDisplaying && !isWaitingForChoice && Input.GetKeyDown(KeyCode.E)) AdvanceDialogue();
+        // if (playerInRange && !isDisplaying && Input.GetKeyDown(KeyCode.E)) StartDialogue();
+        // else if (isDisplaying && !isWaitingForChoice && Input.GetKeyDown(KeyCode.E)) AdvanceDialogue();
+        
+        // Check if a keyboard is connected to prevent null reference errors
+        if (Keyboard.current != null) 
+        {
+            // Use the New Input System's way of checking for a specific key press
+            if (playerInRange && !isDisplaying && Keyboard.current.eKey.wasPressedThisFrame) 
+            {
+                StartDialogue();
+            }
+            else if (isDisplaying && !isWaitingForChoice && Keyboard.current.eKey.wasPressedThisFrame) 
+            {
+                AdvanceDialogue();
+            }
+        }
     }
 
     private void OnTriggerEnter(Collider other)

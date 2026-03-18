@@ -3,61 +3,67 @@ using TMPro;
 
 public class LevelManager : MonoBehaviour
 {
-    public static LevelManager Instance;
+public static LevelManager Instance;
+
     [Header("Challenge Environments")]
-    public GameObject challenge1Area;
-    public GameObject challenge2Area;
-    public GameObject challenge3Area;
+    [SerializeField] private GameObject challenge1Area;
+    [SerializeField] private GameObject challenge2Area;
+    [SerializeField] private GameObject challenge3Area;
 
     [Header("Global Game State")]
-    public int playerHearts = 3;
+    [SerializeField] private int playerHearts = 3;
     
     [Header("Challenge 1: Timer")]
-    public float timeRemaining = 180f;
+    [SerializeField] private float timeRemaining = 180f;
     private bool isTimerRunning = false;
     [Tooltip("Drag your Timer Text here")]
-    public TextMeshProUGUI timerText; 
+    [SerializeField] private TextMeshProUGUI timerText; 
 
     [Header("UI References")]
     [Tooltip("Drag your 3 Heart GameObjects here from the Canvas")]
-    public GameObject[] heartIcons; 
+    [SerializeField] private GameObject[] heartIcons; 
 
     [Header("UI Objectives Reset")]
     [Tooltip("Drag the Ch1_Objectives parent object here")]
-    public GameObject challenge1ObjectiveUI;
+    [SerializeField] private GameObject challenge1ObjectiveUI;
     [Tooltip("Drag the Ch2_Objectives parent object here")]
-    public GameObject challenge2ObjectiveUI;
+    [SerializeField] private GameObject challenge2ObjectiveUI;
     [Tooltip("Drag the Ch3_Objectives parent object here")]
-    public GameObject challenge3ObjectiveUI;
+    [SerializeField] private GameObject challenge3ObjectiveUI;
 
     [Header("Current Progress")]
-    public Transform player;
+    [SerializeField] private Transform player;
     [Tooltip("The place the player will respawn if they fail their CURRENT challenge")]
-    public Transform currentRespawnPoint; 
+    [SerializeField] private Transform currentRespawnPoint; 
     [Tooltip("The very first respawn point (the oval)")]
-    public Transform ovalRespawnPoint;
+    [SerializeField] private Transform ovalRespawnPoint;
     
     [Header("Challenge 1 Reset References")]
-    public LeverController leverController;
-    public GateController andGateController;
-    public ResettableObject[] boulders;
+    [SerializeField] private LeverController leverController;
+    [SerializeField] private GateController andGateController;
+    [SerializeField] private ResettableObject[] boulders;
 
     [Header("Challenge 2 Reset References")]
-    public FruitBasket challenge2Basket;
-    public ResettableObject[] challenge2Fruits;
+    [SerializeField] private FruitBasket challenge2Basket;
+    [SerializeField] private ResettableObject[] challenge2Fruits;
 
     [Header("Truth Table Challenge 1 Reset References")]
-    public TorchPedestal[] truthTablePedestals;
-    public ResettableObject[] truthTableTorches;
+    [SerializeField] private TorchPedestal[] truthTablePedestals;
+    [SerializeField] private ResettableObject[] truthTableTorches;
 
+    [Header("Harvest Matrix Reset References")]
+    [SerializeField] private SoilMound[] matrixMounds;
+    [SerializeField] private ResettableObject[] matrixSeeds;
+
+    [Header("Wizards")]
     [Tooltip("Drag the Challenge 2 Wizard here")]
-    public WizardInteraction challenge2Wizard;
+    [SerializeField] private WizardInteraction challenge2Wizard;
 
     [Tooltip("Drag the Challenge 3 Wizard here")]
-    public WizardInteraction challenge3Wizard;
+    [SerializeField] private WizardInteraction challenge3Wizard;
 
     [Tooltip("Drag the Wizard here so we can reset his dialogue")]
-    public WizardInteraction startingWizard;
+    [SerializeField] private WizardInteraction startingWizard;
 
     private void Start()
     {
@@ -107,10 +113,13 @@ public class LevelManager : MonoBehaviour
             player.position = currentRespawnPoint.position;
             
             Rigidbody playerRb = player.GetComponent<Rigidbody>();
-            if (playerRb != null) playerRb.linearVelocity = Vector3.zero; 
-
+            if (playerRb != null && !playerRb.isKinematic) 
+            {
+                playerRb.linearVelocity = Vector3.zero; 
+            }
             ResetChallenge2();
             ResetTruthTable();
+            ResetHarvestMatrix();
         }
     }
 
@@ -132,11 +141,14 @@ public class LevelManager : MonoBehaviour
             player.position = currentRespawnPoint.position;
             
             Rigidbody playerRb = player.GetComponent<Rigidbody>();
-            if (playerRb != null) playerRb.linearVelocity = Vector3.zero;
-
+            if (playerRb != null && !playerRb.isKinematic) 
+            {
+                playerRb.linearVelocity = Vector3.zero; 
+            }
             ResetChallenge1();
             ResetChallenge2();
             ResetTruthTable();
+            ResetHarvestMatrix();
             StartTimer(); 
         }
     }
@@ -160,6 +172,7 @@ public class LevelManager : MonoBehaviour
         ResetChallenge1();
         ResetChallenge2();
         ResetTruthTable();
+        ResetHarvestMatrix();
 
         // 5. Reset the visibility so they see Challenge 1 again
         if (challenge1Area != null) challenge1Area.SetActive(true);
@@ -256,6 +269,21 @@ public class LevelManager : MonoBehaviour
         foreach (var torch in truthTableTorches)
         {
             if (torch != null) torch.ResetPosition();
+        }
+    }
+
+    private void ResetHarvestMatrix()
+    {
+        // Clear the dirt mounds so they are empty again
+        foreach (var mound in matrixMounds)
+        {
+            if (mound != null) mound.currentSeed = null;
+        }
+        
+        // Force seeds back to spawn
+        foreach (var seed in matrixSeeds)
+        {
+            if (seed != null) seed.ResetPosition();
         }
     }
 

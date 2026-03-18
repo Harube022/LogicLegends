@@ -38,6 +38,11 @@ public class TorchPedestal : MonoBehaviour
             OpenTorchUI();
         }
     }
+        public void RemoveTorch()
+    {
+        currentTorch = null;
+        if (torchUIPanel != null) torchUIPanel.SetActive(false); 
+    }
 
     // ---> NEW: Clears the pedestal's memory and tells the torch to reset! <---
     public void ClearPedestal()
