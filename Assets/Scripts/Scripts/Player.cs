@@ -24,14 +24,14 @@ public class Player : MonoBehaviourPun
     private float verticalVelocity;
     private bool isGrounded;
     private bool isJumping;
-    private float groundSnapDistance = 0.3f;
+    // private float groundSnapDistance = 0.3f;
     private float jumpBufferTimer;
 
     private void Awake()
     {
         if (gameInput == null)
         {
-            gameInput = FindObjectOfType<GameInput>();
+            gameInput = FindFirstObjectByType<GameInput>();
         }
     }
 
@@ -45,7 +45,7 @@ public class Player : MonoBehaviourPun
 
             // ---> NEW CAMERA LINK LOGIC <---
             // Find the camera in the scene and tell it to follow THIS specific player
-            ThirdPersonCameraController cam = FindObjectOfType<ThirdPersonCameraController>();
+            ThirdPersonCameraController cam = FindFirstObjectByType<ThirdPersonCameraController>();
             if (cam != null)
             {
                 cam.SetPlayerTarget(this.transform);
@@ -82,6 +82,16 @@ public class Player : MonoBehaviourPun
             if (leverHit.transform.TryGetComponent(out LeverController lever))
             {
                 lever.ToggleLever(); 
+                return; 
+            }
+        }
+
+        // ---> NEW: CHECK WATERING CAN MANAGER <---
+        if (Physics.SphereCast(rayStart, castRadius, transform.forward, out RaycastHit canHit, interactionDistance))
+        {
+            if (canHit.transform.TryGetComponent(out HarvestMatrixManager manager))
+            {
+                manager.WaterGarden(); 
                 return; 
             }
         }
@@ -142,6 +152,16 @@ public class Player : MonoBehaviourPun
                         return; 
                     }
                 } 
+
+                // ---> NEW: Try to put it in a Soil Mound <---
+                if (hit.transform.TryGetComponent(out SoilMound mound) && !mound.HasSeed()) 
+                {
+                    GameObject seedObj = heldObject.gameObject;
+                    heldObject.Drop(); 
+                    mound.PlaceSeed(seedObj); 
+                    heldObject = null;
+                    return;
+                }
             }
 
             // Otherwise, just drop it on the ground

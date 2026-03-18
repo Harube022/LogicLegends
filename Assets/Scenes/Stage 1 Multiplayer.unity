@@ -1827,7 +1827,7 @@ PrefabInstance:
     - target: {fileID: 6606201747129879078, guid: 36a1fa3ebc2a3be40b2e993e51dac7b9, type: 3}
       propertyPath: player
       value: 
-      objectReference: {fileID: 3960837113861547855, guid: 8c51c334b00980744b26d8410401cc4b, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 6606201747129879078, guid: 36a1fa3ebc2a3be40b2e993e51dac7b9, type: 3}
       propertyPath: collisionLayers.m_Bits
       value: 256
@@ -2642,6 +2642,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c812007f88e44264da962f4695a9e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrabbableObject
+  holdPoint: {fileID: 0}
+  isHeld: 0
+  currentSlot: {fileID: 0}
+  currentBasket: {fileID: 0}
+  currentPedestal: {fileID: 0}
 --- !u!65 &452375009
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3258,6 +3263,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c812007f88e44264da962f4695a9e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrabbableObject
+  holdPoint: {fileID: 0}
+  isHeld: 0
+  currentSlot: {fileID: 0}
+  currentBasket: {fileID: 0}
+  currentPedestal: {fileID: 0}
 --- !u!65 &551942813
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -7582,6 +7592,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c812007f88e44264da962f4695a9e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrabbableObject
+  holdPoint: {fileID: 0}
+  isHeld: 0
+  currentSlot: {fileID: 0}
+  currentBasket: {fileID: 0}
+  currentPedestal: {fileID: 0}
 --- !u!65 &1252623653
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -10963,6 +10978,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c812007f88e44264da962f4695a9e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrabbableObject
+  holdPoint: {fileID: 0}
+  isHeld: 0
+  currentSlot: {fileID: 0}
+  currentBasket: {fileID: 0}
+  currentPedestal: {fileID: 0}
 --- !u!65 &2013016051
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -11270,6 +11290,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c812007f88e44264da962f4695a9e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrabbableObject
+  holdPoint: {fileID: 0}
+  isHeld: 0
+  currentSlot: {fileID: 0}
+  currentBasket: {fileID: 0}
+  currentPedestal: {fileID: 0}
 --- !u!65 &2058598797
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -17744,6 +17769,8 @@ MonoBehaviour:
   - {fileID: 2058598792}
   truthTablePedestals: []
   truthTableTorches: []
+  matrixMounds: []
+  matrixSeeds: []
   challenge2Wizard: {fileID: 1654202828}
   challenge3Wizard: {fileID: 833367261}
   startingWizard: {fileID: 3311622527578925723}
