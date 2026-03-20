@@ -61,4 +61,9 @@ public class SoilMound : MonoBehaviour
             }
         }
     }
+    // ---> NEW: Clears the mound's memory cleanly! <---
+    public void ClearMound()
+    {
+        currentSeed = null;
+    }
 }

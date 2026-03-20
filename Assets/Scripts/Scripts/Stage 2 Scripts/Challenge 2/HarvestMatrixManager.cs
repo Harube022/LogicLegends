@@ -1,11 +1,13 @@
 using UnityEngine;
-
+using UnityEngine.Events;
 public class HarvestMatrixManager : MonoBehaviour
 {
     [SerializeField] private SoilMound[] soilMounds;
     
-    [Header("Win State")]
-    [SerializeField] private GameObject giantBeanstalk;
+    [Header("Puzzle Events (Drag & Drop)")]
+    public UnityEvent OnPuzzleSolved;
+    public UnityEvent OnPuzzleFailed;
+    public UnityEvent OnPuzzleReset;
 
     // The player interacts with this object to submit their answer
     public void WaterGarden()
@@ -35,16 +37,13 @@ public class HarvestMatrixManager : MonoBehaviour
         if (allCorrect)
         {
             Debug.Log("Harvest Matrix Solved! Growing Beanstalk!");
-            if (giantBeanstalk != null) giantBeanstalk.SetActive(true);
-
-            // ---> NEW: Hide all the seeds so it looks like they transformed! <---
             foreach (var mound in soilMounds)
             {
-                if (mound.currentSeed != null)
-                {
-                    mound.currentSeed.gameObject.SetActive(false);
-                }
+                if (mound.currentSeed != null) mound.currentSeed.gameObject.SetActive(false);
+                
             }
+
+            OnPuzzleSolved?.Invoke();
         }
         else
         {
@@ -54,12 +53,17 @@ public class HarvestMatrixManager : MonoBehaviour
                 mound.SpitOutSeed();
             }
             
-            Invoke(nameof(TriggerRespawn), 1.5f);
+            Invoke(nameof(TriggerFailEvent), 1.5f);
         }
     }
-    private void TriggerRespawn()
+    private void TriggerFailEvent()
     {
-        if (LevelManager.Instance != null) LevelManager.Instance.LoseHeartAndRespawn();
+        OnPuzzleFailed?.Invoke();
+    }
+
+    public void ResetPuzzle()
+    {
+        OnPuzzleReset?.Invoke();
     }
 
 }

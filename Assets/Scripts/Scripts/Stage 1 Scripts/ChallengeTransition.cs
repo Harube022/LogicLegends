@@ -3,45 +3,89 @@ using UnityEngine;
 public class ChallengeTransition : MonoBehaviour
 {
     [Header("UI Transition")]
-    [Tooltip("Drag the Challenge 1 Objectives Parent here")]
     [SerializeField] private GameObject oldObjectiveUI;
-    [Tooltip("Drag the Challenge 2 Objectives Parent here")]
     [SerializeField] private GameObject newObjectiveUI;
 
-    [Header("Teleport Settings")]
-    [Tooltip("Drag the empty GameObject where the player should start Challenge 2 here")]
-    [SerializeField] private Transform challenge2StartPoint;
+    [Header("Next Challenge Setup")]
+    [Tooltip("Drag the NEW ChallengeModule for the next area here")]
+    [SerializeField] private ChallengeModule nextChallengeModule;
 
     [Header("Visibility Settings")]
-    [Tooltip("Drag the Challenge folder you want to HIDE (e.g., Challenge 1)")]
     [SerializeField] private GameObject challengeToHide;
-    [Tooltip("Drag the Challenge folder you want to SHOW (e.g., Challenge 2)")]
     [SerializeField] private GameObject challengeToShow;
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && nextChallengeModule != null)
         {
             // 1. Teleport the player
-            other.transform.position = challenge2StartPoint.position;
+            other.transform.position = nextChallengeModule.GetRespawnPoint().position;
 
             Rigidbody playerRb = other.GetComponent<Rigidbody>();
             if (playerRb != null) playerRb.linearVelocity = Vector3.zero;
 
-            // 2. Swap which challenge is visible!
+            // 2. Swap visibility
             if (challengeToHide != null) challengeToHide.SetActive(false);
             if (challengeToShow != null) challengeToShow.SetActive(true);
 
-            // 2.5 Swap the UI Objectives!
+            // 3. Swap UI
             if (oldObjectiveUI != null) oldObjectiveUI.SetActive(false);
             if (newObjectiveUI != null) newObjectiveUI.SetActive(true);
 
-            // 3. Update LevelManager
+            // 4. Update LevelManager with the new Module!
             if (LevelManager.Instance != null)
             {
-                LevelManager.Instance.UpdateRespawnPoint(challenge2StartPoint);
+                LevelManager.Instance.SetNewChallenge(nextChallengeModule);
                 LevelManager.Instance.HideTimer();
             }
         }
     }
 }
+
+// using UnityEngine;
+
+// public class ChallengeTransition : MonoBehaviour
+// {
+//     [Header("UI Transition")]
+//     [Tooltip("Drag the Challenge 1 Objectives Parent here")]
+//     [SerializeField] private GameObject oldObjectiveUI;
+//     [Tooltip("Drag the Challenge 2 Objectives Parent here")]
+//     [SerializeField] private GameObject newObjectiveUI;
+
+//     [Header("Teleport Settings")]
+//     [Tooltip("Drag the empty GameObject where the player should start Challenge 2 here")]
+//     [SerializeField] private Transform challenge2StartPoint;
+
+//     [Header("Visibility Settings")]
+//     [Tooltip("Drag the Challenge folder you want to HIDE (e.g., Challenge 1)")]
+//     [SerializeField] private GameObject challengeToHide;
+//     [Tooltip("Drag the Challenge folder you want to SHOW (e.g., Challenge 2)")]
+//     [SerializeField] private GameObject challengeToShow;
+
+//     private void OnTriggerEnter(Collider other)
+//     {
+//         if (other.CompareTag("Player"))
+//         {
+//             // 1. Teleport the player
+//             other.transform.position = challenge2StartPoint.position;
+
+//             Rigidbody playerRb = other.GetComponent<Rigidbody>();
+//             if (playerRb != null) playerRb.linearVelocity = Vector3.zero;
+
+//             // 2. Swap which challenge is visible!
+//             if (challengeToHide != null) challengeToHide.SetActive(false);
+//             if (challengeToShow != null) challengeToShow.SetActive(true);
+
+//             // 2.5 Swap the UI Objectives!
+//             if (oldObjectiveUI != null) oldObjectiveUI.SetActive(false);
+//             if (newObjectiveUI != null) newObjectiveUI.SetActive(true);
+
+//             // 3. Update LevelManager
+//             if (LevelManager.Instance != null)
+//             {
+//                 LevelManager.Instance.UpdateRespawnPoint(challenge2StartPoint);
+//                 LevelManager.Instance.HideTimer();
+//             }
+//         }
+//     }
+// }

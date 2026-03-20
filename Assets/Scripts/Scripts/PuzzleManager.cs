@@ -133,7 +133,7 @@ public class PuzzleManager : MonoBehaviour
             // --- NEW: Tell the Wizard all tables are done! ---
             if (wizardInteraction != null)
             {
-                wizardInteraction.UnlockFinalDialogue();
+                wizardInteraction.areAllTasksCompleted = true;
             }
         }
 

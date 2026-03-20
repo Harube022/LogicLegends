@@ -22,6 +22,11 @@ public class ThirdPersonCameraController : MonoBehaviour
     [SerializeField] private float minY = -30f;
     [SerializeField] private float maxY = 70f;
 
+    [Header("Follow Smoothing")]
+    [SerializeField] private float positionSmoothTime = 0.1f; // Adjust this to make it more/less springy
+    private Vector3 currentFollowPosition;
+    private Vector3 followVelocity = Vector3.zero;
+
     private Vector2 lastMousePosition;
     private bool isDraggingMouse;
 
@@ -30,6 +35,9 @@ public class ThirdPersonCameraController : MonoBehaviour
         // Initialize distances
         currentDistance = defaultDistance;
         targetDistance = defaultDistance;
+
+        // Initialize the smooth follow position
+        if (player != null) currentFollowPosition = player.position;
     }
 
     private void Update()
@@ -85,8 +93,12 @@ public class ThirdPersonCameraController : MonoBehaviour
     {
         if (player == null) return;
 
+        // NEW: Smoothly move our tracking position towards the player's actual position
+        // This absorbs the sudden Y-axis teleportation from stepping up bumps
+        currentFollowPosition = Vector3.SmoothDamp(currentFollowPosition, player.position, ref followVelocity, positionSmoothTime);
+        
         // Calculate the base target position (slightly above the player's feet)
-        Vector3 targetPosition = player.position + Vector3.up * 1.5f;
+        Vector3 targetPosition = currentFollowPosition + Vector3.up * 1.5f;
         
         // The direction the camera is looking backward from the player
         Vector3 direction = -transform.forward;

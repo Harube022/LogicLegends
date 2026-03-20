@@ -273,7 +273,7 @@ public class Player : MonoBehaviourPun
             }
             // ---> NEW PUSH LOGIC END <---
 
-            // ===== TRY STEP UP =====
+            // // ===== TRY STEP UP =====
             float stepHeight = 0.6f; 
 
             Vector3 stepUp = Vector3.up * stepHeight;
@@ -286,6 +286,19 @@ public class Player : MonoBehaviourPun
                 transform.position += stepUp;                 
                 transform.position += moveDir * moveDistance; 
             }
+            else
+            {
+                // ===== NEW: WALL SLIDING =====
+                // 3. We hit a tall wall. Redirect our forward movement to slide ALONG the wall's surface.
+                Vector3 slideDir = Vector3.ProjectOnPlane(moveDir, hit.normal).normalized;
+
+                // Check if this new sliding path is actually clear (prevents clipping through corners)
+                if (slideDir != Vector3.zero && !Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, slideDir, moveDistance))
+                {
+                    transform.position += slideDir * moveDistance;
+                }
+            }
+            
         }
 
         // ===== FACE DIRECTION =====

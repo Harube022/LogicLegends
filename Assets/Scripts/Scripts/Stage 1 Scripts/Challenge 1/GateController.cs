@@ -28,7 +28,11 @@ public class GateController : MonoBehaviour
             openGateObj.SetActive(true);
 
             // STOP TIMER
-            if (LevelManager.Instance != null) LevelManager.Instance.StopTimer();
+            if (LevelManager.Instance != null)
+            {
+                LevelManager.Instance.StopTimer();
+                LevelManager.Instance.ResetTimer();
+            }
         }
         else
         {
