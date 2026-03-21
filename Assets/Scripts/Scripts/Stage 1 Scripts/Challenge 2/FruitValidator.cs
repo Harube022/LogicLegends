@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using Photon.Pun; // 1. Added Photon Namespace
 
 public class FruitValidator : MonoBehaviour
 {
@@ -7,6 +8,12 @@ public class FruitValidator : MonoBehaviour
     [SerializeField] private WizardInteraction wizard;
     [SerializeField] private FruitBasket challenge2Basket;
     [SerializeField] private TextMeshProUGUI objectiveText;
+    private PhotonView view; // 2. Add PhotonView Reference
+
+    private void Awake()
+    {
+        view = GetComponent<PhotonView>();
+    }
 
     // We changed the name to reflect what it does now!
     public void EvaluateBasketOrTalk()
@@ -21,7 +28,10 @@ public class FruitValidator : MonoBehaviour
         // 2. If there IS fruit, skip the tutorial and judge it instantly!
         if (challenge2Basket.CheckORGate())
         {
-            CrossOutObjective();
+            // 3. Tell everyone on the network to cross out the text!
+            if (view != null && PhotonNetwork.InRoom) view.RPC("RPC_CrossOutObjective", RpcTarget.All);
+            else RPC_CrossOutObjective();
+            
             if (wizard != null) wizard.PlaySuccessDialogue();
         }
         else
@@ -30,7 +40,8 @@ public class FruitValidator : MonoBehaviour
         }
     }
 
-    private void CrossOutObjective()
+    [PunRPC]
+    private void RPC_CrossOutObjective()
     {
         if (objectiveText != null && !objectiveText.text.Contains("<s>"))
         {

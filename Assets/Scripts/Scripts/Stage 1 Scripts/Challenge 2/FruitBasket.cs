@@ -1,4 +1,5 @@
 using UnityEngine;
+using Photon.Pun;
 
 public class FruitBasket : MonoBehaviour
 {
@@ -6,9 +7,38 @@ public class FruitBasket : MonoBehaviour
     [Tooltip("Place an empty GameObject inside the basket and drag it here")]
     public Transform fruitSnapPoint;
 
+    private PhotonView view; // 2. Add PhotonView reference
+
+    private void Awake()
+    {
+        view = GetComponent<PhotonView>();
+    }
+
     public void PlaceFruit(GameObject fruitObj)
     {
+        PhotonView fruitView = fruitObj.GetComponent<PhotonView>();
+        
+        if (view != null && fruitView != null && PhotonNetwork.InRoom)
+        {
+            // 3. Send the network ID of the fruit so everyone knows WHICH fruit to snap!
+            view.RPC("RPC_PlaceFruit", RpcTarget.All, fruitView.ViewID);
+        }
+        else if (fruitView != null)
+        {
+            RPC_PlaceFruit(fruitView.ViewID); // Fallback for solo testing
+        }
+    }
+
+    [PunRPC]
+    public void RPC_PlaceFruit(int fruitViewID)
+    {
+        // 4. Find the fruit object using the ID we sent over the network
+        PhotonView fruitView = PhotonNetwork.GetPhotonView(fruitViewID);
+        if (fruitView == null) return;
+
+        GameObject fruitObj = fruitView.gameObject;
         FruitItem fruit = fruitObj.GetComponent<FruitItem>();
+
         if (fruit != null)
         {
             currentFruit = fruit;
@@ -39,12 +69,27 @@ public class FruitBasket : MonoBehaviour
         return currentFruit.isRed || currentFruit.isBerry;
     }
 
+    // --- SYNC REMOVAL AND CLEARING ---
     public void RemoveFruit()
+    {
+        if (view != null && PhotonNetwork.InRoom) view.RPC("RPC_RemoveFruit", RpcTarget.All);
+        else RPC_RemoveFruit();
+    }
+
+    [PunRPC]
+    public void RPC_RemoveFruit()
     {
         currentFruit = null;
     }
 
-public void ClearBasket()
+    public void ClearBasket()
+    {
+        if (view != null && PhotonNetwork.InRoom) view.RPC("RPC_ClearBasket", RpcTarget.All);
+        else RPC_ClearBasket();
+    }
+
+    [PunRPC]
+    public void RPC_ClearBasket()
     {
         if (currentFruit != null)
         {

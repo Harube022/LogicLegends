@@ -316,6 +316,28 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5716771449530931255, guid: 833862d1fa9a7c944baffef670994b89, type: 3}
   m_PrefabInstance: {fileID: 41940646}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &111093418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 451179638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 11
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1001 &121480276
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -473,6 +495,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b050bcae352cc0040aaa523f517b6817, type: 3}
       insertIndex: -1
       addedObject: {fileID: 134163906}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b050bcae352cc0040aaa523f517b6817, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 134163912}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b050bcae352cc0040aaa523f517b6817, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 134163911}
   m_SourcePrefab: {fileID: 100100000, guid: b050bcae352cc0040aaa523f517b6817, type: 3}
 --- !u!4 &134163904 stripped
 Transform:
@@ -575,6 +603,45 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &134163911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 134163905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonTransformView
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1
+--- !u!114 &134163912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 134163905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 1
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: 134163911}
+  sceneViewId: 10
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &141171985
 GameObject:
   m_ObjectHideFlags: 0
@@ -1052,6 +1119,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8a5bf974056536747862af920e789219, type: 3}
       insertIndex: -1
       addedObject: {fileID: 203153419}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8a5bf974056536747862af920e789219, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 203153425}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8a5bf974056536747862af920e789219, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 203153424}
   m_SourcePrefab: {fileID: 100100000, guid: 8a5bf974056536747862af920e789219, type: 3}
 --- !u!4 &203153417 stripped
 Transform:
@@ -1154,6 +1227,45 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &203153424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 203153418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonTransformView
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1
+--- !u!114 &203153425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 203153418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 1
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: 203153424}
+  sceneViewId: 9
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &229863205
 GameObject:
   m_ObjectHideFlags: 0
@@ -2997,6 +3109,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ff9ab0b678a0b244a6b26ed11a524cb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 398100262}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ff9ab0b678a0b244a6b26ed11a524cb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 398100268}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ff9ab0b678a0b244a6b26ed11a524cb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 398100267}
   m_SourcePrefab: {fileID: 100100000, guid: 0ff9ab0b678a0b244a6b26ed11a524cb, type: 3}
 --- !u!4 &398100260 stripped
 Transform:
@@ -3099,6 +3217,45 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &398100267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 398100261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonTransformView
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1
+--- !u!114 &398100268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 398100261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 1
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: 398100267}
+  sceneViewId: 8
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1001 &405633109
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3403,6 +3560,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4d24d4b05151eda4581142f2b27a3976, type: 3}
       insertIndex: -1
       addedObject: {fileID: 424872751}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4d24d4b05151eda4581142f2b27a3976, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 424872755}
   m_SourcePrefab: {fileID: 100100000, guid: 4d24d4b05151eda4581142f2b27a3976, type: 3}
 --- !u!4 &424872749 stripped
 Transform:
@@ -3491,6 +3651,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 8.700634, y: 3.997271, z: 9.869038}
   m_Center: {x: -0.013009308, y: -2.1272862, z: 0.006618201}
+--- !u!114 &424872755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 424872750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 12
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1001 &446419851
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3634,6 +3816,11 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!1 &451179638 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4734132229171944542, guid: fcab34803ed583940beae33df04b7229, type: 3}
+  m_PrefabInstance: {fileID: 1476381554}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &524306568
 GameObject:
   m_ObjectHideFlags: 0
@@ -3818,6 +4005,113 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 6163357941915963767, guid: 8d16fbd979bb0ad46b8a02d6b3ad00f0, type: 3}
+--- !u!1001 &579985121
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1067147857}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.4435389
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.4435389
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 258.5
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 74.93
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 64.600006
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_Name
+      value: BORDER (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 579985124}
+  m_SourcePrefab: {fileID: 100100000, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+--- !u!4 &579985122 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+  m_PrefabInstance: {fileID: 579985121}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &579985123 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 87a0011d8847c994da241a0cb1eed502, type: 3}
+  m_PrefabInstance: {fileID: 579985121}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &579985124
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 579985123}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 202.59782, y: 19.39622, z: 158.6146}
+  m_Center: {x: 4.194051, y: -37.696777, z: -16.071337}
 --- !u!1001 &610317521
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3975,6 +4269,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3b4f1f5f81442fb4b9a9cf8ac8017536, type: 3}
       insertIndex: -1
       addedObject: {fileID: 612327210}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3b4f1f5f81442fb4b9a9cf8ac8017536, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 612327216}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3b4f1f5f81442fb4b9a9cf8ac8017536, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 612327215}
   m_SourcePrefab: {fileID: 100100000, guid: 3b4f1f5f81442fb4b9a9cf8ac8017536, type: 3}
 --- !u!4 &612327208 stripped
 Transform:
@@ -4077,6 +4377,45 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &612327215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 612327209}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonTransformView
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1
+--- !u!114 &612327216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 612327209}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 1
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: 612327215}
+  sceneViewId: 7
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1001 &631869202
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6333,6 +6672,7 @@ Transform:
   - {fileID: 788569545}
   - {fileID: 885879690}
   - {fileID: 957873112}
+  - {fileID: 579985122}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1089377520
@@ -6404,6 +6744,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: bf496f277b382954f8bca7e8ee4d8dec, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1089377524}
+    - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: bf496f277b382954f8bca7e8ee4d8dec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1089377527}
   m_SourcePrefab: {fileID: 100100000, guid: bf496f277b382954f8bca7e8ee4d8dec, type: 3}
 --- !u!4 &1089377521 stripped
 Transform:
@@ -6516,6 +6859,28 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1089377527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1089377522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 1
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1001 &1096199545
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8680,6 +9045,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: bf496f277b382954f8bca7e8ee4d8dec, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1458872558}
+    - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: bf496f277b382954f8bca7e8ee4d8dec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1458872561}
   m_SourcePrefab: {fileID: 100100000, guid: bf496f277b382954f8bca7e8ee4d8dec, type: 3}
 --- !u!4 &1458872556 stripped
 Transform:
@@ -8887,6 +9255,28 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   areAllTasksCompleted: 0
+--- !u!114 &1458872561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1458872557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 2
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1001 &1459741386
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9426,7 +9816,19 @@ PrefabInstance:
     - {fileID: 5169298880622456017, guid: fcab34803ed583940beae33df04b7229, type: 3}
     - {fileID: 6462427080557940756, guid: fcab34803ed583940beae33df04b7229, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4734132229171944542, guid: fcab34803ed583940beae33df04b7229, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 111093418}
+    - targetCorrespondingSourceObject: {fileID: 5096805409505013370, guid: fcab34803ed583940beae33df04b7229, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1476381563}
+    - targetCorrespondingSourceObject: {fileID: 6216609686383526567, guid: fcab34803ed583940beae33df04b7229, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1476381562}
+    - targetCorrespondingSourceObject: {fileID: 6216609686383526567, guid: fcab34803ed583940beae33df04b7229, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1476381561}
   m_SourcePrefab: {fileID: 100100000, guid: fcab34803ed583940beae33df04b7229, type: 3}
 --- !u!4 &1476381555 stripped
 Transform:
@@ -9438,7 +9840,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6237558939228909464, guid: fcab34803ed583940beae33df04b7229, type: 3}
   m_PrefabInstance: {fileID: 1476381554}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1476381559}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff2a4fce02f178a4e9530711f6f71b16, type: 3}
@@ -9449,7 +9851,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5593679188880731237, guid: fcab34803ed583940beae33df04b7229, type: 3}
   m_PrefabInstance: {fileID: 1476381554}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1476381560}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 79d02f6b549a4644b83a02dbe83116ad, type: 3}
@@ -9460,12 +9862,83 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 260736038330845514, guid: fcab34803ed583940beae33df04b7229, type: 3}
   m_PrefabInstance: {fileID: 1476381554}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 451179638}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3d931338bdcbd65449504001abb4c00d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GateController
+--- !u!1 &1476381559 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6216609686383526567, guid: fcab34803ed583940beae33df04b7229, type: 3}
+  m_PrefabInstance: {fileID: 1476381554}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1476381560 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5096805409505013370, guid: fcab34803ed583940beae33df04b7229, type: 3}
+  m_PrefabInstance: {fileID: 1476381554}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1476381561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1476381559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonTransformView
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1
+--- !u!114 &1476381562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1476381559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 1
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: 1476381561}
+  sceneViewId: 5
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
+--- !u!114 &1476381563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1476381560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 4
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &1498403027
 GameObject:
   m_ObjectHideFlags: 0
@@ -9589,6 +10062,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 57041fe02b543d641a2d4a82795b452c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1519586501}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 57041fe02b543d641a2d4a82795b452c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1519586507}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 57041fe02b543d641a2d4a82795b452c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1519586506}
   m_SourcePrefab: {fileID: 100100000, guid: 57041fe02b543d641a2d4a82795b452c, type: 3}
 --- !u!4 &1519586499 stripped
 Transform:
@@ -9691,6 +10170,45 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1519586506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1519586500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonTransformView
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1
+--- !u!114 &1519586507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1519586500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 1
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: 1519586506}
+  sceneViewId: 6
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1001 &1527559681
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10512,6 +11030,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: bf496f277b382954f8bca7e8ee4d8dec, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1693627802}
+    - targetCorrespondingSourceObject: {fileID: -8391222552659086748, guid: bf496f277b382954f8bca7e8ee4d8dec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1693627804}
   m_SourcePrefab: {fileID: 100100000, guid: bf496f277b382954f8bca7e8ee4d8dec, type: 3}
 --- !u!4 &1693627800 stripped
 Transform:
@@ -10602,6 +11123,28 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   areAllTasksCompleted: 0
+--- !u!114 &1693627804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1693627801}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 3
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &1754788624 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1775478776165490305, guid: 22f0da62785929f478733cb234677266, type: 3}

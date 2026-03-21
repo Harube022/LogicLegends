@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using Photon.Pun;
 public class LeverController : MonoBehaviour
 {
     [Header("Lever Objects")]
@@ -22,6 +22,12 @@ public class LeverController : MonoBehaviour
     [SerializeField] private GameObject uiGreenOne;
 
     private bool isOn = false;
+    private PhotonView view; // 2. Network view reference
+
+    private void Awake()
+    {
+        view = GetComponent<PhotonView>();
+    }
 
     private void Start()
     {
@@ -29,8 +35,23 @@ public class LeverController : MonoBehaviour
         UpdateVisuals();
     }
 
-    // Your player script will call this method!
+    // 3. Your player script still calls this locally!
     public void ToggleLever()
+    {
+        if (view != null && PhotonNetwork.InRoom)
+        {
+            // Tell everyone in the room to flip the lever
+            view.RPC("RPC_ToggleLever", RpcTarget.All);
+        }
+        else
+        {
+            RPC_ToggleLever(); // Fallback for testing offline
+        }
+    }
+
+    // 4. The actual logic now lives in the network method
+    [PunRPC]
+    public void RPC_ToggleLever()
     {
         isOn = !isOn;
         UpdateVisuals();

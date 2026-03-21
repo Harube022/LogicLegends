@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using Photon.Pun;
 public class GrabbableObject : MonoBehaviour
 {
     [Header("Current State")]
@@ -13,13 +13,15 @@ public class GrabbableObject : MonoBehaviour
 
     private Rigidbody rb;
     private Collider col;
+    private PhotonView view; // 2. Network view reference
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         col = GetComponent<Collider>();
+        view = GetComponent<PhotonView>();
     }
-
+    
     public void SetSlot(PuzzleSlot slot)
     {
         currentSlot = slot;
@@ -30,8 +32,21 @@ public class GrabbableObject : MonoBehaviour
         currentBasket = basket;
     }
 
+    public void SetPedestal(TorchPedestal pedestal)
+    {
+        currentPedestal = pedestal;
+    }
+
     public void Grab(Transform holdPoint)
     {
+        // 3. Take ownership of this item so our screen dictates its movement
+        if (view != null)
+        {
+            view.RequestOwnership(); 
+            // Tell other players to turn off the physics on THEIR end so it doesn't fight us
+            view.RPC("RPC_SetGrabState", RpcTarget.Others, true);
+        }
+
         this.holdPoint = holdPoint;
         isHeld = true;
 
@@ -73,6 +88,12 @@ public class GrabbableObject : MonoBehaviour
 
     public void Drop()
     {
+        // 4. Tell other players to turn physics back on
+        if (view != null)
+        {
+            view.RPC("RPC_SetGrabState", RpcTarget.Others, false);
+        }
+
         isHeld = false;
         holdPoint = null;
 
@@ -89,6 +110,14 @@ public class GrabbableObject : MonoBehaviour
         }
     }
 
+    // 5. This RPC only runs on the remote players' screens
+    [PunRPC]
+    public void RPC_SetGrabState(bool isGrabbed)
+    {
+        if (rb != null) rb.isKinematic = isGrabbed;
+        if (col != null) col.enabled = !isGrabbed;
+    }
+
     private void LateUpdate()
     {
         if (isHeld && holdPoint != null)
@@ -96,10 +125,5 @@ public class GrabbableObject : MonoBehaviour
             transform.position = holdPoint.position;
             transform.rotation = holdPoint.rotation;
         }
-    }
-
-    public void SetPedestal(TorchPedestal pedestal)
-    {
-        currentPedestal = pedestal;
     }
 }

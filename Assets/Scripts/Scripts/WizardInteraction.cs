@@ -183,14 +183,29 @@ public class WizardInteraction : MonoBehaviour
 
         OnDialogueComplete?.Invoke();
 
+        // if (!hasTalkedToWizard && wizardObjectiveText != null && !isReadingFinalDialogue)
+        // {
+        //     hasTalkedToWizard = true; 
+        //     wizardObjectiveText.text = "<color=#008000><s>" + wizardObjectiveText.text + "</s></color>";
+        //     if (taskToActivate != null) taskToActivate.SetActive(true); 
+            
+        //     if (startsTimer && LevelManager.Instance != null) 
+        //         LevelManager.Instance.StartCustomTimer(timerDuration);
+        // }
+        // ---> MULTIPLAYER FIX: Sync objectives and timer <---
         if (!hasTalkedToWizard && wizardObjectiveText != null && !isReadingFinalDialogue)
         {
-            hasTalkedToWizard = true; 
-            wizardObjectiveText.text = "<color=#008000><s>" + wizardObjectiveText.text + "</s></color>";
-            if (taskToActivate != null) taskToActivate.SetActive(true); 
-            
-            if (startsTimer && LevelManager.Instance != null) 
-                LevelManager.Instance.StartCustomTimer(timerDuration);
+            PhotonView view = GetComponent<PhotonView>();
+            if (view != null && PhotonNetwork.InRoom)
+            {
+                // Tell EVERYONE in the room to start the timer and update UI
+                view.RPC("RPC_StartWizardTasks", RpcTarget.All);
+            }
+            else
+            {
+                // Fallback for Solo mode if not connected to Photon
+                RPC_StartWizardTasks(); 
+            }
         }
     }
 
@@ -242,6 +257,31 @@ public class WizardInteraction : MonoBehaviour
         if (wizardObjectiveText != null && !string.IsNullOrEmpty(originalObjectiveString))
             wizardObjectiveText.text = originalObjectiveString;
         if (taskToActivate != null) taskToActivate.SetActive(false);
+    }
+
+    // ---> NEW MULTIPLAYER RPC <---
+    [PunRPC]
+    public void RPC_StartWizardTasks()
+    {
+        hasTalkedToWizard = true; 
+        
+        // 1. Cross out the objective text
+        if (wizardObjectiveText != null && !wizardObjectiveText.text.Contains("<s>"))
+        {
+            wizardObjectiveText.text = "<color=#008000><s>" + wizardObjectiveText.text + "</s></color>";
+        }
+        
+        // 2. Turn on the next task/gate
+        if (taskToActivate != null) 
+        {
+            taskToActivate.SetActive(true); 
+        }
+        
+        // 3. Start the LevelManager timer!
+        if (startsTimer && LevelManager.Instance != null) 
+        {
+            LevelManager.Instance.StartCustomTimer(timerDuration);
+        }
     }
 }
 
