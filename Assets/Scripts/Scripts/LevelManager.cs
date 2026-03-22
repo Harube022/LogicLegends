@@ -1,7 +1,8 @@
 using UnityEngine;
 using TMPro;
+using Photon.Pun;
 
-public class LevelManager : MonoBehaviour
+public class LevelManager : MonoBehaviourPun
 {
     public static LevelManager Instance;
 
@@ -49,18 +50,94 @@ public class LevelManager : MonoBehaviour
 
     // --- GLOBAL HEALTH & RESPAWN ---
 
-    public void LoseHeartAndRespawn()
+    // 2. We now ask for the specific player who failed
+    public void LoseHeartAndRespawn(Transform playerWhoFailed = null)
     {
+        if (PhotonNetwork.InRoom && photonView != null)
+        {
+            // Get the unique network ID of the player who failed
+            int failedViewID = -1;
+            if (playerWhoFailed != null)
+            {
+                PhotonView pv = playerWhoFailed.GetComponent<PhotonView>();
+                if (pv != null) failedViewID = pv.ViewID;
+            }
+            
+            // Tell EVERYONE to drop a heart, but pass along who specifically needs to teleport
+            photonView.RPC("RPC_HandleMistake", RpcTarget.All, failedViewID);
+        }
+        else
+        {
+            RPC_HandleMistake(-1); // Solo fallback
+        }
+    }
+
+    [PunRPC]
+    public void RPC_HandleMistake(int failedPlayerViewID)
+    {
+        // 1. EVERYONE updates the shared heart UI
         playerHearts--;
         UpdateHeartsUI();
 
         if (playerHearts <= 0)
         {
             gameOverManager.ShowGameOver();
+            return;
+        }
+
+        // 2. Check who needs to teleport
+        bool isMyPlayer = false;
+        Transform targetPlayer = null;
+
+        if (failedPlayerViewID == -1) 
+        {
+            // ---> THE FIX FOR CHALLENGE 1 & 2 <---
+            // If no specific player was blamed, it means a global puzzle failed (like wrong fruit).
+            // We teleport everyone so the team can try the puzzle again together.
+            isMyPlayer = true; 
+            if (PhotonNetwork.InRoom)
+            {
+                Player[] allPlayers = FindObjectsByType<Player>(FindObjectsSortMode.None);
+                foreach (Player p in allPlayers)
+                {
+                    if (p.GetComponent<PhotonView>().IsMine)
+                    {
+                        targetPlayer = p.transform;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                targetPlayer = player; // Solo fallback
+            }
         }
         else
         {
-            RespawnPlayerAtCurrentCheckpoint();
+            // Search the network for the specific clumsy player (Challenge 3 Water)
+            PhotonView pv = PhotonView.Find(failedPlayerViewID);
+            if (pv != null)
+            {
+                targetPlayer = pv.transform;
+                if (pv.IsMine) isMyPlayer = true; 
+            }
+        }
+
+        // 3. ONLY the person who owns the target player forces them to teleport
+        if (isMyPlayer && targetPlayer != null)
+        {
+            Transform spawnPoint = currentChallenge != null ? currentChallenge.GetRespawnPoint() : ovalRespawnPoint;
+            
+            targetPlayer.position = spawnPoint.position;
+            Rigidbody playerRb = targetPlayer.GetComponent<Rigidbody>();
+            if (playerRb != null && !playerRb.isKinematic) 
+                playerRb.linearVelocity = Vector3.zero; 
+        }
+
+        // 4. Reset the module (boulders, etc.) globally so they can try again
+        if (currentChallenge != null && PhotonNetwork.IsMasterClient)
+        {
+            currentChallenge.ResetThisChallenge();
         }
     }
 
@@ -83,27 +160,72 @@ public class LevelManager : MonoBehaviour
     }
 
     // Completely isolated restart logic
-    public void RestartCurrentChallenge()
+    // public void RestartCurrentChallenge()
+    // {
+    //     playerHearts = 3;
+    //     UpdateHeartsUI();
+        
+    //     timeRemaining = currentMaxTime;
+    //     UpdateTimerUI();
+    //     HideTimer();
+
+    //     RespawnPlayerAtCurrentCheckpoint();
+    // }
+
+    public void ResetFromGameOver()
     {
+        // 1. Refill Hearts
         playerHearts = 3;
         UpdateHeartsUI();
-        
-        timeRemaining = currentMaxTime;
-        UpdateTimerUI();
-        HideTimer();
 
+        // 2. Stop and hide the timer (it will wait for the wizard to start it again)
+        ResetTimer(); 
+
+        // 3. Reset the current Challenge and Respawn
         RespawnPlayerAtCurrentCheckpoint();
+
+        // 4. THE FIX: Find every wizard in the scene and reset them
+        // We use FindObjectsInactive.Include just in case a wizard is temporarily hidden
+        WizardInteraction[] allWizards = FindObjectsByType<WizardInteraction>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        
+        foreach(WizardInteraction wizard in allWizards)
+        {
+            wizard.ResetWizardStatus();
+        }
     }
 
     private void RespawnPlayerAtCurrentCheckpoint()
     {
-        // 1. Teleport player based on the CURRENT module
+        // 1. Figure out where we need to go
         Transform spawnPoint = currentChallenge != null ? currentChallenge.GetRespawnPoint() : ovalRespawnPoint;
-        player.position = spawnPoint.position;
-        
-        Rigidbody playerRb = player.GetComponent<Rigidbody>();
-        if (playerRb != null && !playerRb.isKinematic) 
-            playerRb.linearVelocity = Vector3.zero; 
+
+        // --- THE MULTIPLAYER FIX ---
+        Transform targetPlayer = player; // Fallback to your Inspector reference for solo testing
+
+        if (PhotonNetwork.InRoom)
+        {
+            // Search the scene for all players, but ONLY grab the one that belongs to this specific computer/phone
+            Player[] allPlayers = FindObjectsByType<Player>(FindObjectsSortMode.None);
+            foreach (Player p in allPlayers)
+            {
+                if (p.GetComponent<PhotonView>().IsMine)
+                {
+                    targetPlayer = p.transform;
+                    break;
+                }
+            }
+        }
+
+        // Teleport the correct player
+        if (targetPlayer != null)
+        {
+            targetPlayer.position = spawnPoint.position;
+            
+            Rigidbody playerRb = targetPlayer.GetComponent<Rigidbody>();
+            if (playerRb != null && !playerRb.isKinematic) 
+                playerRb.linearVelocity = Vector3.zero; 
+        }
+        // ---------------------------
 
         // 2. Tell the current module to reset its own specific puzzles!
         if (currentChallenge != null)

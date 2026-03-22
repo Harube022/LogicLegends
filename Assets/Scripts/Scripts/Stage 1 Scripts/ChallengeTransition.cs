@@ -1,6 +1,7 @@
 using UnityEngine;
+using Photon.Pun;
 
-public class ChallengeTransition : MonoBehaviour
+public class ChallengeTransition : MonoBehaviourPun
 {
     [Header("UI Transition")]
     [SerializeField] private GameObject oldObjectiveUI;
@@ -16,76 +17,66 @@ public class ChallengeTransition : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") && nextChallengeModule != null)
+        if (other.CompareTag("Player"))
         {
-            // 1. Teleport the player
-            other.transform.position = nextChallengeModule.GetRespawnPoint().position;
+            PhotonView view = other.GetComponent<PhotonView>();
 
-            Rigidbody playerRb = other.GetComponent<Rigidbody>();
-            if (playerRb != null) playerRb.linearVelocity = Vector3.zero;
+            // 1. Check if offline OR if it's our networked player
+            bool isLocalPlayer = (view == null || !PhotonNetwork.InRoom) || view.IsMine;
 
-            // 2. Swap visibility
-            if (challengeToHide != null) challengeToHide.SetActive(false);
-            if (challengeToShow != null) challengeToShow.SetActive(true);
-
-            // 3. Swap UI
-            if (oldObjectiveUI != null) oldObjectiveUI.SetActive(false);
-            if (newObjectiveUI != null) newObjectiveUI.SetActive(true);
-
-            // 4. Update LevelManager with the new Module!
-            if (LevelManager.Instance != null)
+            // 2. USE the variable here!
+            if (isLocalPlayer)
             {
-                LevelManager.Instance.SetNewChallenge(nextChallengeModule);
-                LevelManager.Instance.HideTimer();
+                // Ensure we have a PhotonView on this trigger object to send the RPC
+                if (PhotonNetwork.InRoom && photonView != null)
+                {
+                    photonView.RPC("RPC_TransitionEveryone", RpcTarget.All);
+                }
+                else
+                {
+                    // Fallback for solo testing
+                    RPC_TransitionEveryone();
+                }
             }
         }
     }
+
+    [PunRPC]
+    public void RPC_TransitionEveryone()
+    {
+        // 1. Find the LOCAL player on this specific device and teleport them
+        Player[] allPlayers = FindObjectsByType<Player>(FindObjectsSortMode.None);
+        foreach (Player p in allPlayers)
+        {
+            PhotonView pv = p.GetComponent<PhotonView>();
+            
+            // Check if offline OR if it's our networked player
+            bool isLocalPlayer = (pv == null || !PhotonNetwork.InRoom) || pv.IsMine;
+
+            if (isLocalPlayer)
+            {
+                p.transform.position = nextChallengeModule.GetRespawnPoint().position;
+                
+                Rigidbody playerRb = p.GetComponent<Rigidbody>();
+                if (playerRb != null) playerRb.linearVelocity = Vector3.zero;
+                
+                break; // Found our player, stop looping
+            }
+        }
+
+        // 2. Swap visibility
+        if (challengeToHide != null) challengeToHide.SetActive(false);
+        if (challengeToShow != null) challengeToShow.SetActive(true);
+
+        // 3. Swap UI
+        if (oldObjectiveUI != null) oldObjectiveUI.SetActive(false);
+        if (newObjectiveUI != null) newObjectiveUI.SetActive(true);
+
+        // 4. Update LevelManager with the new Module!
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.SetNewChallenge(nextChallengeModule);
+            LevelManager.Instance.HideTimer();
+        }
+    }
 }
-
-// using UnityEngine;
-
-// public class ChallengeTransition : MonoBehaviour
-// {
-//     [Header("UI Transition")]
-//     [Tooltip("Drag the Challenge 1 Objectives Parent here")]
-//     [SerializeField] private GameObject oldObjectiveUI;
-//     [Tooltip("Drag the Challenge 2 Objectives Parent here")]
-//     [SerializeField] private GameObject newObjectiveUI;
-
-//     [Header("Teleport Settings")]
-//     [Tooltip("Drag the empty GameObject where the player should start Challenge 2 here")]
-//     [SerializeField] private Transform challenge2StartPoint;
-
-//     [Header("Visibility Settings")]
-//     [Tooltip("Drag the Challenge folder you want to HIDE (e.g., Challenge 1)")]
-//     [SerializeField] private GameObject challengeToHide;
-//     [Tooltip("Drag the Challenge folder you want to SHOW (e.g., Challenge 2)")]
-//     [SerializeField] private GameObject challengeToShow;
-
-//     private void OnTriggerEnter(Collider other)
-//     {
-//         if (other.CompareTag("Player"))
-//         {
-//             // 1. Teleport the player
-//             other.transform.position = challenge2StartPoint.position;
-
-//             Rigidbody playerRb = other.GetComponent<Rigidbody>();
-//             if (playerRb != null) playerRb.linearVelocity = Vector3.zero;
-
-//             // 2. Swap which challenge is visible!
-//             if (challengeToHide != null) challengeToHide.SetActive(false);
-//             if (challengeToShow != null) challengeToShow.SetActive(true);
-
-//             // 2.5 Swap the UI Objectives!
-//             if (oldObjectiveUI != null) oldObjectiveUI.SetActive(false);
-//             if (newObjectiveUI != null) newObjectiveUI.SetActive(true);
-
-//             // 3. Update LevelManager
-//             if (LevelManager.Instance != null)
-//             {
-//                 LevelManager.Instance.UpdateRespawnPoint(challenge2StartPoint);
-//                 LevelManager.Instance.HideTimer();
-//             }
-//         }
-//     }
-// }

@@ -138,7 +138,7 @@ public class Player : MonoBehaviourPun
                 {
                     GameObject torchObj = heldObject.gameObject;
                     heldObject.Drop(); 
-                    ped.PlaceTorch(torchObj); 
+                    ped.PlaceTorchNetworked(torchObj); 
                     heldObject = null;
                     return;
                 }
@@ -312,16 +312,9 @@ public class Player : MonoBehaviourPun
     {
         jumpBufferTimer -= Time.deltaTime;
 
+        // 1. IMPROVED GROUND DETECTION
         float rayStartOffset = 1.0f;
-        float rayDistance = 3.0f;
-
-        if (isGrounded && jumpBufferTimer > 0f && !isJumping)
-        {
-            verticalVelocity = jumpForce;
-            isJumping = true;
-            isGrounded = false;
-            jumpBufferTimer = 0f;
-        }
+        float rayDistance = 3.0f; // <--- THE FIX: Restored this to 3.0 so the ray actually reaches the floor!
 
         bool hitGround = Physics.Raycast(
             transform.position + Vector3.up * rayStartOffset,
@@ -331,104 +324,191 @@ public class Player : MonoBehaviourPun
         );
 
         float maxSlopeAngle = 45f;
-        bool validGround = false;
-
-        if (validGround) // Note: validGround logic seems incomplete here in your original code, but I left it intact!
-        {
-            float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
-
-            if (slopeAngle <= maxSlopeAngle)
-            {
-                validGround = true;
-            }
-        }
-
-        // ===== GOING UP =====
-        if (verticalVelocity > 0f)
-        {
-            isGrounded = false;
-            verticalVelocity += gravity * Time.deltaTime;
-
-            float moveY = verticalVelocity * Time.deltaTime;
-
-            float playerRadius = 0.7f;
-            float playerHeight = 2f;
-
-            Vector3 capsuleBottom = transform.position;
-            Vector3 capsuleTop = transform.position + Vector3.up * playerHeight;
-
-            if (!Physics.CapsuleCast(
-                    capsuleBottom,
-                    capsuleTop,
-                    playerRadius,
-                    Vector3.up,
-                    Mathf.Abs(moveY)))
-            {
-                transform.position += Vector3.up * moveY;
-            }
-            else
-            {
-                verticalVelocity = 0f;
-            }
-
-            return;
-        }
-
-        // ===== ON GROUND =====
+        
+        // Actually evaluate the slope so players can't jump up sheer cliffs
+        bool validGround = hitGround; 
         if (hitGround)
         {
-            isGrounded = true;
-            isJumping = false;
-
-            verticalVelocity = -5f;
-
-            float moveY = verticalVelocity * Time.deltaTime;
-
-            float playerRadius = 0.7f;
-            float playerHeight = 2f;
-
-            Vector3 capsuleBottom = transform.position;
-            Vector3 capsuleTop = transform.position + Vector3.up * playerHeight;
-
-            if (!Physics.CapsuleCast(
-                    capsuleBottom,
-                    capsuleTop,
-                    playerRadius,
-                    Vector3.down,
-                    Mathf.Abs(moveY)))
-            {
-                transform.position += Vector3.up * moveY;
-            }
+            float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
+            if (slopeAngle > maxSlopeAngle) validGround = false;
         }
-        // ===== FALLING =====
-        else
+
+        // 2. JUMP LOGIC
+        if (validGround && jumpBufferTimer > 0f && !isJumping)
+        {
+            verticalVelocity = jumpForce;
+            isJumping = true;
+            isGrounded = false;
+            jumpBufferTimer = 0f;
+        }
+
+        // 3. APPLY GRAVITY
+        if (!validGround)
         {
             isGrounded = false;
-            verticalVelocity += gravity * Time.deltaTime;
+            
+            // SNAPPY JUMPS: Multiply gravity when falling so it feels heavier and less "floaty"
+            float currentGravity = (verticalVelocity < 0f) ? gravity * 1.5f : gravity;
+            verticalVelocity += currentGravity * Time.deltaTime;
 
-            float moveY = verticalVelocity * Time.deltaTime;
+            // TERMINAL VELOCITY: Cap the fall speed
+            if (verticalVelocity < -25f) verticalVelocity = -25f;
+        }
+        else if (!isJumping) 
+        {
+            // On Ground
+            isGrounded = true;
+            verticalVelocity = -5f; // Small downward force to stick to slopes
+        }
 
-            float playerRadius = 0.7f;
-            float playerHeight = 2f;
+        // 4. CONSOLIDATED VERTICAL MOVEMENT
+        float moveY = verticalVelocity * Time.deltaTime;
+        float playerRadius = 0.7f;
+        float playerHeight = 2f;
 
-            Vector3 capsuleBottom = transform.position;
-            Vector3 capsuleTop = transform.position + Vector3.up * playerHeight;
+        Vector3 capsuleBottom = transform.position;
+        Vector3 capsuleTop = transform.position + Vector3.up * playerHeight;
 
-            if (!Physics.CapsuleCast(
-                    capsuleBottom,
-                    capsuleTop,
-                    playerRadius,
-                    Vector3.down,
-                    Mathf.Abs(moveY)))
+        // Determine which way we are checking (Up or Down)
+        Vector3 checkDirection = (moveY > 0) ? Vector3.up : Vector3.down;
+
+        if (!Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, checkDirection, out RaycastHit yHit, Mathf.Abs(moveY)))
+        {
+            transform.position += Vector3.up * moveY;
+        }
+        else
+        {
+            // We hit a ceiling or the floor! Stop vertical momentum.
+            verticalVelocity = 0f;
+            
+            // If we were falling and hit the ground, reset the jump state
+            if (moveY < 0) 
             {
-                transform.position += Vector3.up * moveY;
-            }
-            else
-            {
-                verticalVelocity = 0f;
+                isJumping = false;
             }
         }
     }
+    // private void HandleGravity()
+    // {
+    //     jumpBufferTimer -= Time.deltaTime;
+
+    //     float rayStartOffset = 1.0f;
+    //     float rayDistance = 3.0f;
+
+    //     if (isGrounded && jumpBufferTimer > 0f && !isJumping)
+    //     {
+    //         verticalVelocity = jumpForce;
+    //         isJumping = true;
+    //         isGrounded = false;
+    //         jumpBufferTimer = 0f;
+    //     }
+
+    //     bool hitGround = Physics.Raycast(
+    //         transform.position + Vector3.up * rayStartOffset,
+    //         Vector3.down,
+    //         out RaycastHit hit,
+    //         rayDistance
+    //     );
+
+    //     float maxSlopeAngle = 45f;
+    //     bool validGround = false;
+
+    //     if (validGround) // Note: validGround logic seems incomplete here in your original code, but I left it intact!
+    //     {
+    //         float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
+
+    //         if (slopeAngle <= maxSlopeAngle)
+    //         {
+    //             validGround = true;
+    //         }
+    //     }
+
+    //     // ===== GOING UP =====
+    //     if (verticalVelocity > 0f)
+    //     {
+    //         isGrounded = false;
+    //         verticalVelocity += gravity * Time.deltaTime;
+
+    //         float moveY = verticalVelocity * Time.deltaTime;
+
+    //         float playerRadius = 0.7f;
+    //         float playerHeight = 2f;
+
+    //         Vector3 capsuleBottom = transform.position;
+    //         Vector3 capsuleTop = transform.position + Vector3.up * playerHeight;
+
+    //         if (!Physics.CapsuleCast(
+    //                 capsuleBottom,
+    //                 capsuleTop,
+    //                 playerRadius,
+    //                 Vector3.up,
+    //                 Mathf.Abs(moveY)))
+    //         {
+    //             transform.position += Vector3.up * moveY;
+    //         }
+    //         else
+    //         {
+    //             verticalVelocity = 0f;
+    //         }
+
+    //         return;
+    //     }
+
+    //     // ===== ON GROUND =====
+    //     if (hitGround)
+    //     {
+    //         isGrounded = true;
+    //         isJumping = false;
+
+    //         verticalVelocity = -5f;
+
+    //         float moveY = verticalVelocity * Time.deltaTime;
+
+    //         float playerRadius = 0.7f;
+    //         float playerHeight = 2f;
+
+    //         Vector3 capsuleBottom = transform.position;
+    //         Vector3 capsuleTop = transform.position + Vector3.up * playerHeight;
+
+    //         if (!Physics.CapsuleCast(
+    //                 capsuleBottom,
+    //                 capsuleTop,
+    //                 playerRadius,
+    //                 Vector3.down,
+    //                 Mathf.Abs(moveY)))
+    //         {
+    //             transform.position += Vector3.up * moveY;
+    //         }
+    //     }
+    //     // ===== FALLING =====
+    //     else
+    //     {
+    //         isGrounded = false;
+    //         verticalVelocity += gravity * Time.deltaTime;
+
+    //         float moveY = verticalVelocity * Time.deltaTime;
+
+    //         float playerRadius = 0.7f;
+    //         float playerHeight = 2f;
+
+    //         Vector3 capsuleBottom = transform.position;
+    //         Vector3 capsuleTop = transform.position + Vector3.up * playerHeight;
+
+    //         if (!Physics.CapsuleCast(
+    //                 capsuleBottom,
+    //                 capsuleTop,
+    //                 playerRadius,
+    //                 Vector3.down,
+    //                 Mathf.Abs(moveY)))
+    //         {
+    //             transform.position += Vector3.up * moveY;
+    //         }
+    //         else
+    //         {
+    //             verticalVelocity = 0f;
+    //         }
+    //     }
+    // }
 
     // This helper checks if we are offline OR if the network says the player is ours
     private bool IsLocalPlayer()

@@ -23,9 +23,10 @@ public class FruitBasket : MonoBehaviour
             // 3. Send the network ID of the fruit so everyone knows WHICH fruit to snap!
             view.RPC("RPC_PlaceFruit", RpcTarget.All, fruitView.ViewID);
         }
-        else if (fruitView != null)
+        else
         {
-            RPC_PlaceFruit(fruitView.ViewID); // Fallback for solo testing
+            // OFFLINE: Just snap the object directly without needing Photon lookups!
+            PerformFruitSnap(fruitObj);
         }
     }
 
@@ -34,9 +35,15 @@ public class FruitBasket : MonoBehaviour
     {
         // 4. Find the fruit object using the ID we sent over the network
         PhotonView fruitView = PhotonNetwork.GetPhotonView(fruitViewID);
-        if (fruitView == null) return;
+        if (fruitView != null)
+        {
+            PerformFruitSnap(fruitView.gameObject);
+        }
+    }
 
-        GameObject fruitObj = fruitView.gameObject;
+    // ---> NEW HELPER METHOD: Holds the actual physical snapping code <---
+    private void PerformFruitSnap(GameObject fruitObj)
+    {
         FruitItem fruit = fruitObj.GetComponent<FruitItem>();
 
         if (fruit != null)

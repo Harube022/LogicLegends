@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
-
-public class TorchPedestal : MonoBehaviour
+using Photon.Pun;
+public class TorchPedestal : MonoBehaviourPun
 {
     private TorchItem currentTorch; 
     public TorchItem CurrentTorch => currentTorch;
@@ -15,6 +15,45 @@ public class TorchPedestal : MonoBehaviour
     [SerializeField] private GameObject torchUIPanel;
     [SerializeField] private Button litButton;
     [SerializeField] private Button unlitButton;
+
+    public void PlaceTorchNetworked(GameObject torchObj)
+    {
+        PhotonView torchView = torchObj.GetComponent<PhotonView>();
+        if (torchView != null)
+        {
+            // Tell all clients to snap THIS specific torch to THIS pedestal
+            photonView.RPC("RPC_PlaceTorch", RpcTarget.All, torchView.ViewID);
+
+            OpenTorchUI();
+        }
+    }
+
+    [PunRPC]
+    public void RPC_PlaceTorch(int torchViewID)
+    {
+        PhotonView torchView = PhotonView.Find(torchViewID);
+        if (torchView != null)
+        {
+            GameObject torchObj = torchView.gameObject;
+            TorchItem torch = torchObj.GetComponent<TorchItem>();
+            
+            if (torch != null)
+            {
+                currentTorch = torch;
+                torchObj.transform.position = snapPoint.position;
+                torchObj.transform.rotation = snapPoint.rotation;
+
+                Rigidbody rb = torchObj.GetComponent<Rigidbody>();
+                if (rb != null) 
+                {
+                    rb.isKinematic = true;
+                    rb.useGravity = false; 
+                }
+
+                if (torchObj.TryGetComponent(out GrabbableObject grab)) grab.enabled = false;
+            }
+        }
+    }
 
     public void PlaceTorch(GameObject torchObj)
     {
@@ -58,12 +97,27 @@ public class TorchPedestal : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") && currentTorch != null) OpenTorchUI();
+        if (other.CompareTag("Player") && currentTorch != null) 
+        {
+            PhotonView playerView = other.GetComponent<PhotonView>();
+            // Only show UI if the object has a PhotonView AND it belongs to this specific computer
+            if (playerView != null && playerView.IsMine) 
+            {
+                OpenTorchUI();
+            }
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player") && torchUIPanel != null) torchUIPanel.SetActive(false);
+        if (other.CompareTag("Player") && torchUIPanel != null) 
+        {
+            PhotonView playerView = other.GetComponent<PhotonView>();
+            if (playerView != null && playerView.IsMine)
+            {
+                torchUIPanel.SetActive(false);
+            }
+        }
     }
 
     public void OpenTorchUI()

@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.Events;
-public class TruthTableManager : MonoBehaviour
+using Photon.Pun;
+
+public class TruthTableManager : MonoBehaviourPun
 {
     [SerializeField] private TorchPedestal[] answerPedestals;
 
@@ -10,17 +12,15 @@ public class TruthTableManager : MonoBehaviour
 
     [Tooltip("What happens if the player fails and we need to reset the room?")]
     public UnityEvent OnPuzzleReset;
-    // [Header("Portals")]
-    // [Tooltip("Drag the CLOSED portal asset here")]
-    // [SerializeField] private GameObject closedPortal;
-    // [Tooltip("Drag the OPEN portal asset here")]
-    // [SerializeField] private GameObject openPortal;
     
     private bool isSolved = false;
 
     private void Update()
     {
         if (isSolved) return;
+
+        // ONLY the Master Client evaluates the puzzle to prevent double-firing
+        if (!PhotonNetwork.IsMasterClient) return;
 
         bool allCorrect = true;
         foreach (var ped in answerPedestals)
@@ -34,26 +34,45 @@ public class TruthTableManager : MonoBehaviour
 
         if (allCorrect)
         {
-            isSolved = true;
-            Debug.Log("NOT Gate Solved!");
-            
-            OnPuzzleSolved?.Invoke();
-            // // ---> NEW: Swap the portals! <---
-            // if (closedPortal != null) closedPortal.SetActive(false);
-            // if (openPortal != null) openPortal.SetActive(true);
-
-            // // STOP TIMER
-            // if (LevelManager.Instance != null) LevelManager.Instance.StopTimer();
+            photonView.RPC("RPC_PuzzleSolved", RpcTarget.All);
         }
     }
 
-    // ---> NEW: Reset Method for Replayability <---
+    [PunRPC]
+    private void RPC_PuzzleSolved()
+    {
+        isSolved = true;
+        Debug.Log("NOT Gate Solved Networked!");
+        OnPuzzleSolved?.Invoke();
+    }
+
+// ---> FIXED: Networked the reset so all players see the torches drop <---
     public void ResetPuzzle()
     {
-        // 1. Un-solve the puzzle so it can be checked again
+        // Tell everyone in the room to reset the puzzle
+        if (photonView != null)
+        {
+            photonView.RPC("RPC_ResetPuzzle", RpcTarget.All);
+        }
+    }
+
+    [PunRPC]
+    private void RPC_ResetPuzzle()
+    {
+        // 1. Un-solve the puzzle so it can be checked again on everyone's screen
         isSolved = false;
 
-        // Fire the custom reset event
+        // 2. Force every pedestal to drop its torch
+        foreach (var ped in answerPedestals)
+        {
+            if (ped != null)
+            {
+                // This clears the pedestal and tells the torch's ResettableObject script to reset
+                ped.ClearPedestal();
+            }
+        }
+
+        // 3. Fire the custom reset event (like closing doors, resetting timers, etc.)
         OnPuzzleReset?.Invoke();
     }
 }

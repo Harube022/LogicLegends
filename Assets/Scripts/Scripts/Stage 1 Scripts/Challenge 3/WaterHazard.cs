@@ -1,23 +1,31 @@
 using UnityEngine;
-
+using Photon.Pun;
 public class WaterHazard : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
-        // Check if the thing falling in the water is the player
+        // Check if what fell in the water was a player
         if (other.CompareTag("Player"))
         {
-            // ---> NEW: Turn their custom movement back on so they aren't stuck! <---
-            Player playerScript = other.GetComponent<Player>();
-            if (playerScript != null) playerScript.enabled = true;
-
-            Rigidbody rb = other.GetComponent<Rigidbody>();
-            if (rb != null) rb.isKinematic = true;
+            PhotonView view = other.GetComponent<PhotonView>();
             
-            // Tell the Level Manager to deduct a heart and teleport them!
-            if (LevelManager.Instance != null)
+            // ONLY the player who actually fell in should send the command to lose a heart
+            // This prevents the game from dropping 2 hearts if both computers detect the splash
+            if (view != null && view.IsMine)
             {
-                LevelManager.Instance.LoseHeartAndRespawn();
+                if (LevelManager.Instance != null)
+                {
+                    // Pass THIS specific player's transform to the LevelManager
+                    LevelManager.Instance.LoseHeartAndRespawn(other.transform);
+                }
+            }
+            // Fallback for solo testing
+            else if (view == null && !PhotonNetwork.InRoom)
+            {
+                if (LevelManager.Instance != null)
+                {
+                    LevelManager.Instance.LoseHeartAndRespawn(other.transform);
+                }
             }
         }
     }

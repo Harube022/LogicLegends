@@ -12,12 +12,21 @@ public class GateController : MonoBehaviour
     [Header("Gate Objects")]
     [SerializeField] private GameObject closeGateObj;
     [SerializeField] private GameObject openGateObj;
+
+    [Header("Transition")]
+    [SerializeField] private GameObject teleportZoneToCh2;
     private bool isSolved = false;
     private PhotonView view; // 2. Add PhotonView reference
 
     private void Awake()
     {
         view = GetComponent<PhotonView>();
+    }
+
+    private void Start()
+    {
+        // Ensure the teleport zone is off when the game starts
+        if (teleportZoneToCh2 != null) teleportZoneToCh2.SetActive(false);
     }
 
     private void Update()
@@ -54,9 +63,15 @@ public class GateController : MonoBehaviour
         leftPlate.LockPlateOn();
         rightPlate.LockPlateOn();
         
-        // Open the gate!
+        // Open the gate
         closeGateObj.SetActive(false);
         openGateObj.SetActive(true);
+
+        // Turn on the teleport zone <---
+        if (teleportZoneToCh2 != null)
+        {
+            teleportZoneToCh2.SetActive(true);
+        }
 
         // STOP TIMER
         if (LevelManager.Instance != null)
@@ -73,5 +88,11 @@ public class GateController : MonoBehaviour
         rightPlate.ResetPlate();
         closeGateObj.SetActive(true);
         openGateObj.SetActive(false);
+
+        //Turn the teleport zone back off when resetting
+        if (teleportZoneToCh2 != null)
+        {
+            teleportZoneToCh2.SetActive(false);
+        }
     }
 }

@@ -36,7 +36,24 @@ public class FruitValidator : MonoBehaviour
         }
         else
         {
+            //Play the fail dialogue
             if (wizard != null) wizard.PlayFailDialogue();
+        }
+    }
+
+    // ---> NEW METHOD: The Wizard will call this when the dialogue finishes <---
+    public void ExecuteFailConsequences()
+    {
+        // To prevent losing 2 hearts at once, we only let the Master Client issue the penalty
+        if (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) return;
+
+        // Clear the wrong fruit so they can try again
+        if (challenge2Basket != null) challenge2Basket.ClearBasket();
+        
+        // Tell the LevelManager it was a shared team mistake
+        if (LevelManager.Instance != null) 
+        {
+            LevelManager.Instance.LoseHeartAndRespawn(); 
         }
     }
 

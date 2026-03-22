@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Photon.Pun; // 1. Added Photon
 
-public class GameOverManager : MonoBehaviour
+public class GameOverManager : MonoBehaviourPun
 {
     [Header("UI Panels")]
     [Tooltip("Drag your Game Over Canvas Panel here")]
@@ -23,32 +24,40 @@ public class GameOverManager : MonoBehaviour
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
         if (gameplayInterfacePanel != null) gameplayInterfacePanel.SetActive(false);
 
-        // Pause the game for mobile
-        Time.timeScale = 0f;
     }
 
     // Hook this up to your "Retry" Button
     public void RetryChallenge()
     {
-        // 1. Unpause the game 
-        Time.timeScale = 1f;
-
-        // 2. Hide Game Over, Show Mobile Controls again
-        if (gameOverPanel != null) gameOverPanel.SetActive(false);
-        if (gameplayInterfacePanel != null) gameplayInterfacePanel.SetActive(true);
-
-        // 3. Tell LevelManager to restart the challenge!
-        if (LevelManager.Instance != null)
+        // 3. Send a message to EVERYONE to retry the challenge
+        if (PhotonNetwork.InRoom && photonView != null)
         {
-            LevelManager.Instance.RestartCurrentChallenge();
+            photonView.RPC("RPC_RetryChallenge", RpcTarget.All);
+        }
+        else
+        {
+            RPC_RetryChallenge(); // Fallback for solo testing
         }
     }
 
-    // Hook this up to your "Main Menu" Button
+    [PunRPC]
+    public void RPC_RetryChallenge()
+    {
+        // Hide Game Over, Show Mobile Controls again for all players
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+        if (gameplayInterfacePanel != null) gameplayInterfacePanel.SetActive(true);
+
+        // Tell LevelManager to restart the challenge!
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.ResetFromGameOver();
+        }
+    }
+
     public void ReturnToMenu()
     {
-        // Always unpause before changing scenes!
-        Time.timeScale = 1f;
+        // In a real multiplayer game, you should disconnect from Photon before loading the main menu!
+        if (PhotonNetwork.InRoom) PhotonNetwork.LeaveRoom();
         SceneManager.LoadScene(mainMenuSceneName);
     }
 }

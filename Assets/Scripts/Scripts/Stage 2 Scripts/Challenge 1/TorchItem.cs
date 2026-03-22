@@ -1,9 +1,9 @@
 using UnityEngine;
-
-public class TorchItem : MonoBehaviour
+using Photon.Pun;
+public class TorchItem : MonoBehaviourPun
 {
     [SerializeField] private bool isLit = false;
-    private bool startingState; // Remembers how it spawned!
+    private bool startingState;
 
     [Header("Torch Models")]
     [SerializeField] private GameObject litModel;
@@ -13,24 +13,36 @@ public class TorchItem : MonoBehaviour
 
     private void Awake()
     {
-        startingState = isLit; // Save the original state
+        startingState = isLit;
     }
 
     private void Start()
     {
-        SetState(isLit);
+        // Keep this local for initialization
+        UpdateModels(isLit); 
     }
 
+    // Call this to sync the state across the network
     public void SetState(bool state)
     {
-        isLit = state;
-        if (litModel != null) litModel.SetActive(isLit);
-        if (unlitModel != null) unlitModel.SetActive(!isLit);
+        photonView.RPC("RPC_SetFlameState", RpcTarget.All, state);
     }
 
-    // ---> NEW: Reverts the torch to its original puzzle state <---
+    [PunRPC]
+    private void RPC_SetFlameState(bool state)
+    {
+        isLit = state;
+        UpdateModels(isLit);
+    }
+
+    private void UpdateModels(bool state)
+    {
+        if (litModel != null) litModel.SetActive(state);
+        if (unlitModel != null) unlitModel.SetActive(!state);
+    }
+
     public void ResetFlame()
     {
-        SetState(startingState);
+        SetState(startingState); // This now networks the reset automatically!
     }
 }
