@@ -89,12 +89,11 @@ public class ThirdPersonCameraController : MonoBehaviour
         transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
     }
 
-    private void FollowPlayer()
+private void FollowPlayer()
     {
         if (player == null) return;
 
-        // NEW: Smoothly move our tracking position towards the player's actual position
-        // This absorbs the sudden Y-axis teleportation from stepping up bumps
+        // Smoothly move our tracking position towards the player's actual position
         currentFollowPosition = Vector3.SmoothDamp(currentFollowPosition, player.position, ref followVelocity, positionSmoothTime);
         
         // Calculate the base target position (slightly above the player's feet)
@@ -103,26 +102,39 @@ public class ThirdPersonCameraController : MonoBehaviour
         // The direction the camera is looking backward from the player
         Vector3 direction = -transform.forward;
 
-        // ===== COLLISION CHECK =====
-        // Shoot a sphere backward from the player to see if walls block the camera
+        // ===== WALL & OBSTACLE COLLISION =====
         if (Physics.SphereCast(targetPosition, collisionRadius, direction, out RaycastHit hit, defaultDistance, collisionLayers))
         {
             // If a wall is hit, calculate how far the camera CAN go without clipping
-            // We subtract collisionRadius so the camera doesn't clip slightly into the wall
             targetDistance = Mathf.Clamp(hit.distance - collisionRadius, minDistance, defaultDistance);
         }
         else
         {
-            // If the path is completely clear, return to the normal distance
+            // If the path is clear, return to the normal distance
             targetDistance = defaultDistance;
         }
 
-        // ===== SMOOTH ZOOM =====
         // Smoothly transition the current distance to the new target distance
         currentDistance = Mathf.Lerp(currentDistance, targetDistance, Time.deltaTime * zoomSmoothness);
 
-        // Apply final position
-        transform.position = targetPosition + (direction * currentDistance);
+        // Calculate the intended position BEFORE applying it
+        Vector3 finalPosition = targetPosition + (direction * currentDistance);
+
+        // ===== FLOOR AVOIDANCE (GROUND CHECK) =====
+        float minHeightAboveGround = 1f; 
+        
+        // Shoot a ray down from above the intended position to find the floor
+        if (Physics.Raycast(finalPosition + Vector3.up * 5f, Vector3.down, out RaycastHit groundHit, 10f, collisionLayers))
+        {
+            // If the intended position dips below our minimum height, push the Y value up
+            if (finalPosition.y < groundHit.point.y + minHeightAboveGround)
+            {
+                finalPosition.y = groundHit.point.y + minHeightAboveGround;
+            }
+        }
+
+        // Apply final position once to prevent jittering
+        transform.position = finalPosition;
     }
 
     public void SetPlayerTarget(Transform newTarget)
