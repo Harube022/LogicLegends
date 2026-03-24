@@ -377,10 +377,10 @@ RectTransform:
   - {fileID: 829700363}
   m_Father: {fileID: 446358635}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 2160, y: 350}
+  m_SizeDelta: {x: 0, y: 350}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &15416675
 MonoBehaviour:
@@ -5795,7 +5795,7 @@ PrefabInstance:
     - target: {fileID: 3481046485353604761, guid: a63e4b4218fb05c4388019a341aa1edf, type: 3}
       propertyPath: pausePanel
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 679771600928298474}
     - target: {fileID: 5691489833312681962, guid: a63e4b4218fb05c4388019a341aa1edf, type: 3}
       propertyPath: m_Name
       value: LevelMenuManager
@@ -6240,7 +6240,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 527275589}
         m_TargetAssemblyTypeName: DialogueManager, Assembly-CSharp
         m_MethodName: OnDialoguePanelClicked
         m_Mode: 1
@@ -7351,6 +7351,17 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &527275589 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6772683221537883163, guid: e6d2658e5b104fc438c0856cb4e1f933, type: 3}
+  m_PrefabInstance: {fileID: 2122966249}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efafb2a4ccbf63f46835725d44d2e684, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueManager
 --- !u!1 &539760343
 GameObject:
   m_ObjectHideFlags: 0
@@ -10545,10 +10556,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 15416674}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1600, y: 160}
+  m_SizeDelta: {x: 0, y: 160}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &829700364
 MonoBehaviour:
@@ -13888,10 +13899,14 @@ PrefabInstance:
     - target: {fileID: 6606201747129879078, guid: 36a1fa3ebc2a3be40b2e993e51dac7b9, type: 3}
       propertyPath: player
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1912384744}
     - target: {fileID: 6606201747129879078, guid: 36a1fa3ebc2a3be40b2e993e51dac7b9, type: 3}
       propertyPath: collisionRadius
       value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6606201747129879078, guid: 36a1fa3ebc2a3be40b2e993e51dac7b9, type: 3}
+      propertyPath: positionSmoothTime
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 6606201747129879078, guid: 36a1fa3ebc2a3be40b2e993e51dac7b9, type: 3}
       propertyPath: collisionLayers.m_Bits
@@ -19052,6 +19067,52 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1595906371}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1612050968
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1612050970}
+  - component: {fileID: 1612050969}
+  m_Layer: 0
+  m_Name: MobileInputUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1612050969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1612050968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccc05a78b35e8b44aa431e163d4ef448, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MobileInputUI
+  joystickBackground: {fileID: 0}
+  joystickHandle: {fileID: 0}
+--- !u!4 &1612050970
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1612050968}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 443.01456, y: 103.59356, z: 347.10074}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1615939208
 GameObject:
   m_ObjectHideFlags: 0
@@ -23259,6 +23320,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+--- !u!4 &1912384744 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6468329135324665564, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+  m_PrefabInstance: {fileID: 1912384743}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1923317157
 GameObject:
   m_ObjectHideFlags: 0
@@ -32298,9 +32364,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 517755389}
-        m_TargetAssemblyTypeName: WizardInteraction, Assembly-CSharp
-        m_MethodName: StartStandardDialogue
+      - m_Target: {fileID: 1612050969}
+        m_TargetAssemblyTypeName: MobileInputUI, Assembly-CSharp
+        m_MethodName: Interact
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -33373,6 +33439,7 @@ SceneRoots:
   - {fileID: 388574116}
   - {fileID: 1397113686}
   - {fileID: 930096003}
+  - {fileID: 1612050970}
   - {fileID: 943891044}
   - {fileID: 2122966249}
   - {fileID: 1930739565}

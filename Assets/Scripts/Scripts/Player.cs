@@ -26,6 +26,7 @@ public class Player : MonoBehaviourPun
     private bool isJumping;
     // private float groundSnapDistance = 0.3f;
     private float jumpBufferTimer;
+    private bool tutorialMovementDone = false;
 
     private void Awake()
     {
@@ -306,6 +307,17 @@ public class Player : MonoBehaviourPun
         transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * rotateSpeed);
 
         isWalking = true;
+
+        // ---> TUTORIAL TRIGGER START <---
+        if (isWalking && !tutorialMovementDone)
+        {
+            TutorialManager tutorial = FindFirstObjectByType<TutorialManager>();
+            if (tutorial != null)
+            {
+                tutorial.CompleteMovementStep();
+                tutorialMovementDone = true; // We set this to true so it only fires ONCE
+            }
+        }
     }
     
     private void HandleGravity()

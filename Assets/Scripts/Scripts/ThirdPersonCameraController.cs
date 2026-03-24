@@ -141,4 +141,26 @@ private void FollowPlayer()
     {
         player = newTarget;
     }
+
+public void WarpCamera(Transform targetTransform)
+    {
+        // 1. Instantly reset the smooth follow tracking to the new position
+        currentFollowPosition = targetTransform.position;
+        followVelocity = Vector3.zero;
+
+        // 2. Set the yaw so the camera looks in the exact same direction the player is facing
+        yaw = targetTransform.eulerAngles.y;
+        
+        // 3. Reset the pitch to a default forward-facing angle (e.g., 15 degrees)
+        // This fixes the bug where you stay looking at the sky/floor!
+        pitch = 15f; 
+        
+        // 4. Apply the rotation immediately 
+        transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
+
+        // 5. Instantly snap the camera's physical position so it doesn't "fly"
+        Vector3 targetPosition = currentFollowPosition + Vector3.up * 1.5f;
+        Vector3 direction = -transform.forward;
+        transform.position = targetPosition + (direction * currentDistance);
+    }
 }

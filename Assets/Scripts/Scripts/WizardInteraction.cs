@@ -51,6 +51,18 @@ public class WizardInteraction : MonoBehaviourPun
 
     private void GameInput_OnInteractAction(object sender, System.EventArgs e)
     {
+        // --- NEW: Bulletproof Distance Check ---
+        // If Unity misses the OnTriggerExit (common during teleports), 
+        // this forces the wizard to realize you walked away!
+        if (playerControlScript != null)
+        {
+            float distance = Vector3.Distance(transform.position, playerControlScript.transform.position);
+            if (distance > 5f) 
+            {
+                playerInRange = false; 
+            }
+        }
+        // ---------------------------------------
         if (playerInRange && !isDisplaying) TriggerInteraction();
         else if (isDisplaying) AdvanceDialogue();
     }
