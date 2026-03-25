@@ -1,5 +1,6 @@
 using UnityEngine;
 using Photon.Pun;
+using System; // Required to use Actions
 
 public class ChallengeTransition : MonoBehaviourPun
 {
@@ -20,21 +21,16 @@ public class ChallengeTransition : MonoBehaviourPun
         if (other.CompareTag("Player"))
         {
             PhotonView view = other.GetComponent<PhotonView>();
-
-            // 1. Check if offline OR if it's our networked player
             bool isLocalPlayer = (view == null || !PhotonNetwork.InRoom) || view.IsMine;
 
-            // 2. USE the variable here!
             if (isLocalPlayer)
             {
-                // Ensure we have a PhotonView on this trigger object to send the RPC
                 if (PhotonNetwork.InRoom && photonView != null)
                 {
                     photonView.RPC("RPC_TransitionEveryone", RpcTarget.All);
                 }
                 else
                 {
-                    // Fallback for solo testing
                     RPC_TransitionEveryone();
                 }
             }
@@ -44,39 +40,47 @@ public class ChallengeTransition : MonoBehaviourPun
     [PunRPC]
     public void RPC_TransitionEveryone()
     {
-        // 1. Find the LOCAL player on this specific device and teleport them
         Player[] allPlayers = FindObjectsByType<Player>(FindObjectsSortMode.None);
         foreach (Player p in allPlayers)
         {
             PhotonView pv = p.GetComponent<PhotonView>();
-            
-            // Check if offline OR if it's our networked player
             bool isLocalPlayer = (pv == null || !PhotonNetwork.InRoom) || pv.IsMine;
 
             if (isLocalPlayer)
             {
-                p.transform.position = nextChallengeModule.GetRespawnPoint().position;
+                // 1. Package the visibility and UI swaps into a neat Action
+                Action environmentSwapAction = () => 
+                {
+                    if (challengeToHide != null) challengeToHide.SetActive(false);
+                    if (challengeToShow != null) challengeToShow.SetActive(true);
+                    
+                    if (oldObjectiveUI != null) oldObjectiveUI.SetActive(false);
+                    if (newObjectiveUI != null) newObjectiveUI.SetActive(true);
+
+                    if (LevelManager.Instance != null && nextChallengeModule != null)
+                    {
+                        LevelManager.Instance.SetNewChallenge(nextChallengeModule);
+                        LevelManager.Instance.HideTimer();
+                    }
+                };
+
+                // 2. Pass the action to the TeleportManager to execute when black
+                if (TeleportManager.Instance != null)
+                {
+                    TeleportManager.Instance.StartTeleport(p.gameObject, nextChallengeModule.GetRespawnPoint(), environmentSwapAction);
+                }
+                else
+                {
+                    // Fallback
+                    p.transform.position = nextChallengeModule.GetRespawnPoint().position;
+                    Rigidbody playerRb = p.GetComponent<Rigidbody>();
+                    if (playerRb != null) playerRb.linearVelocity = Vector3.zero;
+                    
+                    environmentSwapAction.Invoke(); // Execute instantly if no manager exists
+                }
                 
-                Rigidbody playerRb = p.GetComponent<Rigidbody>();
-                if (playerRb != null) playerRb.linearVelocity = Vector3.zero;
-                
-                break; // Found our player, stop looping
+                break; 
             }
-        }
-
-        // 2. Swap visibility
-        if (challengeToHide != null) challengeToHide.SetActive(false);
-        if (challengeToShow != null) challengeToShow.SetActive(true);
-
-        // 3. Swap UI
-        if (oldObjectiveUI != null) oldObjectiveUI.SetActive(false);
-        if (newObjectiveUI != null) newObjectiveUI.SetActive(true);
-
-        // 4. Update LevelManager with the new Module!
-        if (LevelManager.Instance != null)
-        {
-            LevelManager.Instance.SetNewChallenge(nextChallengeModule);
-            LevelManager.Instance.HideTimer();
         }
     }
 }

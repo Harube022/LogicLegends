@@ -19,22 +19,31 @@ public class TruthTableManager : MonoBehaviourPun
     {
         if (isSolved) return;
 
-        // ONLY the Master Client evaluates the puzzle to prevent double-firing
-        if (!PhotonNetwork.IsMasterClient) return;
+        // ---> FIXED: Only check for MasterClient IF we are actually in a multiplayer room <---
+        if (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) return;
 
         bool allCorrect = true;
         foreach (var ped in answerPedestals)
         {
-            if (!ped.IsCorrect())
+            // Make sure the pedestal exists and check if it's correct
+            if (ped != null && !ped.IsCorrect())
             {
                 allCorrect = false;
-                break;
+                break; // Stop checking, one is wrong
             }
         }
 
         if (allCorrect)
         {
-            photonView.RPC("RPC_PuzzleSolved", RpcTarget.All);
+            // ---> FIXED: Fire RPC if online, or just run the method directly if offline <---
+            if (PhotonNetwork.InRoom)
+            {
+                photonView.RPC("RPC_PuzzleSolved", RpcTarget.All);
+            }
+            else
+            {
+                RPC_PuzzleSolved(); 
+            }
         }
     }
 
@@ -42,17 +51,20 @@ public class TruthTableManager : MonoBehaviourPun
     private void RPC_PuzzleSolved()
     {
         isSolved = true;
-        Debug.Log("NOT Gate Solved Networked!");
-        OnPuzzleSolved?.Invoke();
+        Debug.Log("Puzzle Solved!"); // Works offline now!
+        OnPuzzleSolved?.Invoke(); // Teleports you to the next challenge!
     }
 
-// ---> FIXED: Networked the reset so all players see the torches drop <---
     public void ResetPuzzle()
     {
-        // Tell everyone in the room to reset the puzzle
-        if (photonView != null)
+        // ---> FIXED: Networked reset if online, direct reset if offline <---
+        if (PhotonNetwork.InRoom && photonView != null)
         {
             photonView.RPC("RPC_ResetPuzzle", RpcTarget.All);
+        }
+        else
+        {
+            RPC_ResetPuzzle();
         }
     }
 

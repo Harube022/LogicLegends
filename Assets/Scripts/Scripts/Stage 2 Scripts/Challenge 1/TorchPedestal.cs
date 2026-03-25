@@ -18,14 +18,17 @@ public class TorchPedestal : MonoBehaviourPun
 
     public void PlaceTorchNetworked(GameObject torchObj)
     {
-        PhotonView torchView = torchObj.GetComponent<PhotonView>();
-        if (torchView != null)
+        if (PhotonNetwork.InRoom) 
         {
-            // Tell all clients to snap THIS specific torch to THIS pedestal
-            photonView.RPC("RPC_PlaceTorch", RpcTarget.All, torchView.ViewID);
-
-            OpenTorchUI();
+            PhotonView torchView = torchObj.GetComponent<PhotonView>();
+            if (torchView != null) photonView.RPC("RPC_PlaceTorch", RpcTarget.All, torchView.ViewID);
         }
+        else 
+        {
+            // Fall back to your local method if playing offline!
+            PlaceTorch(torchObj); 
+        }
+        OpenTorchUI();
     }
 
     [PunRPC]
@@ -100,8 +103,9 @@ public class TorchPedestal : MonoBehaviourPun
         if (other.CompareTag("Player") && currentTorch != null) 
         {
             PhotonView playerView = other.GetComponent<PhotonView>();
-            // Only show UI if the object has a PhotonView AND it belongs to this specific computer
-            if (playerView != null && playerView.IsMine) 
+            
+            // ---> FIXED: Show UI if we are offline, OR if we are online and it's our player <---
+            if (!PhotonNetwork.InRoom || (playerView != null && playerView.IsMine)) 
             {
                 OpenTorchUI();
             }
@@ -113,7 +117,9 @@ public class TorchPedestal : MonoBehaviourPun
         if (other.CompareTag("Player") && torchUIPanel != null) 
         {
             PhotonView playerView = other.GetComponent<PhotonView>();
-            if (playerView != null && playerView.IsMine)
+            
+            // ---> FIXED: Hide UI if we are offline, OR if we are online and it's our player <---
+            if (!PhotonNetwork.InRoom || (playerView != null && playerView.IsMine))
             {
                 torchUIPanel.SetActive(false);
             }

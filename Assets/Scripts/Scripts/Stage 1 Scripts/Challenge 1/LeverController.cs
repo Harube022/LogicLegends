@@ -21,7 +21,7 @@ public class LeverController : MonoBehaviour
     [Tooltip("The green 1 GameObject")]
     [SerializeField] private GameObject uiGreenOne;
 
-    private bool isOn = false;
+    public bool isOn = false;
     private PhotonView view; // 2. Network view reference
 
     private void Awake()
@@ -76,6 +76,12 @@ public class LeverController : MonoBehaviour
         {
             vineRenderer.material = isOn ? vineOnMaterial : vineOffMaterial;
         }
+        // ---> UPDATED: Spam the manager! The manager will ignore it if it's the wrong step.
+            PuzzleTutorialManager tutorialManager = FindFirstObjectByType<PuzzleTutorialManager>();
+            if (tutorialManager != null)
+            {
+                tutorialManager.AdvanceTutorial(this.transform); // Pass this specific plate!
+            }
     }
 
     public void ResetLever()

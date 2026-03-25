@@ -122,6 +122,16 @@ public class Player : MonoBehaviourPun
                     return;
                 }
 
+                // ---> NEW: Try to put it in the Tutorial OR Gate Basket <---
+                if (hit.transform.TryGetComponent(out TutorialORGateBasket tutorialBasket))
+                {
+                    GameObject fruitObj = heldObject.gameObject;
+                    heldObject.Drop(); 
+                    tutorialBasket.PlaceFruitInteractive(fruitObj);
+                    heldObject = null;
+                    return;
+                }
+
                 // 2. Try to put it in a Puzzle Slot
                 if (hit.transform.TryGetComponent(out PuzzleSlot slot))
                 {
@@ -258,7 +268,8 @@ public class Player : MonoBehaviourPun
         Vector3 capsuleBottom = transform.position;
         Vector3 capsuleTop = transform.position + Vector3.up * playerHeight;
 
-        if (!Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, moveDir, out RaycastHit hit, moveDistance))
+        // ---> FIX 1: Added QueryTriggerInteraction.Ignore so the player doesn't bump into Triggers
+        if (!Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, moveDir, out RaycastHit hit, moveDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore))
         {
             transform.position += moveDir * moveDistance;
         }
@@ -282,7 +293,8 @@ public class Player : MonoBehaviourPun
             Vector3 newBottom = capsuleBottom + stepUp;
             Vector3 newTop = capsuleTop + stepUp;
 
-            if (!Physics.CapsuleCast(newBottom, newTop, playerRadius, moveDir, moveDistance))
+            // ---> FIX 2: Added QueryTriggerInteraction.Ignore
+            if (!Physics.CapsuleCast(newBottom, newTop, playerRadius, moveDir, moveDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore))
             {
                 transform.position += stepUp;                 
                 transform.position += moveDir * moveDistance; 
@@ -290,11 +302,10 @@ public class Player : MonoBehaviourPun
             else
             {
                 // ===== NEW: WALL SLIDING =====
-                // 3. We hit a tall wall. Redirect our forward movement to slide ALONG the wall's surface.
                 Vector3 slideDir = Vector3.ProjectOnPlane(moveDir, hit.normal).normalized;
 
-                // Check if this new sliding path is actually clear (prevents clipping through corners)
-                if (slideDir != Vector3.zero && !Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, slideDir, moveDistance))
+                // ---> FIX 3: Added QueryTriggerInteraction.Ignore
+                if (slideDir != Vector3.zero && !Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, slideDir, moveDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore))
                 {
                     transform.position += slideDir * moveDistance;
                 }
@@ -315,7 +326,7 @@ public class Player : MonoBehaviourPun
             if (tutorial != null)
             {
                 tutorial.CompleteMovementStep();
-                tutorialMovementDone = true; // We set this to true so it only fires ONCE
+                tutorialMovementDone = true; 
             }
         }
     }
@@ -324,20 +335,21 @@ public class Player : MonoBehaviourPun
     {
         jumpBufferTimer -= Time.deltaTime;
 
-        // 1. IMPROVED GROUND DETECTION
         float rayStartOffset = 1.0f;
-        float rayDistance = 3.0f; // <--- THE FIX: Restored this to 3.0 so the ray actually reaches the floor!
+        float rayDistance = 3.0f;
 
+        // ---> FIX 4: Added QueryTriggerInteraction.Ignore so gravity doesn't detect triggers as the floor!
         bool hitGround = Physics.Raycast(
             transform.position + Vector3.up * rayStartOffset,
             Vector3.down,
             out RaycastHit hit,
-            rayDistance
+            rayDistance,
+            Physics.AllLayers,
+            QueryTriggerInteraction.Ignore
         );
 
         float maxSlopeAngle = 45f;
         
-        // Actually evaluate the slope so players can't jump up sheer cliffs
         bool validGround = hitGround; 
         if (hitGround)
         {
@@ -345,7 +357,6 @@ public class Player : MonoBehaviourPun
             if (slopeAngle > maxSlopeAngle) validGround = false;
         }
 
-        // 2. JUMP LOGIC
         if (validGround && jumpBufferTimer > 0f && !isJumping)
         {
             verticalVelocity = jumpForce;
@@ -354,26 +365,21 @@ public class Player : MonoBehaviourPun
             jumpBufferTimer = 0f;
         }
 
-        // 3. APPLY GRAVITY
         if (!validGround)
         {
             isGrounded = false;
             
-            // SNAPPY JUMPS: Multiply gravity when falling so it feels heavier and less "floaty"
             float currentGravity = (verticalVelocity < 0f) ? gravity * 1.5f : gravity;
             verticalVelocity += currentGravity * Time.deltaTime;
 
-            // TERMINAL VELOCITY: Cap the fall speed
             if (verticalVelocity < -25f) verticalVelocity = -25f;
         }
         else if (!isJumping) 
         {
-            // On Ground
             isGrounded = true;
-            verticalVelocity = -5f; // Small downward force to stick to slopes
+            verticalVelocity = -5f; 
         }
 
-        // 4. CONSOLIDATED VERTICAL MOVEMENT
         float moveY = verticalVelocity * Time.deltaTime;
         float playerRadius = 0.7f;
         float playerHeight = 2f;
@@ -381,19 +387,17 @@ public class Player : MonoBehaviourPun
         Vector3 capsuleBottom = transform.position;
         Vector3 capsuleTop = transform.position + Vector3.up * playerHeight;
 
-        // Determine which way we are checking (Up or Down)
         Vector3 checkDirection = (moveY > 0) ? Vector3.up : Vector3.down;
 
-        if (!Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, checkDirection, out RaycastHit yHit, Mathf.Abs(moveY)))
+        // ---> FIX 5: Added QueryTriggerInteraction.Ignore
+        if (!Physics.CapsuleCast(capsuleBottom, capsuleTop, playerRadius, checkDirection, out RaycastHit yHit, Mathf.Abs(moveY), Physics.AllLayers, QueryTriggerInteraction.Ignore))
         {
             transform.position += Vector3.up * moveY;
         }
         else
         {
-            // We hit a ceiling or the floor! Stop vertical momentum.
             verticalVelocity = 0f;
             
-            // If we were falling and hit the ground, reset the jump state
             if (moveY < 0) 
             {
                 isJumping = false;

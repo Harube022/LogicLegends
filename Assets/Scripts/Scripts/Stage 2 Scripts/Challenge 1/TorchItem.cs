@@ -25,7 +25,17 @@ public class TorchItem : MonoBehaviourPun
     // Call this to sync the state across the network
     public void SetState(bool state)
     {
-        photonView.RPC("RPC_SetFlameState", RpcTarget.All, state);
+        // If we are playing multiplayer, tell everyone to change the flame
+        if (PhotonNetwork.InRoom)
+        {
+            photonView.RPC("RPC_SetFlameState", RpcTarget.All, state);
+        }
+        else
+        {
+            // If we are playing solo, just change it locally right now!
+            isLit = state;
+            UpdateModels(isLit);
+        }
     }
 
     [PunRPC]

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System; // Required to use Actions (Callbacks)
 
 public class TeleportManager : MonoBehaviour
 {
@@ -18,28 +19,25 @@ public class TeleportManager : MonoBehaviour
     private void Awake()
     {
         if (Instance == null)
-        {
             Instance = this;
-        }
         else
-        {
             Destroy(gameObject); 
-        }
     }
 
-    public void StartTeleport(GameObject player, Transform destination)
+    // Added the Action parameter back here
+    public void StartTeleport(GameObject player, Transform destination, Action onMidTeleport = null)
     {
         if (!isTeleporting)
         {
-            StartCoroutine(TeleportSequence(player, destination));
+            StartCoroutine(TeleportSequence(player, destination, onMidTeleport));
         }
     }
 
-    private IEnumerator TeleportSequence(GameObject player, Transform destination)
+    private IEnumerator TeleportSequence(GameObject player, Transform destination, Action onMidTeleport)
     {
         isTeleporting = true;
 
-        // 1. Fade to Black
+        // --- 1. Fade to Black ---
         if (fadeCanvasGroup != null)
         {
             fadeCanvasGroup.blocksRaycasts = true; 
@@ -53,26 +51,34 @@ public class TeleportManager : MonoBehaviour
             fadeCanvasGroup.alpha = 1f; 
         }
 
-        // 2. Move Player
-        CharacterController cc = player.GetComponent<CharacterController>();
-        if (cc != null) cc.enabled = false;
+        // --- 2. EXECUTE THE ENVIRONMENT SWAP WHILE SCREEN IS BLACK ---
+        onMidTeleport?.Invoke();
 
-        player.transform.position = destination.position;
+        // --- 3. Move Player (Pure Transform) ---
+        Vector3 safePosition = destination.position + (Vector3.up * 0.2f);
+        
+        player.transform.position = safePosition;
         player.transform.rotation = destination.rotation;
 
-        if (cc != null) cc.enabled = true;
+        Physics.SyncTransforms();
 
-        // 3. Snap Camera Instantly (Using our new method!)
-        if (cameraScript != null)
+        // Snap Camera Instantly
+        try
         {
-            cameraScript.WarpCamera(destination);
+            if (cameraScript != null) cameraScript.WarpCamera(destination);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning("Camera Warp Failed: " + e.Message);
         }
 
         yield return new WaitForSeconds(0.1f);
 
-        // 4. Fade to Clear
+        // --- 4. Fade to Clear ---
         if (fadeCanvasGroup != null)
         {
+            fadeCanvasGroup.blocksRaycasts = false; 
+
             float elapsedTime = 0f;
             while (elapsedTime < fadeDuration)
             {
@@ -81,7 +87,6 @@ public class TeleportManager : MonoBehaviour
                 yield return null;
             }
             fadeCanvasGroup.alpha = 0f; 
-            fadeCanvasGroup.blocksRaycasts = false; 
         }
 
         isTeleporting = false;

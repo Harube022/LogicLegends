@@ -12,6 +12,7 @@ public class GrabbableObject : MonoBehaviourPun
     [SerializeField] private PuzzleSlot currentSlot;
     [SerializeField] private FruitBasket currentBasket;
     [SerializeField] private TorchPedestal currentPedestal;
+    [SerializeField] private TutorialORGateBasket currentTutorialBasket;
 
     private Rigidbody rb;
     private Collider col;
@@ -25,10 +26,12 @@ public class GrabbableObject : MonoBehaviourPun
     public void SetSlot(PuzzleSlot slot) { currentSlot = slot; }
     public void SetBasket(FruitBasket basket) { currentBasket = basket; }
     public void SetPedestal(TorchPedestal pedestal) { currentPedestal = pedestal; }
+    public void SetTutorialBasket(TutorialORGateBasket tutBasket) { currentTutorialBasket = tutBasket; }
 
     public void Grab(Transform holdPoint)
     {
-        if (photonView != null)
+        // ---> FIXED: Only request ownership and notify others IF we are online <---
+        if (PhotonNetwork.InRoom && photonView != null)
         {
             photonView.RequestOwnership(); 
             // Tell other players to turn off physics AND clear puzzle references
@@ -52,7 +55,8 @@ public class GrabbableObject : MonoBehaviourPun
 
     public void Drop()
     {
-        if (photonView != null)
+        // ---> FIXED: Only tell others we dropped it IF we are online <---
+        if (PhotonNetwork.InRoom && photonView != null)
         {
             photonView.RPC("RPC_SetGrabState", RpcTarget.Others, false);
         }
@@ -88,6 +92,12 @@ public class GrabbableObject : MonoBehaviourPun
         {
             currentPedestal.RemoveTorch();
             currentPedestal = null;
+        }
+
+        if (currentTutorialBasket != null)
+        {
+            currentTutorialBasket.RemoveFruitExplicit(this.gameObject);
+            currentTutorialBasket = null;
         }
     }
 
