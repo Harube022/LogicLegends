@@ -11,6 +11,10 @@ public class TutorialANDGate : MonoBehaviour
     [SerializeField] private GameObject outputOffVisual;
     [SerializeField] private GameObject outputOnVisual;
 
+    // ---> NEW: Explicitly link the manager! <---
+    [Header("Tutorial Link")]
+    [SerializeField] private PuzzleTutorialManager myTutorialManager;
+
     private int objectsOnPlate = 0; 
 
     private void Start()
@@ -25,11 +29,10 @@ public class TutorialANDGate : MonoBehaviour
             objectsOnPlate++;
             UpdateVisuals();
 
-            // ---> UPDATED: Spam the manager! The manager will ignore it if it's the wrong step.
-            PuzzleTutorialManager tutorialManager = FindFirstObjectByType<PuzzleTutorialManager>();
-            if (tutorialManager != null)
+            // ---> FIXED: Talk ONLY to our assigned manager! <---
+            if (myTutorialManager != null)
             {
-                tutorialManager.AdvanceTutorial(this.transform); // Pass this specific plate!
+                myTutorialManager.AdvanceTutorial(this.transform); 
             }
         }
     }

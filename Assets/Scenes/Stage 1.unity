@@ -1177,6 +1177,23 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f5285cb3f0162a3418403a2e3a6021fa, type: 3}
+--- !u!1 &181216794 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1698387597780105208, guid: fcab34803ed583940beae33df04b7229, type: 3}
+  m_PrefabInstance: {fileID: 1002610665}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &181216798
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 181216794}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6acc700f3966020469af43072221da9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FaceCamera
 --- !u!1 &199797230
 GameObject:
   m_ObjectHideFlags: 0
@@ -2588,6 +2605,7 @@ MonoBehaviour:
   currentSlot: {fileID: 0}
   currentBasket: {fileID: 0}
   currentPedestal: {fileID: 0}
+  currentTutorialBasket: {fileID: 0}
 --- !u!65 &452375009
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3032,6 +3050,23 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5716771449530931255, guid: 833862d1fa9a7c944baffef670994b89, type: 3}
   m_PrefabInstance: {fileID: 449262491}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &549998167 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 922509956465453743, guid: fcab34803ed583940beae33df04b7229, type: 3}
+  m_PrefabInstance: {fileID: 1002610665}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &549998171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 549998167}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6acc700f3966020469af43072221da9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FaceCamera
 --- !u!114 &550280804 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8223448397856731140, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
@@ -3215,6 +3250,7 @@ MonoBehaviour:
   currentSlot: {fileID: 0}
   currentBasket: {fileID: 0}
   currentPedestal: {fileID: 0}
+  currentTutorialBasket: {fileID: 0}
 --- !u!65 &551942813
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6772,11 +6808,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6705302660030191645, guid: fcab34803ed583940beae33df04b7229, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -45.15
+      value: -62.31
       objectReference: {fileID: 0}
     - target: {fileID: 6705302660030191645, guid: fcab34803ed583940beae33df04b7229, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 13.24
+      value: 13.5
       objectReference: {fileID: 0}
     - target: {fileID: 7097385648496802452, guid: fcab34803ed583940beae33df04b7229, type: 3}
       propertyPath: m_Layer
@@ -7014,6 +7050,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7712051496432973282, guid: fcab34803ed583940beae33df04b7229, type: 3}
       insertIndex: 5
       addedObject: {fileID: 1002610668}
+    - targetCorrespondingSourceObject: {fileID: 5096805409505013370, guid: fcab34803ed583940beae33df04b7229, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1306933762}
+    - targetCorrespondingSourceObject: {fileID: 922509956465453743, guid: fcab34803ed583940beae33df04b7229, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 549998171}
+    - targetCorrespondingSourceObject: {fileID: 1698387597780105208, guid: fcab34803ed583940beae33df04b7229, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 181216798}
   m_SourcePrefab: {fileID: 100100000, guid: fcab34803ed583940beae33df04b7229, type: 3}
 --- !u!1 &1002610666 stripped
 GameObject:
@@ -8826,7 +8871,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5593679188880731237, guid: fcab34803ed583940beae33df04b7229, type: 3}
   m_PrefabInstance: {fileID: 1002610665}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1306933759}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 79d02f6b549a4644b83a02dbe83116ad, type: 3}
@@ -9430,6 +9475,7 @@ MonoBehaviour:
   currentSlot: {fileID: 0}
   currentBasket: {fileID: 0}
   currentPedestal: {fileID: 0}
+  currentTutorialBasket: {fileID: 0}
 --- !u!65 &1252623653
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -9694,6 +9740,32 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d25c8eff392a39445891bc34b38bb5d6, type: 3}
+--- !u!1 &1306933759 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5096805409505013370, guid: fcab34803ed583940beae33df04b7229, type: 3}
+  m_PrefabInstance: {fileID: 1002610665}
+  m_PrefabAsset: {fileID: 0}
+--- !u!135 &1306933762
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1306933759}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 4
+  m_Center: {x: -61.75, y: -12.63, z: -46.7}
 --- !u!1001 &1320842987
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10954,7 +11026,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8223448397856731140, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: moveSpeed
-      value: 40
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 8276406520434365177, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_Size.y
@@ -12825,6 +12897,7 @@ MonoBehaviour:
   currentSlot: {fileID: 0}
   currentBasket: {fileID: 0}
   currentPedestal: {fileID: 0}
+  currentTutorialBasket: {fileID: 0}
 --- !u!65 &2013016051
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -13118,6 +13191,7 @@ MonoBehaviour:
   currentSlot: {fileID: 0}
   currentBasket: {fileID: 0}
   currentPedestal: {fileID: 0}
+  currentTutorialBasket: {fileID: 0}
 --- !u!65 &2058598797
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -18845,6 +18919,7 @@ MonoBehaviour:
   - {fileID: 4088975730395986676}
   - {fileID: 1142412205431047614}
   - {fileID: 2541081915749747130}
+  healthBarParent: {fileID: 0}
   timeRemaining: 180
   currentMaxTime: 180
   timerText: {fileID: 154070111303310517}

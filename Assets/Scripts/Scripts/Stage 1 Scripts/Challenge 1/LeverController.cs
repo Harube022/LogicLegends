@@ -21,6 +21,11 @@ public class LeverController : MonoBehaviour
     [Tooltip("The green 1 GameObject")]
     [SerializeField] private GameObject uiGreenOne;
 
+    // ---> NEW: Optional Tutorial Link! <---
+    [Header("Tutorial Link (Optional)")]
+    [Tooltip("Leave this EMPTY in the main game. Only assign a manager if this lever is in a tutorial!")]
+    [SerializeField] private PuzzleTutorialManager myTutorialManager;
+
     public bool isOn = false;
     private PhotonView view; // 2. Network view reference
 
@@ -60,12 +65,12 @@ public class LeverController : MonoBehaviour
     private void UpdateVisuals()
     {
         // Swap Lever GameObjects
-        leverOffObj.SetActive(!isOn);
-        leverOnObj.SetActive(isOn);
+        if (leverOffObj != null) leverOffObj.SetActive(!isOn);
+        if (leverOnObj != null) leverOnObj.SetActive(isOn);
 
         // Swap Cave GameObjects
-        caveClosedObj.SetActive(!isOn);
-        caveOpenObj.SetActive(isOn);
+        if (caveClosedObj != null) caveClosedObj.SetActive(!isOn);
+        if (caveOpenObj != null) caveOpenObj.SetActive(isOn);
 
         // Update UI (Checking for null just in case you haven't assigned them yet)
         if (uiRedZero != null) uiRedZero.SetActive(!isOn);
@@ -76,12 +81,12 @@ public class LeverController : MonoBehaviour
         {
             vineRenderer.material = isOn ? vineOnMaterial : vineOffMaterial;
         }
-        // ---> UPDATED: Spam the manager! The manager will ignore it if it's the wrong step.
-            PuzzleTutorialManager tutorialManager = FindFirstObjectByType<PuzzleTutorialManager>();
-            if (tutorialManager != null)
-            {
-                tutorialManager.AdvanceTutorial(this.transform); // Pass this specific plate!
-            }
+
+        // ---> FIXED: Talk ONLY to the assigned manager (if one exists) <---
+        if (myTutorialManager != null)
+        {
+            myTutorialManager.AdvanceTutorial(this.transform); 
+        }
     }
 
     public void ResetLever()
