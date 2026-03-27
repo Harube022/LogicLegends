@@ -9,8 +9,14 @@ public class LevelManager : MonoBehaviourPun
     [Header("Game Over Management")]
     [SerializeField] private GameOverManager gameOverManager;
 
+    // ---> NEW: Array to hold your Challenge GameObjects <---
+    [Header("Environment Reset")]
+    [Tooltip("Drag your Challenge 1, 2, and 3 root GameObjects here in order.")]
+    [SerializeField] private GameObject[] stageChallengeEnvironments;
+
     [Header("Global Game State")]
     [SerializeField] private int playerHearts = 3;
+    [SerializeField] private int maxHearts = 5;
     [SerializeField] private GameObject[] heartIcons; 
     [SerializeField] private GameObject healthBarParent;
 
@@ -179,7 +185,7 @@ public class LevelManager : MonoBehaviourPun
         ResetTimer(); 
 
         // 3. Reset the current Challenge and Respawn
-        RespawnPlayerAtCurrentCheckpoint();
+        RespawnPlayerAtStageStart();
 
         // 4. THE FIX: Find every wizard in the scene and reset them
         // We use FindObjectsInactive.Include just in case a wizard is temporarily hidden
@@ -189,6 +195,58 @@ public class LevelManager : MonoBehaviourPun
         {
             wizard.ResetWizardStatus();
         }
+    }
+
+    // ---> NEW: This method forces the player back to the ovalRespawnPoint <---
+    private void RespawnPlayerAtStageStart()
+    {
+        Transform targetPlayer = player; 
+
+        if (PhotonNetwork.InRoom)
+        {
+            Player[] allPlayers = FindObjectsByType<Player>(FindObjectsSortMode.None);
+            foreach (Player p in allPlayers)
+            {
+                if (p.GetComponent<PhotonView>().IsMine)
+                {
+                    targetPlayer = p.transform;
+                    break;
+                }
+            }
+        }
+
+        if (targetPlayer != null)
+        {
+            // Force teleport to the very first spawn point
+            targetPlayer.position = ovalRespawnPoint.position;
+            
+            Rigidbody playerRb = targetPlayer.GetComponent<Rigidbody>();
+            if (playerRb != null && !playerRb.isKinematic) 
+                playerRb.linearVelocity = Vector3.zero; 
+        }
+
+        // ---> NEW: Reset EVERY challenge module in the scene, not just the active one <---
+        ChallengeModule[] allChallenges = FindObjectsByType<ChallengeModule>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach(ChallengeModule challenge in allChallenges)
+        {
+            challenge.ResetThisChallenge();
+        }
+
+        // Clear the current challenge so walking into the Stage 1 trigger sets it up fresh
+        currentChallenge = null;
+
+        // ---> NEW: Reset the physical environments <---
+        if (stageChallengeEnvironments != null && stageChallengeEnvironments.Length > 0)
+        {
+            // 1. Turn ON the first challenge
+            if (stageChallengeEnvironments[0] != null) stageChallengeEnvironments[0].SetActive(true);
+            
+            // 2. Turn OFF all subsequent challenges
+            for (int i = 1; i < stageChallengeEnvironments.Length; i++)
+            {
+                if (stageChallengeEnvironments[i] != null) stageChallengeEnvironments[i].SetActive(false);
+            }
+        } 
     }
 
     private void RespawnPlayerAtCurrentCheckpoint()
@@ -232,10 +290,20 @@ public class LevelManager : MonoBehaviourPun
     }
 
     // Called by trigger zones when entering a new area
-    public void SetNewChallenge(ChallengeModule newChallenge)
+    public void SetNewChallenge(ChallengeModule newChallenge, bool isNewStage = false)
     {
         currentChallenge = newChallenge;
-        playerHearts = 3;
+        
+        if (isNewStage)
+        {
+            playerHearts = 3; // Baseline for a brand new stage
+        }
+        else
+        {
+            playerHearts++; // Reward for beating the previous challenge!
+            if (playerHearts > maxHearts) playerHearts = maxHearts; // Cap at 5
+        }
+        
         UpdateHeartsUI();
     }
 

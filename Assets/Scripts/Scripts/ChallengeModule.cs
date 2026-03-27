@@ -8,8 +8,6 @@ public class ChallengeModule : MonoBehaviour
     [SerializeField] private float challengeTimerDuration = 180f;
 
     [Header("Puzzle Elements to Reset")]
-    // You can drag your specific Challenge 1 or Challenge 2 items here in the Inspector
-    [SerializeField] private ResettableObject[] resettableObjects;
     [SerializeField] private LeverController lever; // Leave empty if this challenge doesn't have one
 
     [Header("Custom Events")]
@@ -21,8 +19,11 @@ public class ChallengeModule : MonoBehaviour
 
     public void ResetThisChallenge()
     {
-        // 1. Reset standard objects
-        foreach (var obj in resettableObjects)
+        // ---> AUTOMATION: This searches through all child objects attached to this Challenge
+        // and automatically finds any script called "ResettableObject". <---
+        ResettableObject[] myResettableObjects = GetComponentsInChildren<ResettableObject>(true);
+        
+        foreach (var obj in myResettableObjects)
         {
             if (obj != null) obj.ResetPosition();
         }

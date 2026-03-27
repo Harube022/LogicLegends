@@ -12,6 +12,11 @@ public class ChallengeTransition : MonoBehaviourPun
     [Tooltip("Drag the NEW ChallengeModule for the next area here")]
     [SerializeField] private ChallengeModule nextChallengeModule;
 
+    // ---> NEW: Added a checkbox to control the heart baselining <---
+    [Header("Stage Settings")]
+    [Tooltip("Check this ONLY if this transition moves the player to a completely new Stage (resets hearts to 3)")]
+    [SerializeField] private bool isTransitionToNewStage = false;
+
     [Header("Visibility Settings")]
     [SerializeField] private GameObject challengeToHide;
     [SerializeField] private GameObject challengeToShow;
@@ -59,7 +64,8 @@ public class ChallengeTransition : MonoBehaviourPun
 
                     if (LevelManager.Instance != null && nextChallengeModule != null)
                     {
-                        LevelManager.Instance.SetNewChallenge(nextChallengeModule);
+                        // ---> NEW: We now pass your checkbox setting to the LevelManager <---
+                        LevelManager.Instance.SetNewChallenge(nextChallengeModule, isTransitionToNewStage);
                         LevelManager.Instance.HideTimer();
                     }
                 };
