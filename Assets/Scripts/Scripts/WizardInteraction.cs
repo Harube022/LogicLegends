@@ -38,39 +38,66 @@ public class WizardInteraction : MonoBehaviourPun
     private bool isReadingFinalDialogue = false; 
     private bool hasTalkedToWizard = false;
     private string originalObjectiveString;
+    private bool hasCrossedOutText = false;
 
     private bool isPlayingFeedback = false;
     private bool isSuccessFeedback = false;
 
+
+    private void Awake()
+    {
+        // Find the input system early so it's ready when the environment turns on
+        gameInput = FindFirstObjectByType<GameInput>();
+    }
+
     private void Start()
     {
-        gameInput = FindFirstObjectByType<GameInput>();
-        if (gameInput != null) gameInput.OnInteractAction += GameInput_OnInteractAction;
+        // Save the original text once at the very beginning
         if (wizardObjectiveText != null) originalObjectiveString = wizardObjectiveText.text;
     }
 
-    private void GameInput_OnInteractAction(object sender, System.EventArgs e)
+    // ---> NEW: Subscribe ONLY when the environment is turned ON <---
+    private void OnEnable()
     {
-        // --- NEW: Bulletproof Distance Check ---
-        // If Unity misses the OnTriggerExit (common during teleports), 
-        // this forces the wizard to realize you walked away!
-        if (playerControlScript != null)
-        {
-            float distance = Vector3.Distance(transform.position, playerControlScript.transform.position);
-            if (distance > 5f) 
-            {
-                playerInRange = false; 
-            }
-        }
-        // ---------------------------------------
-        if (playerInRange && !isDisplaying) TriggerInteraction();
-        else if (isDisplaying) AdvanceDialogue();
+        if (gameInput != null) gameInput.OnInteractAction += GameInput_OnInteractAction;
     }
 
-    private void OnDestroy()
+    // ---> NEW: Unsubscribe and wipe memory when the environment turns OFF <---
+    private void OnDisable()
     {
         if (gameInput != null) gameInput.OnInteractAction -= GameInput_OnInteractAction;
+        
+        // This prevents the "Stuck Trigger" bug if the map turns off while you are standing here!
+        playerInRange = false;
+        isDisplaying = false;
+
+        // Clean up the UI just in case
+        if (DialogueManager.Instance != null) 
+            DialogueManager.Instance.ToggleInteractButton(false);
     }
+    // private void Start()
+    // {
+    //     gameInput = FindFirstObjectByType<GameInput>();
+    //     if (gameInput != null) gameInput.OnInteractAction += GameInput_OnInteractAction;
+    //     if (wizardObjectiveText != null) originalObjectiveString = wizardObjectiveText.text;
+    // }
+
+    private void GameInput_OnInteractAction(object sender, System.EventArgs e)
+    {
+        if (playerInRange && !isDisplaying) 
+        {
+            TriggerInteraction();
+        }
+        else if (isDisplaying) 
+        {
+            AdvanceDialogue();
+        }
+    }
+
+    // private void OnDestroy()
+    // {
+    //     if (gameInput != null) gameInput.OnInteractAction -= GameInput_OnInteractAction;
+    // }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -91,9 +118,16 @@ public class WizardInteraction : MonoBehaviourPun
             PhotonView view = other.GetComponent<PhotonView>();
             if (view != null && !view.IsMine) return; 
             
-            playerInRange = false;
-            DialogueManager.Instance.ToggleInteractButton(false);
-            if (isDisplaying) EndDialogue();
+            // ---> NEW: Bulletproof math check! <---
+            // Only consider the player "gone" if they are actually far away.
+            // Adjust the '4f' to match the radius of your SphereCollider!
+            float distance = Vector3.Distance(transform.position, other.transform.position);
+            if (distance > 4f) 
+            {
+                playerInRange = false;
+                DialogueManager.Instance.ToggleInteractButton(false);
+                if (isDisplaying) EndDialogue();
+            }
         }
     }
 
@@ -163,12 +197,17 @@ public class WizardInteraction : MonoBehaviourPun
             return;
         }
 
-        OnDialogueComplete?.Invoke();
+        // OnDialogueComplete?.Invoke();
 
-        if (!hasTalkedToWizard && wizardObjectiveText != null && !isReadingFinalDialogue)
+        if (!hasTalkedToWizard && !isReadingFinalDialogue)
         {
             if (PhotonNetwork.InRoom) photonView.RPC("RPC_StartWizardTasks", RpcTarget.All);
             else RPC_StartWizardTasks(); 
+        }
+        else if (isReadingFinalDialogue)
+        {
+            // We still want to fire the event locally if they are reading the final "Goodbye" text!
+            OnDialogueComplete?.Invoke();
         }
     }
 
@@ -206,25 +245,68 @@ public class WizardInteraction : MonoBehaviourPun
 
     public void ChooseLetsGo() { SceneManager.LoadScene(nextSceneName); }
 
+// ---> FIX: We now check the network before resetting <---
     public void ResetWizardStatus()
     {
+
+        RPC_ResetWizard();
+
+        // ---> THE FIX: Added 'gameObject.activeInHierarchy' so Photon doesn't crash the loop! <---
+        if (PhotonNetwork.InRoom && photonView != null && gameObject.activeInHierarchy)
+        {
+            // Tell EVERY computer to reset this specific wizard
+            photonView.RPC("RPC_ResetWizard", RpcTarget.Others);
+        }
+    }
+
+    // ---> NEW: The Networked Reset Logic <---
+    [PunRPC]
+    public void RPC_ResetWizard()
+    {
+        // 1. Wipe the wizard's memory entirely
         hasTalkedToWizard = false;
-        if (wizardObjectiveText != null && !string.IsNullOrEmpty(originalObjectiveString))
+        areAllTasksCompleted = false; 
+        isReadingFinalDialogue = false;
+        isPlayingFeedback = false;
+        currentLineIndex = 0;
+        isDisplaying = false;
+        hasCrossedOutText = false; // ---> NEW: Reset our text flag! <---
+
+        // ---> FIX 2: A bulletproof text reset! <---
+        if (wizardObjectiveText != null)
+        {
+            // If the original string is somehow lost, just strip the rich text tags manually!
+            if (string.IsNullOrEmpty(originalObjectiveString))
+            {
+                originalObjectiveString = wizardObjectiveText.text.Replace("<color=#008000><s>", "").Replace("</s></color>", "");
+            }
             wizardObjectiveText.text = originalObjectiveString;
-        if (taskToActivate != null) taskToActivate.SetActive(false);
+        }
+
+        // 3. Turn off the tasks (Dynamic arrows, puzzle pieces, etc.)
+        if (taskToActivate != null) 
+        {
+            taskToActivate.SetActive(false);
+        }
     }
 
     [PunRPC]
     public void RPC_StartWizardTasks()
     {
         hasTalkedToWizard = true; 
-        if (wizardObjectiveText != null && !wizardObjectiveText.text.Contains("<s>"))
+        // ---> FIX 4: Use our boolean instead of checking the text for <s> tags <---
+        if (wizardObjectiveText != null && !hasCrossedOutText)
+        {
+            hasCrossedOutText = true;
             wizardObjectiveText.text = "<color=#008000><s>" + wizardObjectiveText.text + "</s></color>";
+        }
         
         if (taskToActivate != null) taskToActivate.SetActive(true); 
         
         if (startsTimer && LevelManager.Instance != null) 
             LevelManager.Instance.StartCustomTimer(timerDuration);
+
+        OnDialogueComplete?.Invoke();
     }
     
     [PunRPC]

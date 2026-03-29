@@ -72,7 +72,7 @@ public class MultiplayerMenuManager : MonoBehaviourPunCallbacks
         else if (PhotonNetwork.IsMasterClient)
         {
             Debug.Log("Loading Multiplayer Stage...");
-            PhotonNetwork.LoadLevel("Stage 1 Multiplayer"); 
+            PhotonNetwork.LoadLevel("Stage 2 Multiplayer"); 
         }
     }
 }

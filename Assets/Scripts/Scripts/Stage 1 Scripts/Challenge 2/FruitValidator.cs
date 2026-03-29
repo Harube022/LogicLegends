@@ -10,6 +10,18 @@ public class FruitValidator : MonoBehaviour
     [SerializeField] private TextMeshProUGUI objectiveText;
     private PhotonView view; // 2. Add PhotonView Reference
 
+    // ---> NEW: A string to memorize the clean text <---
+    private string originalObjectiveString;
+
+    private void Start()
+    {
+        // ---> NEW: Save the text exactly as it is when the game starts <---
+        if (objectiveText != null)
+        {
+            originalObjectiveString = objectiveText.text;
+        }
+    }
+
     private void Awake()
     {
         view = GetComponent<PhotonView>();
@@ -53,7 +65,7 @@ public class FruitValidator : MonoBehaviour
         // Tell the LevelManager it was a shared team mistake
         if (LevelManager.Instance != null) 
         {
-            LevelManager.Instance.LoseHeartAndRespawn(); 
+            LevelManager.Instance.LoseHeart(); 
         }
     }
 
@@ -63,6 +75,15 @@ public class FruitValidator : MonoBehaviour
         if (objectiveText != null && !objectiveText.text.Contains("<s>"))
         {
             objectiveText.text = "<color=#008000><s>" + objectiveText.text + "</s></color>";
+        }
+    }
+
+    // ---> NEW: The method to undo the cross-out! <---
+    public void ResetValidatorText()
+    {
+        if (objectiveText != null && !string.IsNullOrEmpty(originalObjectiveString))
+        {
+            objectiveText.text = originalObjectiveString;
         }
     }
 }

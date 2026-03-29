@@ -14,6 +14,11 @@ public class LevelManager : MonoBehaviourPun
     [Tooltip("Drag your Challenge 1, 2, and 3 root GameObjects here in order.")]
     [SerializeField] private GameObject[] stageChallengeEnvironments;
 
+    // ---> NEW: Array to hold your UI Objective Panels <---
+    [Header("UI Reset")]
+    [Tooltip("Drag your Ch1_Objectives, Ch2_Objectives, etc. here in order.")]
+    [SerializeField] private GameObject[] stageObjectivePanels;
+
     [Header("Global Game State")]
     [SerializeField] private int playerHearts = 3;
     [SerializeField] private int maxHearts = 5;
@@ -52,6 +57,32 @@ public class LevelManager : MonoBehaviourPun
             UpdateTimerUI();
 
             if (timeRemaining <= 0) HandleTimeout();
+        }
+    }
+
+    // ---> NEW: A method to drop a heart WITHOUT teleporting the player! <---
+    public void LoseHeart()
+    {
+        if (PhotonNetwork.InRoom && photonView != null)
+        {
+            photonView.RPC("RPC_LoseHeartOnly", RpcTarget.All);
+        }
+        else
+        {
+            RPC_LoseHeartOnly();
+        }
+    }
+
+    [PunRPC]
+    public void RPC_LoseHeartOnly()
+    {
+        playerHearts--;
+        UpdateHeartsUI();
+
+        if (playerHearts <= 0)
+        {
+            if (gameOverManager != null) gameOverManager.ShowGameOver();
+            else ResetFromGameOver();
         }
     }
 
@@ -170,7 +201,7 @@ public class LevelManager : MonoBehaviourPun
         else
         {
             timeRemaining = currentMaxTime; 
-            RespawnPlayerAtCurrentCheckpoint();
+            // RespawnPlayerAtCurrentCheckpoint(false);
             StartTimer(); 
         }
     }
@@ -184,17 +215,22 @@ public class LevelManager : MonoBehaviourPun
         // 2. Stop and hide the timer (it will wait for the wizard to start it again)
         ResetTimer(); 
 
-        // 3. Reset the current Challenge and Respawn
-        RespawnPlayerAtStageStart();
-
-        // 4. THE FIX: Find every wizard in the scene and reset them
-        // We use FindObjectsInactive.Include just in case a wizard is temporarily hidden
+        // 3. Reset Wizards and Arrows BEFORE turning off the environments!
         WizardInteraction[] allWizards = FindObjectsByType<WizardInteraction>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        
         foreach(WizardInteraction wizard in allWizards)
         {
             wizard.ResetWizardStatus();
         }
+
+        // ---> RESTORED FIX: Find all arrows and wipe them! <---
+        DynamicObjectiveIndicator[] allIndicators = FindObjectsByType<DynamicObjectiveIndicator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach(var indicator in allIndicators)
+        {
+            indicator.ResetArrows();
+        }
+
+        // 4. Reset the challenges and Respawn the player
+        RespawnPlayerAtStageStart();
     }
 
     // ---> NEW: This method forces the player back to the ovalRespawnPoint <---
@@ -225,31 +261,44 @@ public class LevelManager : MonoBehaviourPun
                 playerRb.linearVelocity = Vector3.zero; 
         }
 
-        // ---> NEW: Reset EVERY challenge module in the scene, not just the active one <---
-        ChallengeModule[] allChallenges = FindObjectsByType<ChallengeModule>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        foreach(ChallengeModule challenge in allChallenges)
-        {
-            challenge.ResetThisChallenge();
-        }
-
-        // Clear the current challenge so walking into the Stage 1 trigger sets it up fresh
-        currentChallenge = null;
-
-        // ---> NEW: Reset the physical environments <---
+        // ---> THE ULTIMATE FIX: Reset ALL environments and set them On/Off <---
         if (stageChallengeEnvironments != null && stageChallengeEnvironments.Length > 0)
         {
-            // 1. Turn ON the first challenge
-            if (stageChallengeEnvironments[0] != null) stageChallengeEnvironments[0].SetActive(true);
-            
-            // 2. Turn OFF all subsequent challenges
-            for (int i = 1; i < stageChallengeEnvironments.Length; i++)
+            for (int i = 0; i < stageChallengeEnvironments.Length; i++)
             {
-                if (stageChallengeEnvironments[i] != null) stageChallengeEnvironments[i].SetActive(false);
+                if (stageChallengeEnvironments[i] != null) 
+                {
+                    // Find the script even if it is hiding on a child object (like Challenge_1_Logic)
+                    ChallengeModule challenge = stageChallengeEnvironments[i].GetComponentInChildren<ChallengeModule>(true);
+                    
+                    if (challenge != null)
+                    {
+                        // Reset gates, boulders, fruits, etc. for EVERY challenge
+                        challenge.ResetThisChallenge();
+
+                        // Make Challenge 1 the active challenge again so timers work
+                        if (i == 0) currentChallenge = challenge;
+                    }
+
+                    // Turn Challenge 1 ON, and turn all subsequent challenges OFF
+                    stageChallengeEnvironments[i].SetActive(i == 0);
+                }
             }
         } 
+
+        // ---> FIX: Reset the UI Objective Panels back to Challenge 1 <---
+        if (stageObjectivePanels != null && stageObjectivePanels.Length > 0)
+        {
+            if (stageObjectivePanels[0] != null) stageObjectivePanels[0].SetActive(true);
+            
+            for (int i = 1; i < stageObjectivePanels.Length; i++)
+            {
+                if (stageObjectivePanels[i] != null) stageObjectivePanels[i].SetActive(false);
+            }
+        }
     }
 
-    private void RespawnPlayerAtCurrentCheckpoint()
+    private void RespawnPlayerAtCurrentCheckpoint(bool resetPuzzles = true)
     {
         // 1. Figure out where we need to go
         Transform spawnPoint = currentChallenge != null ? currentChallenge.GetRespawnPoint() : ovalRespawnPoint;
@@ -283,7 +332,8 @@ public class LevelManager : MonoBehaviourPun
         // ---------------------------
 
         // 2. Tell the current module to reset its own specific puzzles!
-        if (currentChallenge != null)
+        // ---> FIX: Only reset if resetPuzzles is true! <---
+        if (resetPuzzles && currentChallenge != null)
         {
             currentChallenge.ResetThisChallenge();
         }

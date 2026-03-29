@@ -1515,17 +1515,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 89238821}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 373972950}
+  m_Father: {fileID: 576704469}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 135.76733}
-  m_SizeDelta: {x: 1060, y: 808.4653}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1060, y: 1080}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &89238823
 MonoBehaviour:
@@ -3911,7 +3911,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
   gameOverManager: {fileID: 0}
+  stageChallengeEnvironments: []
+  stageObjectivePanels: []
   playerHearts: 3
+  maxHearts: 5
   heartIcons:
   - {fileID: 1807240093}
   - {fileID: 883804041}
@@ -4146,15 +4149,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: b0119d3c123d75248b32b772667ab2c3, type: 3}
       propertyPath: m_LocalScale.x
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: b0119d3c123d75248b32b772667ab2c3, type: 3}
-      propertyPath: m_LocalScale.y
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b0119d3c123d75248b32b772667ab2c3, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: b0119d3c123d75248b32b772667ab2c3, type: 3}
       propertyPath: m_LocalScale.z
-      value: 4
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b0119d3c123d75248b32b772667ab2c3, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4162,7 +4165,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b0119d3c123d75248b32b772667ab2c3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.56
+      value: 0.429
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b0119d3c123d75248b32b772667ab2c3, type: 3}
       propertyPath: m_LocalPosition.z
@@ -5921,9 +5924,7 @@ RectTransform:
   m_Children:
   - {fileID: 576704469}
   - {fileID: 1993246212}
-  - {fileID: 89238822}
   - {fileID: 1862826174}
-  - {fileID: 717287470}
   - {fileID: 1298267789}
   - {fileID: 531326834}
   - {fileID: 991603277}
@@ -9782,10 +9783,12 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1882912992}
+  - {fileID: 89238822}
+  - {fileID: 717287470}
   - {fileID: 646277613}
   - {fileID: 1850183187}
-  - {fileID: 738596240}
   - {fileID: 1533391093}
+  - {fileID: 738596240}
   - {fileID: 1762983047}
   m_Father: {fileID: 373972950}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -12062,7 +12065,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1544778696}
-  m_Father: {fileID: 373972950}
+  m_Father: {fileID: 576704469}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}

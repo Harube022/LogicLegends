@@ -169,7 +169,7 @@ public class Player : MonoBehaviourPun
                 {
                     GameObject seedObj = heldObject.gameObject;
                     heldObject.Drop(); 
-                    mound.PlaceSeed(seedObj); 
+                    mound.PlaceSeedNetworked(seedObj); 
                     heldObject = null;
                     return;
                 }

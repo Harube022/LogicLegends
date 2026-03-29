@@ -1,5 +1,6 @@
 using UnityEngine;
-using Photon.Pun; // 1. Added Photon namespace
+using Photon.Pun; 
+using TMPro; 
 
 public class GateController : MonoBehaviour
 {
@@ -15,6 +16,12 @@ public class GateController : MonoBehaviour
 
     [Header("Transition")]
     [SerializeField] private GameObject teleportZoneToCh2;
+
+    // ---> NEW: UI References <---
+    [Header("Objectives UI")]
+    [SerializeField] private TextMeshProUGUI taskText;
+    private string originalTaskString;
+
     private bool isSolved = false;
     private PhotonView view; // 2. Add PhotonView reference
 
@@ -27,6 +34,8 @@ public class GateController : MonoBehaviour
     {
         // Ensure the teleport zone is off when the game starts
         if (teleportZoneToCh2 != null) teleportZoneToCh2.SetActive(false);
+
+        if (taskText != null) originalTaskString = taskText.text;
     }
 
     private void Update()
@@ -79,6 +88,11 @@ public class GateController : MonoBehaviour
             LevelManager.Instance.StopTimer();
             LevelManager.Instance.ResetTimer();
         }
+
+        if (taskText != null && !taskText.text.Contains("<s>"))
+        {
+            taskText.text = "<color=#008000><s>" + taskText.text + "</s></color>";
+        }
     }
 
     public void ResetGate()
@@ -93,6 +107,11 @@ public class GateController : MonoBehaviour
         if (teleportZoneToCh2 != null)
         {
             teleportZoneToCh2.SetActive(false);
+        }
+
+        if (taskText != null && !string.IsNullOrEmpty(originalTaskString))
+        {
+            taskText.text = originalTaskString;
         }
     }
 }

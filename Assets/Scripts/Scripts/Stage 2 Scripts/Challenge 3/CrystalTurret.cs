@@ -22,6 +22,8 @@ public class CrystalTurret : MonoBehaviourPun
     private bool playerInRange = false;
     private GameInput gameInput;
 
+    private Quaternion startRotation;
+
     private void Awake()
     {
         lineRenderer = GetComponent<LineRenderer>();
@@ -32,6 +34,9 @@ public class CrystalTurret : MonoBehaviourPun
 
     private void Start()
     {
+        // ---> NEW: Memorize exactly where it is facing when the game starts! <---
+        startRotation = transform.rotation;
+
         gameInput = FindFirstObjectByType<GameInput>();
         if (gameInput != null) gameInput.OnInteractAction += GameInput_OnInteractAction;
     }
@@ -51,10 +56,10 @@ public class CrystalTurret : MonoBehaviourPun
         if (other.CompareTag("Player"))
         {
             PhotonView pv = other.GetComponent<PhotonView>();
-            if (pv != null && !pv.IsMine) return; 
-            
-            playerInRange = true;
-            // if (DialogueManager.Instance != null) DialogueManager.Instance.ToggleInteractButton(true);
+            if (!PhotonNetwork.InRoom || (pv != null && pv.IsMine))
+            {
+                playerInRange = true;
+            }
         }
     }
 
@@ -137,5 +142,18 @@ public class CrystalTurret : MonoBehaviourPun
     public void RPC_RotateCrystal()
     {
         transform.Rotate(0, 90f, 0);
+    }
+
+    // ---> NEW: Add this to the very bottom of the script <---
+    public void ResetTurret()
+    {
+        // Snap back to original rotation
+        transform.rotation = startRotation;
+        
+        if (currentTarget != null)
+        {
+            currentTarget.ResetIndicator();
+            currentTarget = null;
+        }
     }
 }

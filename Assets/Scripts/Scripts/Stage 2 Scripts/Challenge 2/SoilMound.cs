@@ -1,6 +1,6 @@
 using UnityEngine;
-
-public class SoilMound : MonoBehaviour
+using Photon.Pun;
+public class SoilMound : MonoBehaviourPun
 {
     public SeedItem currentSeed;
     [SerializeField] private Transform snapPoint;
@@ -9,6 +9,30 @@ public class SoilMound : MonoBehaviour
     [Tooltip("What seed belongs here? True = Glowing, False = Dead Weed")]
     [SerializeField] private bool expectedToBeGlowing; 
 
+    // ---> NEW: The networked method your Player script will call! <---
+    public void PlaceSeedNetworked(GameObject seedObj)
+    {
+        if (PhotonNetwork.InRoom)
+        {
+            PhotonView seedView = seedObj.GetComponent<PhotonView>();
+            if (seedView != null) photonView.RPC("RPC_PlaceSeed", RpcTarget.All, seedView.ViewID);
+        }
+        else
+        {
+            PlaceSeed(seedObj); // Offline fallback
+        }
+    }
+
+    [PunRPC]
+    public void RPC_PlaceSeed(int seedViewID)
+    {
+        PhotonView seedView = PhotonView.Find(seedViewID);
+        if (seedView != null)
+        {
+            PlaceSeed(seedView.gameObject);
+        }
+    }
+    
     public void PlaceSeed(GameObject seedObj)
     {
         SeedItem seed = seedObj.GetComponent<SeedItem>();
@@ -57,7 +81,11 @@ public class SoilMound : MonoBehaviour
                 rb.useGravity = true;
                 
                 // ---> FIXED: VelocityChange forces it to launch perfectly regardless of mass! <---
-                rb.AddForce(Vector3.up * 7f + transform.forward * -3f, ForceMode.VelocityChange); 
+                // 1. Flip a coin! 50% chance to be positive 3 (Right) or negative 3 (Left)
+                float randomDirection = Random.value > 0.5f ? 3f : -3f;
+
+                // 2. Apply the force!
+                rb.AddForce(Vector3.up * 7f + transform.right * randomDirection, ForceMode.VelocityChange);
             }
         }
     }
