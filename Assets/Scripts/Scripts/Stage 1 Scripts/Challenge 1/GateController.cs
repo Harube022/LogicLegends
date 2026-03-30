@@ -1,6 +1,7 @@
 using UnityEngine;
 using Photon.Pun; 
 using TMPro; 
+using UnityEngine.Events;
 
 public class GateController : MonoBehaviour
 {
@@ -20,6 +21,9 @@ public class GateController : MonoBehaviour
     // ---> NEW: UI References <---
     [Header("Objectives UI")]
     [SerializeField] private TextMeshProUGUI taskText;
+
+    [Header("Events")]
+    public UnityEvent OnPuzzleSolved;
     private string originalTaskString;
 
     private bool isSolved = false;
@@ -93,6 +97,8 @@ public class GateController : MonoBehaviour
         {
             taskText.text = "<color=#008000><s>" + taskText.text + "</s></color>";
         }
+
+        OnPuzzleSolved?.Invoke();
     }
 
     public void ResetGate()

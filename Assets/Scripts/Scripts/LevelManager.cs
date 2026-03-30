@@ -106,7 +106,29 @@ public class LevelManager : MonoBehaviourPun
         }
         else
         {
-            RPC_HandleMistake(-1); // Solo fallback
+            // ---> THE FIX: Clean Solo Mode Logic <---
+            playerHearts--;
+            UpdateHeartsUI();
+
+            if (playerHearts <= 0)
+            {
+                if (gameOverManager != null) gameOverManager.ShowGameOver();
+                else ResetFromGameOver();
+                return;
+            }
+
+            // Trust the exact player who fell in!
+            Transform targetPlayer = playerWhoFailed != null ? playerWhoFailed : player;
+
+            if (targetPlayer != null)
+            {
+                Transform spawnPoint = currentChallenge != null ? currentChallenge.GetRespawnPoint() : ovalRespawnPoint;
+                
+                // ---> NEW: Use the safe teleport!
+                ForceTeleportPlayer(targetPlayer, spawnPoint);
+            }
+
+            if (currentChallenge != null) currentChallenge.ResetThisChallenge();
         }
     }
 
@@ -175,10 +197,8 @@ public class LevelManager : MonoBehaviourPun
         {
             Transform spawnPoint = currentChallenge != null ? currentChallenge.GetRespawnPoint() : ovalRespawnPoint;
             
-            targetPlayer.position = spawnPoint.position;
-            Rigidbody playerRb = targetPlayer.GetComponent<Rigidbody>();
-            if (playerRb != null && !playerRb.isKinematic) 
-                playerRb.linearVelocity = Vector3.zero; 
+            // ---> NEW: Use the safe teleport!
+            ForceTeleportPlayer(targetPlayer, spawnPoint);
         }
 
         // 4. Reset the module (boulders, etc.) globally so they can try again
@@ -253,12 +273,8 @@ public class LevelManager : MonoBehaviourPun
 
         if (targetPlayer != null)
         {
-            // Force teleport to the very first spawn point
-            targetPlayer.position = ovalRespawnPoint.position;
-            
-            Rigidbody playerRb = targetPlayer.GetComponent<Rigidbody>();
-            if (playerRb != null && !playerRb.isKinematic) 
-                playerRb.linearVelocity = Vector3.zero; 
+            // ---> NEW: Force teleport to the very first spawn point safely
+            ForceTeleportPlayer(targetPlayer, ovalRespawnPoint);
         }
 
         // ---> THE ULTIMATE FIX: Reset ALL environments and set them On/Off <---
@@ -323,11 +339,8 @@ public class LevelManager : MonoBehaviourPun
         // Teleport the correct player
         if (targetPlayer != null)
         {
-            targetPlayer.position = spawnPoint.position;
-            
-            Rigidbody playerRb = targetPlayer.GetComponent<Rigidbody>();
-            if (playerRb != null && !playerRb.isKinematic) 
-                playerRb.linearVelocity = Vector3.zero; 
+           // ---> NEW: Use the safe teleport!
+            ForceTeleportPlayer(targetPlayer, spawnPoint);
         }
         // ---------------------------
 
@@ -408,5 +421,26 @@ public class LevelManager : MonoBehaviourPun
 
     public void ShowHealthBar() { if(healthBarParent != null) healthBarParent.SetActive(true); }
     public void HideHealthBar() { if(healthBarParent != null) healthBarParent.SetActive(false); }
+
+    // ---> NEW: Safe Teleport Helper <---
+    private void ForceTeleportPlayer(Transform targetPlayer, Transform destination)
+    {
+        if (targetPlayer == null || destination == null) return;
+
+        // 1. Turn OFF the Character Controller so it doesn't fight the teleport
+        CharacterController cc = targetPlayer.GetComponent<CharacterController>();
+        if (cc != null) cc.enabled = false;
+
+        // 2. Teleport
+        targetPlayer.position = destination.position;
+
+        // 3. Turn the Character Controller back ON
+        if (cc != null) cc.enabled = true;
+
+        // 4. Kill any leftover falling momentum
+        Rigidbody playerRb = targetPlayer.GetComponent<Rigidbody>();
+        if (playerRb != null && !playerRb.isKinematic) 
+            playerRb.linearVelocity = Vector3.zero; 
+    }
 }
 

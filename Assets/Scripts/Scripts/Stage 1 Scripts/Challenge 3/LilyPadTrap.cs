@@ -30,9 +30,15 @@ public class LilyPadTrap : MonoBehaviour
         // 1. Turn off custom movement so they can fly
         Player playerScript = player.GetComponent<Player>();
         Rigidbody playerRb = player.GetComponent<Rigidbody>();
+
+        // ---> NEW: Get the Character Controller
+        CharacterController cc = player.GetComponent<CharacterController>();
         
         if (playerScript != null) playerScript.enabled = false;
         
+        // ---> NEW: Turn off the controller so the Rigidbody can fly!
+        if (cc != null) cc.enabled = false;
+
         if (playerRb != null)
         {
             playerRb.isKinematic = false;
@@ -49,6 +55,8 @@ public class LilyPadTrap : MonoBehaviour
 
         // 3. Failsafe: Just in case they got thrown and landed on a safe platform instead of water!
         if (playerRb != null) playerRb.isKinematic = true;
+        // ---> NEW: Turn the controller back on when they land
+        if (cc != null) cc.enabled = true;
         if (playerScript != null) playerScript.enabled = true;
 
         if (padAnimator != null) padAnimator.speed = 1f;

@@ -1,20 +1,49 @@
 using UnityEngine;
+using UnityEngine.UI; // ---> NEW: Required to change UI Images! <---
 
 public class ObjectivesToggle : MonoBehaviour
 {
     [Header("UI Elements")]
-    [SerializeField] private GameObject objectivesParchment; // Drag your Scroll_Image here
+    [SerializeField] private GameObject objectivesParchment; 
 
-    // We assume it starts visible (true). Change to false if you want it hidden by default.
+    [Header("Button Visuals")]
+    [Tooltip("Drag the Button's Image component here")]
+    [SerializeField] private Image buttonImage; 
+    
+    [Tooltip("The sprite to show when the panel is ON")]
+    [SerializeField] private Sprite toggleOnSprite;
+    
+    [Tooltip("The sprite to show when the panel is OFF")]
+    [SerializeField] private Sprite toggleOffSprite;
+
+    // We assume it starts visible (true)
     private bool isVisible = true; 
 
-    // This method will be called by our new Button
+    private void Start()
+    {
+        // Make sure the button shows the correct sprite the moment the game starts!
+        UpdateButtonVisual();
+    }
+
     public void ToggleVisibility()
     {
-        // Flip the boolean (If true, it becomes false. If false, it becomes true)
         isVisible = !isVisible;
         
-        // Turn the parchment on or off based on the new boolean value
-        objectivesParchment.SetActive(isVisible);
+        if (objectivesParchment != null)
+        {
+            objectivesParchment.SetActive(isVisible);
+        }
+
+        // ---> NEW: Update the image after flipping the switch <---
+        UpdateButtonVisual();
+    }
+
+    private void UpdateButtonVisual()
+    {
+        if (buttonImage != null)
+        {
+            // If visible is true, use OnSprite. If false, use OffSprite.
+            buttonImage.sprite = isVisible ? toggleOnSprite : toggleOffSprite;
+        }
     }
 }

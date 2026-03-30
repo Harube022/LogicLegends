@@ -68,7 +68,7 @@ public class PuzzleTutorialManager : MonoBehaviour
             tutorialArrow.Hide();
     }
 
-    private void CompleteTutorial()
+    public void CompleteTutorial()
     {
         if (parchmentText != null) parchmentText.text = finalCompletionText;
         if (tutorialArrow != null) tutorialArrow.Hide();

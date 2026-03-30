@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections;
 using TMPro;
 using UnityEngine.InputSystem; 
+using UnityEngine.Events; // ---> NEW: Required for Unity Events! <---
 
 public class TutorialManager : MonoBehaviour
 {
@@ -14,6 +15,10 @@ public class TutorialManager : MonoBehaviour
     [Header("Objectives Panel Elements")]
     [SerializeField] private Canvas objectivesPanelCanvas; 
     [SerializeField] private TextMeshProUGUI objectiveText; 
+    
+    [Header("Toggle Button Elements")]
+    [SerializeField] private Canvas toggleButtonCanvas; 
+    [SerializeField] private Button objectivesToggleButton; 
 
     [Header("Gameplay Buttons (Target UI)")]
     [SerializeField] private Canvas joystickCanvas;
@@ -21,9 +26,13 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private Canvas interactButtonCanvas;
 
     [Header("Visual Targets for Pointer")]
-    [SerializeField] private RectTransform joystickVisualTarget; // <-- NEW: To target the exact circle
+    [SerializeField] private RectTransform joystickVisualTarget; 
     [SerializeField] private Button jumpButton;
     [SerializeField] private Button interactButton;
+
+    // ---> NEW: A switch that flips when the tutorial is totally done! <---
+    [Header("Tutorial Events")]
+    public UnityEvent onTutorialComplete;
 
     private int currentStep = 0;
     private Vector3 pointerBasePos;
@@ -67,7 +76,6 @@ public class TutorialManager : MonoBehaviour
         instructionText.text = "Press and move the joystick to move the character";
         objectiveText.text = "Task: Move around the courtyard"; 
 
-        // <-- UPDATED: Now targeting the exact visual circle
         PositionPointer(joystickVisualTarget);
 
         yield return new WaitUntil(() => currentStep > 1);
@@ -86,7 +94,6 @@ public class TutorialManager : MonoBehaviour
         instructionText.text = "Press the jump button to JUMP";
         objectiveText.text = "Task: Try jumping in the air"; 
 
-        // <-- UPDATED: Target the button directly
         PositionPointer(jumpButton.GetComponent<RectTransform>());
 
         bool jumpClicked = false;
@@ -110,7 +117,6 @@ public class TutorialManager : MonoBehaviour
         instructionText.text = "Press the hand button to pick up objects/Interact";
         objectiveText.text = "Task: Learn how to interact"; 
 
-        // <-- UPDATED: Target the button directly
         PositionPointer(interactButton.GetComponent<RectTransform>());
 
         bool interactClicked = false;
@@ -124,37 +130,32 @@ public class TutorialManager : MonoBehaviour
         pointer.gameObject.SetActive(false);
         instructionText.text = ""; 
         
-        // --- PHASE 4: THE PARCHMENT GUIDE ---
-        instructionText.text = "This scroll is your guide. Always check it for your current tasks!\n(Tap anywhere to continue)";
-        
-        pointer.gameObject.SetActive(true);
-        pointer.pivot = new Vector2(0.5f, 0.5f);
-
-        Vector3[] objCorners = new Vector3[4];
-        objectivesPanelCanvas.GetComponent<RectTransform>().GetWorldCorners(objCorners);
-        
-        Vector3 rightCenter = new Vector3(
-            objCorners[3].x, 
-            (objCorners[0].y + objCorners[1].y) / 2f, 
-            objCorners[0].z
-        );
-
-        float sideHoverOffset = 60f; 
-        pointerBasePos = rightCenter + new Vector3(sideHoverOffset, 0, 0);
-        pointer.position = pointerBasePos;
-        
-        // <-- Adjust this 90 to something else if the arrow doesn't point perfectly left
-        pointer.localRotation = Quaternion.Euler(0, 0, -90); 
-        
-        bobHorizontally = true;
-        isPointerActive = true;
-
         yield return new WaitForSeconds(0.5f);
 
-        yield return new WaitUntil(() => 
-            (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) ||
-            (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
-        );
+        // --- PHASE 4: THE SCROLL EXPLANATION ---
+        instructionText.text = "This scroll is your guide always check it for your current task.";
+        objectiveText.text = "Task: Read the scroll"; 
+
+        PositionPointer(objectivesPanelCanvas.GetComponent<RectTransform>());
+
+        yield return new WaitForSeconds(4f);
+
+        isPointerActive = false;
+        pointer.gameObject.SetActive(false);
+        instructionText.text = ""; 
+        
+        yield return new WaitForSeconds(0.5f);
+
+        // --- PHASE 5: THE TOGGLE BUTTON ---
+        toggleButtonCanvas.overrideSorting = true; 
+        objectivesToggleButton.interactable = true;
+
+        instructionText.text = "Tap this button to hide or show your tasks anytime!";
+        objectiveText.text = "Task: Try closing the scroll"; 
+
+        PositionPointer(objectivesToggleButton.GetComponent<RectTransform>());
+
+        yield return new WaitUntil(() => !objectivesPanelCanvas.gameObject.activeSelf);
 
         // --- CLEANUP ---
         tutorialOverlay.SetActive(false);
@@ -162,7 +163,16 @@ public class TutorialManager : MonoBehaviour
         isPointerActive = false;
         instructionText.text = ""; 
         objectivesPanelCanvas.overrideSorting = false; 
+        
+        if (!objectivesPanelCanvas.gameObject.activeSelf) 
+        {
+            objectivesToggleButton.GetComponent<ObjectivesToggle>().ToggleVisibility();
+        }
+
         objectiveText.text = "Go To Logical Expressions Realm Through the Portal"; 
+        
+        // ---> NEW: Fire the completion event! <---
+        onTutorialComplete?.Invoke();
         
         Debug.Log("Tutorial Complete!");
     }
@@ -189,7 +199,6 @@ public class TutorialManager : MonoBehaviour
         pointerBasePos = topCenter + new Vector3(0, hoverHeight, 0);
         pointer.position = pointerBasePos;
         
-        // <-- Adjust this 0 to something else (like -45) if your arrow sprite looks diagonal!
         pointer.localRotation = Quaternion.Euler(0, 0, 0); 
         
         isPointerActive = true; 

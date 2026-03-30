@@ -25,8 +25,8 @@ public class DynamicObjectiveIndicator : MonoBehaviour
         {
             if (target != null)
             {
-                // Clone a brand new arrow from the prefab
-                WorldIndicator newArrow = Instantiate(arrowPrefab);
+                // ---> FIX: Add ", transform" so the clones become children of this object! <---
+                WorldIndicator newArrow = Instantiate(arrowPrefab, transform);
                 
                 // Tell the new arrow to point at this specific target
                 newArrow.PointAt(target);
