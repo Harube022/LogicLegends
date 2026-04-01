@@ -1744,7 +1744,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 14.869028, y: 0.81, z: 14.869028}
+  m_Size: {x: 14.869028, y: 2, z: 14.869028}
   m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!114 &150173368
 MonoBehaviour:
@@ -5900,7 +5900,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 14.869028, y: 0.81, z: 14.869028}
+  m_Size: {x: 14.869028, y: 2, z: 14.869028}
   m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!114 &407334748
 MonoBehaviour:
@@ -6583,7 +6583,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 14.869028, y: 0.81, z: 14.869028}
+  m_Size: {x: 14.869028, y: 2, z: 14.869028}
   m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!114 &439226700
 MonoBehaviour:
@@ -6732,7 +6732,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 14.869028, y: 0.81, z: 14.869028}
+  m_Size: {x: 14.869028, y: 2, z: 14.869028}
   m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!114 &447008232
 MonoBehaviour:
@@ -10636,7 +10636,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 14.869028, y: 0.81, z: 14.869028}
+  m_Size: {x: 14.869028, y: 2, z: 14.869028}
   m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!1001 &888431986
 PrefabInstance:
@@ -11470,7 +11470,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 14.869028, y: 0.81, z: 14.869028}
+  m_Size: {x: 14.869028, y: 2, z: 14.869028}
   m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!114 &950470063
 MonoBehaviour:
@@ -11792,7 +11792,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 14.869028, y: 0.81, z: 14.869028}
+  m_Size: {x: 14.869028, y: 2, z: 14.869028}
   m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!114 &960114761
 MonoBehaviour:
@@ -15083,7 +15083,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 14.869028, y: 0.81, z: 14.869028}
+  m_Size: {x: 14.869028, y: 2, z: 14.869028}
   m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!114 &1289833385
 MonoBehaviour:
@@ -18198,7 +18198,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 14.869028, y: 0.81, z: 14.869028}
+  m_Size: {x: 14.869028, y: 2, z: 14.869028}
   m_Center: {x: 0, y: 0.4, z: 0}
 --- !u!114 &1557450192
 MonoBehaviour:
@@ -24306,6 +24306,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: FadeScreen
       objectReference: {fileID: 0}
+    - target: {fileID: 8038878585020221914, guid: 4000563b393430c4e864be00500e56a5, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -25649,6 +25653,8 @@ GameObject:
   - component: {fileID: 3351389960207801372}
   - component: {fileID: 5947612614608036669}
   - component: {fileID: 6016922655270630363}
+  - component: {fileID: 6016922655270630365}
+  - component: {fileID: 6016922655270630364}
   m_Layer: 5
   m_Name: ObjectivesToggleButton
   m_TagString: Untagged
@@ -25877,19 +25883,19 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2485251736922070518}
-  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 7748240283668899313}
   m_Father: {fileID: 7484701335176082948}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 45, y: 341}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 35, y: -195.04742}
   m_SizeDelta: {x: 27.883545, y: 30}
-  m_Pivot: {x: 0, y: 0.5}
+  m_Pivot: {x: 0, y: 1}
 --- !u!222 &2816043484193089676
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -26541,7 +26547,6 @@ MonoBehaviour:
   - {fileID: 1696171905079380135}
   - {fileID: 102913685166199523}
   playerHearts: 3
-  maxHearts: 5
   heartIcons:
   - {fileID: 4124529273215938936}
   - {fileID: 1033885761642401330}
@@ -28535,6 +28540,46 @@ MonoBehaviour:
   buttonImage: {fileID: 3351389960207801372}
   toggleOnSprite: {fileID: 7641486303312568650, guid: 0e79ae18eeba8da44a67b0881dc0b2fb, type: 3}
   toggleOffSprite: {fileID: -5023803091191814373, guid: 324ee5f33a59c6942bacb35bf71de714, type: 3}
+--- !u!114 &6016922655270630364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2485251736922070518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
+  m_IgnoreReversedGraphics: 1
+  m_BlockingObjects: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!223 &6016922655270630365
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2485251736922070518}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 1
+  m_TargetDisplay: 0
 --- !u!114 &6026175249352469355
 MonoBehaviour:
   m_ObjectHideFlags: 0

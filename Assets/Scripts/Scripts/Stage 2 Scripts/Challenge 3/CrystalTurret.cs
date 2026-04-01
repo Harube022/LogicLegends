@@ -29,7 +29,7 @@ public class CrystalTurret : MonoBehaviourPun
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.startWidth = 0.1f;
         lineRenderer.endWidth = 0.1f;
-        lineRenderer.material = isTrueCrystal ? greenBeamMat : redBeamMat;
+        lineRenderer.material = redBeamMat;
     }
 
     private void Start()
@@ -106,6 +106,11 @@ public class CrystalTurret : MonoBehaviourPun
                     // Turn on the new one
                     currentTarget = hitIndicator;
                     currentTarget.SetPowerState(true, isTrueCrystal);
+
+                    if (isTrueCrystal)
+                    {
+                        lineRenderer.material = greenBeamMat;
+                    }
                 }
             }
             else 
@@ -129,6 +134,9 @@ public class CrystalTurret : MonoBehaviourPun
         {
             currentTarget.SetPowerState(false, false); // Tell it to turn Red
             currentTarget = null; // Forget it
+
+            lineRenderer.material = redBeamMat;
+            
         }
     }
 
@@ -154,6 +162,8 @@ public class CrystalTurret : MonoBehaviourPun
         {
             currentTarget.ResetIndicator();
             currentTarget = null;
+
+            lineRenderer.material = redBeamMat;
         }
     }
 }
