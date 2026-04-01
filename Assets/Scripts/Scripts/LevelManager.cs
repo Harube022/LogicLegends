@@ -21,7 +21,7 @@ public class LevelManager : MonoBehaviourPun
 
     [Header("Global Game State")]
     [SerializeField] private int playerHearts = 3;
-    [SerializeField] private int maxHearts = 5;
+    // [SerializeField] private int maxHearts = 5;
     [SerializeField] private GameObject[] heartIcons; 
     [SerializeField] private GameObject healthBarParent;
 
@@ -250,7 +250,7 @@ public class LevelManager : MonoBehaviourPun
         }
 
         // 4. Reset the challenges and Respawn the player
-        RespawnPlayerAtStageStart();
+        RespawnPlayerAtCurrentCheckpoint();
     }
 
     // ---> NEW: This method forces the player back to the ovalRespawnPoint <---
@@ -356,17 +356,9 @@ public class LevelManager : MonoBehaviourPun
     public void SetNewChallenge(ChallengeModule newChallenge, bool isNewStage = false)
     {
         currentChallenge = newChallenge;
-        
-        if (isNewStage)
-        {
-            playerHearts = 3; // Baseline for a brand new stage
-        }
-        else
-        {
-            playerHearts++; // Reward for beating the previous challenge!
-            if (playerHearts > maxHearts) playerHearts = maxHearts; // Cap at 5
-        }
-        
+
+        playerHearts = 3; // Baseline for a brand new stage
+
         UpdateHeartsUI();
     }
 
