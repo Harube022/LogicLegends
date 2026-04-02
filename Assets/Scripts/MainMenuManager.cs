@@ -1,6 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using Firebase.Auth;
+using Firebase.Database;
+using Firebase.Extensions;
 
 public class MainMenuManager : MonoBehaviour
 {
@@ -13,6 +16,9 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject customizationMenuPanel;
     [SerializeField] private GameObject achievementsMenuPanel;
     [SerializeField] private GameObject settingsMenuPanel;
+
+    // ---> NEW: Variable to remember the player's progress <---
+    private int highestUnlockedStage = 1; 
 
     public void ShowMainMenu()
     {
@@ -112,7 +118,29 @@ public class MainMenuManager : MonoBehaviour
 
     public void LoadSolo()
     {
-        SceneManager.LoadScene("Stage 1");
+        // ---> THE FIX: Fetch the database the exact moment they click the button! <---
+        if (FirebaseAuth.DefaultInstance != null && FirebaseAuth.DefaultInstance.CurrentUser != null)
+        {
+            string userId = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
+            DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
+
+            dbRef.Child("users").Child(userId).Child("unlockedStage").GetValueAsync().ContinueWithOnMainThread(task =>
+            {
+                if (task.IsCompleted && task.Result.Exists)
+                {
+                    highestUnlockedStage = int.Parse(task.Result.Value.ToString());
+                }
+                
+                string sceneToLoad = "Stage " + highestUnlockedStage;
+                Debug.Log("Loading saved progress: " + sceneToLoad);
+                SceneManager.LoadScene(sceneToLoad);
+            });
+        }
+        else
+        {
+            // Fallback just in case they are offline
+            SceneManager.LoadScene("Stage 1");
+        }
     }
 
     public void LoadLogicGarden()

@@ -25,16 +25,25 @@ public class WorldIndicator : MonoBehaviour
         // 1. Find your Canvas and spawn the UI arrow inside it
         if (uiPointerPrefab != null)
         {
-            GameObject mainCanvas = GameObject.Find("Canvas 1");
-            if (mainCanvas != null)
+            // ---> NEW: Try to find the Safe Area first! <---
+            GameObject uiContainer = GameObject.Find("SafeArea");
+            
+            // If we can't find a Safe Area, fallback to the main Canvas
+            if (uiContainer == null)
             {
-                uiPointerInstance = Instantiate(uiPointerPrefab, mainCanvas.transform);
+                uiContainer = GameObject.Find("Canvas 1");
+            }
+
+            if (uiContainer != null)
+            {
+                // Spawn the arrow inside the Safe Area (or Canvas)
+                uiPointerInstance = Instantiate(uiPointerPrefab, uiContainer.transform);
                 uiPointerRect = uiPointerInstance.GetComponent<RectTransform>();
                 uiPointerInstance.SetActive(false); // Hide it until we need it
             }
             else
             {
-                Debug.LogError("Could not find a GameObject named 'Canvas 1'!");
+                Debug.LogError("Could not find a 'SafeArea' or 'Canvas 1' in the scene!");
             }
         }
         else
@@ -64,11 +73,12 @@ public class WorldIndicator : MonoBehaviour
         if (uiPointerInstance == null || uiPointerRect == null) return;
 
         // Find where the target is relative to the camera screen
+        Rect safeArea = Screen.safeArea;
         Vector3 screenPos = Camera.main.WorldToScreenPoint(currentTarget.position);
         
         // Is it behind us, or off the edges of the screen?
-        bool isOffScreen = screenPos.z < 0 || screenPos.x < 0 || screenPos.x > Screen.width || screenPos.y < 0 || screenPos.y > Screen.height;
-
+        bool isOffScreen = screenPos.z < 0 || !safeArea.Contains(new Vector2(screenPos.x, screenPos.y));
+        
         if (isOffScreen)
         {
             uiPointerInstance.SetActive(true);
@@ -76,17 +86,21 @@ public class WorldIndicator : MonoBehaviour
             // If the object is behind the camera, flip the coordinates so the arrow points backwards
             if (screenPos.z < 0) screenPos *= -1;
 
-            Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0);
+            Vector3 screenCenter = new Vector3(safeArea.center.x, safeArea.center.y, 0);
             Vector3 dir = (screenPos - screenCenter).normalized;
 
             // Rotate the UI Arrow to point at the target
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
             uiPointerRect.localEulerAngles = new Vector3(0, 0, angle + 90f); // -90 assumes your sprite faces UP
 
+            // ---> NEW: Clamp the arrow strictly to the Safe Area size <---
+            Vector3 boundsExtents = new Vector3(safeArea.width / 2f, safeArea.height / 2f, 0);
+            Vector3 clampedExtents = boundsExtents - new Vector3(edgePadding, edgePadding, 0);
+
             // Clamp the UI Arrow to the edges of the screen
-            Vector3 screenBounds = screenCenter - new Vector3(edgePadding, edgePadding, 0);
-            float xClamp = dir.x > 0 ? screenBounds.x : -screenBounds.x;
-            float yClamp = dir.y > 0 ? screenBounds.y : -screenBounds.y;
+            // Vector3 clampedExtents = screenCenter - new Vector3(edgePadding, edgePadding, 0);
+            float xClamp = dir.x > 0 ? clampedExtents.x : -clampedExtents.x;
+            float yClamp = dir.y > 0 ? clampedExtents.y : -clampedExtents.y;
             Vector3 clampedPos = Vector3.zero;
 
             if (dir.x == 0) 
@@ -96,7 +110,7 @@ public class WorldIndicator : MonoBehaviour
             else 
             {
                 float m = dir.y / dir.x;
-                if (Mathf.Abs(xClamp * m) < screenBounds.y)
+                if (Mathf.Abs(xClamp * m) < clampedExtents.y)
                     clampedPos = new Vector3(xClamp, xClamp * m, 0);
                 else
                     clampedPos = new Vector3(yClamp / m, yClamp, 0);

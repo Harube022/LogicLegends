@@ -8,6 +8,11 @@ public class LevelManager : MonoBehaviourPun
 
     [Header("Game Over Management")]
     [SerializeField] private GameOverManager gameOverManager;
+    
+    [Header("Stage Stats")]
+    public int totalHeartsLostThisStage = 0;
+    public float totalStageTime = 0f;
+    private bool isStageActive = true;
 
     // ---> NEW: Array to hold your Challenge GameObjects <---
     [Header("Environment Reset")]
@@ -51,6 +56,12 @@ public class LevelManager : MonoBehaviourPun
 
     private void Update()
     {
+        // ---> NEW: Global Stage Stopwatch <---
+        if (isStageActive)
+        {
+            totalStageTime += Time.deltaTime;
+        }
+
         if (isTimerRunning)
         {
             timeRemaining -= Time.deltaTime;
@@ -77,6 +88,7 @@ public class LevelManager : MonoBehaviourPun
     public void RPC_LoseHeartOnly()
     {
         playerHearts--;
+        totalHeartsLostThisStage++;
         UpdateHeartsUI();
 
         if (playerHearts <= 0)
@@ -108,6 +120,7 @@ public class LevelManager : MonoBehaviourPun
         {
             // ---> THE FIX: Clean Solo Mode Logic <---
             playerHearts--;
+            totalHeartsLostThisStage++;
             UpdateHeartsUI();
 
             if (playerHearts <= 0)
@@ -137,6 +150,7 @@ public class LevelManager : MonoBehaviourPun
     {
         // 1. EVERYONE updates the shared heart UI
         playerHearts--;
+        totalHeartsLostThisStage++;
         UpdateHeartsUI();
 
         if (playerHearts <= 0)
@@ -212,6 +226,7 @@ public class LevelManager : MonoBehaviourPun
     {
         isTimerRunning = false;
         playerHearts--;
+        totalHeartsLostThisStage++;
         UpdateHeartsUI(); 
 
         if (playerHearts <= 0)
@@ -410,6 +425,8 @@ public class LevelManager : MonoBehaviourPun
             timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
         }
     }
+
+    public void StopStageTimer() { isStageActive = false; }
 
     public void ShowHealthBar() { if(healthBarParent != null) healthBarParent.SetActive(true); }
     public void HideHealthBar() { if(healthBarParent != null) healthBarParent.SetActive(false); }

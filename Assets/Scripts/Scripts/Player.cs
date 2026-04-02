@@ -183,6 +183,8 @@ public class Player : MonoBehaviourPun
     // ---> MASSIVE CLEANUP: 100+ lines reduced to this! <---
     private void HandleMovementAndGravity()
     {
+
+        if (Camera.main == null || gameInput == null) return;
         // 1. Get Camera Direction
         Vector2 inputVector = gameInput.GetMovementVectorNormalized();
         Vector3 camForward = Camera.main.transform.forward;
