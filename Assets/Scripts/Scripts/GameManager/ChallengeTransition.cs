@@ -1,6 +1,7 @@
 using UnityEngine;
 using Photon.Pun;
 using System; // Required to use Actions
+using UnityEngine.Events;
 
 public class ChallengeTransition : MonoBehaviourPun
 {
@@ -20,6 +21,9 @@ public class ChallengeTransition : MonoBehaviourPun
     [Header("Visibility Settings")]
     [SerializeField] private GameObject challengeToHide;
     [SerializeField] private GameObject challengeToShow;
+
+    [Header("Events")]
+    public UnityEvent onTransitionStart;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -68,6 +72,8 @@ public class ChallengeTransition : MonoBehaviourPun
                         LevelManager.Instance.SetNewChallenge(nextChallengeModule, isTransitionToNewStage);
                         LevelManager.Instance.HideTimer();
                     }
+
+                    onTransitionStart?.Invoke();
                 };
 
                 // 2. Pass the action to the TeleportManager to execute when black

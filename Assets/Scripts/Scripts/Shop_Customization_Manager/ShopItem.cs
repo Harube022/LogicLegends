@@ -8,10 +8,13 @@ public class ShopItem : MonoBehaviour
     public enum Currency { Coins, Gems }
 
     [Header("Item Details")]
-    public string itemID;      // e.g., "shirt_red" or "pet_dog"
-    public int price;          // How many coins it costs
-    public Currency currencyType;
-    public ShopManager shopManager; // Reference to the main manager
+    [SerializeField] private string itemID;      
+    public string ItemID => itemID;      // e.g., "shirt_red" or "pet_dog"
+    [SerializeField] private int price;          
+    public int Price => price;          // How many coins it costs
+    [SerializeField] private Currency currencyType;
+    public Currency CurrencyType => currencyType;
+    [SerializeField] private ShopManager shopManager; // Reference to the main manager
 
     [Header("UI References")]
     [SerializeField] private Image buttonImage;      // The Image component of the Buy button

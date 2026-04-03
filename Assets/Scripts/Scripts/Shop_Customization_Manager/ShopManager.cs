@@ -97,30 +97,30 @@ public class ShopManager : MonoBehaviour
         bool canAfford = false;
 
         // 1. Check which currency the item costs, and see if they have enough
-        if (itemToBuy.currencyType == ShopItem.Currency.Coins && currentCoins >= itemToBuy.price)
+        if (itemToBuy.CurrencyType == ShopItem.Currency.Coins && currentCoins >= itemToBuy.Price)
         {
-            currentCoins -= itemToBuy.price;
+            currentCoins -= itemToBuy.Price;
             canAfford = true;
         }
-        else if (itemToBuy.currencyType == ShopItem.Currency.Gems && currentGems >= itemToBuy.price)
+        else if (itemToBuy.CurrencyType == ShopItem.Currency.Gems && currentGems >= itemToBuy.Price)
         {
-            currentGems -= itemToBuy.price;
+            currentGems -= itemToBuy.Price;
             canAfford = true;
         }
 
         if (canAfford)
         {
-            ownedItems.Add(itemToBuy.itemID);
+            ownedItems.Add(itemToBuy.ItemID);
 
             SaveCurrencyToDatabase(); // Saves both coins and gems
-            dbRef.Child("users").Child(userId).Child("inventory").Child(itemToBuy.itemID).SetValueAsync(true);
+            dbRef.Child("users").Child(userId).Child("inventory").Child(itemToBuy.ItemID).SetValueAsync(true);
 
             UpdateShopUI();
-            Debug.Log($"Successfully purchased {itemToBuy.itemID}!");
+            Debug.Log($"Successfully purchased {itemToBuy.ItemID}!");
         }
         else
         {
-            Debug.LogWarning($"Not enough {itemToBuy.currencyType}!");
+            Debug.LogWarning($"Not enough {itemToBuy.CurrencyType}!");
         }
     }
 
@@ -133,7 +133,7 @@ public class ShopManager : MonoBehaviour
         // Tell every item in the shop to update its button sprite
         foreach (ShopItem item in allShopItems)
         {
-            bool isOwned = ownedItems.Contains(item.itemID);
+            bool isOwned = ownedItems.Contains(item.ItemID);
             item.UpdateUI(isOwned);
         }
     }

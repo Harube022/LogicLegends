@@ -17,8 +17,16 @@ public class WorldIndicator : MonoBehaviour
     [Tooltip("How far from the edge of the screen should it float?")]
     [SerializeField] private float edgePadding = 40f;
 
+    // ---> NEW: Control how fast it fades away! <---
+    [Tooltip("How many seconds should it take to fade out when you look at it?")]
+    [SerializeField] private float fadeDuration = 1.5f;
+
     private GameObject uiPointerInstance;
     private RectTransform uiPointerRect;
+
+    // ---> NEW: CanvasGroup controls transparency <---
+    private CanvasGroup uiCanvasGroup; 
+    private float currentAlpha = 1f;
 
     private void Start()
     {
@@ -39,6 +47,13 @@ public class WorldIndicator : MonoBehaviour
                 // Spawn the arrow inside the Safe Area (or Canvas)
                 uiPointerInstance = Instantiate(uiPointerPrefab, uiContainer.transform);
                 uiPointerRect = uiPointerInstance.GetComponent<RectTransform>();
+
+                // ---> NEW: Automatically add a CanvasGroup to handle the fading! <---
+                uiCanvasGroup = uiPointerInstance.GetComponent<CanvasGroup>();
+                if (uiCanvasGroup == null) 
+                {
+                    uiCanvasGroup = uiPointerInstance.AddComponent<CanvasGroup>();
+                }
                 uiPointerInstance.SetActive(false); // Hide it until we need it
             }
             else
@@ -68,61 +83,124 @@ public class WorldIndicator : MonoBehaviour
         UpdateOffScreenPointer();
     }
 
+    // private void UpdateOffScreenPointer()
+    // {
+    //     if (uiPointerInstance == null || uiPointerRect == null) return;
+
+    //     // Find where the target is relative to the camera screen
+    //     Rect safeArea = Screen.safeArea;
+    //     Vector3 screenPos = Camera.main.WorldToScreenPoint(currentTarget.position);
+        
+    //     // Is it behind us, or off the edges of the screen?
+    //     bool isOffScreen = screenPos.z < 0 || !safeArea.Contains(new Vector2(screenPos.x, screenPos.y));
+        
+    //     if (isOffScreen)
+    //     {
+    //         uiPointerInstance.SetActive(true);
+
+    //         // If the object is behind the camera, flip the coordinates so the arrow points backwards
+    //         if (screenPos.z < 0) screenPos *= -1;
+
+    //         Vector3 screenCenter = new Vector3(safeArea.center.x, safeArea.center.y, 0);
+    //         Vector3 dir = (screenPos - screenCenter).normalized;
+
+    //         // Rotate the UI Arrow to point at the target
+    //         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+    //         uiPointerRect.localEulerAngles = new Vector3(0, 0, angle + 90f); // -90 assumes your sprite faces UP
+
+    //         // ---> NEW: Clamp the arrow strictly to the Safe Area size <---
+    //         Vector3 boundsExtents = new Vector3(safeArea.width / 2f, safeArea.height / 2f, 0);
+    //         Vector3 clampedExtents = boundsExtents - new Vector3(edgePadding, edgePadding, 0);
+
+    //         // Clamp the UI Arrow to the edges of the screen
+    //         // Vector3 clampedExtents = screenCenter - new Vector3(edgePadding, edgePadding, 0);
+    //         float xClamp = dir.x > 0 ? clampedExtents.x : -clampedExtents.x;
+    //         float yClamp = dir.y > 0 ? clampedExtents.y : -clampedExtents.y;
+    //         Vector3 clampedPos = Vector3.zero;
+
+    //         if (dir.x == 0) 
+    //         {
+    //             clampedPos = new Vector3(0, yClamp, 0);
+    //         } 
+    //         else 
+    //         {
+    //             float m = dir.y / dir.x;
+    //             if (Mathf.Abs(xClamp * m) < clampedExtents.y)
+    //                 clampedPos = new Vector3(xClamp, xClamp * m, 0);
+    //             else
+    //                 clampedPos = new Vector3(yClamp / m, yClamp, 0);
+    //         }
+
+    //         uiPointerRect.position = screenCenter + clampedPos;
+    //     }
+    //     else
+    //     {
+    //         // The target is safely on-screen, so hide the UI pointer!
+    //         uiPointerInstance.SetActive(false);
+    //     }
+    // }
     private void UpdateOffScreenPointer()
     {
         if (uiPointerInstance == null || uiPointerRect == null) return;
 
-        // Find where the target is relative to the camera screen
         Rect safeArea = Screen.safeArea;
         Vector3 screenPos = Camera.main.WorldToScreenPoint(currentTarget.position);
         
-        // Is it behind us, or off the edges of the screen?
         bool isOffScreen = screenPos.z < 0 || !safeArea.Contains(new Vector2(screenPos.x, screenPos.y));
         
+        // ---> NEW: The Fade Logic <---
         if (isOffScreen)
         {
             uiPointerInstance.SetActive(true);
-
-            // If the object is behind the camera, flip the coordinates so the arrow points backwards
-            if (screenPos.z < 0) screenPos *= -1;
-
-            Vector3 screenCenter = new Vector3(safeArea.center.x, safeArea.center.y, 0);
-            Vector3 dir = (screenPos - screenCenter).normalized;
-
-            // Rotate the UI Arrow to point at the target
-            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            uiPointerRect.localEulerAngles = new Vector3(0, 0, angle + 90f); // -90 assumes your sprite faces UP
-
-            // ---> NEW: Clamp the arrow strictly to the Safe Area size <---
-            Vector3 boundsExtents = new Vector3(safeArea.width / 2f, safeArea.height / 2f, 0);
-            Vector3 clampedExtents = boundsExtents - new Vector3(edgePadding, edgePadding, 0);
-
-            // Clamp the UI Arrow to the edges of the screen
-            // Vector3 clampedExtents = screenCenter - new Vector3(edgePadding, edgePadding, 0);
-            float xClamp = dir.x > 0 ? clampedExtents.x : -clampedExtents.x;
-            float yClamp = dir.y > 0 ? clampedExtents.y : -clampedExtents.y;
-            Vector3 clampedPos = Vector3.zero;
-
-            if (dir.x == 0) 
-            {
-                clampedPos = new Vector3(0, yClamp, 0);
-            } 
-            else 
-            {
-                float m = dir.y / dir.x;
-                if (Mathf.Abs(xClamp * m) < clampedExtents.y)
-                    clampedPos = new Vector3(xClamp, xClamp * m, 0);
-                else
-                    clampedPos = new Vector3(yClamp / m, yClamp, 0);
-            }
-
-            uiPointerRect.position = screenCenter + clampedPos;
+            currentAlpha = 1f; // Instantly fully visible when you look away
+            if (uiCanvasGroup != null) uiCanvasGroup.alpha = currentAlpha;
         }
         else
         {
-            // The target is safely on-screen, so hide the UI pointer!
-            uiPointerInstance.SetActive(false);
+            // You are looking at the object! Start fading out...
+            if (currentAlpha > 0)
+            {
+                currentAlpha -= Time.deltaTime / fadeDuration;
+                if (uiCanvasGroup != null) uiCanvasGroup.alpha = currentAlpha;
+            }
+            else
+            {
+                // Once it is totally invisible, turn it off and stop doing math
+                uiPointerInstance.SetActive(false);
+                return; 
+            }
         }
+
+        // ---> The Position Math (Now runs while fading too!) <---
+        if (screenPos.z < 0) screenPos *= -1;
+
+        Vector3 screenCenter = new Vector3(safeArea.center.x, safeArea.center.y, 0);
+        Vector3 dir = (screenPos - screenCenter).normalized;
+
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        uiPointerRect.localEulerAngles = new Vector3(0, 0, angle + 90f); 
+
+        Vector3 boundsExtents = new Vector3(safeArea.width / 2f, safeArea.height / 2f, 0);
+        Vector3 clampedExtents = boundsExtents - new Vector3(edgePadding, edgePadding, 0);
+
+        float xClamp = dir.x > 0 ? clampedExtents.x : -clampedExtents.x;
+        float yClamp = dir.y > 0 ? clampedExtents.y : -clampedExtents.y;
+        Vector3 clampedPos = Vector3.zero;
+
+        if (dir.x == 0) 
+        {
+            clampedPos = new Vector3(0, yClamp, 0);
+        } 
+        else 
+        {
+            float m = dir.y / dir.x;
+            if (Mathf.Abs(xClamp * m) < clampedExtents.y)
+                clampedPos = new Vector3(xClamp, xClamp * m, 0);
+            else
+                clampedPos = new Vector3(yClamp / m, yClamp, 0);
+        }
+
+        uiPointerRect.position = screenCenter + clampedPos;
     }
 
     public void PointAt(Transform newTarget)

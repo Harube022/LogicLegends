@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Photon.Pun; // ---> NEW: Added Photon <---
+using UnityEngine.Events;
 
 // ---> FIX: Changed to MonoBehaviourPun <---
 public class StageEndPortal : MonoBehaviourPun 
@@ -8,6 +9,9 @@ public class StageEndPortal : MonoBehaviourPun
     [Header("Stage Manager Link")]
     [Tooltip("Drag your StageCompleteManager here!")]
     [SerializeField] private StageCompleteManager stageCompleteManager;
+
+    [Header("Events")]
+    public UnityEvent onPortalEnter;
     
     // Safety lock so it doesn't try to load the scene 50 times if they stand in it
     private bool isLoading = false; 
@@ -24,6 +28,9 @@ public class StageEndPortal : MonoBehaviourPun
 
             isLoading = true;
             Debug.Log("Stage Completed! Showing results...");
+
+            // ---> NEW: Fire our custom events (like hiding the final arrow!) <---
+            onPortalEnter?.Invoke();
             
             if (PhotonNetwork.InRoom)
             {

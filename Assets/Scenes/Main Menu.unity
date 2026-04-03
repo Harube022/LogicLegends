@@ -4932,6 +4932,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 571028197}
   m_CullTransparentMesh: 1
+--- !u!1 &581120642 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8972766372564516263, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+  m_PrefabInstance: {fileID: 1767588504}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &595058467
 GameObject:
   m_ObjectHideFlags: 0
@@ -7353,6 +7358,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 844521083}
   m_CullTransparentMesh: 1
+--- !u!1 &850314013 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3446964310484685618, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+  m_PrefabInstance: {fileID: 1767588504}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &851098387
 GameObject:
   m_ObjectHideFlags: 0
@@ -14718,9 +14728,9 @@ MonoBehaviour:
   - {fileID: 207234816}
   mannequinModels:
   - itemID: clothes_shirt
-    model: {fileID: 1767588507}
+    model: {fileID: 581120642}
   - itemID: clothes_robe_black
-    model: {fileID: 1767588506}
+    model: {fileID: 850314013}
 --- !u!1 &1420815961
 GameObject:
   m_ObjectHideFlags: 0
@@ -18609,6 +18619,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1541379959}
     m_Modifications:
+    - target: {fileID: 3446964310484685618, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5521854778457473478, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_UseGravity
       value: 0
@@ -18673,16 +18687,6 @@ PrefabInstance:
 --- !u!4 &1767588505 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6468329135324665564, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
-  m_PrefabInstance: {fileID: 1767588504}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1767588506 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7302036948749081053, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
-  m_PrefabInstance: {fileID: 1767588504}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1767588507 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 759457855081498068, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
   m_PrefabInstance: {fileID: 1767588504}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1773031011
