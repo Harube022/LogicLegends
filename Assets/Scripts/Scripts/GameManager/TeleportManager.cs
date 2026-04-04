@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 using System; // Required to use Actions (Callbacks)
 using Photon.Pun;
 
-public class TeleportManager : MonoBehaviour
+public class TeleportManager : MonoBehaviourPun
 {
     public static TeleportManager Instance { get; private set; }
 
@@ -54,11 +54,28 @@ public class TeleportManager : MonoBehaviour
     {
         if (!isTeleporting)
         {
-            StartCoroutine(SceneLoadSequence(sceneName));
+           if (PhotonNetwork.InRoom && photonView != null)
+            {
+                // ---> NEW: Tell EVERYONE in the room to fade out <---
+                photonView.RPC("RPC_NetworkFadeAndLoad", RpcTarget.All, sceneName);
+            }
+            else
+            {
+                // Solo offline fallback
+                StartCoroutine(SceneLoadSequence(sceneName, true));
+            }
         }
     }
 
-    private IEnumerator SceneLoadSequence(string sceneName)
+    [PunRPC]
+    private void RPC_NetworkFadeAndLoad(string sceneName)
+    {
+        // The master client gets permission to actually trigger the load.
+        // Everyone else just runs the fade-to-black animation and waits to be pulled in!
+        StartCoroutine(SceneLoadSequence(sceneName, PhotonNetwork.IsMasterClient));
+    }
+
+    private IEnumerator SceneLoadSequence(string sceneName, bool isAllowedToLoadScene)
     {
         isTeleporting = true;
 
@@ -76,19 +93,18 @@ public class TeleportManager : MonoBehaviour
             fadeCanvasGroup.alpha = 1f;
         }
 
-        // 2. Load the new Scene (Multiplayer safe!)
-        if (PhotonNetwork.InRoom)
+        yield return new WaitForSeconds(0.2f);
+
+        if (isAllowedToLoadScene)
         {
-            // Only the Master Client should trigger the network load
-            if (PhotonNetwork.IsMasterClient)
+            if (PhotonNetwork.InRoom)
             {
                 PhotonNetwork.LoadLevel(sceneName);
             }
-        }
-        else
-        {
-            // Fallback for solo testing
-            SceneManager.LoadScene(sceneName);
+            else
+            {
+                SceneManager.LoadScene(sceneName);
+            }
         }
 
     }

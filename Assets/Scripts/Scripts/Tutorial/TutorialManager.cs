@@ -11,6 +11,11 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private GameObject tutorialOverlay;
     [SerializeField] private RectTransform pointer; 
     [SerializeField] private Text instructionText; 
+
+    // ---> NEW: Slot for your Pinch Graphic <---
+    [Header("Camera Zoom Tutorial")]
+    [Tooltip("Drag the UI Image containing your Pinch icon here")]
+    [SerializeField] private GameObject pinchTutorialUI;
     
     [Header("Objectives Panel Elements")]
     [SerializeField] private Canvas objectivesPanelCanvas; 
@@ -132,7 +137,23 @@ public class TutorialManager : MonoBehaviour
         
         yield return new WaitForSeconds(0.5f);
 
-        // --- PHASE 4: THE SCROLL EXPLANATION ---
+        // ---> NEW PHASE 4: CAMERA ZOOM <---
+        instructionText.text = "Pinch two fingers on the right side of the screen to ZOOM the camera.";
+        objectiveText.text = "Task: Try zooming the camera"; 
+
+        // Turn on your pinch graphic!
+        if (pinchTutorialUI != null) pinchTutorialUI.SetActive(true);
+
+        // Give the player 4.5 seconds to practice zooming in and out
+        yield return new WaitForSeconds(4.5f);
+
+        // Hide it and move on
+        if (pinchTutorialUI != null) pinchTutorialUI.SetActive(false);
+        instructionText.text = ""; 
+        
+        yield return new WaitForSeconds(0.5f);
+
+        // --- PHASE 5: THE SCROLL EXPLANATION ---
         instructionText.text = "This scroll is your guide always check it for your current task.";
         objectiveText.text = "Task: Read the scroll"; 
 
@@ -146,7 +167,7 @@ public class TutorialManager : MonoBehaviour
         
         yield return new WaitForSeconds(0.5f);
 
-        // --- PHASE 5: THE TOGGLE BUTTON ---
+        // --- PHASE 6: THE TOGGLE BUTTON ---
         toggleButtonCanvas.overrideSorting = true; 
         objectivesToggleButton.interactable = true;
 

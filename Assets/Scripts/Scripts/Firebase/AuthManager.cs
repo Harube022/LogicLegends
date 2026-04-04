@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Firebase.Auth;
+using Firebase.Database;
 using Firebase.Extensions;
 using Google; 
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private GameObject signUpMenu;    
     [SerializeField] private GameObject modeSelection; 
     [SerializeField] private GameObject settingsMenu;
+    [SerializeField] private GameObject characterSelectMenu;
 
     [Header("Google Configuration")]
     [Tooltip("Paste your Web Client ID from the Firebase Console here")]
@@ -54,7 +56,7 @@ public class AuthManager : MonoBehaviour
                 else
                 {
                     Debug.Log($"Welcome back, {auth.CurrentUser.DisplayName ?? auth.CurrentUser.Email}!");
-                    ShowModeSelection(); 
+                    CheckFirstTimeSetup();
                 }
             });
         }
@@ -63,6 +65,56 @@ public class AuthManager : MonoBehaviour
             Debug.Log("No user found. Please log in.");
             ShowLoginScreen(); 
         }
+    }
+
+    // --- FIREBASE DATABASE INTERCEPTOR ---
+
+    private void CheckFirstTimeSetup()
+    {
+        if (auth.CurrentUser == null) return;
+        string userId = auth.CurrentUser.UserId;
+        DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
+
+        Debug.Log("Checking if player has chosen a base character...");
+
+        dbRef.Child("users").Child(userId).Child("base_character").GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted || task.IsCanceled)
+            {
+                ShowModeSelection(); // Fallback just in case
+                return;
+            }
+
+            DataSnapshot snapshot = task.Result;
+            if (snapshot.Exists && snapshot.Value != null)
+            {
+                // They already have a character saved! Send them to the game.
+                ShowModeSelection();
+            }
+            else
+            {
+                // First time playing! Show the selection screen.
+                ShowCharacterSelectScreen();
+            }
+        });
+    }
+
+    // Call this from your Male / Female UI Buttons
+    public void SelectBaseCharacter(string characterID)
+    {
+        if (auth.CurrentUser == null) return;
+        string userId = auth.CurrentUser.UserId;
+        DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
+
+        // Save their choice to Firebase
+        dbRef.Child("users").Child(userId).Child("base_character").SetValueAsync(characterID).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsCompleted)
+            {
+                Debug.Log($"Successfully saved {characterID} as base character!");
+                ShowModeSelection(); // Move them to the game now!
+            }
+        });
     }
 
     // --- GOOGLE SIGN-IN ---
@@ -161,6 +213,24 @@ public class AuthManager : MonoBehaviour
         modeSelection.SetActive(false); 
         if (settingsMenu != null) settingsMenu.SetActive(false); 
     }
-    public void ShowSignUpScreen() { loginMenu.SetActive(false); signUpMenu.SetActive(true); modeSelection.SetActive(false); }
-    private void ShowModeSelection() { loginMenu.SetActive(false); signUpMenu.SetActive(false); modeSelection.SetActive(true); }
+    public void ShowSignUpScreen() 
+    { 
+        loginMenu.SetActive(false); 
+        signUpMenu.SetActive(true); 
+        modeSelection.SetActive(false); 
+    }
+    private void ShowModeSelection() 
+    { 
+        loginMenu.SetActive(false); 
+        signUpMenu.SetActive(false); 
+        if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
+        modeSelection.SetActive(true); 
+    }
+    private void ShowCharacterSelectScreen()
+    {
+        loginMenu.SetActive(false); 
+        signUpMenu.SetActive(false); 
+        modeSelection.SetActive(false); 
+        characterSelectMenu.SetActive(true);
+    }
 }

@@ -4932,11 +4932,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 571028197}
   m_CullTransparentMesh: 1
---- !u!1 &581120642 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8972766372564516263, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
-  m_PrefabInstance: {fileID: 1767588504}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &595058467
 GameObject:
   m_ObjectHideFlags: 0
@@ -7154,6 +7149,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 805460229}
   m_CullTransparentMesh: 1
+--- !u!1 &819586512
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 819586513}
+  m_Layer: 0
+  m_Name: CharacterSelection
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &819586513
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 819586512}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2000, y: 2000, z: 2000}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &820541880
 GameObject:
   m_ObjectHideFlags: 0
@@ -14728,7 +14754,7 @@ MonoBehaviour:
   - {fileID: 207234816}
   mannequinModels:
   - itemID: clothes_shirt
-    model: {fileID: 581120642}
+    model: {fileID: 1767588506}
   - itemID: clothes_robe_black
     model: {fileID: 850314013}
 --- !u!1 &1420815961
@@ -15302,6 +15328,7 @@ MonoBehaviour:
   signUpMenu: {fileID: 1936643137}
   modeSelection: {fileID: 65215104}
   settingsMenu: {fileID: 862377347}
+  characterSelectMenu: {fileID: 0}
   webClientId: 251023689335-22ec2unn2hbfncrmio8rfdhf5di9t58u.apps.googleusercontent.com
   emailLoginInput: {fileID: 1480662604}
   passwordLoginInput: {fileID: 337667640}
@@ -18621,7 +18648,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3446964310484685618, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3723344723599578330, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5521854778457473478, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_UseGravity
@@ -18675,9 +18706,29 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7780191382793854349, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: clothesModels.Array.data[1].model
+      value: 
+      objectReference: {fileID: 1767588506}
     - target: {fileID: 8223448397856731140, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8496008499536317034, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9127725640433242320, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -8.29
+      objectReference: {fileID: 0}
+    - target: {fileID: 9127725640433242320, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.761
+      objectReference: {fileID: 0}
+    - target: {fileID: 9127725640433242320, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.171
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18687,6 +18738,11 @@ PrefabInstance:
 --- !u!4 &1767588505 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6468329135324665564, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+  m_PrefabInstance: {fileID: 1767588504}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1767588506 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8496008499536317034, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
   m_PrefabInstance: {fileID: 1767588504}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1773031011
@@ -22668,6 +22724,7 @@ SceneRoots:
   - {fileID: 1491842987}
   - {fileID: 1460924590}
   - {fileID: 7357665536693409098}
+  - {fileID: 819586513}
   - {fileID: 1541379959}
   - {fileID: 1559000517}
   - {fileID: 1156863049}
