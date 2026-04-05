@@ -3529,7 +3529,7 @@ GameObject:
   - component: {fileID: 278346426}
   m_Layer: 8
   m_Name: TEMPLE
-  m_TagString: Untagged
+  m_TagString: Concrete
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5488,6 +5488,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: b0119d3c123d75248b32b772667ab2c3, type: 3}
       propertyPath: m_Name
       value: FLOOR
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: b0119d3c123d75248b32b772667ab2c3, type: 3}
+      propertyPath: m_TagString
+      value: Grass
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12584,7 +12588,7 @@ GameObject:
   - component: {fileID: 786332916}
   m_Layer: 8
   m_Name: STAIRS
-  m_TagString: Untagged
+  m_TagString: Concrete
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -18161,7 +18165,7 @@ GameObject:
   - component: {fileID: 1157649539}
   m_Layer: 8
   m_Name: STAIRS (3)
-  m_TagString: Untagged
+  m_TagString: Concrete
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -18823,6 +18827,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 6f752959e4364814d9f75bea7f4814df, type: 3}
       propertyPath: m_Layer
       value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6f752959e4364814d9f75bea7f4814df, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -28520,7 +28528,7 @@ GameObject:
   - component: {fileID: 1857473320}
   m_Layer: 8
   m_Name: STAIRS (2)
-  m_TagString: Untagged
+  m_TagString: Concrete
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -28780,7 +28788,7 @@ Transform:
   m_GameObject: {fileID: 1861117053}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 193.86, y: -24.36, z: -78.29}
+  m_LocalPosition: {x: 193.86, y: -25.1, z: -78.29}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -31093,7 +31101,7 @@ GameObject:
   - component: {fileID: 1996242376}
   m_Layer: 8
   m_Name: STAIRS (1)
-  m_TagString: Untagged
+  m_TagString: Concrete
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -33314,7 +33322,7 @@ GameObject:
   - component: {fileID: 2128677175}
   m_Layer: 8
   m_Name: FLOOR
-  m_TagString: Untagged
+  m_TagString: Grass
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -33601,7 +33609,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c25ad4af7388edf42abdeaad8fbc4d83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawner
-  playerPrefabName: Multiplayer_Player
+  malePrefabName: Multiplayer_Male
+  femalePrefabName: Multiplayer_Female
   spawnPoint: {fileID: 1861117054}
 --- !u!4 &2402482772995505344
 Transform:

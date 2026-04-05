@@ -181,7 +181,7 @@ public class AuthManager : MonoBehaviour
                 Debug.LogError("Sign Up Failed!");
                 return;
             }
-            ShowModeSelection();
+            CheckFirstTimeSetup();
         });
     }
 
@@ -212,6 +212,8 @@ public class AuthManager : MonoBehaviour
         signUpMenu.SetActive(false); 
         modeSelection.SetActive(false); 
         if (settingsMenu != null) settingsMenu.SetActive(false); 
+
+        ClearAllInputs();
     }
     public void ShowSignUpScreen() 
     { 
@@ -225,6 +227,8 @@ public class AuthManager : MonoBehaviour
         signUpMenu.SetActive(false); 
         if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
         modeSelection.SetActive(true); 
+
+        ClearAllInputs();
     }
     private void ShowCharacterSelectScreen()
     {
@@ -232,5 +236,16 @@ public class AuthManager : MonoBehaviour
         signUpMenu.SetActive(false); 
         modeSelection.SetActive(false); 
         characterSelectMenu.SetActive(true);
+
+        ClearAllInputs();
+    }
+
+    private void ClearAllInputs()
+    {
+        if (emailLoginInput != null) emailLoginInput.text = "";
+        if (passwordLoginInput != null) passwordLoginInput.text = "";
+        if (emailSignUpInput != null) emailSignUpInput.text = "";
+        if (usernameSignUpInput != null) usernameSignUpInput.text = "";
+        if (passwordSignUpInput != null) passwordSignUpInput.text = "";
     }
 }

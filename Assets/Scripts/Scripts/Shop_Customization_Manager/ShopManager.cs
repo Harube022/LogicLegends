@@ -17,12 +17,13 @@ public class ShopManager : MonoBehaviour
 
     private DatabaseReference dbRef;
     private string userId;
+    private string playerBaseCharacter = "";
     
     private int currentCoins = 0;
     private int currentGems = 0;
     private List<string> ownedItems = new List<string>();
 
-    private void Start()
+    private void OnEnable()
     {
         // 1. Get database connection
         dbRef = FirebaseDatabase.DefaultInstance.RootReference;
@@ -46,6 +47,12 @@ public class ShopManager : MonoBehaviour
 
             if (snapshot.Exists)
             {
+                // NEW: Load their chosen character!
+                if (snapshot.HasChild("base_character"))
+                {
+                    playerBaseCharacter = snapshot.Child("base_character").Value.ToString();
+                }
+
                 // Load Coins
                 if (snapshot.HasChild("coins"))
                 {
@@ -130,9 +137,21 @@ public class ShopManager : MonoBehaviour
         coinsText.text = currentCoins.ToString();
         gemsText.text = currentGems.ToString();
 
-        // Tell every item in the shop to update its button sprite
         foreach (ShopItem item in allShopItems)
         {
+            // 1. FILTER CHECK: Does this belong to the current player?
+            bool isCorrectGender = true;
+            if (item.Target == ShopItem.TargetCharacter.MaleOnly && playerBaseCharacter != "Male_Character") isCorrectGender = false;
+            if (item.Target == ShopItem.TargetCharacter.FemaleOnly && playerBaseCharacter != "Female_Character") isCorrectGender = false;
+
+            if (!isCorrectGender)
+            {
+                item.gameObject.SetActive(false); // Hide the item slot completely!
+                continue; // Skip to the next item
+            }
+
+            // 2. If it is the right gender, show it and update its button
+            item.gameObject.SetActive(true);
             bool isOwned = ownedItems.Contains(item.ItemID);
             item.UpdateUI(isOwned);
         }

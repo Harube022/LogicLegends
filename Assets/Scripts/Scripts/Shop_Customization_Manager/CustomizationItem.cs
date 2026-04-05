@@ -4,6 +4,7 @@ using UnityEngine.UI;
 public class CustomizationItem : MonoBehaviour
 {
     public enum ItemType { Clothes, Pets }
+    public enum TargetCharacter { Any, MaleOnly, FemaleOnly }
 
     [Header("Item Details")]
     [SerializeField] private string itemID;             
@@ -11,6 +12,13 @@ public class CustomizationItem : MonoBehaviour
 
     [SerializeField] private ItemType itemType;         
     public ItemType Type => itemType; // Getter
+
+    [SerializeField] private TargetCharacter targetCharacter; // NEW
+    public TargetCharacter Target => targetCharacter;
+
+    // --- NEW: Checkbox for Default Items ---
+    [SerializeField] private bool isDefaultItem;
+    public bool IsDefault => isDefaultItem;
 
     [SerializeField] private CustomizationManager manager; 
 
@@ -22,14 +30,8 @@ public class CustomizationItem : MonoBehaviour
 
     public void UpdateUI(bool isOwned, bool isEquipped)
     {
-        if (!isOwned)
+        if (isOwned)
         {
-            gameObject.SetActive(false); 
-        }
-        else
-        {
-            gameObject.SetActive(true);
-
             if (isEquipped)
             {
                 buttonImage.sprite = equippedSprite;

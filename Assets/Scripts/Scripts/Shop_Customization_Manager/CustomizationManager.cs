@@ -9,6 +9,12 @@ public class CustomizationManager : MonoBehaviour
     [Header("UI Items")]
     [SerializeField] private CustomizationItem[] allUIItems; 
 
+    // --- NEW: Slots for the base bodies in the dressing room ---
+    [Header("Base Mannequins")]
+    [SerializeField] private GameObject maleMannequin;
+    [SerializeField] private GameObject femaleMannequin;
+    
+
     [System.Serializable]
     public class EquippableModel
     {
@@ -21,12 +27,13 @@ public class CustomizationManager : MonoBehaviour
 
     private DatabaseReference dbRef;
     private string userId;
+    private string playerBaseCharacter = "";
 
     private List<string> ownedItems = new List<string>();
     private string equippedClothes = "";
     private string equippedPet = "";
 
-    private void Start()
+    private void OnEnable()
     {
         dbRef = FirebaseDatabase.DefaultInstance.RootReference;
         if (FirebaseAuth.DefaultInstance.CurrentUser != null)
@@ -45,6 +52,12 @@ public class CustomizationManager : MonoBehaviour
 
             if (snapshot.Exists)
             {
+                // NEW: Load their chosen character!
+                if (snapshot.HasChild("base_character"))
+                {
+                    playerBaseCharacter = snapshot.Child("base_character").Value.ToString();
+                }
+
                 ownedItems.Clear();
                 if (snapshot.HasChild("inventory"))
                 {
@@ -61,6 +74,12 @@ public class CustomizationManager : MonoBehaviour
                     
                     if (snapshot.Child("equipped").HasChild("pets"))
                         equippedPet = snapshot.Child("equipped").Child("pets").Value.ToString();
+                }
+
+                // --- NEW: Auto-equip default skins for brand new players! ---
+                if (string.IsNullOrEmpty(equippedClothes))
+                {
+                    equippedClothes = (playerBaseCharacter == "Female_Character") ? "female_default" : "male_default";
                 }
 
                 UpdateUIAndMannequin();
@@ -85,7 +104,36 @@ public class CustomizationManager : MonoBehaviour
     {
         foreach (CustomizationItem item in allUIItems)
         {
-            bool isOwned = ownedItems.Contains(item.ItemID);
+            // --- NEW: Swap the 3D Base Body! ---
+            if (playerBaseCharacter == "Female_Character")
+            {
+                if (maleMannequin != null) maleMannequin.SetActive(false);
+                if (femaleMannequin != null) femaleMannequin.SetActive(true);
+            }
+            else 
+            {
+                // Default to Male
+                if (maleMannequin != null) maleMannequin.SetActive(true);
+                if (femaleMannequin != null) femaleMannequin.SetActive(false);
+            }
+
+            // 1. FILTER CHECK
+            bool isCorrectGender = true;
+            if (item.Target == CustomizationItem.TargetCharacter.MaleOnly && playerBaseCharacter != "Male_Character") isCorrectGender = false;
+            if (item.Target == CustomizationItem.TargetCharacter.FemaleOnly && playerBaseCharacter != "Female_Character") isCorrectGender = false;
+
+            // 2. If the item is marked as Default, treat it as always owned
+            bool isOwned = item.IsDefault || ownedItems.Contains(item.ItemID);
+
+            // 3. FINAL DECISION: Hide it if wrong gender OR not owned
+            if (!isCorrectGender || !isOwned)
+            {
+                item.gameObject.SetActive(false);
+                continue;
+            }
+
+            // If we made it this far, they own it and it fits their character!
+            item.gameObject.SetActive(true);
             bool isEquipped = (item.ItemID == equippedClothes || item.ItemID == equippedPet);
             item.UpdateUI(isOwned, isEquipped);
         }

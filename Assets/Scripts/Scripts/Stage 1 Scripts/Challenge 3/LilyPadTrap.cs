@@ -33,7 +33,10 @@ public class LilyPadTrap : MonoBehaviour
 
         // ---> NEW: Get the Character Controller
         CharacterController cc = player.GetComponent<CharacterController>();
+
+        CapsuleCollider backupCollider = player.GetComponent<CapsuleCollider>();
         
+        if (backupCollider != null) backupCollider.enabled = true;
         if (playerScript != null) playerScript.enabled = false;
         
         // ---> NEW: Turn off the controller so the Rigidbody can fly!
@@ -57,6 +60,7 @@ public class LilyPadTrap : MonoBehaviour
         if (playerRb != null) playerRb.isKinematic = true;
         // ---> NEW: Turn the controller back on when they land
         if (cc != null) cc.enabled = true;
+        if (backupCollider != null) backupCollider.enabled = false;
         if (playerScript != null) playerScript.enabled = true;
 
         if (padAnimator != null) padAnimator.speed = 1f;

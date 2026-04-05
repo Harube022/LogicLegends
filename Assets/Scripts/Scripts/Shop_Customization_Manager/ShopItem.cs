@@ -6,6 +6,7 @@ public class ShopItem : MonoBehaviour
 
     // This creates a dropdown in the Unity Inspector!
     public enum Currency { Coins, Gems }
+    public enum TargetCharacter { Any, MaleOnly, FemaleOnly }
 
     [Header("Item Details")]
     [SerializeField] private string itemID;      
@@ -14,6 +15,9 @@ public class ShopItem : MonoBehaviour
     public int Price => price;          // How many coins it costs
     [SerializeField] private Currency currencyType;
     public Currency CurrencyType => currencyType;
+    [SerializeField] private TargetCharacter targetCharacter; // NEW: Tell Unity who can wear this
+    public TargetCharacter Target => targetCharacter;
+
     [SerializeField] private ShopManager shopManager; // Reference to the main manager
 
     [Header("UI References")]

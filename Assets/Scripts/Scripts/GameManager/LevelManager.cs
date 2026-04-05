@@ -37,7 +37,7 @@ public class LevelManager : MonoBehaviourPun
     [SerializeField] private TextMeshProUGUI timerText; 
 
     [Header("Current Progress")]
-    [SerializeField] private Transform player;
+    [HideInInspector] public Transform player;
     [SerializeField] private Transform ovalRespawnPoint; // The very first spawn
 
     [Header("The Active Challenge")]
@@ -285,6 +285,19 @@ public class LevelManager : MonoBehaviourPun
                 }
             }
         }
+        else
+        {
+            // ---> THE FIX: Find the solo player dynamically if 'player' is null <---
+            if (targetPlayer == null)
+            {
+                Player localPlayer = FindFirstObjectByType<Player>();
+                if (localPlayer != null)
+                {
+                    targetPlayer = localPlayer.transform;
+                    player = targetPlayer; // Cache it
+                }
+            }
+        }
 
         if (targetPlayer != null)
         {
@@ -347,6 +360,19 @@ public class LevelManager : MonoBehaviourPun
                 {
                     targetPlayer = p.transform;
                     break;
+                }
+            }
+        }
+        else
+        {
+            // ---> THE FIX: Find the solo player dynamically if 'player' is null <---
+            if (targetPlayer == null)
+            {
+                Player localPlayer = FindFirstObjectByType<Player>();
+                if (localPlayer != null)
+                {
+                    targetPlayer = localPlayer.transform;
+                    player = targetPlayer; // Cache it for next time!
                 }
             }
         }
@@ -440,16 +466,38 @@ public class LevelManager : MonoBehaviourPun
         CharacterController cc = targetPlayer.GetComponent<CharacterController>();
         if (cc != null) cc.enabled = false;
 
-        // 2. Teleport
-        targetPlayer.position = destination.position;
+        // ---> THE FIX: Grounded Spawn <---
+        Vector3 safePosition = destination.position;
+        
+        // Only apply the spread and air-drop if we are online AND there is more than 1 person!
+        if (PhotonNetwork.InRoom && PhotonNetwork.CurrentRoom.PlayerCount > 1)
+        {
+            Vector2 randomSpread = UnityEngine.Random.insideUnitCircle * 1.0f; 
+            safePosition += new Vector3(randomSpread.x, 2f, randomSpread.y);
+        }
+        // Notice: The "else" block adding +2f for Solo mode has been completely deleted!
+        // You now spawn exactly flush with the ground to prevent velocity tunneling!
+
+        // 2. Teleport to the safe position
+        targetPlayer.position = safePosition;
 
         // 3. Turn the Character Controller back ON
         if (cc != null) cc.enabled = true;
 
-        // 4. Kill any leftover falling momentum
+        // 4. Kill any leftover falling or spinning momentum
         Rigidbody playerRb = targetPlayer.GetComponent<Rigidbody>();
         if (playerRb != null && !playerRb.isKinematic) 
+        {
             playerRb.linearVelocity = Vector3.zero; 
+            playerRb.angularVelocity = Vector3.zero; 
+        }
+        
+        // 5. INSTANTLY SNAP THE CAMERA!
+        ThirdPersonCameraController camController = Object.FindFirstObjectByType<ThirdPersonCameraController>();
+        if (camController != null)
+        {
+            camController.WarpCamera(targetPlayer);
+        }
     }
 }
 
