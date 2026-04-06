@@ -10,7 +10,7 @@ public class AuthManager : MonoBehaviour
 {
     [Header("UI Panels")]
     [SerializeField] private GameObject loginMenu;     
-    [SerializeField] private GameObject signUpMenu;    
+    // [SerializeField] private GameObject signUpMenu;    
     [SerializeField] private GameObject modeSelection; 
     [SerializeField] private GameObject settingsMenu;
     [SerializeField] private GameObject characterSelectMenu;
@@ -30,6 +30,18 @@ public class AuthManager : MonoBehaviour
 
     private FirebaseAuth auth;
     private GoogleSignInConfiguration configuration;
+
+    // ---> FIX 1: THE FLASHING LOGIN SCREEN <---
+    private void Awake()
+    {
+        // Hide everything the exact millisecond the scene loads.
+        // This prevents the login screen from flashing while Firebase checks your saved session!
+        if (loginMenu != null) loginMenu.SetActive(false);
+        // if (signUpMenu != null) signUpMenu.SetActive(false);
+        if (modeSelection != null) modeSelection.SetActive(false);
+        if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
+        if (settingsMenu != null) settingsMenu.SetActive(false);
+    }
 
     public void CheckLoginState()
     {
@@ -135,6 +147,7 @@ public class AuthManager : MonoBehaviour
         if (task.IsFaulted || task.IsCanceled)
         {
             Debug.LogError("Google Sign-In failed or was canceled.");
+            ShowLoginScreen();
             return;
         }
 
@@ -209,7 +222,7 @@ public class AuthManager : MonoBehaviour
     public void ShowLoginScreen() 
     { 
         loginMenu.SetActive(true); 
-        signUpMenu.SetActive(false); 
+        // signUpMenu.SetActive(false); 
         modeSelection.SetActive(false); 
         if (settingsMenu != null) settingsMenu.SetActive(false); 
 
@@ -218,13 +231,13 @@ public class AuthManager : MonoBehaviour
     public void ShowSignUpScreen() 
     { 
         loginMenu.SetActive(false); 
-        signUpMenu.SetActive(true); 
+        // signUpMenu.SetActive(true); 
         modeSelection.SetActive(false); 
     }
     private void ShowModeSelection() 
     { 
         loginMenu.SetActive(false); 
-        signUpMenu.SetActive(false); 
+        // signUpMenu.SetActive(false); 
         if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
         modeSelection.SetActive(true); 
 
@@ -233,7 +246,7 @@ public class AuthManager : MonoBehaviour
     private void ShowCharacterSelectScreen()
     {
         loginMenu.SetActive(false); 
-        signUpMenu.SetActive(false); 
+        // signUpMenu.SetActive(false); 
         modeSelection.SetActive(false); 
         characterSelectMenu.SetActive(true);
 

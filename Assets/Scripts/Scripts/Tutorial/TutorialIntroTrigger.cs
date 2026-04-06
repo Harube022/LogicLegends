@@ -26,6 +26,7 @@ public class TutorialIntroTrigger : MonoBehaviour
             if (guideWizard != null)
             {
                 // We add a half-second delay so the camera can settle after teleporting
+                guideWizard.LockPlayer(other.gameObject);
                 StartCoroutine(StartDialogueWithDelay());
             }
         }

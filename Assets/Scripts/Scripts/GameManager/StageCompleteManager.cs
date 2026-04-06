@@ -20,10 +20,10 @@ public class StageCompleteManager : MonoBehaviour
     [SerializeField] private TMP_Text gemsRewardText;
 
     [Header("Reward Settings")]
-    [SerializeField] private int baseCoins = 100;
-    [SerializeField] private int baseGems = 10;
-    [SerializeField] private int coinPenaltyPerHeart = 15;
-    [SerializeField] private int gemPenaltyPerHeart = 2;
+    [SerializeField] private int baseCoins = 500;
+    [SerializeField] private int baseGems = 40;
+    [SerializeField] private int coinPenaltyPerHeart = 50;
+    [SerializeField] private int gemPenaltyPerHeart = 5;
 
     [Header("Stage Progression")]
     [Tooltip("What stage number is this? (e.g., 1)")]

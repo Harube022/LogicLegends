@@ -27,8 +27,13 @@ public class WizardInteraction : MonoBehaviourPun
     public UnityEvent OnPuzzleSuccess;
     public UnityEvent OnPuzzleFail;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip taskScribbleClip;
+    [SerializeField, Range(0f, 1f)] private float scribbleVolume = 0.5f; // Set this lower in the inspector!
+
     [Header("Player Control")]
-    [SerializeField] private Behaviour playerControlScript;
+    // [SerializeField] private Behaviour playerControlScript;
+    private Player localPlayer;
 
     private GameInput gameInput;
     private int currentLineIndex = 0;
@@ -108,6 +113,7 @@ public class WizardInteraction : MonoBehaviourPun
 
             playerInRange = true;
             DialogueManager.Instance.ToggleInteractButton(true);
+            localPlayer = other.GetComponent<Player>();
         }
     }
 
@@ -142,7 +148,7 @@ public class WizardInteraction : MonoBehaviourPun
     public void StartStandardDialogue()
     {
         isDisplaying = true;
-        if (playerControlScript != null) playerControlScript.enabled = false;
+        if (localPlayer != null) localPlayer.ToggleControl(false);
 
         currentLineIndex = 0;
         isReadingFinalDialogue = areAllTasksCompleted;
@@ -187,7 +193,7 @@ public class WizardInteraction : MonoBehaviourPun
             DialogueManager.Instance.HideDialoguePanel();      
         }
 
-        if (playerControlScript != null) playerControlScript.enabled = true;
+        if (localPlayer != null) localPlayer.ToggleControl(true);
 
         if (isPlayingFeedback)
         {
@@ -228,7 +234,7 @@ public class WizardInteraction : MonoBehaviourPun
         currentLineIndex = 0;
         
         isDisplaying = true;
-        if (playerControlScript != null) playerControlScript.enabled = false;
+        if (localPlayer != null) localPlayer.ToggleControl(false);
 
         // ---> NEW: Start listening for screen taps! <---
         DialogueManager.Instance.OnPanelTapped -= AdvanceDialogue; // Safety clear
@@ -306,6 +312,12 @@ public class WizardInteraction : MonoBehaviourPun
         if (startsTimer && LevelManager.Instance != null) 
             LevelManager.Instance.StartCustomTimer(timerDuration);
 
+        // ---> NEW: Play the Scribble Sound <---
+        if (taskScribbleClip != null)
+        {
+            Spawn3DTaskAudio(taskScribbleClip, transform.position, scribbleVolume);
+        }
+
         OnDialogueComplete?.Invoke();
     }
     
@@ -314,5 +326,36 @@ public class WizardInteraction : MonoBehaviourPun
     {
         if (success) OnPuzzleSuccess?.Invoke();
         else OnPuzzleFail?.Invoke();
+    }
+
+    public void LockPlayer(GameObject playerObject)
+    {
+        localPlayer = playerObject.GetComponent<Player>();
+        if (localPlayer != null)
+        {
+            localPlayer.ToggleControl(false);
+        }
+    }
+
+    // ---> NEW: The "Footstep Magic" adapted for UI Sounds! <---
+    private void Spawn3DTaskAudio(AudioClip clip, Vector3 spawnPosition, float volume)
+    {
+        GameObject audioObj = new GameObject("TempTaskAudio");
+        audioObj.transform.position = spawnPosition;
+
+        AudioSource source = audioObj.AddComponent<AudioSource>();
+        source.clip = clip;
+        source.volume = volume; // Applies your lowered volume
+        
+        // Add slight random pitch so it sounds natural every time
+        source.pitch = Random.Range(0.95f, 1.05f);
+        
+        // Make it 3D Spatial Audio
+        source.spatialBlend = 1f; 
+        source.minDistance = 2f;
+        source.maxDistance = 15f; 
+
+        source.Play();
+        Destroy(audioObj, clip.length + 0.1f);
     }
 }

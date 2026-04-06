@@ -2400,6 +2400,9 @@ MonoBehaviour:
   poweredMaterial: {fileID: -3947353717184095288, guid: 21c5eef1c4f234245b8bc94b6aecbb23, type: 3}
   failedMaterial: {fileID: 0}
   myGateManager: {fileID: 994141101}
+  successElectricClip: {fileID: 8300000, guid: b966b47022e8ce64d871ad446d0c4aca, type: 3}
+  errorElectricClip: {fileID: 8300000, guid: 664045de1c2111341a7cb7b9655eaa1e, type: 3}
+  audioVolume: 0.8
   isPoweredCorrectly: 0
 --- !u!65 &138327788
 BoxCollider:
@@ -5995,6 +5998,7 @@ GameObject:
   - component: {fileID: 334648402}
   - component: {fileID: 334648401}
   - component: {fileID: 334648400}
+  - component: {fileID: 334648405}
   m_Layer: 0
   m_Name: TorchPIckup 4
   m_TagString: Untagged
@@ -6112,6 +6116,107 @@ MonoBehaviour:
   isLit: 0
   litModel: {fileID: 1686280666}
   unlitModel: {fileID: 1955812150}
+  fireLoopSource: {fileID: 334648405}
+  lightUpClip: {fileID: 8300000, guid: 5ab3fed341228244eb5d59b62ab21593, type: 3}
+  fireLoopClip: {fileID: 8300000, guid: c55ece7306cfa8e4e97c27957628ed3a, type: 3}
+  impactVolume: 1
+--- !u!82 &334648405
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 334648398}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.6
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 3
+  MaxDistance: 10
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &334838191
 GameObject:
   m_ObjectHideFlags: 0
@@ -7298,6 +7403,7 @@ GameObject:
   - component: {fileID: 421508780}
   - component: {fileID: 421508783}
   - component: {fileID: 421508784}
+  - component: {fileID: 421508785}
   m_Layer: 0
   m_Name: TorchPIckup 2
   m_TagString: Untagged
@@ -7367,6 +7473,10 @@ MonoBehaviour:
   isLit: 0
   litModel: {fileID: 1378708222}
   unlitModel: {fileID: 1735539153}
+  fireLoopSource: {fileID: 421508785}
+  lightUpClip: {fileID: 8300000, guid: 5ab3fed341228244eb5d59b62ab21593, type: 3}
+  fireLoopClip: {fileID: 8300000, guid: c55ece7306cfa8e4e97c27957628ed3a, type: 3}
+  impactVolume: 1
 --- !u!65 &421508783
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -7415,6 +7525,103 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!82 &421508785
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 421508776}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.6
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 3
+  MaxDistance: 10
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &427086034
 GameObject:
   m_ObjectHideFlags: 0
@@ -9117,7 +9324,8 @@ MonoBehaviour:
   OnPuzzleFail:
     m_PersistentCalls:
       m_Calls: []
-  playerControlScript: {fileID: 0}
+  taskScribbleClip: {fileID: 8300000, guid: d234e554f0fb2b2448ef89d299351b19, type: 3}
+  scribbleVolume: 0.5
   areAllTasksCompleted: 0
 --- !u!95 &517755390
 Animator:
@@ -13758,6 +13966,9 @@ MonoBehaviour:
   poweredMaterial: {fileID: -3947353717184095288, guid: 21c5eef1c4f234245b8bc94b6aecbb23, type: 3}
   failedMaterial: {fileID: 119879324303487838, guid: 0ff9ab0b678a0b244a6b26ed11a524cb, type: 3}
   myGateManager: {fileID: 994141101}
+  successElectricClip: {fileID: 8300000, guid: b966b47022e8ce64d871ad446d0c4aca, type: 3}
+  errorElectricClip: {fileID: 8300000, guid: 664045de1c2111341a7cb7b9655eaa1e, type: 3}
+  audioVolume: 0.8
   isPoweredCorrectly: 0
 --- !u!65 &885673910
 BoxCollider:
@@ -22903,7 +23114,8 @@ MonoBehaviour:
   OnPuzzleFail:
     m_PersistentCalls:
       m_Calls: []
-  playerControlScript: {fileID: 0}
+  taskScribbleClip: {fileID: 8300000, guid: d234e554f0fb2b2448ef89d299351b19, type: 3}
+  scribbleVolume: 0.5
   areAllTasksCompleted: 0
 --- !u!95 &1530876482
 Animator:
@@ -24048,6 +24260,9 @@ MonoBehaviour:
   poweredMaterial: {fileID: -3947353717184095288, guid: 21c5eef1c4f234245b8bc94b6aecbb23, type: 3}
   failedMaterial: {fileID: 0}
   myGateManager: {fileID: 994141101}
+  successElectricClip: {fileID: 8300000, guid: b966b47022e8ce64d871ad446d0c4aca, type: 3}
+  errorElectricClip: {fileID: 8300000, guid: 664045de1c2111341a7cb7b9655eaa1e, type: 3}
+  audioVolume: 0.8
   isPoweredCorrectly: 0
 --- !u!65 &1590997350
 BoxCollider:
@@ -26930,7 +27145,8 @@ MonoBehaviour:
   OnPuzzleFail:
     m_PersistentCalls:
       m_Calls: []
-  playerControlScript: {fileID: 0}
+  taskScribbleClip: {fileID: 8300000, guid: d234e554f0fb2b2448ef89d299351b19, type: 3}
+  scribbleVolume: 0.5
   areAllTasksCompleted: 0
 --- !u!95 &1803757391
 Animator:
@@ -26973,6 +27189,7 @@ GameObject:
   - component: {fileID: 1805763145}
   - component: {fileID: 1805763148}
   - component: {fileID: 1805763149}
+  - component: {fileID: 1805763150}
   m_Layer: 0
   m_Name: TorchPIckup 1
   m_TagString: Untagged
@@ -27042,6 +27259,10 @@ MonoBehaviour:
   isLit: 0
   litModel: {fileID: 2075459111}
   unlitModel: {fileID: 226368735}
+  fireLoopSource: {fileID: 1805763150}
+  lightUpClip: {fileID: 8300000, guid: 5ab3fed341228244eb5d59b62ab21593, type: 3}
+  fireLoopClip: {fileID: 8300000, guid: c55ece7306cfa8e4e97c27957628ed3a, type: 3}
+  impactVolume: 1
 --- !u!65 &1805763148
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -27090,6 +27311,103 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!82 &1805763150
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1805763141}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.6
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 3
+  MaxDistance: 10
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1820157104
 GameObject:
   m_ObjectHideFlags: 0
@@ -27441,6 +27759,7 @@ GameObject:
   - component: {fileID: 1841319464}
   - component: {fileID: 1841319463}
   - component: {fileID: 1841319462}
+  - component: {fileID: 1841319467}
   m_Layer: 0
   m_Name: TorchPIckup 3
   m_TagString: Untagged
@@ -27558,6 +27877,107 @@ MonoBehaviour:
   isLit: 1
   litModel: {fileID: 1265484058}
   unlitModel: {fileID: 678089922}
+  fireLoopSource: {fileID: 1841319467}
+  lightUpClip: {fileID: 8300000, guid: 5ab3fed341228244eb5d59b62ab21593, type: 3}
+  fireLoopClip: {fileID: 8300000, guid: c55ece7306cfa8e4e97c27957628ed3a, type: 3}
+  impactVolume: 1
+--- !u!82 &1841319467
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1841319460}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.6
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 3
+  MaxDistance: 10
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!114 &1842150583 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5758480524926138841, guid: 22f0da62785929f478733cb234677266, type: 3}
@@ -31763,6 +32183,9 @@ MonoBehaviour:
   poweredMaterial: {fileID: -3947353717184095288, guid: 21c5eef1c4f234245b8bc94b6aecbb23, type: 3}
   failedMaterial: {fileID: 0}
   myGateManager: {fileID: 994141101}
+  successElectricClip: {fileID: 8300000, guid: b966b47022e8ce64d871ad446d0c4aca, type: 3}
+  errorElectricClip: {fileID: 8300000, guid: 664045de1c2111341a7cb7b9655eaa1e, type: 3}
+  audioVolume: 0.8
   isPoweredCorrectly: 0
 --- !u!65 &2084152250
 BoxCollider:

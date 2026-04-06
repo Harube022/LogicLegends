@@ -268,6 +268,24 @@ public class Player : MonoBehaviourPun
             gameInput.OnJumpAction -= GameInput_OnJumpAction;
         }
     }
+
+    public void ToggleControl(bool hasControl)
+    {
+        this.enabled = hasControl;
+        
+        // If we are freezing the player, force the animation variables to false
+        if (!hasControl)
+        {
+            isWalking = false; 
+            isJumping = false;
+
+            MobileInputUI mobileJoystick = FindFirstObjectByType<MobileInputUI>();
+            if (mobileJoystick != null)
+            {
+                mobileJoystick.ResetJoystick();
+            }
+        }
+    }
 }
 // using System.Collections;
 // using System.Collections.Generic;

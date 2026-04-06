@@ -10,10 +10,26 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
     private Vector2 inputVector;
     private GameInput gameInput;
 
+    // ---> NEW: A lock to ignore touches during cutscenes <---
+    // private bool isJoystickActive = true;
+
     private void Awake()
     {
         gameInput = FindFirstObjectByType<GameInput>();
     }
+
+    // public void ToggleJoystick(bool state)
+    // {
+    //     isJoystickActive = state;
+
+    //     // If we are locking it, instantly snap it back to the center
+    //     if (!isJoystickActive)
+    //     {
+    //         inputVector = Vector2.zero;
+    //         if (joystickHandle != null) joystickHandle.anchoredPosition = Vector2.zero;
+    //         if (gameInput != null) gameInput.SetMobileMovement(inputVector);
+    //     }
+    // }
 
     public void OnDrag(PointerEventData eventData)
     {
@@ -65,5 +81,21 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
     public void Interact()
     {
         gameInput.MobileInteract();
+    }
+
+    // ---> NEW: Force the joystick to snap back to the center <---
+    public void ResetJoystick()
+    {
+        inputVector = Vector2.zero;
+        
+        if (joystickHandle != null)
+        {
+            joystickHandle.anchoredPosition = Vector2.zero;
+        }
+
+        if (gameInput != null)
+        {
+            gameInput.SetMobileMovement(inputVector);
+        }
     }
 }

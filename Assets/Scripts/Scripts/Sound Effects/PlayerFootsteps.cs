@@ -6,7 +6,9 @@ public class PlayerFootsteps : MonoBehaviour
     [SerializeField] private AudioClip grassSound;
     [SerializeField] private AudioClip concreteSound;
     [SerializeField] private AudioClip woodSound;
+    [SerializeField] private AudioClip lilypadSound;
     [SerializeField] private AudioClip defaultSound;
+    
 
     [Header("Audio Polish (Like the Video!)")]
     [SerializeField, Range(0.7f, 1.3f)] private float minPitch = 0.9f;
@@ -75,6 +77,7 @@ public class PlayerFootsteps : MonoBehaviour
                 case "Grass": clipToPlay = grassSound; break;
                 case "Concrete": clipToPlay = concreteSound; break;
                 case "Wood": clipToPlay = woodSound; break;
+                case "Lilypad": clipToPlay = lilypadSound; break;
             }
 
             if (clipToPlay != null)

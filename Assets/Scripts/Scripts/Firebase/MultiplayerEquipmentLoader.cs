@@ -18,6 +18,11 @@ public class MultiplayerEquipmentLoader : MonoBehaviourPun
     [SerializeField] private EquippableModel[] clothesModels;
     [SerializeField] private EquippableModel[] petModels;
 
+    // ---> NEW: Fallback Outfit <---
+    [Header("Default Settings")]
+    [Tooltip("If the player's database is empty, what should they wear?")]
+    [SerializeField] private string defaultClothesID = "male_default";
+
     private void Start()
     {
         // CRITICAL: We only want YOUR local character to ask Firebase for YOUR clothes.
@@ -39,12 +44,23 @@ public class MultiplayerEquipmentLoader : MonoBehaviourPun
         {
             if (task.IsFaulted) return;
 
+            // ---> THE FIX: Start with the default, and only overwrite it if Firebase has data!
+            string equippedClothes = defaultClothesID;
+            string equippedPet = "";
+
             DataSnapshot snapshot = task.Result;
             if (snapshot.Exists)
             {
-                string equippedClothes = snapshot.HasChild("clothes") ? snapshot.Child("clothes").Value.ToString() : "";
-                string equippedPet = snapshot.HasChild("pets") ? snapshot.Child("pets").Value.ToString() : "";
-
+                if (snapshot.HasChild("clothes") && !string.IsNullOrEmpty(snapshot.Child("clothes").Value.ToString()))
+                {
+                    equippedClothes = snapshot.Child("clothes").Value.ToString();
+                }
+                
+                if (snapshot.HasChild("pets") && !string.IsNullOrEmpty(snapshot.Child("pets").Value.ToString()))
+                {
+                    equippedPet = snapshot.Child("pets").Value.ToString();
+                }
+            }
                 // 1. Dress our local character on our own screen
                 ApplyEquipment(equippedClothes, clothesModels);
                 ApplyEquipment(equippedPet, petModels);
@@ -52,7 +68,7 @@ public class MultiplayerEquipmentLoader : MonoBehaviourPun
                 // 2. Tell everyone else over the network what we are wearing!
                 // "OthersBuffered" ensures that even players who join the game 5 minutes late will still receive this message and see your clothes!
                 photonView.RPC("SyncEquipmentRPC", RpcTarget.OthersBuffered, equippedClothes, equippedPet);
-            }
+            
         });
     }
 

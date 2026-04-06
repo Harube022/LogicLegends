@@ -14,6 +14,12 @@ public class GateIndicator : MonoBehaviour
     [Tooltip("Drag the object holding the TruthTableGate script here")]
     [SerializeField] private TruthTableGate myGateManager;
 
+    // ---> NEW: Audio Settings <---
+    [Header("Audio Settings")]
+    [SerializeField] private AudioClip successElectricClip;
+    [SerializeField] private AudioClip errorElectricClip;
+    [SerializeField, Range(0f, 1f)] private float audioVolume = 0.8f;
+
     [Header("State")]
     public bool isPoweredCorrectly = false;
 
@@ -30,6 +36,9 @@ public class GateIndicator : MonoBehaviour
                 {
                     indicatorRenderer.material = poweredMaterial;
                     isPoweredCorrectly = true;
+
+                    // ---> NEW: Play Success Sound <---
+                    if (successElectricClip != null) Spawn3DAudio(successElectricClip);
                     
                     // Tell the gate to check if we won!
                     if (myGateManager != null) myGateManager.EvaluateGate();
@@ -40,6 +49,9 @@ public class GateIndicator : MonoBehaviour
                 // ---> NEW: HIT BY A RED BEAM! Trigger the penalty! <---
                 indicatorRenderer.material = failedMaterial;
                 isPoweredCorrectly = false;
+
+                // ---> NEW: Play Error Sound <---
+                if (errorElectricClip != null) Spawn3DAudio(errorElectricClip);
                 
                 if (myGateManager != null) myGateManager.TriggerFailSequence();
             }
@@ -56,5 +68,29 @@ public class GateIndicator : MonoBehaviour
     {
         isPoweredCorrectly = false;
         if (indicatorRenderer != null) indicatorRenderer.material = unpoweredMaterial;
+    }
+    
+    private void Spawn3DAudio(AudioClip clip)
+    {
+        // Spawn an invisible object right at the indicator crystal's position
+        GameObject audioObj = new GameObject("TempIndicatorAudio");
+        audioObj.transform.position = transform.position;
+
+        AudioSource source = audioObj.AddComponent<AudioSource>();
+        source.clip = clip;
+        source.volume = audioVolume; 
+        
+        // Slight random pitch to make it sound organic
+        source.pitch = Random.Range(0.95f, 1.05f);
+        
+        // 3D Audio setup
+        source.spatialBlend = 1f; 
+        source.minDistance = 3f;
+        source.maxDistance = 15f; 
+
+        source.Play();
+        
+        // Destroy after playing
+        Destroy(audioObj, clip.length + 0.1f);
     }
 }

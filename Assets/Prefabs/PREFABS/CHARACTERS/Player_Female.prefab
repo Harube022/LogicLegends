@@ -188,6 +188,7 @@ MonoBehaviour:
   - itemID: female_tuxedo
     model: {fileID: 1166105272256134365}
   petModels: []
+  defaultClothesID: female_default
 --- !u!114 &6477987932467592437
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -203,10 +204,11 @@ MonoBehaviour:
   grassSound: {fileID: 8300000, guid: fdfa07727ba18e146b0d737f16110ba5, type: 3}
   concreteSound: {fileID: 8300000, guid: c8657061120b2da4fb645654b16201f6, type: 3}
   woodSound: {fileID: 8300000, guid: 9a7a2d7c3f0efa7408e14bd09744808d, type: 3}
+  lilypadSound: {fileID: 8300000, guid: 9a6dd89787dca4449af64fbe9be84945, type: 3}
   defaultSound: {fileID: 0}
   minPitch: 0.9
   maxPitch: 1.1
-  baseVolume: 0.8
+  baseVolume: 1
   stepInterval: 0.4
   rayDistance: 1.2
 --- !u!1001 &2085095438381498764
@@ -323,7 +325,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 616c531bdac274048a3388f71f204719, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1790183945725220954, guid: 616c531bdac274048a3388f71f204719, type: 3}
       propertyPath: m_Layer
@@ -519,7 +521,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 266c2dc337b28a043ba0dae53f3c6b69, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1171695658540916019, guid: 266c2dc337b28a043ba0dae53f3c6b69, type: 3}
       propertyPath: m_Layer

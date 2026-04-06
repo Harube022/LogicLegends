@@ -22,7 +22,9 @@ public class GateController : MonoBehaviour
     [Header("Objectives UI")]
     [SerializeField] private TextMeshProUGUI taskText;
 
-    [Header("Events")]
+    [Header("Events & Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip crossOutTaskClip;
     public UnityEvent OnPuzzleSolved;
     private string originalTaskString;
 
@@ -96,6 +98,11 @@ public class GateController : MonoBehaviour
         if (taskText != null && !taskText.text.Contains("<s>"))
         {
             taskText.text = "<color=#008000><s>" + taskText.text + "</s></color>";
+            // ---> NEW: Play the Cross Out Sound <---
+            if (audioSource != null && crossOutTaskClip != null)
+            {
+                audioSource.PlayOneShot(crossOutTaskClip);
+            }
         }
 
         OnPuzzleSolved?.Invoke();

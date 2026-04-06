@@ -8,6 +8,10 @@ public class FruitValidator : MonoBehaviour
     [SerializeField] private WizardInteraction wizard;
     [SerializeField] private FruitBasket challenge2Basket;
     [SerializeField] private TextMeshProUGUI objectiveText;
+
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip crossOutTaskClip;
     private PhotonView view; // 2. Add PhotonView Reference
 
     // ---> NEW: A string to memorize the clean text <---
@@ -75,7 +79,13 @@ public class FruitValidator : MonoBehaviour
         if (objectiveText != null && !objectiveText.text.Contains("<s>"))
         {
             objectiveText.text = "<color=#008000><s>" + objectiveText.text + "</s></color>";
+            // ---> NEW: Play the Cross Out Sound <---
+            if (audioSource != null && crossOutTaskClip != null)
+            {
+                audioSource.PlayOneShot(crossOutTaskClip);
+            }
         }
+        
     }
 
     // ---> NEW: The method to undo the cross-out! <---

@@ -1,5 +1,6 @@
 using UnityEngine;
 using Photon.Pun;
+using System.Collections;
 public class LeverController : MonoBehaviour
 {
     [Header("Lever Objects")]
@@ -26,8 +27,15 @@ public class LeverController : MonoBehaviour
     [Tooltip("Leave this EMPTY in the main game. Only assign a manager if this lever is in a tutorial!")]
     [SerializeField] private PuzzleTutorialManager myTutorialManager;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip switchClip;
+    [SerializeField] private AudioClip electricityClip;
+    [SerializeField] private AudioClip powerDownClip;
+
     public bool isOn = false;
     private PhotonView view; // 2. Network view reference
+    private Coroutine audioCoroutine;
 
     private void Awake()
     {
@@ -60,6 +68,41 @@ public class LeverController : MonoBehaviour
     {
         isOn = !isOn;
         UpdateVisuals();
+        PlayAudioState();
+    }
+
+    private void PlayAudioState()
+    {
+        if (audioSource == null) return;
+
+        // Stop any currently running sequence so they don't overlap if mashed quickly
+        if (audioCoroutine != null) StopCoroutine(audioCoroutine);
+
+        // Determine which sound plays second based on if we are turning it on or off
+        AudioClip secondarySound = isOn ? electricityClip : powerDownClip;
+        
+        // Start the new unified sequence
+        audioCoroutine = StartCoroutine(PlaySwitchSequence(secondarySound));
+    }
+
+    private IEnumerator PlaySwitchSequence(AudioClip followUpClip)
+    {
+        // 1. Play the initial switch clack sound
+        if (switchClip != null)
+        {
+            audioSource.PlayOneShot(switchClip);
+        }
+
+        // 2. Wait exactly 1 second
+        yield return new WaitForSeconds(0.1f);
+
+        // 3. Play the follow up sound (Electricity up OR Power down)
+        if (followUpClip != null)
+        {
+            audioSource.clip = followUpClip;
+            audioSource.loop = false; // Ensure looping is fully disabled
+            audioSource.Play();
+        }
     }
 
     private void UpdateVisuals()
@@ -93,5 +136,7 @@ public class LeverController : MonoBehaviour
     {
         isOn = false;
         UpdateVisuals();
+
+        if (audioSource != null) audioSource.Stop();
     }
 }

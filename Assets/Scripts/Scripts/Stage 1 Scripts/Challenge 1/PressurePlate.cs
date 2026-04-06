@@ -10,7 +10,12 @@ public class PressurePlate : MonoBehaviour
     [SerializeField] private Material offMaterial;  
     
     [Tooltip("The glowing, lit up material")]
-    [SerializeField] private Material onMaterial;   
+    [SerializeField] private Material onMaterial;
+
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip powerUpClip;
+    [SerializeField] private AudioClip powerDownClip;   
 
     // This keeps track of how many things are on the plate
     // (useful so the plate doesn't turn off if the player and boulder are BOTH on it, and the player steps off)
@@ -48,16 +53,29 @@ public class PressurePlate : MonoBehaviour
 
     private void UpdateVineVisuals()
     {
+        bool wasPressed = isPressed;
         // If 1 or more valid objects are on the plate, light it up!
         if (objectsOnPlate > 0)
         {
             vineRenderer.material = onMaterial;
             isPressed = true;
+
+            // Only play if it just turned on
+            if (!wasPressed && audioSource != null && powerUpClip != null)
+            {
+                audioSource.PlayOneShot(powerUpClip);
+            }
         }
         else // Otherwise, turn it off
         {
             vineRenderer.material = offMaterial;
             isPressed = false;
+
+            // Only play if it just turned off
+            if (wasPressed && audioSource != null && powerDownClip != null)
+            {
+                audioSource.PlayOneShot(powerDownClip);
+            }
         }
     }
 

@@ -3983,6 +3983,9 @@ MonoBehaviour:
   poweredMaterial: {fileID: -3947353717184095288, guid: 21c5eef1c4f234245b8bc94b6aecbb23, type: 3}
   failedMaterial: {fileID: 0}
   myGateManager: {fileID: 29231569}
+  successElectricClip: {fileID: 8300000, guid: b966b47022e8ce64d871ad446d0c4aca, type: 3}
+  errorElectricClip: {fileID: 8300000, guid: 664045de1c2111341a7cb7b9655eaa1e, type: 3}
+  audioVolume: 0.8
   isPoweredCorrectly: 0
 --- !u!65 &281181776
 BoxCollider:
@@ -4908,6 +4911,7 @@ GameObject:
   - component: {fileID: 345600139}
   - component: {fileID: 345600145}
   - component: {fileID: 345600144}
+  - component: {fileID: 345600146}
   m_Layer: 0
   m_Name: TorchPIckup 1
   m_TagString: Untagged
@@ -5013,6 +5017,10 @@ MonoBehaviour:
   isLit: 0
   litModel: {fileID: 1803683550}
   unlitModel: {fileID: 1262910012}
+  fireLoopSource: {fileID: 345600146}
+  lightUpClip: {fileID: 8300000, guid: 5ab3fed341228244eb5d59b62ab21593, type: 3}
+  fireLoopClip: {fileID: 8300000, guid: c55ece7306cfa8e4e97c27957628ed3a, type: 3}
+  impactVolume: 0.8
 --- !u!114 &345600143
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5064,6 +5072,103 @@ MonoBehaviour:
   sceneViewId: 8
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!82 &345600146
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345600137}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.6
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 3
+  MaxDistance: 10
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &361474976
 GameObject:
   m_ObjectHideFlags: 0
@@ -9194,7 +9299,8 @@ MonoBehaviour:
   OnPuzzleFail:
     m_PersistentCalls:
       m_Calls: []
-  playerControlScript: {fileID: 0}
+  taskScribbleClip: {fileID: 8300000, guid: d234e554f0fb2b2448ef89d299351b19, type: 3}
+  scribbleVolume: 0.5
   areAllTasksCompleted: 0
 --- !u!95 &554188500
 Animator:
@@ -12440,6 +12546,9 @@ MonoBehaviour:
   poweredMaterial: {fileID: -3947353717184095288, guid: 21c5eef1c4f234245b8bc94b6aecbb23, type: 3}
   failedMaterial: {fileID: 0}
   myGateManager: {fileID: 29231569}
+  successElectricClip: {fileID: 8300000, guid: b966b47022e8ce64d871ad446d0c4aca, type: 3}
+  errorElectricClip: {fileID: 8300000, guid: 664045de1c2111341a7cb7b9655eaa1e, type: 3}
+  audioVolume: 0.8
   isPoweredCorrectly: 0
 --- !u!65 &781761367
 BoxCollider:
@@ -19062,19 +19171,49 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8192917929465876069, guid: 06ddef9ed5568a74f910ef6086a22da7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1193174402}
   m_SourcePrefab: {fileID: 100100000, guid: 06ddef9ed5568a74f910ef6086a22da7, type: 3}
 --- !u!114 &1193174400 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8538000504279263156, guid: 06ddef9ed5568a74f910ef6086a22da7, type: 3}
   m_PrefabInstance: {fileID: 1193174399}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1193174401}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62fd2af55329e4d4baad3701306549b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageCompleteManager
+--- !u!1 &1193174401 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8192917929465876069, guid: 06ddef9ed5568a74f910ef6086a22da7, type: 3}
+  m_PrefabInstance: {fileID: 1193174399}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1193174402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1193174401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 33
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &1207198290
 GameObject:
   m_ObjectHideFlags: 0
@@ -19204,6 +19343,7 @@ GameObject:
   - component: {fileID: 1210803457}
   - component: {fileID: 1210803463}
   - component: {fileID: 1210803462}
+  - component: {fileID: 1210803464}
   m_Layer: 0
   m_Name: TorchPIckup 3
   m_TagString: Untagged
@@ -19309,6 +19449,10 @@ MonoBehaviour:
   isLit: 1
   litModel: {fileID: 1962791272}
   unlitModel: {fileID: 1686674837}
+  fireLoopSource: {fileID: 1210803464}
+  lightUpClip: {fileID: 8300000, guid: 5ab3fed341228244eb5d59b62ab21593, type: 3}
+  fireLoopClip: {fileID: 8300000, guid: c55ece7306cfa8e4e97c27957628ed3a, type: 3}
+  impactVolume: 0.5
 --- !u!114 &1210803461
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19360,6 +19504,103 @@ MonoBehaviour:
   sceneViewId: 7
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!82 &1210803464
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1210803455}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.6
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 3
+  MaxDistance: 10
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &1214417749
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20292,7 +20533,8 @@ MonoBehaviour:
   OnPuzzleFail:
     m_PersistentCalls:
       m_Calls: []
-  playerControlScript: {fileID: 0}
+  taskScribbleClip: {fileID: 8300000, guid: d234e554f0fb2b2448ef89d299351b19, type: 3}
+  scribbleVolume: 0.5
   areAllTasksCompleted: 0
 --- !u!95 &1254093575
 Animator:
@@ -20346,6 +20588,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 523549998095790493, guid: 22f0da62785929f478733cb234677266, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 943891047}
+    - target: {fileID: 523549998095790493, guid: 22f0da62785929f478733cb234677266, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ReturnToMenu
+      objectReference: {fileID: 0}
     - target: {fileID: 2662519981654168345, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -20489,6 +20739,14 @@ PrefabInstance:
     - target: {fileID: 7978149442960843559, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_Name
       value: Canvas 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8146036121480311557, guid: 22f0da62785929f478733cb234677266, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 943891047}
+    - target: {fileID: 8146036121480311557, guid: 22f0da62785929f478733cb234677266, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: RetryChallenge
       objectReference: {fileID: 0}
     - target: {fileID: 8148058386413262679, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -20966,6 +21224,9 @@ MonoBehaviour:
   poweredMaterial: {fileID: -3947353717184095288, guid: 21c5eef1c4f234245b8bc94b6aecbb23, type: 3}
   failedMaterial: {fileID: 119879324303487838, guid: 0ff9ab0b678a0b244a6b26ed11a524cb, type: 3}
   myGateManager: {fileID: 29231569}
+  successElectricClip: {fileID: 8300000, guid: b966b47022e8ce64d871ad446d0c4aca, type: 3}
+  errorElectricClip: {fileID: 8300000, guid: 664045de1c2111341a7cb7b9655eaa1e, type: 3}
+  audioVolume: 0.8
   isPoweredCorrectly: 0
 --- !u!1 &1287347307
 GameObject:
@@ -26554,6 +26815,7 @@ GameObject:
   - component: {fileID: 1713561813}
   - component: {fileID: 1713561819}
   - component: {fileID: 1713561818}
+  - component: {fileID: 1713561820}
   m_Layer: 0
   m_Name: TorchPIckup 2
   m_TagString: Untagged
@@ -26659,6 +26921,10 @@ MonoBehaviour:
   isLit: 0
   litModel: {fileID: 1163341879}
   unlitModel: {fileID: 1903075192}
+  fireLoopSource: {fileID: 1713561820}
+  lightUpClip: {fileID: 8300000, guid: 5ab3fed341228244eb5d59b62ab21593, type: 3}
+  fireLoopClip: {fileID: 8300000, guid: c55ece7306cfa8e4e97c27957628ed3a, type: 3}
+  impactVolume: 0.5
 --- !u!114 &1713561817
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26710,6 +26976,103 @@ MonoBehaviour:
   sceneViewId: 6
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!82 &1713561820
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1713561811}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.6
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 3
+  MaxDistance: 10
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1716590902
 GameObject:
   m_ObjectHideFlags: 0
@@ -27808,6 +28171,9 @@ MonoBehaviour:
   poweredMaterial: {fileID: -3947353717184095288, guid: 21c5eef1c4f234245b8bc94b6aecbb23, type: 3}
   failedMaterial: {fileID: 0}
   myGateManager: {fileID: 29231569}
+  successElectricClip: {fileID: 8300000, guid: b966b47022e8ce64d871ad446d0c4aca, type: 3}
+  errorElectricClip: {fileID: 8300000, guid: 664045de1c2111341a7cb7b9655eaa1e, type: 3}
+  audioVolume: 0.8
   isPoweredCorrectly: 0
 --- !u!65 &1774357208
 BoxCollider:
@@ -28246,6 +28612,7 @@ GameObject:
   - component: {fileID: 1832773630}
   - component: {fileID: 1832773636}
   - component: {fileID: 1832773635}
+  - component: {fileID: 1832773637}
   m_Layer: 0
   m_Name: TorchPIckup 4
   m_TagString: Untagged
@@ -28346,6 +28713,10 @@ MonoBehaviour:
   isLit: 0
   litModel: {fileID: 1880862788}
   unlitModel: {fileID: 1003974428}
+  fireLoopSource: {fileID: 1832773637}
+  lightUpClip: {fileID: 8300000, guid: 5ab3fed341228244eb5d59b62ab21593, type: 3}
+  fireLoopClip: {fileID: 8300000, guid: c55ece7306cfa8e4e97c27957628ed3a, type: 3}
+  impactVolume: 0.5
 --- !u!4 &1832773634
 Transform:
   m_ObjectHideFlags: 0
@@ -28402,6 +28773,103 @@ MonoBehaviour:
   sceneViewId: 5
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!82 &1832773637
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1832773628}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.6
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 3
+  MaxDistance: 10
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1837233689
 GameObject:
   m_ObjectHideFlags: 0
@@ -28788,7 +29256,7 @@ Transform:
   m_GameObject: {fileID: 1861117053}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 193.86, y: -25.1, z: -78.29}
+  m_LocalPosition: {x: 193.86, y: -26.4, z: -78.29}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -33088,7 +33556,8 @@ MonoBehaviour:
   OnPuzzleFail:
     m_PersistentCalls:
       m_Calls: []
-  playerControlScript: {fileID: 0}
+  taskScribbleClip: {fileID: 8300000, guid: d234e554f0fb2b2448ef89d299351b19, type: 3}
+  scribbleVolume: 0.5
   areAllTasksCompleted: 0
 --- !u!95 &2122046166
 Animator:
