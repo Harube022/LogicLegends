@@ -98,7 +98,7 @@ public class AuthManager : MonoBehaviour
             }
 
             DataSnapshot snapshot = task.Result;
-            if (snapshot.Exists && snapshot.Value != null)
+            if (snapshot.Exists && snapshot.Value != null && snapshot.Value.ToString() != "")
             {
                 // They already have a character saved! Send them to the game.
                 ShowModeSelection();
@@ -157,16 +157,26 @@ public class AuthManager : MonoBehaviour
 
         auth.SignInWithCredentialAsync(credential).ContinueWithOnMainThread(authTask =>
         {
-            if (authTask.IsCanceled || authTask.IsFaulted)
+            // if (authTask.IsCanceled || authTask.IsFaulted)
+            // {
+            //     Debug.LogError("Firebase Auth Failed: " + authTask.Exception);
+            //     return;
+            // }
+
+            // FirebaseUser newUser = auth.CurrentUser;
+            // Debug.Log($"Google Login Successful! Welcome {newUser.DisplayName}!");
+            
+            // ShowModeSelection();
+            if (authTask.IsCanceled || authTask.IsFaulted) 
             {
-                Debug.LogError("Firebase Auth Failed: " + authTask.Exception);
+                Debug.LogError("Firebase failed to authenticate Google credential.");
+                ShowLoginScreen();
                 return;
             }
 
-            FirebaseUser newUser = auth.CurrentUser;
-            Debug.Log($"Google Login Successful! Welcome {newUser.DisplayName}!");
-            
-            ShowModeSelection();
+            Debug.Log("Google Login Success! Waiting for Database Security Sync...");
+            // ---> THE FIX: Wait 0.5 seconds for the database to recognize the new Google token!
+            Invoke(nameof(CheckFirstTimeSetup), 0.5f);
         });
     }
 
@@ -181,7 +191,9 @@ public class AuthManager : MonoBehaviour
                 Debug.LogError("Login Failed!");
                 return;
             }
-            ShowModeSelection();
+            // ---> THE FIX: Add the same delay here for testing new accounts!
+            Invoke(nameof(CheckFirstTimeSetup), 0.5f);
+            // ShowModeSelection();
         });
     }
 
