@@ -1,53 +1,86 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Photon.Pun; // 1. Added Photon
+using Photon.Pun;
 
 public class GameOverManager : MonoBehaviourPun
 {
     [Header("UI Panels")]
-    [Tooltip("Drag your Game Over Canvas Panel here")]
     [SerializeField] private GameObject gameOverPanel;
-    
-    [Tooltip("Drag your Mobile Controls/Gameplay Interface Panel here")]
     [SerializeField] private GameObject gameplayInterfacePanel;
 
     [Header("Scene Settings")]
-    [Tooltip("Type the exact name of your Main Menu scene here")]
     [SerializeField] private string mainMenuSceneName = "Main Menu";
+
+    //  NEW (Audio Setup)
+    [Header("Audio")]
+    [SerializeField] private AudioClip gameOverSound;
+    [SerializeField, Range(0f, 1f)] private float gameOverVolume = 1f;
 
     // Called by LevelManager when hearts hit 0
     public void ShowGameOver()
     {
         Debug.Log("Game Over! Showing panel and hiding controls.");
-        
-        // Show Game Over, Hide Mobile Controls
+
+        // EXISTING LOGIC (UNCHANGED)
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
         if (gameplayInterfacePanel != null) gameplayInterfacePanel.SetActive(false);
 
+        // NEW (Play sound when game over appears)
+        PlayGameOverSound();
     }
 
-    // Hook this up to your "Retry" Button
+    // NEW (Same audio pattern as your other systems)
+    private void PlayGameOverSound()
+    {
+        if (gameOverSound == null) return;
+
+        Vector3 soundPosition = transform.position;
+
+        SpawnGameOverAudio(gameOverSound, soundPosition);
+    }
+
+    private void SpawnGameOverAudio(AudioClip clip, Vector3 position)
+    {
+        GameObject audioObj = new GameObject("TempGameOverAudio");
+        audioObj.transform.position = position;
+
+        AudioSource source = audioObj.AddComponent<AudioSource>();
+        source.clip = clip;
+
+        source.pitch = Random.Range(0.98f, 1.02f);
+        source.volume = gameOverVolume;
+
+        //  IMPORTANT: Make this 2D so it's ALWAYS heard
+        source.spatialBlend = 0f;
+
+        // Optional safety (if timeScale = 0 somewhere)
+        source.ignoreListenerPause = true;
+
+        source.Play();
+
+        Destroy(audioObj, clip.length + 0.1f);
+    }
+
+    // --- EXISTING METHODS (UNCHANGED) ---
+
     public void RetryChallenge()
     {
-        // 3. Send a message to EVERYONE to retry the challenge
         if (PhotonNetwork.InRoom && photonView != null)
         {
             photonView.RPC("RPC_RetryChallenge", RpcTarget.All);
         }
         else
         {
-            RPC_RetryChallenge(); // Fallback for solo testing
+            RPC_RetryChallenge();
         }
     }
 
     [PunRPC]
     public void RPC_RetryChallenge()
     {
-        // Hide Game Over, Show Mobile Controls again for all players
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (gameplayInterfacePanel != null) gameplayInterfacePanel.SetActive(true);
 
-        // Tell LevelManager to restart the challenge!
         if (LevelManager.Instance != null)
         {
             LevelManager.Instance.ResetFromGameOver();
@@ -56,7 +89,6 @@ public class GameOverManager : MonoBehaviourPun
 
     public void ReturnToMenu()
     {
-        // In a real multiplayer game, you should disconnect from Photon before loading the main menu!
         if (PhotonNetwork.InRoom) PhotonNetwork.LeaveRoom();
         SceneManager.LoadScene(mainMenuSceneName);
     }

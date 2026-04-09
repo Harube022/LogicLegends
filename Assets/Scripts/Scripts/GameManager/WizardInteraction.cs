@@ -31,6 +31,10 @@ public class WizardInteraction : MonoBehaviourPun
     [SerializeField] private AudioClip taskScribbleClip;
     [SerializeField, Range(0f, 1f)] private float scribbleVolume = 0.5f; // Set this lower in the inspector!
 
+    [Header("Wizard Voice")]
+    [SerializeField] private AudioClip wizardTalkClip;
+    [SerializeField, Range(0f, 1f)] private float wizardTalkVolume = 0.7f;
+
     [Header("Player Control")]
     // [SerializeField] private Behaviour playerControlScript;
     private Player localPlayer;
@@ -161,6 +165,7 @@ public class WizardInteraction : MonoBehaviourPun
         if (activeLines.Length > 0) 
         {
             DialogueManager.Instance.ShowDialoguePanel(activeLines[0]);
+            PlayWizardVoice();
         }
     }
 
@@ -174,6 +179,7 @@ public class WizardInteraction : MonoBehaviourPun
         if (currentLineIndex < activeLines.Length) 
         {
             DialogueManager.Instance.UpdateText(activeLines[currentLineIndex]);
+            PlayWizardVoice();
         }
         else
         {
@@ -357,5 +363,12 @@ public class WizardInteraction : MonoBehaviourPun
 
         source.Play();
         Destroy(audioObj, clip.length + 0.1f);
+    }
+
+    private void PlayWizardVoice()
+    {
+        if (wizardTalkClip == null) return;
+
+        Spawn3DTaskAudio(wizardTalkClip, transform.position, wizardTalkVolume);
     }
 }

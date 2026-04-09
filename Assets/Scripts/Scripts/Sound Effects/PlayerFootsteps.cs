@@ -8,7 +8,10 @@ public class PlayerFootsteps : MonoBehaviour
     [SerializeField] private AudioClip woodSound;
     [SerializeField] private AudioClip lilypadSound;
     [SerializeField] private AudioClip defaultSound;
-    
+
+    // NEW (Jump sound, same pattern as others)
+    [Header("Audio Setup - Actions")]
+    [SerializeField] private AudioClip jumpSound;
 
     [Header("Audio Polish (Like the Video!)")]
     [SerializeField, Range(0.7f, 1.3f)] private float minPitch = 0.9f;
@@ -21,6 +24,9 @@ public class PlayerFootsteps : MonoBehaviour
 
     private float stepTimer;
     private Vector3 lastPosition;
+
+    // NEW (tracks grounded state)
+    private bool wasGrounded;
 
     void Start()
     {
@@ -41,29 +47,36 @@ public class PlayerFootsteps : MonoBehaviour
             if (stepTimer <= 0f)
             {
                 CheckGroundAndPlaySound();
-                stepTimer = stepInterval; 
+                stepTimer = stepInterval;
             }
         }
         else
         {
-            stepTimer = 0f; 
+            stepTimer = 0f;
+        }
+
+        // NEW (Jump detection using same logic style)
+        CharacterController controller = GetComponent<CharacterController>();
+        if (controller != null)
+        {
+            // Detect jump: was grounded  now NOT grounded
+            if (wasGrounded && !controller.isGrounded)
+            {
+                PlayJumpSound();
+            }
+
+            wasGrounded = controller.isGrounded;
         }
     }
 
     void CheckGroundAndPlaySound()
     {
-        // 1. Try to get the CharacterController
         CharacterController controller = GetComponent<CharacterController>();
-        if (controller == null) return; // Fail safe
+        if (controller == null) return;
 
-        // 2. Calculate the exact bottom of the capsule
         Vector3 capsuleBottom = transform.position + controller.center - (Vector3.up * (controller.height / 2f));
-        
-        // 3. Start the ray slightly ABOVE the bottom to prevent clipping
         Vector3 rayStart = capsuleBottom + (Vector3.up * 0.5f);
-        
-        // 4. Shoot the ray down just far enough to clear the bottom (0.5 to reach bottom + 0.5 to hit floor)
-        float castDistance = 1.0f; 
+        float castDistance = 1.0f;
 
         RaycastHit hit;
         if (Physics.Raycast(rayStart, Vector3.down, out hit, castDistance))
@@ -87,35 +100,37 @@ public class PlayerFootsteps : MonoBehaviour
         }
         else
         {
-             // If we miss, print this so we know the raycast fired but hit nothing!
-             Debug.Log("<color=red>Footstep missed the ground entirely!</color>");
+            Debug.Log("<color=red>Footstep missed the ground entirely!</color>");
         }
     }
 
-    // --- THIS IS THE MAGIC FROM THE VIDEO ---
+    //  NEW (Jump sound trigger using SAME audio system)
+    void PlayJumpSound()
+    {
+        if (jumpSound == null) return;
+
+        Vector3 spawnPosition = transform.position;
+        SpawnFootstepAudio(jumpSound, spawnPosition);
+    }
+
+    // --- EXISTING AUDIO SYSTEM (UNCHANGED) ---
     void SpawnFootstepAudio(AudioClip clip, Vector3 spawnPosition)
     {
-        // 1. Create a temporary, invisible GameObject at the foot's impact point
         GameObject audioObj = new GameObject("TempFootstepAudio");
         audioObj.transform.position = spawnPosition;
 
-        // 2. Add a speaker (AudioSource) to it
         AudioSource source = audioObj.AddComponent<AudioSource>();
         source.clip = clip;
-        
-        // 3. Add random variation to fix the "robotic" sound
-        source.pitch = Random.Range(minPitch, maxPitch);
-        source.volume = baseVolume * Random.Range(0.9f, 1.1f); // Slight volume variation too
-        
-        // 4. Make it full 3D Spatial Audio
-        source.spatialBlend = 1f; 
-        source.minDistance = 1f;
-        source.maxDistance = 15f; 
 
-        // 5. Play the sound
+        source.pitch = Random.Range(minPitch, maxPitch);
+        source.volume = baseVolume * Random.Range(0.9f, 1.1f);
+
+        source.spatialBlend = 1f;
+        source.minDistance = 1f;
+        source.maxDistance = 15f;
+
         source.Play();
 
-        // 6. Destroy the temporary object immediately after the sound finishes playing!
         Destroy(audioObj, clip.length + 0.1f);
     }
 }

@@ -24,6 +24,11 @@ public class LevelManager : MonoBehaviourPun
     [Tooltip("Drag your Ch1_Objectives, Ch2_Objectives, etc. here in order.")]
     [SerializeField] private GameObject[] stageObjectivePanels;
 
+    // NEW (Audio Setup)
+    [Header("Audio")]
+    [SerializeField] private AudioClip loseHeartSound;
+    [SerializeField, Range(0f, 1f)] private float loseHeartVolume = 0.8f;
+
     [Header("Global Game State")]
     [SerializeField] private int playerHearts = 3;
     // [SerializeField] private int maxHearts = 5;
@@ -89,6 +94,7 @@ public class LevelManager : MonoBehaviourPun
     {
         playerHearts--;
         totalHeartsLostThisStage++;
+        PlayLoseHeartSound();
         UpdateHeartsUI();
 
         if (playerHearts <= 0)
@@ -121,6 +127,7 @@ public class LevelManager : MonoBehaviourPun
             // ---> THE FIX: Clean Solo Mode Logic <---
             playerHearts--;
             totalHeartsLostThisStage++;
+            PlayLoseHeartSound();
             UpdateHeartsUI();
 
             if (playerHearts <= 0)
@@ -152,6 +159,7 @@ public class LevelManager : MonoBehaviourPun
         playerHearts--;
         totalHeartsLostThisStage++;
         UpdateHeartsUI();
+        PlayLoseHeartSound();
 
         if (playerHearts <= 0)
         {
@@ -227,7 +235,8 @@ public class LevelManager : MonoBehaviourPun
         isTimerRunning = false;
         playerHearts--;
         totalHeartsLostThisStage++;
-        UpdateHeartsUI(); 
+        UpdateHeartsUI();
+        PlayLoseHeartSound();
 
         if (playerHearts <= 0)
         {
@@ -498,6 +507,38 @@ public class LevelManager : MonoBehaviourPun
         {
             camController.WarpCamera(targetPlayer);
         }
+
+
+    }
+
+    //  NEW (Same pattern as your other audio systems)
+    private void PlayLoseHeartSound()
+    {
+        if (loseHeartSound == null) return;
+
+        Vector3 soundPosition = player != null ? player.position : transform.position;
+
+        SpawnHeartAudio(loseHeartSound, soundPosition);
+    }
+
+    private void SpawnHeartAudio(AudioClip clip, Vector3 position)
+    {
+        GameObject audioObj = new GameObject("TempHeartAudio");
+        audioObj.transform.position = position;
+
+        AudioSource source = audioObj.AddComponent<AudioSource>();
+        source.clip = clip;
+
+        source.pitch = Random.Range(0.95f, 1.05f);
+        source.volume = loseHeartVolume;
+
+        source.spatialBlend = 1f;
+        source.minDistance = 1f;
+        source.maxDistance = 15f;
+
+        source.Play();
+
+        Destroy(audioObj, clip.length + 0.1f);
     }
 }
 
