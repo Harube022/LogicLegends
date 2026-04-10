@@ -28,6 +28,10 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private InputField usernameSignUpInput;
     [SerializeField] private InputField passwordSignUpInput;
 
+    // ---> NEW: Web Registration URL <---
+    [Header("Web Links")]
+    [SerializeField] private string webRegistrationUrl = "http://127.0.0.1:5500/Logic-Legends-Website/Logic_Legends_Website/LoginPage/login_page.html";
+
     private FirebaseAuth auth;
     private GoogleSignInConfiguration configuration;
 
@@ -191,23 +195,25 @@ public class AuthManager : MonoBehaviour
                 Debug.LogError("Login Failed!");
                 return;
             }
+
+            // ---> NEW: Force Email Verification! <---
+            if (!auth.CurrentUser.IsEmailVerified)
+            {
+                Debug.LogWarning("Access Denied: Please verify your email address first!");
+                auth.SignOut(); // Kick them out until they click the link!
+                return;
+            }
             // ---> THE FIX: Add the same delay here for testing new accounts!
             Invoke(nameof(CheckFirstTimeSetup), 0.5f);
             // ShowModeSelection();
         });
     }
 
-    public void OnClickSignUp()
+    // ---> NEW: Opens the Web Browser <---
+    public void OnClickOpenWebRegistration()
     {
-        auth.CreateUserWithEmailAndPasswordAsync(emailSignUpInput.text, passwordSignUpInput.text).ContinueWithOnMainThread(task =>
-        {
-            if (task.IsCanceled || task.IsFaulted)
-            {
-                Debug.LogError("Sign Up Failed!");
-                return;
-            }
-            CheckFirstTimeSetup();
-        });
+        Debug.Log("Opening Web Registration: " + webRegistrationUrl);
+        Application.OpenURL(webRegistrationUrl);
     }
 
     public void OnClickLogout()
