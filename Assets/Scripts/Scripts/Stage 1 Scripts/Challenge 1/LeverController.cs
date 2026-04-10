@@ -33,6 +33,8 @@ public class LeverController : MonoBehaviour
     [SerializeField] private AudioClip electricityClip;
     [SerializeField] private AudioClip powerDownClip;
 
+    [SerializeField] private AudioClip gateOpenClip;
+
     public bool isOn = false;
     private PhotonView view; // 2. Network view reference
     private Coroutine audioCoroutine;
@@ -68,6 +70,11 @@ public class LeverController : MonoBehaviour
     {
         isOn = !isOn;
         UpdateVisuals();
+        if (isOn)
+        {
+            PlayGateOpenSound();
+        }
+
         PlayAudioState();
     }
 
@@ -139,4 +146,11 @@ public class LeverController : MonoBehaviour
 
         if (audioSource != null) audioSource.Stop();
     }
+    private void PlayGateOpenSound()
+    {
+        if (audioSource == null || gateOpenClip == null) return;
+
+        audioSource.PlayOneShot(gateOpenClip);
+    }
+
 }

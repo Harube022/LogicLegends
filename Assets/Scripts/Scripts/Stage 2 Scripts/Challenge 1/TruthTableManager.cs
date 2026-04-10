@@ -6,6 +6,13 @@ public class TruthTableManager : MonoBehaviourPun
 {
     [SerializeField] private TorchPedestal[] answerPedestals;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip gateOpenClip;
+    [Header("Wizard Voice")]
+    [SerializeField] private AudioSource wizardAudioSource;
+    [SerializeField] private AudioClip wizardCongratsClip;
+
     [Header("Puzzle Events (Drag & Drop in Inspector)")]
     [Tooltip("What happens when the player gets all torches correct?")]
     public UnityEvent OnPuzzleSolved;
@@ -53,6 +60,15 @@ public class TruthTableManager : MonoBehaviourPun
         isSolved = true;
         Debug.Log("Puzzle Solved!"); // Works offline now!
         OnPuzzleSolved?.Invoke(); // Teleports you to the next challenge!
+        if (audioSource != null && gateOpenClip != null)
+        {
+            audioSource.PlayOneShot(gateOpenClip);
+        }
+        if (wizardAudioSource != null && wizardCongratsClip != null)
+        {
+            wizardAudioSource.Stop(); // prevents overlap if somehow retriggered
+            wizardAudioSource.PlayOneShot(wizardCongratsClip);
+        }
     }
 
     public void ResetPuzzle()

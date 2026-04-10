@@ -7,7 +7,15 @@ public class TruthTableGate : MonoBehaviourPun
     [Header("Puzzle Requirements")]
     [Tooltip("Drag the 3 RED CRYSTALS from the gate in here")]
     [SerializeField] private GateIndicator[] requiredIndicators;
-    
+
+    [Header("Gate Audio")]
+    [SerializeField] private AudioSource gateAudioSource;
+    [SerializeField] private AudioClip gateOpenClip;
+
+    [Header("Wizard Voice")]
+    [SerializeField] private AudioSource wizardAudioSource;
+    [SerializeField] private AudioClip wizardCongratsClip;
+
     [Header("Puzzle Events")]
     public UnityEvent OnPuzzleSolved;
     public UnityEvent OnPuzzleFailed;
@@ -37,6 +45,18 @@ public class TruthTableGate : MonoBehaviourPun
             isLocked = true; // Lock the puzzle so they can't mess it up after winning!
             Debug.Log("The OR Gate is solved!");
             OnPuzzleSolved?.Invoke();
+
+            if (gateAudioSource != null && gateOpenClip != null)
+            {
+                gateAudioSource.PlayOneShot(gateOpenClip);
+            }
+
+            // ---> NEW: Wizard Congratulation Voice <---
+            if (wizardAudioSource != null && wizardCongratsClip != null)
+            {
+                wizardAudioSource.Stop(); // prevent overlap
+                wizardAudioSource.PlayOneShot(wizardCongratsClip);
+            }
         }
     }
 

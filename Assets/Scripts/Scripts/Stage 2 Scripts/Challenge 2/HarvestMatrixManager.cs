@@ -4,7 +4,14 @@ using Photon.Pun;
 public class HarvestMatrixManager : MonoBehaviourPun
 {
     [SerializeField] private SoilMound[] soilMounds;
-    
+    [Header("Audio")]
+    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioClip gateOpenClip;
+
+    [Header("Wizard Voice")]
+    [SerializeField] private AudioSource wizardAudioSource;
+    [SerializeField] private AudioClip wizardCongratsClip;
+
     [Header("Puzzle Events (Drag & Drop)")]
     public UnityEvent OnPuzzleSolved;
     public UnityEvent OnPuzzleFailed;
@@ -64,6 +71,17 @@ public class HarvestMatrixManager : MonoBehaviourPun
             }
 
             OnPuzzleSolved?.Invoke();
+            if (sfxSource != null && gateOpenClip != null)
+            {
+                sfxSource.PlayOneShot(gateOpenClip);
+            }
+
+            // ---> NEW: Wizard Congratulation Voice <---
+            if (wizardAudioSource != null && wizardCongratsClip != null)
+            {
+                wizardAudioSource.Stop(); // prevent overlap
+                wizardAudioSource.PlayOneShot(wizardCongratsClip);
+            }
         }
         else
         {
