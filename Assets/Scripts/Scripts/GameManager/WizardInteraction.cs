@@ -4,6 +4,13 @@ using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using Photon.Pun;
 
+[System.Serializable]
+public class DialogueEntry
+{
+    [TextArea(2, 3)] public string text;
+    public AudioClip voiceClip;
+}
+
 public class WizardInteraction : MonoBehaviourPun
 {
     [Header("Objectives & Timers")]
@@ -13,13 +20,10 @@ public class WizardInteraction : MonoBehaviourPun
     [SerializeField] private float timerDuration = 180f;
 
     [Header("Standard Dialogue")]
-    [TextArea(2, 3)] [SerializeField] private string[] dialogueLines; 
-    [TextArea(2, 3)] [SerializeField] private string[] finalDialogueLines;
     [SerializeField] private string nextSceneName;
 
     [Header("Puzzle Feedback Dialogue")]
-    [TextArea(2, 3)] public string[] successLines;
-    [TextArea(2, 3)] public string[] failLines;
+  
 
     [Header("Events")]
     public UnityEvent OnWizardInteract; 
@@ -32,8 +36,15 @@ public class WizardInteraction : MonoBehaviourPun
     [SerializeField, Range(0f, 1f)] private float scribbleVolume = 0.5f; // Set this lower in the inspector!
 
     [Header("Wizard Voice")]
-    [SerializeField] private AudioClip wizardTalkClip;
+    [SerializeField] private AudioSource wizardVoiceSource;
     [SerializeField, Range(0f, 1f)] private float wizardTalkVolume = 0.7f;
+
+    // Per-line voice clips (match dialogue arrays)
+
+    [SerializeField] private DialogueEntry[] dialogueEntries;
+    [SerializeField] private DialogueEntry[] finalDialogueEntries;
+    [SerializeField] private DialogueEntry[] successEntries;
+    [SerializeField] private DialogueEntry[] failEntries;
 
     [Header("Player Control")]
     // [SerializeField] private Behaviour playerControlScript;
@@ -160,11 +171,12 @@ public class WizardInteraction : MonoBehaviourPun
         // ---> NEW: Start listening for screen taps! <---
         DialogueManager.Instance.OnPanelTapped -= AdvanceDialogue; // Safety clear
         DialogueManager.Instance.OnPanelTapped += AdvanceDialogue;
-        
-        string[] activeLines = isReadingFinalDialogue ? finalDialogueLines : dialogueLines;
-        if (activeLines.Length > 0) 
+
+        var activeEntries = isReadingFinalDialogue ? finalDialogueEntries : dialogueEntries;
+
+        if (activeEntries != null && activeEntries.Length > 0)
         {
-            DialogueManager.Instance.ShowDialoguePanel(activeLines[0]);
+            DialogueManager.Instance.ShowDialoguePanel(activeEntries[0].text);
             PlayWizardVoice();
         }
     }
@@ -172,19 +184,19 @@ public class WizardInteraction : MonoBehaviourPun
     public void AdvanceDialogue()
     {
         currentLineIndex++;
-        
-        string[] activeLines = isPlayingFeedback ? (isSuccessFeedback ? successLines : failLines) 
-                             : (isReadingFinalDialogue ? finalDialogueLines : dialogueLines);
 
-        if (currentLineIndex < activeLines.Length) 
+        var activeEntries = isPlayingFeedback
+    ? (isSuccessFeedback ? successEntries : failEntries)
+    : (isReadingFinalDialogue ? finalDialogueEntries : dialogueEntries);
+
+        if (activeEntries != null && currentLineIndex < activeEntries.Length)
         {
-            DialogueManager.Instance.UpdateText(activeLines[currentLineIndex]);
+            DialogueManager.Instance.UpdateText(activeEntries[currentLineIndex].text);
             PlayWizardVoice();
         }
         else
         {
-            if (isReadingFinalDialogue && !isPlayingFeedback) DialogueManager.Instance.ShowChoices();
-            else EndDialogue();
+            EndDialogue(); // THIS IS REQUIRED
         }
     }
 
@@ -221,14 +233,19 @@ public class WizardInteraction : MonoBehaviourPun
             // We still want to fire the event locally if they are reading the final "Goodbye" text!
             OnDialogueComplete?.Invoke();
         }
+
+        if (wizardVoiceSource != null)
+        {
+            wizardVoiceSource.Stop();
+        }
     }
 
-    public void PlaySuccessDialogue() { StartFeedback(successLines, true); }
-    public void PlayFailDialogue() { StartFeedback(failLines, false); }
+    public void PlaySuccessDialogue() { StartFeedback(successEntries, true); }
+    public void PlayFailDialogue() { StartFeedback(failEntries, false); }
 
-    private void StartFeedback(string[] lines, bool isSuccess)
+    private void StartFeedback(DialogueEntry[] entries, bool isSuccess)
     {
-        if (lines.Length == 0)
+        if (entries == null || entries.Length == 0)
         {
             if (isSuccess) OnPuzzleSuccess?.Invoke();
             else OnPuzzleFail?.Invoke();
@@ -245,8 +262,9 @@ public class WizardInteraction : MonoBehaviourPun
         // ---> NEW: Start listening for screen taps! <---
         DialogueManager.Instance.OnPanelTapped -= AdvanceDialogue; // Safety clear
         DialogueManager.Instance.OnPanelTapped += AdvanceDialogue;
-        
-        DialogueManager.Instance.ShowDialoguePanel(lines[0]);
+
+        DialogueManager.Instance.ShowDialoguePanel(entries[0].text);
+        PlayWizardVoice();
     }
 
     public void ChooseStayHere()
@@ -367,8 +385,27 @@ public class WizardInteraction : MonoBehaviourPun
 
     private void PlayWizardVoice()
     {
-        if (wizardTalkClip == null) return;
+        DialogueEntry[] activeEntries = isPlayingFeedback
+    ? (isSuccessFeedback ? successEntries : failEntries)
+    : (isReadingFinalDialogue ? finalDialogueEntries : dialogueEntries);
 
-        Spawn3DTaskAudio(wizardTalkClip, transform.position, wizardTalkVolume);
+        if (activeEntries == null || currentLineIndex >= activeEntries.Length) return;
+
+        AudioClip clip = activeEntries[currentLineIndex].voiceClip;
+        if (clip == null) return;
+
+        if (wizardVoiceSource == null)
+        {
+            Debug.LogWarning("WizardVoiceSource is not assigned!");
+            return;
+        }
+
+        // STOP previous audio (important for your requirement)
+        wizardVoiceSource.Stop();
+
+        wizardVoiceSource.clip = clip;
+        wizardVoiceSource.volume = wizardTalkVolume;
+        wizardVoiceSource.loop = false;
+        wizardVoiceSource.Play();
     }
 }

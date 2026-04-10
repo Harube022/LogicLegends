@@ -12,6 +12,8 @@ public class FruitValidator : MonoBehaviour
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip crossOutTaskClip;
+    [SerializeField] private AudioSource wizardVoiceSource;
+    [SerializeField] private AudioClip wizardCongratulationClip;
     private PhotonView view; // 2. Add PhotonView Reference
 
     // ---> NEW: A string to memorize the clean text <---
@@ -83,6 +85,11 @@ public class FruitValidator : MonoBehaviour
             if (audioSource != null && crossOutTaskClip != null)
             {
                 audioSource.PlayOneShot(crossOutTaskClip);
+            }
+            if (wizardVoiceSource != null && wizardCongratulationClip != null)
+            {
+                wizardVoiceSource.Stop(); // prevent overlap
+                wizardVoiceSource.PlayOneShot(wizardCongratulationClip);
             }
         }
         

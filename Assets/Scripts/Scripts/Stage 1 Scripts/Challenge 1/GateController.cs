@@ -25,6 +25,8 @@ public class GateController : MonoBehaviour
     [Header("Events & Audio")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip crossOutTaskClip;
+    [SerializeField] private AudioClip wizardCongratulationClip;
+    [SerializeField] private AudioSource wizardVoiceSource;
     public UnityEvent OnPuzzleSolved;
     private string originalTaskString;
 
@@ -102,6 +104,11 @@ public class GateController : MonoBehaviour
             if (audioSource != null && crossOutTaskClip != null)
             {
                 audioSource.PlayOneShot(crossOutTaskClip);
+            }
+            if (wizardVoiceSource != null && wizardCongratulationClip != null)
+            {
+                wizardVoiceSource.Stop(); // prevents overlap
+                wizardVoiceSource.PlayOneShot(wizardCongratulationClip);
             }
         }
 

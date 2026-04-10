@@ -22,7 +22,7 @@ public class WaterHazard : MonoBehaviour
             if (isLocalPlayer)
             {
                 // Lock the trap so it can't be triggered again!
-                isProcessingFall = true; 
+                isProcessingFall = true;
                 StartCoroutine(DelayedRespawn(other.gameObject));
             }
         }
@@ -31,10 +31,10 @@ public class WaterHazard : MonoBehaviour
     private IEnumerator DelayedRespawn(GameObject playerObj)
     {
         Player playerScript = playerObj.GetComponent<Player>();
-        CharacterController cc = playerObj.GetComponent<CharacterController>(); 
-        
+        CharacterController cc = playerObj.GetComponent<CharacterController>();
+
         if (playerScript != null) playerScript.enabled = false;
-        if (cc != null) cc.enabled = false; 
+        if (cc != null) cc.enabled = false;
 
         yield return new WaitForSeconds(teleportDelay);
 
@@ -46,22 +46,22 @@ public class WaterHazard : MonoBehaviour
         if (cc != null) cc.enabled = true;
 
         CapsuleCollider backupCollider = playerObj.GetComponent<CapsuleCollider>();
-        if (backupCollider != null) backupCollider.enabled = false; 
-        
-        if (playerScript != null) playerScript.enabled = true; 
+        if (backupCollider != null) backupCollider.enabled = false;
+
+        if (playerScript != null) playerScript.enabled = true;
 
         Rigidbody playerRb = playerObj.GetComponent<Rigidbody>();
-        if (playerRb != null) 
+        if (playerRb != null)
         {
-            playerRb.isKinematic = true; 
-            playerRb.linearVelocity = Vector3.zero; 
+            playerRb.isKinematic = true;
+            playerRb.linearVelocity = Vector3.zero;
         }
 
         // ---> THE FIX: The Physics Cooldown Buffer <---
         // Wait a tiny moment for the physics engine to settle before unlocking the trap.
         // This absorbs the accidental re-trigger that happens during a Game Over!
-        yield return new WaitForSeconds(0.1f); 
+        yield return new WaitForSeconds(0.1f);
 
-        isProcessingFall = false; 
+        isProcessingFall = false;
     }
 }

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 public class LilyPadTrap : MonoBehaviour
@@ -35,20 +35,20 @@ public class LilyPadTrap : MonoBehaviour
         CharacterController cc = player.GetComponent<CharacterController>();
 
         CapsuleCollider backupCollider = player.GetComponent<CapsuleCollider>();
-        
+
         if (backupCollider != null) backupCollider.enabled = true;
         if (playerScript != null) playerScript.enabled = false;
-        
+
         // ---> NEW: Turn off the controller so the Rigidbody can fly!
         if (cc != null) cc.enabled = false;
 
         if (playerRb != null)
         {
             playerRb.isKinematic = false;
-            playerRb.linearVelocity = Vector3.zero; 
-            
+            playerRb.linearVelocity = Vector3.zero;
+
             Vector3 pushDirection = (player.transform.position - transform.position).normalized;
-            pushDirection.y = 0; 
+            pushDirection.y = 0;
             Vector3 finalForce = (pushDirection * knockbackForce) + (Vector3.up * upwardForce);
             playerRb.AddForce(finalForce, ForceMode.Impulse);
         }

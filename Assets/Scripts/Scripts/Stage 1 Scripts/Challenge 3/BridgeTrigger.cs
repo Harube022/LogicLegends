@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 
 public class BridgeTrigger : MonoBehaviour
-{ 
+{
     [Header("Debug")]
     [Tooltip("Watch this checkmark in the Inspector to see when it fires!")]
     [SerializeField] private bool hasFinished = false;
@@ -12,7 +12,7 @@ public class BridgeTrigger : MonoBehaviour
     // ---> NEW: UI References <---
     [Header("Objectives UI")]
     [SerializeField] private TextMeshProUGUI taskText;
-    private string originalTaskString; 
+    private string originalTaskString;
 
     // ---> NEW: Audio Settings <---
     [Header("Audio Settings")]
@@ -36,7 +36,7 @@ public class BridgeTrigger : MonoBehaviour
     // Handles it if the bridge is a trigger (Is Trigger is CHECKED)
     private void OnTriggerEnter(Collider other)
     {
-        if (hasFinished) return; 
+        if (hasFinished) return;
         if (other.CompareTag("Player")) CheckPlayerCrossed(other.gameObject);
     }
 
@@ -50,7 +50,7 @@ public class BridgeTrigger : MonoBehaviour
     private void CheckPlayerCrossed(GameObject playerObj)
     {
         PhotonView playerView = playerObj.GetComponent<PhotonView>();
-        
+
         // ---> THE SOLO MODE FIX <---
         // Assume it's our player if we are offline, otherwise ask Photon
         bool isOurPlayer = true;
@@ -69,7 +69,7 @@ public class BridgeTrigger : MonoBehaviour
             else
             {
                 // OFFLINE: Send a dummy ID since we are the only one playing
-                RPC_PlayerCrossed(0); 
+                RPC_PlayerCrossed(0);
             }
         }
     }
@@ -89,13 +89,13 @@ public class BridgeTrigger : MonoBehaviour
 
     private void CompleteChallenge()
     {
-        hasFinished = true; 
+        hasFinished = true;
 
-        if (LevelManager.Instance != null) 
+        if (LevelManager.Instance != null)
         {
-            LevelManager.Instance.StopTimer(); 
-            LevelManager.Instance.HideTimer(); 
-            Debug.Log("Challenge 3 Complete! Timer Stopped."); 
+            LevelManager.Instance.StopTimer();
+            LevelManager.Instance.HideTimer();
+            Debug.Log("Challenge 3 Complete! Timer Stopped.");
         }
         // ---> NEW: Cross out the text! <---
         if (taskText != null && !taskText.text.Contains("<s>"))
@@ -135,16 +135,16 @@ public class BridgeTrigger : MonoBehaviour
 
         AudioSource source = audioObj.AddComponent<AudioSource>();
         source.clip = clip;
-        source.volume = volume; 
-        
+        source.volume = volume;
+
         source.pitch = Random.Range(0.95f, 1.05f);
-        
-        source.spatialBlend = 1f; 
+
+        source.spatialBlend = 1f;
         source.minDistance = 2f;
-        source.maxDistance = 15f; 
+        source.maxDistance = 15f;
 
         source.Play();
-        
+
         // Destroy the temporary object immediately after the sound finishes playing
         Destroy(audioObj, clip.length + 0.1f);
     }
