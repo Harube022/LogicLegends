@@ -5,6 +5,8 @@ using Firebase.Database;
 using Firebase.Extensions;
 using Google; 
 using System.Threading.Tasks;
+using UnityEngine.Video;           // ---> NEW: Required for VideoPlayer
+using UnityEngine.SceneManagement; // ---> NEW: Required to load LogicGarden
 
 public class AuthManager : MonoBehaviour
 {
@@ -14,6 +16,14 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private GameObject modeSelection; 
     [SerializeField] private GameObject settingsMenu;
     [SerializeField] private GameObject characterSelectMenu;
+
+    [Header("Cinematic Intro Settings")]
+    [Tooltip("The UI Panel that holds your Video Player")]
+    [SerializeField] private GameObject cinematicPanel;
+    [Tooltip("Drag the Video Player component here")]
+    [SerializeField] private VideoPlayer introVideoPlayer;
+    [Tooltip("The exact name of the tutorial scene")]
+    [SerializeField] private string tutorialSceneName = "LogicGarden";
 
     [Header("Google Configuration")]
     [Tooltip("Paste your Web Client ID from the Firebase Console here")]
@@ -30,7 +40,7 @@ public class AuthManager : MonoBehaviour
 
     // ---> NEW: Web Registration URL <---
     [Header("Web Links")]
-    [SerializeField] private string webRegistrationUrl = "http://127.0.0.1:5500/Logic-Legends-Website/Logic_Legends_Website/LoginPage/login_page.html";
+    [SerializeField] private string webRegistrationUrl = "https://logiclegends.netlify.app/loginpage/sign_up_page.html";
 
     private FirebaseAuth auth;
     private GoogleSignInConfiguration configuration;
@@ -128,9 +138,50 @@ public class AuthManager : MonoBehaviour
             if (task.IsCompleted)
             {
                 Debug.Log($"Successfully saved {characterID} as base character!");
-                ShowModeSelection(); // Move them to the game now!
+                // ShowModeSelection(); // Move them to the game now!
+                PlayIntroCutscene();
             }
         });
+    }
+
+    // ---> NEW: Methods to handle the video and scene loading <---
+    private void PlayIntroCutscene()
+    {
+        // 1. Hide all other UI menus
+        if (loginMenu != null) loginMenu.SetActive(false);
+        if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
+        if (modeSelection != null) modeSelection.SetActive(false);
+        if (settingsMenu != null) settingsMenu.SetActive(false);
+
+        // 2. Show the Cinematic Panel
+        if (cinematicPanel != null) cinematicPanel.SetActive(true);
+
+        // 3. Play the video and listen for the end
+        if (introVideoPlayer != null)
+        {
+            // Subscribe to the event that fires when the video finishes
+            introVideoPlayer.loopPointReached += OnCutsceneFinished;
+            introVideoPlayer.Play();
+        }
+        else
+        {
+            Debug.LogWarning("No Video Player assigned! Skipping straight to tutorial.");
+            LoadTutorialScene();
+        }
+    }
+
+    private void OnCutsceneFinished(VideoPlayer vp)
+    {
+        // Unsubscribe from the event to prevent memory leaks
+        vp.loopPointReached -= OnCutsceneFinished; 
+        
+        LoadTutorialScene();
+    }
+
+    private void LoadTutorialScene()
+    {
+        // Load the LogicGarden scene
+        SceneManager.LoadScene(tutorialSceneName);
     }
 
     // --- GOOGLE SIGN-IN ---

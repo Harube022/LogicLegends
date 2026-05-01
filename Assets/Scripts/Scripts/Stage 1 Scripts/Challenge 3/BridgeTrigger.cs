@@ -12,15 +12,23 @@ public class BridgeTrigger : MonoBehaviour
     // ---> NEW: UI References <---
     [Header("Objectives UI")]
     [SerializeField] private TextMeshProUGUI taskText;
+
+    // ---> NEW: Field for the follow-up task <---
+    [Tooltip("Drag the follow-up task GameObject here")]
+    [SerializeField] private GameObject proceedToPortalTaskObj;
     private string originalTaskString;
 
     // ---> NEW: Audio Settings <---
     [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip crossOutTaskClip;
     [SerializeField, Range(0f, 1f)] private float audioVolume = 0.8f;
 
     private HashSet<int> finishedPlayers = new HashSet<int>();
     private PhotonView view;
+
+    private Collider myCollider;
+    private MeshRenderer myRenderer;
 
     private void Awake()
     {
@@ -31,6 +39,7 @@ public class BridgeTrigger : MonoBehaviour
     private void Start()
     {
         if (taskText != null) originalTaskString = taskText.text;
+        if (proceedToPortalTaskObj != null) proceedToPortalTaskObj.SetActive(false);
     }
 
     // Handles it if the bridge is a trigger (Is Trigger is CHECKED)
@@ -98,20 +107,25 @@ public class BridgeTrigger : MonoBehaviour
             Debug.Log("Challenge 3 Complete! Timer Stopped.");
         }
         // ---> NEW: Cross out the text! <---
-        if (taskText != null && !taskText.text.Contains("<s>"))
+        if (taskText != null)
         {
-            taskText.text = "<color=#008000><s>" + taskText.text + "</s></color>";
-            // ---> NEW: Play the Cross Out Sound using the Spawner <---
-            if (crossOutTaskClip != null)
+            taskText.text = "<color=#008000><s>" + originalTaskString + "</s></color>";
+            
+            // ---> UPDATED: Play in 2D using the assigned AudioSource <---
+            if (audioSource != null && crossOutTaskClip != null)
             {
-                Spawn3DTaskAudio(crossOutTaskClip, transform.position, audioVolume);
+                audioSource.PlayOneShot(crossOutTaskClip, audioVolume);
             }
         }
 
         // ---> THE INVISIBLE WALL FIX <---
         // Instead of Destroy() which breaks over the network, or disabling the collider which leaves invisible meshes,
         // we turn off the entire GameObject safely so it stops blocking you!
-        gameObject.SetActive(false);
+        // gameObject.SetActive(false);
+
+        // ---> UPDATED: Disable the collider and renderer instead of the whole GameObject <---
+        if (myCollider != null) myCollider.enabled = false;
+        if (myRenderer != null) myRenderer.enabled = false;
     }
 
     // ---> NEW: Reset the Bridge and the Text on Game Over! <---
@@ -121,31 +135,15 @@ public class BridgeTrigger : MonoBehaviour
         finishedPlayers.Clear();
         gameObject.SetActive(true); // Turn the invisible wall trigger back on!
 
+        // ---> UPDATED: Turn the collider and renderer back on! <---
+        if (myCollider != null) myCollider.enabled = true;
+        if (myRenderer != null) myRenderer.enabled = true;
+
         if (taskText != null && !string.IsNullOrEmpty(originalTaskString))
         {
             taskText.text = originalTaskString;
         }
+        if (proceedToPortalTaskObj != null) proceedToPortalTaskObj.SetActive(false);
     }
 
-    // ---> NEW: The Audio Spawner Method <---
-    private void Spawn3DTaskAudio(AudioClip clip, Vector3 spawnPosition, float volume)
-    {
-        GameObject audioObj = new GameObject("TempBridgeAudio");
-        audioObj.transform.position = spawnPosition;
-
-        AudioSource source = audioObj.AddComponent<AudioSource>();
-        source.clip = clip;
-        source.volume = volume;
-
-        source.pitch = Random.Range(0.95f, 1.05f);
-
-        source.spatialBlend = 1f;
-        source.minDistance = 2f;
-        source.maxDistance = 15f;
-
-        source.Play();
-
-        // Destroy the temporary object immediately after the sound finishes playing
-        Destroy(audioObj, clip.length + 0.1f);
-    }
 }

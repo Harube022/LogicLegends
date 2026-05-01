@@ -22,6 +22,13 @@ public class GateController : MonoBehaviour
     [Header("Objectives UI")]
     [SerializeField] private TextMeshProUGUI taskText;
 
+    // ---> NEW: The intermediate Boulder task <---
+    [Tooltip("Drag the 'Find a boulder...' GameObject here")]
+    [SerializeField] private GameObject findBoulderTaskObj;
+
+    [Tooltip("Drag the follow-up task GameObject here")]
+    [SerializeField] private GameObject proceedToNextTaskObj;
+
     [Header("Events & Audio")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip crossOutTaskClip;
@@ -31,6 +38,7 @@ public class GateController : MonoBehaviour
     private string originalTaskString;
 
     private bool isSolved = false;
+    private bool wasEitherPressed = false; // Tracks if we need to show the boulder task
     private PhotonView view; // 2. Add PhotonView reference
 
     private void Awake()
@@ -44,11 +52,22 @@ public class GateController : MonoBehaviour
         if (teleportZoneToCh2 != null) teleportZoneToCh2.SetActive(false);
 
         if (taskText != null) originalTaskString = taskText.text;
+        if (proceedToNextTaskObj != null) proceedToNextTaskObj.SetActive(false);
+        if (findBoulderTaskObj != null) findBoulderTaskObj.SetActive(false);
     }
 
     private void Update()
     {
         if (isSolved) return;
+        // Check if at least one plate is currently pressed
+        bool isEitherPressed = leftPlate.isPressed || rightPlate.isPressed;
+        
+        // ---> UPDATED: If a plate is pressed and we haven't shown the task yet, turn it on permanently! <---
+        if (isEitherPressed && !wasEitherPressed)
+        {
+            if (findBoulderTaskObj != null) findBoulderTaskObj.SetActive(true);
+            wasEitherPressed = true; // Remembers that it has been shown so it doesn't run this block again
+        }
 
         // 3. ONLY the Master Client checks the puzzle state to prevent multiple people solving it at once
         if (leftPlate.isPressed && rightPlate.isPressed)
@@ -99,7 +118,13 @@ public class GateController : MonoBehaviour
 
         if (taskText != null && !taskText.text.Contains("<s>"))
         {
-            taskText.text = "<color=#008000><s>" + taskText.text + "</s></color>";
+            
+            taskText.text = "<color=#008000><s>" + originalTaskString + "</s></color>";
+
+            if (findBoulderTaskObj != null) findBoulderTaskObj.SetActive(false);
+            
+            if (proceedToNextTaskObj != null) proceedToNextTaskObj.SetActive(true);
+
             // ---> NEW: Play the Cross Out Sound <---
             if (audioSource != null && crossOutTaskClip != null)
             {
@@ -118,6 +143,7 @@ public class GateController : MonoBehaviour
     public void ResetGate()
     {
         isSolved = false;
+        wasEitherPressed = false;
         leftPlate.ResetPlate();
         rightPlate.ResetPlate();
         closeGateObj.SetActive(true);
@@ -129,9 +155,14 @@ public class GateController : MonoBehaviour
             teleportZoneToCh2.SetActive(false);
         }
 
+        // ---> FIXED: Cleaned up the duplicated if statement <---
         if (taskText != null && !string.IsNullOrEmpty(originalTaskString))
         {
             taskText.text = originalTaskString;
         }
+
+        // Hide extra tasks on reset
+        if (findBoulderTaskObj != null) findBoulderTaskObj.SetActive(false);
+        if (proceedToNextTaskObj != null) proceedToNextTaskObj.SetActive(false);
     }
 }

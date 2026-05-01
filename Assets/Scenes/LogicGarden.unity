@@ -1276,6 +1276,75 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 120, y: 135.6, z: 229.61563}
   m_Center: {x: 0, y: 8.761302e-14, z: -141.34766}
+--- !u!1 &74327305
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 74327306}
+  - component: {fileID: 74327308}
+  - component: {fileID: 74327307}
+  m_Layer: 0
+  m_Name: SoundTriggerZone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &74327306
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 74327305}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -702, y: 9.80633, z: -394}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 509678025}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &74327307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 74327305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f67a958bb0ff2842813e3ed74e4f1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnvironmentAudioZone
+  layerNames:
+  - Garden
+  - LOFI
+--- !u!65 &74327308
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 74327305}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 680.38007, y: 30.11, z: 455.757}
+  m_Center: {x: -11.14682, y: 0, z: 81.3018}
 --- !u!1001 &80706257
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4075,6 +4144,8 @@ MonoBehaviour:
   totalStageTime: 0
   stageChallengeEnvironments: []
   stageObjectivePanels: []
+  loseHeartSound: {fileID: 0}
+  loseHeartVolume: 0.8
   playerHearts: 3
   heartIcons:
   - {fileID: 1807240093}
@@ -6255,6 +6326,7 @@ Transform:
   - {fileID: 264491827}
   - {fileID: 348184648}
   - {fileID: 1611534868}
+  - {fileID: 2087027301}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &398656696
@@ -8207,6 +8279,7 @@ Transform:
   - {fileID: 1221045858}
   - {fileID: 678053332}
   - {fileID: 1761996141}
+  - {fileID: 74327306}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &510641547
@@ -9290,12 +9363,7 @@ MonoBehaviour:
   taskToActivate: {fileID: 0}
   startsTimer: 0
   timerDuration: 180
-  dialogueLines:
-  - Welcome to the third tutorial of Logical Expressions!
-  finalDialogueLines: []
   nextSceneName: 
-  successLines: []
-  failLines: []
   OnWizardInteract:
     m_PersistentCalls:
       m_Calls:
@@ -9346,6 +9414,14 @@ MonoBehaviour:
       m_Calls: []
   taskScribbleClip: {fileID: 0}
   scribbleVolume: 0.5
+  wizardVoiceSource: {fileID: 0}
+  wizardTalkVolume: 0.7
+  dialogueEntries:
+  - text: 'Welcome to the third phase of Logical Expressions tutorial. '
+    voiceClip: {fileID: 0}
+  finalDialogueEntries: []
+  successEntries: []
+  failEntries: []
   areAllTasksCompleted: 0
 --- !u!95 &540942432
 Animator:
@@ -10012,12 +10088,7 @@ MonoBehaviour:
   taskToActivate: {fileID: 0}
   startsTimer: 0
   timerDuration: 180
-  dialogueLines:
-  - Welcome to the first tutorial of Logical Expressions!
-  finalDialogueLines: []
   nextSceneName: 
-  successLines: []
-  failLines: []
   OnWizardInteract:
     m_PersistentCalls:
       m_Calls:
@@ -10056,6 +10127,62 @@ MonoBehaviour:
       m_Calls: []
   taskScribbleClip: {fileID: 0}
   scribbleVolume: 0.5
+  wizardVoiceSource: {fileID: 0}
+  wizardTalkVolume: 0.7
+  dialogueEntries:
+  - text: "Welcome\u2026 student\u2026 to the Hall of Logical Expressions."
+    voiceClip: {fileID: 0}
+  - text: "Before you face the trials ahead\u2026 you must first understand the language
+      that shapes this realm."
+    voiceClip: {fileID: 0}
+  - text: "Logical expressions\u2026 are statements used to determine whether something
+      is TRUE\u2026 or FALSE."
+    voiceClip: {fileID: 0}
+  - text: "In this world\u2026 truth is power."
+    voiceClip: {fileID: 0}
+  - text: "A statement may be simple\u2026"
+    voiceClip: {fileID: 0}
+  - text: A gate is open.
+    voiceClip: {fileID: 0}
+  - text: A torch is lit.
+    voiceClip: {fileID: 0}
+  - text: A path is safe.
+    voiceClip: {fileID: 0}
+  - text: "These are conditions\u2026 things that can either be true\u2026 or not."
+    voiceClip: {fileID: 0}
+  - text: "But logic allows us\u2026 to combine these conditions\u2026 and uncover
+      deeper answers."
+    voiceClip: {fileID: 0}
+  - text: "You will encounter three core operators in your journey\u2026"
+    voiceClip: {fileID: 0}
+  - text: "AND\u2026 represented by the symbol \u2227\u2026"
+    voiceClip: {fileID: 0}
+  - text: "OR\u2026 represented by the symbol \u2228\u2026"
+    voiceClip: {fileID: 0}
+  - text: "And NOT\u2026 represented by the symbol \xAC."
+    voiceClip: {fileID: 0}
+  - text: AND requires both conditions to be true.
+    voiceClip: {fileID: 0}
+  - text: OR requires at least one condition to be true.
+    voiceClip: {fileID: 0}
+  - text: "NOT reverses a condition\u2026 turning truth into falsehood\u2026 and
+      falsehood into truth."
+    voiceClip: {fileID: 0}
+  - text: "These principles\u2026 may seem simple\u2026"
+    voiceClip: {fileID: 0}
+  - text: But they are the foundation of every challenge that awaits you.
+    voiceClip: {fileID: 0}
+  - text: Take time to explore this place.
+    voiceClip: {fileID: 0}
+  - text: Test what you have learned.
+    voiceClip: {fileID: 0}
+  - text: "When you are ready\u2026 proceed to the next tutorial\u2026"
+    voiceClip: {fileID: 0}
+  - text: And continue your path toward mastering logic.
+    voiceClip: {fileID: 0}
+  finalDialogueEntries: []
+  successEntries: []
+  failEntries: []
   areAllTasksCompleted: 0
 --- !u!95 &566500908
 Animator:
@@ -14692,23 +14819,7 @@ MonoBehaviour:
   taskToActivate: {fileID: 0}
   startsTimer: 1
   timerDuration: 180
-  dialogueLines:
-  - Welcome Student to the Logic Garden Realm.
-  - In this stage, the challenge you will learn is how the AND logic gate works.
-  - "The AND (\u2227) gate is a logical operator that checks two conditions."
-  - It will only give a TRUE result when both inputs are TRUE.
-  - TRUE AND TRUE = TRUE
-  - If one or both inputs are FALSE, the result will be FALSE.
-  - TRUE AND FALSE = FALSE
-  - In this challenge, you must open the gate in front to proceed to the next challenge.
-  - Remember, you can only open the gate if BOTH switches are ON.
-  - 'If one switch is OFF, the gate will stay closed. '
-  - Find a way and investigate the area that might help you open the gate.
-  - Good Luck!
-  finalDialogueLines: []
   nextSceneName: 
-  successLines: []
-  failLines: []
   OnWizardInteract:
     m_PersistentCalls:
       m_Calls:
@@ -14735,6 +14846,52 @@ MonoBehaviour:
       m_Calls: []
   taskScribbleClip: {fileID: 0}
   scribbleVolume: 0.5
+  wizardVoiceSource: {fileID: 0}
+  wizardTalkVolume: 0.7
+  dialogueEntries:
+  - text: "Welcome\u2026 student\u2026 to the Logic Garden Campus."
+    voiceClip: {fileID: 0}
+  - text: "This sanctuary\u2026 is the last place in the Logic Realm where balance
+      still remains."
+    voiceClip: {fileID: 0}
+  - text: "Though the realm beyond continues to weaken\u2026 the energy here still
+      endures\u2026 enough to guide those willing to learn."
+    voiceClip: {fileID: 0}
+  - text: "Within these grounds\u2026 you may prepare yourself for the trials ahead."
+    voiceClip: {fileID: 0}
+  - text: "Here\u2026 knowledge is preserved."
+    voiceClip: {fileID: 0}
+  - text: "Here\u2026 you may study the lessons of each stage\u2026 before facing
+      the challenges beyond."
+    voiceClip: {fileID: 0}
+  - text: "Scattered across the campus\u2026 you will find guidance on the mechanics
+      of this world\u2026"
+    voiceClip: {fileID: 0}
+  - text: "How to solve trials\u2026"
+    voiceClip: {fileID: 0}
+  - text: "How to protect your hearts\u2026"
+    voiceClip: {fileID: 0}
+  - text: "And how to use logic\u2026 to overcome what lies ahead."
+    voiceClip: {fileID: 0}
+  - text: "Before you\u2026 stand four portals."
+    voiceClip: {fileID: 0}
+  - text: "Each portal leads to a tutorial\u2026 and an introduction to the lessons
+      you must master."
+    voiceClip: {fileID: 0}
+  - text: Take your time.
+    voiceClip: {fileID: 0}
+  - text: Learn at your own pace.
+    voiceClip: {fileID: 0}
+  - text: "And should you wish to leave this place\u2026 you may do so freely\u2026
+      at any time."
+    voiceClip: {fileID: 0}
+  - text: "When you are ready\u2026 step through the portal of your choosing\u2026"
+    voiceClip: {fileID: 0}
+  - text: "And begin your journey\u2026 to restore balance to the Logic Realm."
+    voiceClip: {fileID: 0}
+  finalDialogueEntries: []
+  successEntries: []
+  failEntries: []
   areAllTasksCompleted: 0
 --- !u!95 &819844606
 Animator:
@@ -19708,6 +19865,75 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4138438543818734373, guid: c5e46544d6f907540bd3814a964e2341, type: 3}
   m_PrefabInstance: {fileID: 988173316}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1165715887
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2310358077681465950, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -19.45517
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310358077681465950, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 99.50823
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310358077681465950, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310358077681465950, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310358077681465950, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310358077681465950, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310358077681465950, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310358077681465950, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310358077681465950, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310358077681465950, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5218844044809558396, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: m_Name
+      value: EnvironmentAudioManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 7826545621753405328, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: layers.Array.data[0].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 6243de5bd1e10bc4f81be59aed73ddf4, type: 3}
+    - target: {fileID: 7826545621753405328, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: layers.Array.data[0].name
+      value: Garden
+      objectReference: {fileID: 0}
+    - target: {fileID: 7826545621753405328, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
+      propertyPath: layers.Array.data[0].volume
+      value: 0.4
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2d56de41fae9fb04aa708cb26b588e18, type: 3}
 --- !u!1001 &1165881968
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -26603,6 +26829,7 @@ MonoBehaviour:
   switchClip: {fileID: 8300000, guid: 61b5da7b5083981439a412202522c5e2, type: 3}
   electricityClip: {fileID: 8300000, guid: f0d6228e8cd11614d9c728eb3ea47c8a, type: 3}
   powerDownClip: {fileID: 8300000, guid: 7043ef033e1675541b60fa3ec1332912, type: 3}
+  gateOpenClip: {fileID: 0}
   isOn: 0
 --- !u!65 &1525785787
 BoxCollider:
@@ -28512,6 +28739,7 @@ MonoBehaviour:
   switchClip: {fileID: 8300000, guid: 61b5da7b5083981439a412202522c5e2, type: 3}
   electricityClip: {fileID: 8300000, guid: f0d6228e8cd11614d9c728eb3ea47c8a, type: 3}
   powerDownClip: {fileID: 8300000, guid: 7043ef033e1675541b60fa3ec1332912, type: 3}
+  gateOpenClip: {fileID: 0}
   isOn: 0
 --- !u!82 &1611409824
 AudioSource:
@@ -30233,6 +30461,7 @@ MonoBehaviour:
   woodSound: {fileID: 0}
   lilypadSound: {fileID: 0}
   defaultSound: {fileID: 0}
+  jumpSound: {fileID: 0}
   minPitch: 0.9
   maxPitch: 1.1
   baseVolume: 0.8
@@ -35963,12 +36192,7 @@ MonoBehaviour:
   taskToActivate: {fileID: 0}
   startsTimer: 0
   timerDuration: 180
-  dialogueLines:
-  - Welcome to the second tutorial of Logical Expressions!
-  finalDialogueLines: []
   nextSceneName: 
-  successLines: []
-  failLines: []
   OnWizardInteract:
     m_PersistentCalls:
       m_Calls:
@@ -36007,6 +36231,14 @@ MonoBehaviour:
       m_Calls: []
   taskScribbleClip: {fileID: 0}
   scribbleVolume: 0.5
+  wizardVoiceSource: {fileID: 0}
+  wizardTalkVolume: 0.7
+  dialogueEntries:
+  - text: 'Welcome to the second phase of Logical Expressions tutorial. '
+    voiceClip: {fileID: 0}
+  finalDialogueEntries: []
+  successEntries: []
+  failEntries: []
   areAllTasksCompleted: 0
 --- !u!135 &2062427559
 SphereCollider:
@@ -36317,6 +36549,75 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 258112041}
   m_SourcePrefab: {fileID: 100100000, guid: dafbb446819270046869411f0189162e, type: 3}
+--- !u!1 &2087027300
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2087027301}
+  - component: {fileID: 2087027303}
+  - component: {fileID: 2087027302}
+  m_Layer: 0
+  m_Name: SoundTriggerZone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2087027301
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087027300}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 13, y: 8.3, z: -104}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 387464722}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2087027302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087027300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f67a958bb0ff2842813e3ed74e4f1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnvironmentAudioZone
+  layerNames:
+  - Garden
+  - LOFI
+--- !u!65 &2087027303
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087027300}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 193.1, y: 30.11, z: 297.7}
+  m_Center: {x: -11.6, y: 0, z: 76.3}
 --- !u!1 &2092747259
 GameObject:
   m_ObjectHideFlags: 0
@@ -37951,6 +38252,7 @@ SceneRoots:
   - {fileID: 1389792754}
   - {fileID: 4988702419513191934}
   - {fileID: 3727744939646242982}
+  - {fileID: 1165715887}
   - {fileID: 252483936}
   - {fileID: 373972950}
   - {fileID: 2092747262}

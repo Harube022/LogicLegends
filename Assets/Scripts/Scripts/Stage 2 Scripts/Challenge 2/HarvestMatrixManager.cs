@@ -1,9 +1,24 @@
 using UnityEngine;
 using UnityEngine.Events;
 using Photon.Pun;
+using TMPro;
 public class HarvestMatrixManager : MonoBehaviourPun
 {
     [SerializeField] private SoilMound[] soilMounds;
+
+    // ---> NEW: UI Task Objects <---
+    [Header("UI Task Objects")]
+    [Tooltip("Drag the 'Plant the seeds' TextMeshPro object here")]
+    [SerializeField] private TextMeshProUGUI plantSeedsTaskText;
+    
+    [Tooltip("Keep this exact format: {0} is current, {1} is total")]
+    [SerializeField] private string plantSeedsBaseText = "Plant the seeds {0}/{1}";
+
+    [Tooltip("Drag the 'Hit the watering can...' GameObject here")]
+    [SerializeField] private GameObject waterSeedsTaskObj;
+
+    [Tooltip("Drag the 'Go through the gate...' GameObject here")]
+    [SerializeField] private GameObject proceedToGateTaskObj;
     [Header("Audio")]
     [SerializeField] private AudioSource sfxSource;
     [SerializeField] private AudioClip gateOpenClip;
@@ -19,6 +34,48 @@ public class HarvestMatrixManager : MonoBehaviourPun
 
     // ---> NEW: The Anti-Spam Lock! <---
     private bool isGrading = false;
+
+    // ---> NEW: State trackers for the UI <---
+    private bool isSolved = false;
+    private int previousSeedCount = -1;
+
+    private void Start()
+    {
+        // Make sure extra tasks are hidden when the game starts
+        if (waterSeedsTaskObj != null) waterSeedsTaskObj.SetActive(false);
+        if (proceedToGateTaskObj != null) proceedToGateTaskObj.SetActive(false);
+    }
+
+    private void Update()
+    {
+        // Stop checking if the puzzle is already solved OR if it's currently animating a failure
+        if (isSolved || isGrading) return;
+
+        // 1. COUNT THE SEEDS (Runs for everyone so UI updates smoothly)
+        int currentSeedCount = 0;
+        foreach (var mound in soilMounds)
+        {
+            if (mound != null && mound.HasSeed()) currentSeedCount++;
+        }
+
+        // 2. UPDATE UI IF THE COUNT CHANGED
+        if (currentSeedCount != previousSeedCount)
+        {
+            // Update the 0/4 text
+            if (plantSeedsTaskText != null)
+            {
+                plantSeedsTaskText.text = string.Format(plantSeedsBaseText, currentSeedCount, soilMounds.Length);
+            }
+
+            // Show the Watering Can task ONLY if all 4 mounds have seeds!
+            if (waterSeedsTaskObj != null)
+            {
+                waterSeedsTaskObj.SetActive(currentSeedCount == soilMounds.Length);
+            }
+
+            previousSeedCount = currentSeedCount;
+        }
+    }
 
     // The player interacts with this object to submit their answer
     public void WaterGarden()
@@ -65,23 +122,37 @@ public class HarvestMatrixManager : MonoBehaviourPun
         if (allCorrect)
         {
             Debug.Log("Harvest Matrix Solved! Growing Beanstalk!");
+            isSolved = true; // Stop the Update loop from messing with the UI
+
             foreach (var mound in soilMounds)
             {
                 if (mound.currentSeed != null) mound.currentSeed.gameObject.SetActive(false);
             }
 
-            OnPuzzleSolved?.Invoke();
-            if (sfxSource != null && gateOpenClip != null)
+            // ---> NEW: Cross out the seed text and hide the watering task <---
+            if (plantSeedsTaskText != null)
             {
-                sfxSource.PlayOneShot(gateOpenClip);
+                string finalString = string.Format(plantSeedsBaseText, soilMounds.Length, soilMounds.Length);
+                plantSeedsTaskText.text = "<color=#008000><s>" + finalString + "</s></color>";
+            }
+            if (waterSeedsTaskObj != null) waterSeedsTaskObj.SetActive(false);
+
+            // ---> NEW: Show the final gate task <---
+            if (proceedToGateTaskObj != null) proceedToGateTaskObj.SetActive(true);
+
+            // Audio
+            if (sfxSource != null)
+            {
+                if (gateOpenClip != null) sfxSource.PlayOneShot(gateOpenClip);
             }
 
-            // ---> NEW: Wizard Congratulation Voice <---
             if (wizardAudioSource != null && wizardCongratsClip != null)
             {
-                wizardAudioSource.Stop(); // prevent overlap
+                wizardAudioSource.Stop(); 
                 wizardAudioSource.PlayOneShot(wizardCongratsClip);
             }
+
+            OnPuzzleSolved?.Invoke();
         }
         else
         {
@@ -121,8 +192,13 @@ public class HarvestMatrixManager : MonoBehaviourPun
     [PunRPC]
     public void RPC_ResetPuzzle()
     {
-        // ---> 4. The fail animation is done. Unlock the watering can for the next attempt! <---
         isGrading = false;
+        isSolved = false;
+        previousSeedCount = -1;
+        // ---> 4. The fail animation is done. Unlock the watering can for the next attempt! <---
+        // Hide extra tasks immediately on reset
+        if (proceedToGateTaskObj != null) proceedToGateTaskObj.SetActive(false);
+        if (waterSeedsTaskObj != null) waterSeedsTaskObj.SetActive(false);
         OnPuzzleReset?.Invoke();
     }
 

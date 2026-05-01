@@ -9,6 +9,24 @@ public class SoilMound : MonoBehaviourPun
     [Tooltip("What seed belongs here? True = Glowing, False = Dead Weed")]
     [SerializeField] private bool expectedToBeGlowing; 
 
+    private void OnTriggerEnter(Collider other)
+{
+    // 1. Ignore if a seed is already planted in this mound
+    if (HasSeed()) return;
+
+    // 2. Check if the object entering the Box Collider is a Seed
+    if (other.TryGetComponent(out SeedItem incomingSeed))
+    {
+        // 3. MULTIPLAYER SAFETY: 
+        // Only let the Master Client trigger the network event. 
+        // This prevents 4 players from sending 4 identical "Snap" RPCs at the exact same time.
+        if (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) return;
+
+        // 4. Call your existing networked snapping method!
+        PlaceSeedNetworked(other.gameObject);
+    }
+}
+
     // ---> NEW: The networked method your Player script will call! <---
     public void PlaceSeedNetworked(GameObject seedObj)
     {

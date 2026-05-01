@@ -1,10 +1,25 @@
 using UnityEngine;
 using UnityEngine.Events;
 using Photon.Pun;
+using TMPro;
 
 public class TruthTableManager : MonoBehaviourPun
 {
     [SerializeField] private TorchPedestal[] answerPedestals;
+
+    // ---> NEW: UI Task Objects <---
+    [Header("UI Task Objects")]
+    [Tooltip("Drag the 'Find Torch' TextMeshPro object here")]
+    [SerializeField] private TextMeshProUGUI findTorchTaskText;
+    
+    [Tooltip("Keep this exact format: {0} is current, {1} is total")]
+    [SerializeField] private string findTorchBaseText = "Find torch {0}/{1}";
+
+    [Tooltip("Drag the 'Lit/Unlit the torch' GameObject here")]
+    [SerializeField] private GameObject litUnlitTaskObj;
+
+    [Tooltip("Drag the 'Go through the gate...' GameObject here")]
+    [SerializeField] private GameObject proceedToGateTaskObj;
 
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
@@ -21,28 +36,56 @@ public class TruthTableManager : MonoBehaviourPun
     public UnityEvent OnPuzzleReset;
     
     private bool isSolved = false;
+    private int previousTorchCount = -1;
+
+    private void Start()
+    {
+        // Make sure extra tasks are hidden when the game starts
+        if (litUnlitTaskObj != null) litUnlitTaskObj.SetActive(false);
+        if (proceedToGateTaskObj != null) proceedToGateTaskObj.SetActive(false);
+    }
 
     private void Update()
     {
         if (isSolved) return;
 
-        // ---> FIXED: Only check for MasterClient IF we are actually in a multiplayer room <---
-        if (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) return;
-
+        // 1. COUNT TORCHES & CHECK CORRECTNESS (Runs for EVERYONE so UI updates on all screens)
+        int currentTorchCount = 0;
         bool allCorrect = true;
+
         foreach (var ped in answerPedestals)
         {
-            // Make sure the pedestal exists and check if it's correct
-            if (ped != null && !ped.IsCorrect())
+            if (ped != null)
             {
-                allCorrect = false;
-                break; // Stop checking, one is wrong
+                if (ped.CurrentTorch != null) currentTorchCount++;
+                if (!ped.IsCorrect()) allCorrect = false;
             }
         }
 
+        // 2. UPDATE UI IF THE COUNT CHANGED
+        if (currentTorchCount != previousTorchCount)
+        {
+            // Update the 0/4 text
+            if (findTorchTaskText != null)
+            {
+                findTorchTaskText.text = string.Format(findTorchBaseText, currentTorchCount, answerPedestals.Length);
+            }
+
+            // Show the Lit/Unlit task ONLY if they have placed at least 1 torch
+            if (litUnlitTaskObj != null)
+            {
+                litUnlitTaskObj.SetActive(currentTorchCount > 0);
+            }
+
+            previousTorchCount = currentTorchCount;
+        }
+
+        // 3. STOP HERE IF CLIENT (Only the Master Client triggers the final win state)
+        if (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) return;
+
+        // 4. SOLVE PUZZLE
         if (allCorrect)
         {
-            // ---> FIXED: Fire RPC if online, or just run the method directly if offline <---
             if (PhotonNetwork.InRoom)
             {
                 photonView.RPC("RPC_PuzzleSolved", RpcTarget.All);
@@ -58,17 +101,32 @@ public class TruthTableManager : MonoBehaviourPun
     private void RPC_PuzzleSolved()
     {
         isSolved = true;
-        Debug.Log("Puzzle Solved!"); // Works offline now!
-        OnPuzzleSolved?.Invoke(); // Teleports you to the next challenge!
-        if (audioSource != null && gateOpenClip != null)
+        
+        // ---> NEW: Cross out the torch text and hide the Lit/Unlit task <---
+        if (findTorchTaskText != null)
         {
-            audioSource.PlayOneShot(gateOpenClip);
+            // It uses the total amount so it perfectly says "4/4" when crossed out
+            string finalString = string.Format(findTorchBaseText, answerPedestals.Length, answerPedestals.Length);
+            findTorchTaskText.text = "<color=#008000><s>" + finalString + "</s></color>";
         }
+        if (litUnlitTaskObj != null) litUnlitTaskObj.SetActive(false);
+
+        // ---> NEW: Show the final gate task <---
+        if (proceedToGateTaskObj != null) proceedToGateTaskObj.SetActive(true);
+
+        // Play Audio
+        if (audioSource != null)
+        {
+            if (gateOpenClip != null) audioSource.PlayOneShot(gateOpenClip);
+        }
+
         if (wizardAudioSource != null && wizardCongratsClip != null)
         {
-            wizardAudioSource.Stop(); // prevents overlap if somehow retriggered
+            wizardAudioSource.Stop(); 
             wizardAudioSource.PlayOneShot(wizardCongratsClip);
         }
+
+        OnPuzzleSolved?.Invoke(); 
     }
 
     public void ResetPuzzle()
@@ -89,6 +147,7 @@ public class TruthTableManager : MonoBehaviourPun
     {
         // 1. Un-solve the puzzle so it can be checked again on everyone's screen
         isSolved = false;
+        previousTorchCount = -1;
 
         // 2. Force every pedestal to drop its torch
         foreach (var ped in answerPedestals)
@@ -99,6 +158,10 @@ public class TruthTableManager : MonoBehaviourPun
                 ped.ClearPedestal();
             }
         }
+
+        // Hide UI immediately on reset
+        if (proceedToGateTaskObj != null) proceedToGateTaskObj.SetActive(false);
+        if (litUnlitTaskObj != null) litUnlitTaskObj.SetActive(false);
 
         // 3. Fire the custom reset event (like closing doors, resetting timers, etc.)
         OnPuzzleReset?.Invoke();

@@ -105,8 +105,19 @@ public class StageCompleteManager : MonoBehaviour
     // --- BUTTON ACTIONS ---
     public void LoadNextStage()
     {
-        if (PhotonNetwork.InRoom) PhotonNetwork.LoadLevel(nextSceneName);
-        else SceneManager.LoadScene(nextSceneName);
+        // Check if TeleportManager exists in the scene to prevent null reference errors
+        if (TeleportManager.Instance != null)
+        {
+            // Use the TeleportManager to handle the fade and scene load
+            TeleportManager.Instance.LoadSceneWithFade(nextSceneName);
+        }
+        else
+        {
+            // Fallback just in case the TeleportManager is missing
+            Debug.LogWarning("TeleportManager not found! Loading scene instantly.");
+            if (PhotonNetwork.InRoom) PhotonNetwork.LoadLevel(nextSceneName);
+            else SceneManager.LoadScene(nextSceneName);
+        }
     }
 
     public void ReturnToMenu()

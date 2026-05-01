@@ -60,7 +60,7 @@ public class ShopManager : MonoBehaviour
                 }
                 else 
                 {
-                    currentCoins = 500; // Retroactive coin grant
+                    currentCoins = 0; // Retroactive coin grant
                     SaveCurrencyToDatabase();
                 }
 
@@ -71,7 +71,7 @@ public class ShopManager : MonoBehaviour
                 }
                 else
                 {
-                    currentGems = 50; // Retroactive gem grant for older accounts!
+                    currentGems = 0; // Retroactive gem grant for older accounts!
                     SaveCurrencyToDatabase();
                 }
 
@@ -88,8 +88,8 @@ public class ShopManager : MonoBehaviour
             else
             {
                 // First time playing! Give them some starter coins!
-                currentCoins = 500; 
-                currentGems = 50;
+                currentCoins = 0; 
+                currentGems = 0;
                 SaveCurrencyToDatabase();
             }
 

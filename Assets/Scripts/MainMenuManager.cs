@@ -124,8 +124,27 @@ public class MainMenuManager : MonoBehaviour
             string userId = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
             DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
 
+            // dbRef.Child("users").Child(userId).Child("unlockedStage").GetValueAsync().ContinueWithOnMainThread(task =>
+            // {
+            //     if (task.IsCompleted && task.Result.Exists)
+            //     {
+            //         highestUnlockedStage = int.Parse(task.Result.Value.ToString());
+            //     }
+                
+            //     string sceneToLoad = "Stage " + highestUnlockedStage;
+            //     Debug.Log("Loading saved progress: " + sceneToLoad);
+            //     SceneManager.LoadScene(sceneToLoad);
+            // });
             dbRef.Child("users").Child(userId).Child("unlockedStage").GetValueAsync().ContinueWithOnMainThread(task =>
             {
+                // Check if the task faulted before trying to access task.Result
+                if (task.IsFaulted || task.IsCanceled)
+                {
+                    Debug.LogWarning("Database fetch failed. Defaulting to Stage 1.");
+                    SceneManager.LoadScene("Stage 1");
+                    return;
+                }
+
                 if (task.IsCompleted && task.Result.Exists)
                 {
                     highestUnlockedStage = int.Parse(task.Result.Value.ToString());

@@ -9,6 +9,11 @@ public class FruitValidator : MonoBehaviour
     [SerializeField] private FruitBasket challenge2Basket;
     [SerializeField] private TextMeshProUGUI objectiveText;
 
+    [Tooltip("Drag the 'Wizard_Confirm_Task' GameObject here")]
+    [SerializeField] private GameObject talkToWizardTaskObj;
+
+    [Tooltip("Drag the 'Proceed_Gate_Task' GameObject here")]
+    [SerializeField] private GameObject proceedToGateTaskObj;
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip crossOutTaskClip;
@@ -17,20 +22,46 @@ public class FruitValidator : MonoBehaviour
     private PhotonView view; // 2. Add PhotonView Reference
 
     // ---> NEW: A string to memorize the clean text <---
-    private string originalObjectiveString;
+    private string originalBaseTaskString;
+    private bool isWizardTaskShowing = false;
+    private bool isSolved = false; // Stops checking once the correct fruit is found
 
     private void Start()
     {
         // ---> NEW: Save the text exactly as it is when the game starts <---
         if (objectiveText != null)
         {
-            originalObjectiveString = objectiveText.text;
+          originalBaseTaskString = objectiveText.text;
         }
+
+        // 2. Ensure our toggleable tasks start in the correct hidden state
+        if (talkToWizardTaskObj != null) talkToWizardTaskObj.SetActive(false);
+        if (proceedToGateTaskObj != null) proceedToGateTaskObj.SetActive(false);
     }
 
     private void Awake()
     {
         view = GetComponent<PhotonView>();
+    }
+    
+    private void Update()
+    {
+        if (isSolved || challenge2Basket == null) return;
+
+        bool hasFruit = challenge2Basket.HasFruit();
+
+        // 1. If a fruit is placed -> Show the static Wizard Confirm Object!
+        if (hasFruit && !isWizardTaskShowing)
+        {
+            if (talkToWizardTaskObj != null) talkToWizardTaskObj.SetActive(true);
+            isWizardTaskShowing = true;
+        }
+        // 2. If the basket is empty -> Hide the static Wizard Confirm Object!
+        else if (!hasFruit && isWizardTaskShowing)
+        {
+            if (talkToWizardTaskObj != null) talkToWizardTaskObj.SetActive(false);
+            isWizardTaskShowing = false;
+        }
     }
 
     // We changed the name to reflect what it does now!
@@ -78,19 +109,28 @@ public class FruitValidator : MonoBehaviour
     [PunRPC]
     private void RPC_CrossOutObjective()
     {
+        isSolved = true; // Stop the Update loop
+
+        // 1. Cross out the main fruit text
         if (objectiveText != null && !objectiveText.text.Contains("<s>"))
         {
-            objectiveText.text = "<color=#008000><s>" + objectiveText.text + "</s></color>";
-            // ---> NEW: Play the Cross Out Sound <---
-            if (audioSource != null && crossOutTaskClip != null)
-            {
-                audioSource.PlayOneShot(crossOutTaskClip);
-            }
-            if (wizardVoiceSource != null && wizardCongratulationClip != null)
-            {
-                wizardVoiceSource.Stop(); // prevent overlap
-                wizardVoiceSource.PlayOneShot(wizardCongratulationClip);
-            }
+            objectiveText.text = "<color=#008000><s>" + originalBaseTaskString + "</s></color>";
+        }
+
+        // 2. Hide the temporary wizard task object
+        if (talkToWizardTaskObj != null) talkToWizardTaskObj.SetActive(false);
+
+        // 3. Show the final gate task object
+        if (proceedToGateTaskObj != null) proceedToGateTaskObj.SetActive(true);
+
+        if (audioSource != null && crossOutTaskClip != null)
+        {
+            audioSource.PlayOneShot(crossOutTaskClip);
+        }
+        if (wizardVoiceSource != null && wizardCongratulationClip != null)
+        {
+            wizardVoiceSource.Stop(); 
+            wizardVoiceSource.PlayOneShot(wizardCongratulationClip);
         }
         
     }
@@ -98,9 +138,17 @@ public class FruitValidator : MonoBehaviour
     // ---> NEW: The method to undo the cross-out! <---
     public void ResetValidatorText()
     {
-        if (objectiveText != null && !string.IsNullOrEmpty(originalObjectiveString))
+        isSolved = false;
+        isWizardTaskShowing = false;
+
+        // Un-cross the main text
+        if (objectiveText != null && !string.IsNullOrEmpty(originalBaseTaskString))
         {
-            objectiveText.text = originalObjectiveString;
+            objectiveText.text = originalBaseTaskString;
         }
+
+        // Hide both extra objects
+        if (talkToWizardTaskObj != null) talkToWizardTaskObj.SetActive(false);
+        if (proceedToGateTaskObj != null) proceedToGateTaskObj.SetActive(false);
     }
 }

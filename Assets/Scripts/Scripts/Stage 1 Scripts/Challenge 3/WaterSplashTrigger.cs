@@ -3,16 +3,18 @@ using UnityEngine;
 public class WaterSplashTrigger : MonoBehaviour
 {
     [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip splashSound;
+    [SerializeField, Range(0f, 1f)] private float splashVolume = 0.8f;
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            if (splashSound != null)
+            // ---> UPDATED: Play in 2D using the assigned AudioSource <---
+            if (audioSource != null && splashSound != null)
             {
-                // Spawns the sound exactly where the player hit the water
-                AudioSource.PlayClipAtPoint(splashSound, other.transform.position);
+                audioSource.PlayOneShot(splashSound, splashVolume);
             }
         }
     }
