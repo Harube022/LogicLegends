@@ -6517,9 +6517,13 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1394261445224431110, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3446964310484685618, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5521854778457473478, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_UseGravity
@@ -6527,6 +6531,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5521854778457473478, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_IsKinematic
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5773408517454332509, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5830582641664197603, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
@@ -8543,11 +8551,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 844521083}
   m_CullTransparentMesh: 1
---- !u!1 &850314013 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3446964310484685618, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
-  m_PrefabInstance: {fileID: 1767588504}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &851098387
 GameObject:
   m_ObjectHideFlags: 0
@@ -11450,6 +11453,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5037635227211960436, guid: 59703386a21a25849936f3278c95b80e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5337366974524871993, guid: 59703386a21a25849936f3278c95b80e, type: 3}
       propertyPath: m_Name
       value: Player_Female
@@ -11458,7 +11465,27 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5666256349315910350, guid: 59703386a21a25849936f3278c95b80e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5666256349315910350, guid: 59703386a21a25849936f3278c95b80e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5666256349315910350, guid: 59703386a21a25849936f3278c95b80e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 180
+      objectReference: {fileID: 0}
     - target: {fileID: 6295346076379173915, guid: 59703386a21a25849936f3278c95b80e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7386669668081757176, guid: 59703386a21a25849936f3278c95b80e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898762227000838799, guid: 59703386a21a25849936f3278c95b80e, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
@@ -14615,11 +14642,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1300628017}
   m_CullTransparentMesh: 1
---- !u!1 &1302568527 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2834541193749400399, guid: 59703386a21a25849936f3278c95b80e, type: 3}
-  m_PrefabInstance: {fileID: 1039977336}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1313243026
 GameObject:
   m_ObjectHideFlags: 0
@@ -16559,11 +16581,11 @@ MonoBehaviour:
   femaleMannequin: {fileID: 231163025}
   mannequinModels:
   - itemID: male_default
-    model: {fileID: 850314013}
+    model: {fileID: 919132149155446097, guid: 3ca7566599956cb46a3255b3a3a31747, type: 3}
   - itemID: male_tuxedo
     model: {fileID: 1767588507}
   - itemID: female_default
-    model: {fileID: 1302568527}
+    model: {fileID: 919132149155446097, guid: ca22345bb051fed4c944e4c8f629a43f, type: 3}
   - itemID: female_tuxedo
     model: {fileID: 1996884584}
 --- !u!1 &1420815961
@@ -19363,7 +19385,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2834541193749400399, guid: 59703386a21a25849936f3278c95b80e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3178838328088023541, guid: 59703386a21a25849936f3278c95b80e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -19417,11 +19439,19 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5037635227211960436, guid: 59703386a21a25849936f3278c95b80e, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5337366974524871993, guid: 59703386a21a25849936f3278c95b80e, type: 3}
       propertyPath: m_Name
       value: Player_Female
       objectReference: {fileID: 0}
     - target: {fileID: 6295346076379173915, guid: 59703386a21a25849936f3278c95b80e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898762227000838799, guid: 59703386a21a25849936f3278c95b80e, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
@@ -21156,6 +21186,14 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1394261445224431110, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3073311779301111742, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3446964310484685618, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -21166,6 +21204,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5521854778457473478, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
       propertyPath: m_UseGravity
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5773408517454332509, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5830582641664197603, guid: 6b7c80759c650734c86ef55ed9c125de, type: 3}
