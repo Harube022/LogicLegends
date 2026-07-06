@@ -66,6 +66,39 @@ public class GameInput : MonoBehaviour
 
     public void MobileInteract()
     {
-        OnInteractAction?.Invoke(this, EventArgs.Empty);
+        // 1. FIRST CHECK: Do we have a block selected in our inventory? If so, drop it!
+        if (InventoryManager.Instance != null && InventoryManager.Instance.HasBlockSelected())
+        {
+            InventoryManager.Instance.DropSelectedBlock();
+            Debug.Log("Interact pressed: Dropping selected inventory block!");
+            return; // Exit early so we don't immediately try to re-pick it up
+        }
+
+        // 2. SECOND CHECK: Scan for nearby TruthBlocks to collect if hand/selection is empty
+        Collider[] nearbyColliders = Physics.OverlapSphere(transform.position, 2.0f);
+        bool collectedBlock = false;
+
+        foreach (Collider col in nearbyColliders)
+        {
+            if (col.TryGetComponent(out TruthBlock block))
+            {
+                // Skip blocks that are already securely inside your inventory slots
+                if (block.TryGetComponent(out GrabbableObject grabbable) && grabbable.isStoredInInventory)
+                    continue;
+
+                // Trigger inventory collection and auto-selection
+                block.CollectBlock();
+                Debug.Log("Successfully collected a block through MobileInteract!");
+                collectedBlock = true;
+                break; // Stop evaluating after collecting one block
+            }
+        }
+
+        // 2. Only invoke general player interactions (buttons, levers, or grabbing non-inventory items)
+        // if we DID NOT perform an inventory collection this frame
+        if (!collectedBlock)
+        {
+            OnInteractAction?.Invoke(this, EventArgs.Empty);
+        }
     }
 }

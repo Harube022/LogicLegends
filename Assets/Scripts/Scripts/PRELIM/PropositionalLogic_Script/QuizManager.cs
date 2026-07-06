@@ -14,7 +14,12 @@ public class LogicQuestion
 public class TopicChallenge
 {
     public string topicName; 
-    public List<LogicQuestion> questionsPool; 
+    public List<LogicQuestion> questionsPool;
+
+    // --- STRATEGIC CHANGE: One Canvas per room instead of managing multiple separate elements ---
+    [Header("Room UI Configuration")]
+    [Tooltip("Drag the single World Space Canvas belonging to this specific challenge room here")]
+    public Canvas roomChoiceCanvas; 
 
     [Header("Doors for this Challenge Area")]
     public GameObject[] choiceDoors = new GameObject[4];
@@ -47,6 +52,9 @@ public class QuizManager : MonoBehaviour
     private LogicQuestion currentQuestion;
     private BookInteract activeBookInstance;
 
+    // Cache to hold the texts of the currently active room canvas to optimize lookups
+    private TextMeshProUGUI[] activeRoomTexts = new TextMeshProUGUI[4];
+
     // Public property to let SelectionPads check if a question is actively visible
     public bool IsQuizActive => quizPanel != null && quizPanel.activeSelf;
 
@@ -54,6 +62,7 @@ public class QuizManager : MonoBehaviour
     {
         if (quizPanel != null) quizPanel.SetActive(false);
         HideSharedLoader();
+        HideAllRoomCanvases(); // Ensure all 3D texts are completely hidden at launch
 
         if (timerManager == null)
         {
@@ -139,6 +148,50 @@ public class QuizManager : MonoBehaviour
         {
             questionTextUI.text = currentQuestion.questionText; 
         }
+
+        // --- NEW: Handle single-canvas content population ---
+        UpdateRoomFloatingTexts();
+    }
+
+    // --- NEW METHOD: Targets the active room canvas and distributes strings to its child elements ---
+    private void UpdateRoomFloatingTexts()
+    {
+        if (currentTopicIndex >= challenges.Count) return;
+
+        TopicChallenge currentChallenge = challenges[currentTopicIndex];
+        
+        if (currentChallenge.roomChoiceCanvas == null)
+        {
+            Debug.LogWarning($"[QuizManager] Challenge room '{currentChallenge.topicName}' is missing its Room Choice Canvas assignment!");
+            return;
+        }
+
+        // 1. Gather all TextMeshProUGUI elements attached inside this single canvas container
+        TextMeshProUGUI[] foundTexts = currentChallenge.roomChoiceCanvas.GetComponentsInChildren<TextMeshProUGUI>(true);
+
+        // 2. Map and update text data based on array limits safely
+        for (int i = 0; i < foundTexts.Length; i++)
+        {
+            if (i < currentQuestion.options.Length)
+            {
+                foundTexts[i].text = currentQuestion.options[i];
+            }
+        }
+
+        // 3. Make the single canvas completely visible to the player
+        currentChallenge.roomChoiceCanvas.gameObject.SetActive(true);
+    }
+
+    // --- NEW METHOD: Turns off all 5 room canvases instantly ---
+    private void HideAllRoomCanvases()
+    {
+        foreach (var challenge in challenges)
+        {
+            if (challenge.roomChoiceCanvas != null)
+            {
+                challenge.roomChoiceCanvas.gameObject.SetActive(false);
+            }
+        }
     }
 
     private void RespawnPlayerAtCurrentTopic()
@@ -199,6 +252,7 @@ public class QuizManager : MonoBehaviour
         {
             activeBookInstance.ForceHideButton();
         }
+        HideAllRoomCanvases(); // Completely hide the world texts when quiz exits
     }
 
     public void FinalizeChallengeCompletion()

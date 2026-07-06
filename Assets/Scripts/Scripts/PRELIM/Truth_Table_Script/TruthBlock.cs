@@ -67,4 +67,20 @@ public class TruthBlock : MonoBehaviour
         rb.useGravity = true;
         col.enabled = true;
     }
+
+    // Call this via a mobile interaction button or OnTriggerEnter
+    public void CollectBlock()
+    {
+        // Pass 'this' so the inventory slot can remember this specific block object
+        int slotIndex = InventoryManager.Instance.TryPickupBlock(value, this);
+
+        // -1 means the pickup failed (inventory was full)
+        if (slotIndex != -1)
+        {
+            Debug.Log("Block data logged into inventory! Model remains visible in world until slot is tapped.");
+            
+            // Auto-select the slot the item was placed into
+            InventoryManager.Instance.SetSelectedSlotDirectly(slotIndex);
+        }
+    }
 }
