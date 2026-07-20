@@ -16,6 +16,7 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject customizationMenuPanel;
     [SerializeField] private GameObject achievementsMenuPanel;
     [SerializeField] private GameObject settingsMenuPanel;
+    // [SerializeField] private string Stage = "PRELIM";
 
     // ---> NEW: Variable to remember the player's progress <---
     private int highestUnlockedStage = 1; 

@@ -17,6 +17,10 @@ public class GrabbableObject : MonoBehaviourPun
     [SerializeField] private TorchPedestal currentPedestal;
     [SerializeField] private TutorialORGateBasket currentTutorialBasket;
 
+    [Header("Interaction HUD Settings")]
+    [SerializeField] private GameObject interactionHUD; // Drag and drop your Canvas child here
+    [SerializeField] private float detectionRange = 2.0f; // Max range to display the HUD
+
     private Rigidbody rb;
     private Collider col;
 
@@ -24,6 +28,50 @@ public class GrabbableObject : MonoBehaviourPun
     {
         rb = GetComponent<Rigidbody>();
         col = GetComponent<Collider>();
+        // Ensure HUD starts hidden
+        if (interactionHUD != null)
+        {
+            interactionHUD.SetActive(false);
+        }
+    }
+
+    private void Update()
+    {
+        HandleHUDVisibility();
+    }
+
+    private void HandleHUDVisibility()
+    {
+        // Don't show the prompt if this block is already held or stored in the inventory
+        if (isHeld || isStoredInInventory)
+        {
+            if (interactionHUD != null && interactionHUD.activeSelf)
+            {
+                interactionHUD.SetActive(false);
+            }
+            return;
+        }
+
+        // Check if the local player is close enough to interact
+        if (Player.LocalInstance != null)
+        {
+            float distance = Vector3.Distance(transform.position, Player.LocalInstance.transform.position);
+            bool isCloseEnough = distance <= detectionRange;
+
+            // Only change activation state if it is different to save CPU performance
+            if (interactionHUD != null && interactionHUD.activeSelf != isCloseEnough)
+            {
+                interactionHUD.SetActive(isCloseEnough);
+            }
+        }
+        else
+        {
+            // Safety fallback if the player is not fully spawned yet
+            if (interactionHUD != null && interactionHUD.activeSelf)
+            {
+                interactionHUD.SetActive(false);
+            }
+        }
     }
     
     public void SetSlot(PuzzleSlot slot) { currentSlot = slot; }

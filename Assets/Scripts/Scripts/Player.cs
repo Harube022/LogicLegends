@@ -255,6 +255,9 @@ public class Player : MonoBehaviourPun
 
         if (body != null && !body.isKinematic)
         {
+             // ---> FIX: Prevent pushing any object that can be grabbed! <---
+            if (hit.collider.TryGetComponent(out GrabbableObject _)) 
+            return;
             // Don't push objects we are standing on top of
             if (hit.moveDirection.y < -0.3f) return;
 
