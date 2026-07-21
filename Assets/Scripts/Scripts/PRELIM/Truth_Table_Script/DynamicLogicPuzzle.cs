@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 public enum DynamicLogicType
 {
@@ -32,6 +33,9 @@ public class DynamicLogicPuzzle : MonoBehaviour
     private Coroutine reviewCoroutine;
     private bool isActivePuzzle = true;
 
+    // Track whether player is inside the proximity trigger zone
+    private bool isPlayerNear = false;
+
     [Header("Puzzle Configuration Mode")]
     [SerializeField] private PuzzleMode puzzleMode = PuzzleMode.HardMode;
 
@@ -57,7 +61,16 @@ public class DynamicLogicPuzzle : MonoBehaviour
 
     [Header("Barrier Visual Aesthetics")]
     [SerializeField] private Material lockedMaterial;     
-    [SerializeField] private Material completedMaterial;  
+    [SerializeField] private Material completedMaterial;
+
+    [Header("Column Header UI Labels")]
+    [SerializeField] private TMP_Text pColumnLabel;         // Top of Column 1
+    [SerializeField] private TMP_Text qColumnLabel;         // Top of Column 2
+    [SerializeField] private TMP_Text outputPQColumnLabel;  // Top of Column 3
+    [SerializeField] private TMP_Text outputQPColumnLabel;  // Top of Column 4  
+
+    [Header("Slot Placement Indicator")]
+    [SerializeField] private Transform placementIndicator; // Reference to SlotPlacementIndicator
 
     // Hard Mode Tracking Trackers
     private DynamicPuzzleColumn currentColumn = DynamicPuzzleColumn.P;
@@ -73,8 +86,113 @@ public class DynamicLogicPuzzle : MonoBehaviour
         placedP = new bool[4];
         placedQ = new bool[4];
         UpdateColumnMasking();
+        UpdateColumnHeaderLabels();
+        UpdatePlacementIndicator(); // Update indicator on launch
+    }
+    // =========================================================
+    // DYNAMIC HEADER DISPLAY CONTROLLER
+    // =========================================================
+
+    private void UpdateColumnHeaderLabels()
+    {
+        if (pColumnLabel == null || qColumnLabel == null || outputPQColumnLabel == null || outputQPColumnLabel == null)
+            return;
+
+        if (puzzleMode == PuzzleMode.HardMode)
+        {
+            pColumnLabel.text = "P";
+            qColumnLabel.text = "Q";
+            outputPQColumnLabel.text = GetLogicSymbolString(logicType, "P", "Q");
+            outputQPColumnLabel.text = GetLogicSymbolString(logicType, "Q", "P");
+        }
+        else
+        {
+            // --- EASY MODE PROGRESSIVE TOPICS ---
+            // Physical Column 1 (P)
+            if (easyModeStep >= 3)
+                pColumnLabel.text = "P → Q"; // Implication (Phase 2)
+            else
+                pColumnLabel.text = "P ∧ Q"; // Conjunction (Phase 1)
+
+            // Physical Column 2 (Q)
+            if (easyModeStep >= 4)
+                qColumnLabel.text = "P ↔ Q"; // Biconditional (Phase 2)
+            else
+                qColumnLabel.text = "P ∨ Q"; // Disjunction (Phase 1)
+
+            // Physical Column 3 (OUTPUT_PQ)
+            outputPQColumnLabel.text = "P ⊕ Q"; // Exclusive OR
+
+            // Physical Column 4 is unused in Easy Mode
+            outputQPColumnLabel.text = "";
+        }
     }
 
+    private string GetLogicSymbolString(DynamicLogicType type, string left, string right)
+    {
+        switch (type)
+        {
+            case DynamicLogicType.AND:          return $"{left} ∧ {right}";
+            case DynamicLogicType.OR:           return $"{left} ∨ {right}";
+            case DynamicLogicType.EXCLUSIVE_OR: return $"{left} ⊕ {right}";
+            case DynamicLogicType.CONDITIONAL:  return $"{left} → {right}";
+            case DynamicLogicType.BICONDITIONAL:return $"{left} ↔ {right}";
+            default:                            return "";
+        }
+    }
+
+    // =========================================================
+    // ACTIVE SLOT INDICATOR CONTROLLER
+    // =========================================================
+    public void SetPlayerProximity(bool near)
+    {
+        isPlayerNear = near;
+        UpdatePlacementIndicator();
+    }
+    private Transform GetActiveSnapPoint()
+    {
+        if (puzzleCompleted) return null;
+
+        // Determine which physical column is currently active
+        DynamicPuzzleColumn activeCol = (puzzleMode == PuzzleMode.HardMode) 
+            ? currentColumn 
+            : GetEasyModeExpectedColumn();
+
+        Transform[] activeArray = null;
+        switch (activeCol)
+        {
+            case DynamicPuzzleColumn.P: activeArray = pSnapPoints; break;
+            case DynamicPuzzleColumn.Q: activeArray = qSnapPoints; break;
+            case DynamicPuzzleColumn.OUTPUT_PQ: activeArray = outputPQSnapPoints; break;
+            case DynamicPuzzleColumn.OUTPUT_QP: activeArray = outputQPSnapPoints; break;
+        }
+
+        // Return the snap point matching the active row index (0 = top row, 3 = bottom row)
+        if (activeArray != null && currentRow >= 0 && currentRow < activeArray.Length)
+        {
+            return activeArray[currentRow];
+        }
+
+        return null;
+    }
+
+    public void UpdatePlacementIndicator()
+    {
+        if (placementIndicator == null) return;
+
+        Transform targetSnap = GetActiveSnapPoint();
+
+        if (isPlayerNear && targetSnap != null && !puzzleCompleted)
+        {
+            placementIndicator.gameObject.SetActive(true);
+            placementIndicator.position = targetSnap.position;
+            placementIndicator.rotation = targetSnap.rotation;
+        }
+        else
+        {
+            placementIndicator.gameObject.SetActive(false);
+        }
+    }
     // =========================================================
     // ENTRY CONTROLLER
     // =========================================================
@@ -164,6 +282,10 @@ public class DynamicLogicPuzzle : MonoBehaviour
     private void AdvanceEasyMode()
     {
         currentRow++;
+
+        // FIX: Update indicator position immediately after incrementing currentRow
+        UpdatePlacementIndicator();
+
         if (currentRow < 4) return; // Must finish all 4 rows of the current topic first
 
         currentRow = 0;
@@ -182,6 +304,9 @@ public class DynamicLogicPuzzle : MonoBehaviour
         }
 
         UpdateColumnMasking();
+        UpdateColumnHeaderLabels();
+        UpdatePlacementIndicator();
+
     }
 
     private void ClearPhysicalColumnsForPhase2()
@@ -253,6 +378,8 @@ public class DynamicLogicPuzzle : MonoBehaviour
     private void AdvanceHardMode()
     {
         currentRow++;
+
+        UpdatePlacementIndicator();
         if (currentRow < 4) return;
 
         currentRow = 0;
@@ -264,6 +391,9 @@ public class DynamicLogicPuzzle : MonoBehaviour
             case DynamicPuzzleColumn.OUTPUT_QP: CompletePuzzle(); return;
         }
         UpdateColumnMasking();
+        UpdateColumnHeaderLabels();
+        UpdatePlacementIndicator();
+
     }
 
     private bool EvaluateHardModeLogic(bool left, bool right)
@@ -410,6 +540,8 @@ public class DynamicLogicPuzzle : MonoBehaviour
 
         puzzleCompleted = true;
         UpdateColumnMasking();
+        UpdateColumnHeaderLabels();
+        UpdatePlacementIndicator();
 
         Debug.Log("Easy Mode Progressive Puzzle Finished!");
 
@@ -417,6 +549,7 @@ public class DynamicLogicPuzzle : MonoBehaviour
             StopCoroutine(reviewCoroutine);
 
         reviewCoroutine = StartCoroutine(ReviewThenReturn());
+        
     }
 
     private IEnumerator ReviewThenReturn()
@@ -447,6 +580,9 @@ public class DynamicLogicPuzzle : MonoBehaviour
         isProcessingPlacement = false;
 
         UpdateColumnMasking(); 
+        UpdateColumnHeaderLabels();
+        UpdateColumnHeaderLabels();
+
     }
 
     public void SetActiveState(bool state)
