@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.Cinemachine;
 using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Extensions;
@@ -11,6 +12,9 @@ public class LevelSpawner : MonoBehaviour
 
     [Header("Spawn Location")]
     [SerializeField] private Transform spawnPoint;
+
+    [Header("Camera Reference")]
+    [SerializeField] private CinemachineCamera cmCamera;
 
     private void Start()
     {
@@ -71,17 +75,33 @@ public class LevelSpawner : MonoBehaviour
         // 1. Spawn the physical player into the world
         GameObject spawnedPlayer = Instantiate(prefabToSpawn, spawnPoint.position, spawnPoint.rotation);
 
-        // 2. Find the Camera Pivot and tell it to follow our new player!
-        ThirdPersonCameraController camController = Object.FindFirstObjectByType<ThirdPersonCameraController>();
-        if (camController != null)
+        // 2. Find the child "CameraTarget" inside the spawned player prefab
+        Transform cameraTarget = spawnedPlayer.transform.Find("CameraTarget");
+        Transform targetToFollow = cameraTarget != null ? cameraTarget : spawnedPlayer.transform;
+
+        // 3. Fallback to find camera if not assigned in Inspector
+        if (cmCamera == null)
         {
-            camController.SetPlayerTarget(spawnedPlayer.transform);
-            
-            // We Warp it so the camera snaps instantly behind the player instead of flying across the map!
-            camController.WarpCamera(spawnedPlayer.transform); 
+            cmCamera = FindFirstObjectByType<CinemachineCamera>();
         }
 
-        // 3. Keep the LevelManager from breaking! (See Step 2 below)
+        // 4. Assign target to Cinemachine
+        if (cmCamera != null)
+        {
+            cmCamera.Target.TrackingTarget = targetToFollow;
+        }
+
+        // 2. Find the Camera Pivot and tell it to follow our new player!
+        // ThirdPersonCameraController camController = Object.FindFirstObjectByType<ThirdPersonCameraController>();
+        // if (camController != null)
+        // {
+        //     camController.SetPlayerTarget(spawnedPlayer.transform);
+            
+        //     // We Warp it so the camera snaps instantly behind the player instead of flying across the map!
+        //     camController.WarpCamera(spawnedPlayer.transform); 
+        // }
+
+        // 5. Keep the LevelManager from breaking! (See Step 2 below)
         if (LevelManager.Instance != null)
         {
             LevelManager.Instance.player = spawnedPlayer.transform;

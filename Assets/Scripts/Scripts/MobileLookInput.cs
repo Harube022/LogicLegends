@@ -54,10 +54,16 @@ public class MobileLookInput : MonoBehaviour, IDragHandler, IPointerDownHandler,
         LookDelta = Vector2.zero;
     }
 
-    private void LateUpdate()
+    // Call this after the camera updates to clear input for the next frame
+    public static void ResetDelta()
     {
         LookDelta = Vector2.zero;
     }
+
+    // private void LateUpdate()
+    // {
+    //     LookDelta = Vector2.zero;
+    // }
 }
 // using UnityEngine;
 // using UnityEngine.EventSystems;

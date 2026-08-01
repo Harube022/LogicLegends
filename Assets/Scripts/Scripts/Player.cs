@@ -52,8 +52,17 @@ public class Player : MonoBehaviourPun
             gameInput.OnInteractAction += GameInput_OnInteractAction;
             gameInput.OnJumpAction += GameInput_OnJumpAction;
 
-            ThirdPersonCameraController cam = FindFirstObjectByType<ThirdPersonCameraController>();
-            if (cam != null) cam.SetPlayerTarget(this.transform);
+            // ThirdPersonCameraController cam = FindFirstObjectByType<ThirdPersonCameraController>();
+            // if (cam != null) cam.SetPlayerTarget(this.transform);
+
+            // Find Cinemachine camera and set target
+            Unity.Cinemachine.CinemachineCamera cmCam = FindFirstObjectByType<Unity.Cinemachine.CinemachineCamera>();
+            if (cmCam != null)
+            {
+                // Use child CameraTarget if available, otherwise fall back to player root
+                Transform camTarget = transform.Find("CameraTarget");
+                cmCam.Target.TrackingTarget = camTarget != null ? camTarget : transform;
+            }
         }
     }
 

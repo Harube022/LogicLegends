@@ -72,6 +72,8 @@ public class DynamicLogicPuzzle : MonoBehaviour
     [Header("Slot Placement Indicator")]
     [SerializeField] private Transform placementIndicator; // Reference to SlotPlacementIndicator
 
+    [Header("External Block Spawner Reference")]
+    [SerializeField] private TruthBlockSpawner blockSpawner;
     // Hard Mode Tracking Trackers
     private DynamicPuzzleColumn currentColumn = DynamicPuzzleColumn.P;
     private int currentRow = 0;
@@ -80,6 +82,7 @@ public class DynamicLogicPuzzle : MonoBehaviour
 
     // Easy Mode Sequence Tracker (0 = Conjunction, 1 = Disjunction, 2 = XOR, 3 = Implication, 4 = Biconditional)
     private int easyModeStep = 0;
+    public int EasyModeStep => easyModeStep;
 
     private void Start()
     {
@@ -88,6 +91,11 @@ public class DynamicLogicPuzzle : MonoBehaviour
         UpdateColumnMasking();
         UpdateColumnHeaderLabels();
         UpdatePlacementIndicator(); // Update indicator on launch
+
+        if (puzzleMode == PuzzleMode.EasyMode && blockSpawner != null)
+        {
+            blockSpawner.SpawnBlocksForStep(easyModeStep);
+        }
     }
     // =========================================================
     // DYNAMIC HEADER DISPLAY CONTROLLER
@@ -108,18 +116,18 @@ public class DynamicLogicPuzzle : MonoBehaviour
         else
         {
             // --- EASY MODE PROGRESSIVE TOPICS ---
-            // Physical Column 1 (P)
             if (easyModeStep >= 3)
-                pColumnLabel.text = "P → Q"; // Implication (Phase 2)
+            {
+                // Phase 2: Update BOTH headers immediately when XOR is completed
+                pColumnLabel.text = "P → Q"; // Implication (Physical Column 1)
+                qColumnLabel.text = "P ↔ Q"; // Biconditional (Physical Column 2)
+            }
             else
-                pColumnLabel.text = "P ∧ Q"; // Conjunction (Phase 1)
-
-            // Physical Column 2 (Q)
-            if (easyModeStep >= 4)
-                qColumnLabel.text = "P ↔ Q"; // Biconditional (Phase 2)
-            else
-                qColumnLabel.text = "P ∨ Q"; // Disjunction (Phase 1)
-
+            {
+                // Phase 1: Initial Topic Headers
+                pColumnLabel.text = "P ∧ Q"; // Conjunction (Physical Column 1)
+                qColumnLabel.text = "P ∨ Q"; // Disjunction (Physical Column 2)
+            }
             // Physical Column 3 (OUTPUT_PQ)
             outputPQColumnLabel.text = "P ⊕ Q"; // Exclusive OR
 
@@ -307,6 +315,12 @@ public class DynamicLogicPuzzle : MonoBehaviour
         UpdateColumnHeaderLabels();
         UpdatePlacementIndicator();
 
+        // Notify the spawner to spawn blocks for the next step
+        if (blockSpawner != null)
+        {
+            blockSpawner.SpawnBlocksForStep(easyModeStep);
+        }
+
     }
 
     private void ClearPhysicalColumnsForPhase2()
@@ -318,7 +332,8 @@ public class DynamicLogicPuzzle : MonoBehaviour
             if (IsSnappedToAny(block, pSnapPoints) || IsSnappedToAny(block, qSnapPoints))
             {
                 block.StopAllCoroutines();
-                block.ReturnToOrigin(false); 
+                // block.ReturnToOrigin(false);
+                Destroy(block.gameObject);
             }
         }
     }
@@ -560,7 +575,8 @@ public class DynamicLogicPuzzle : MonoBehaviour
         foreach (var block in blocks)
         {
             block.StopAllCoroutines();
-            block.ReturnToOrigin(false);
+            // block.ReturnToOrigin(false);
+            Destroy(block.gameObject);
         }
 
         ResetPuzzle();
@@ -583,6 +599,10 @@ public class DynamicLogicPuzzle : MonoBehaviour
         UpdateColumnHeaderLabels();
         UpdateColumnHeaderLabels();
 
+        if (puzzleMode == PuzzleMode.EasyMode && blockSpawner != null)
+        {
+            blockSpawner.SpawnBlocksForStep(easyModeStep);
+        }
     }
 
     public void SetActiveState(bool state)

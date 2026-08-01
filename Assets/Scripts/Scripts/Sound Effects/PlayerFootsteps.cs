@@ -78,8 +78,12 @@ public class PlayerFootsteps : MonoBehaviour
         Vector3 rayStart = capsuleBottom + (Vector3.up * 0.5f);
         float castDistance = 1.0f;
 
+        // Create a layermask that excludes the "Player" layer
+        int playerLayer = LayerMask.NameToLayer("Player");
+        int layerMask = ~(1 << playerLayer); // Everything EXCEPT Player
+
         RaycastHit hit;
-        if (Physics.Raycast(rayStart, Vector3.down, out hit, castDistance))
+        if (Physics.Raycast(rayStart, Vector3.down, out hit, castDistance, layerMask))
         {
             Debug.Log($"<color=cyan>Footstep hit: {hit.collider.gameObject.name} | Tag: {hit.collider.tag}</color>");
 
