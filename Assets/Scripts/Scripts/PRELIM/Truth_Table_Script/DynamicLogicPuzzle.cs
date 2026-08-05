@@ -12,18 +12,10 @@ public enum DynamicLogicType
     BICONDITIONAL
 }
 
-public enum DynamicPuzzleColumn
-{
-    P,
-    Q,
-    OUTPUT_PQ,
-    OUTPUT_QP
-}
-
 public enum PuzzleMode
 {
-    HardMode, // Standard: Manual P, Manual Q, Output PQ, Output QP
-    EasyMode  // Progressive Topics: Conjunction -> Disjunction -> XOR -> Implication -> Biconditional
+    EasyMode, // Progressive Topics: Conjunction -> Disjunction -> XOR -> Implication -> Biconditional
+    HardMode  // 3 Empty Columns with randomized propositional logic operators
 }
 
 public class DynamicLogicPuzzle : MonoBehaviour
@@ -32,107 +24,104 @@ public class DynamicLogicPuzzle : MonoBehaviour
     private bool puzzleCompleted = false;
     private Coroutine reviewCoroutine;
     private bool isActivePuzzle = true;
-
-    // Track whether player is inside the proximity trigger zone
     private bool isPlayerNear = false;
 
     [Header("Puzzle Configuration Mode")]
-    [SerializeField] private PuzzleMode puzzleMode = PuzzleMode.HardMode;
+    [SerializeField] private PuzzleMode puzzleMode = PuzzleMode.EasyMode; // Starts at Easy Mode first
 
-    [Header("Hard Mode Options")]
-    [SerializeField] private DynamicLogicType logicType;
-    public DynamicLogicType PuzzleLogicType => logicType;
-
-    [Header("Expected Values (Hard Mode Only)")]
-    [SerializeField] private bool[] expectedP = new bool[4];
-    [SerializeField] private bool[] expectedQ = new bool[4];
-
-    [Header("Snap Points")]
-    [SerializeField] private Transform[] pSnapPoints;
-    [SerializeField] private Transform[] qSnapPoints;
-    [SerializeField] private Transform[] outputPQSnapPoints;
-    [SerializeField] private Transform[] outputQPSnapPoints;
+    [Header("Snap Points for 3 Empty Columns")]
+    [SerializeField] private Transform[] col1SnapPoints; // 4 rows for Empty Column 1
+    [SerializeField] private Transform[] col2SnapPoints; // 4 rows for Empty Column 2
+    [SerializeField] private Transform[] col3SnapPoints; // 4 rows for Empty Column 3
 
     [Header("Dynamic Column Masking Barriers")]
-    [SerializeField] private GameObject pBarrier;         // Physical Column 1 (Leftmost)
-    [SerializeField] private GameObject qBarrier;         // Physical Column 2 (Middle-Left)
-    [SerializeField] private GameObject outputPQBarrier;  // Physical Column 3 (Middle-Right)
-    [SerializeField] private GameObject outputQPBarrier;  // Physical Column 4 (Rightmost)
+    [SerializeField] private GameObject col1Barrier;     // Barrier for Empty Column 1
+    [SerializeField] private GameObject col2Barrier;     // Barrier for Empty Column 2
+    [SerializeField] private GameObject col3Barrier;     // Barrier for Empty Column 3
 
     [Header("Barrier Visual Aesthetics")]
     [SerializeField] private Material lockedMaterial;     
     [SerializeField] private Material completedMaterial;
 
-    [Header("Column Header UI Labels")]
-    [SerializeField] private TMP_Text pColumnLabel;         // Top of Column 1
-    [SerializeField] private TMP_Text qColumnLabel;         // Top of Column 2
-    [SerializeField] private TMP_Text outputPQColumnLabel;  // Top of Column 3
-    [SerializeField] private TMP_Text outputQPColumnLabel;  // Top of Column 4  
+    [Header("Column Header UI Labels (Empty Columns 1, 2, 3)")]
+    [SerializeField] private TMP_Text col1HeaderLabel;   
+    [SerializeField] private TMP_Text col2HeaderLabel;   
+    [SerializeField] private TMP_Text col3HeaderLabel;   
 
     [Header("Slot Placement Indicator")]
-    [SerializeField] private Transform placementIndicator; // Reference to SlotPlacementIndicator
+    [SerializeField] private Transform placementIndicator;
 
     [Header("External Block Spawner Reference")]
     [SerializeField] private TruthBlockSpawner blockSpawner;
-    // Hard Mode Tracking Trackers
-    private DynamicPuzzleColumn currentColumn = DynamicPuzzleColumn.P;
-    private int currentRow = 0;
-    private bool[] placedP;
-    private bool[] placedQ;
 
-    // Easy Mode Sequence Tracker (0 = Conjunction, 1 = Disjunction, 2 = XOR, 3 = Implication, 4 = Biconditional)
+    // --- HARD MODE RANDOMIZATION DATA ---
+    private DynamicLogicType[] hardModeTypes = new DynamicLogicType[3];
+    public DynamicLogicType[] HardModeTypes => hardModeTypes;
+
+    private int currentColumnIndex = 0; // 0 = Col 1, 1 = Col 2, 2 = Col 3
+    private int currentRow = 0;          // 0 to 3
+
+    // --- EASY MODE TRACKER ---
     private int easyModeStep = 0;
     public int EasyModeStep => easyModeStep;
 
     private void Start()
     {
-        placedP = new bool[4];
-        placedQ = new bool[4];
+        if (puzzleMode == PuzzleMode.HardMode)
+        {
+            GenerateRandomHardModeLogics();
+        }
+
         UpdateColumnMasking();
         UpdateColumnHeaderLabels();
-        UpdatePlacementIndicator(); // Update indicator on launch
+        UpdatePlacementIndicator();
 
-        if (puzzleMode == PuzzleMode.EasyMode && blockSpawner != null)
+        SpawnCurrentStepBlocks();
+    }
+
+    // =========================================================
+    // LOGIC RANDOMIZER & HEADERS
+    // =========================================================
+
+    private void GenerateRandomHardModeLogics()
+    {
+        System.Array types = System.Enum.GetValues(typeof(DynamicLogicType));
+        List<DynamicLogicType> availableTypes = new List<DynamicLogicType>();
+        foreach (DynamicLogicType t in types) availableTypes.Add(t);
+
+        for (int i = 0; i < 3; i++)
         {
-            blockSpawner.SpawnBlocksForStep(easyModeStep);
+            int randomIndex = Random.Range(0, availableTypes.Count);
+            hardModeTypes[i] = availableTypes[randomIndex];
+            availableTypes.RemoveAt(randomIndex); 
         }
     }
-    // =========================================================
-    // DYNAMIC HEADER DISPLAY CONTROLLER
-    // =========================================================
 
-    private void UpdateColumnHeaderLabels()
+    public void UpdateColumnHeaderLabels()
     {
-        if (pColumnLabel == null || qColumnLabel == null || outputPQColumnLabel == null || outputQPColumnLabel == null)
+        if (col1HeaderLabel == null || col2HeaderLabel == null || col3HeaderLabel == null)
             return;
 
         if (puzzleMode == PuzzleMode.HardMode)
         {
-            pColumnLabel.text = "P";
-            qColumnLabel.text = "Q";
-            outputPQColumnLabel.text = GetLogicSymbolString(logicType, "P", "Q");
-            outputQPColumnLabel.text = GetLogicSymbolString(logicType, "Q", "P");
+            col1HeaderLabel.text = GetLogicSymbolString(hardModeTypes[0], "P", "Q");
+            col2HeaderLabel.text = GetLogicSymbolString(hardModeTypes[1], "P", "Q");
+            col3HeaderLabel.text = GetLogicSymbolString(hardModeTypes[2], "P", "Q");
         }
         else
         {
-            // --- EASY MODE PROGRESSIVE TOPICS ---
             if (easyModeStep >= 3)
             {
-                // Phase 2: Update BOTH headers immediately when XOR is completed
-                pColumnLabel.text = "P → Q"; // Implication (Physical Column 1)
-                qColumnLabel.text = "P ↔ Q"; // Biconditional (Physical Column 2)
+                col1HeaderLabel.text = "P → Q";
+                col2HeaderLabel.text = "P ↔ Q";
+                // col3HeaderLabel.text = "P ⊕ Q";
             }
             else
             {
-                // Phase 1: Initial Topic Headers
-                pColumnLabel.text = "P ∧ Q"; // Conjunction (Physical Column 1)
-                qColumnLabel.text = "P ∨ Q"; // Disjunction (Physical Column 2)
+                col1HeaderLabel.text = "P ∧ Q";
+                col2HeaderLabel.text = "P ∨ Q";
+                col3HeaderLabel.text = "P ⊕ Q";
             }
-            // Physical Column 3 (OUTPUT_PQ)
-            outputPQColumnLabel.text = "P ⊕ Q"; // Exclusive OR
-
-            // Physical Column 4 is unused in Easy Mode
-            outputQPColumnLabel.text = "";
         }
     }
 
@@ -150,32 +139,60 @@ public class DynamicLogicPuzzle : MonoBehaviour
     }
 
     // =========================================================
-    // ACTIVE SLOT INDICATOR CONTROLLER
+    // SPAWNING INTEGRATION
     // =========================================================
+
+    private void SpawnCurrentStepBlocks()
+    {
+        if (blockSpawner == null) return;
+
+        if (puzzleMode == PuzzleMode.EasyMode)
+        {
+            blockSpawner.SpawnBlocksForStep(easyModeStep);
+        }
+        else
+        {
+            // Spawn blocks only for the current active column in Hard Mode
+            blockSpawner.SpawnBlocksForHardModeColumn(hardModeTypes[currentColumnIndex]);
+        }
+    }
+
+    // =========================================================
+    // SLOT INDICATOR & PROXIMITY
+    // =========================================================
+
     public void SetPlayerProximity(bool near)
     {
         isPlayerNear = near;
         UpdatePlacementIndicator();
     }
+
     private Transform GetActiveSnapPoint()
     {
         if (puzzleCompleted) return null;
 
-        // Determine which physical column is currently active
-        DynamicPuzzleColumn activeCol = (puzzleMode == PuzzleMode.HardMode) 
-            ? currentColumn 
-            : GetEasyModeExpectedColumn();
-
         Transform[] activeArray = null;
-        switch (activeCol)
+
+        if (puzzleMode == PuzzleMode.HardMode)
         {
-            case DynamicPuzzleColumn.P: activeArray = pSnapPoints; break;
-            case DynamicPuzzleColumn.Q: activeArray = qSnapPoints; break;
-            case DynamicPuzzleColumn.OUTPUT_PQ: activeArray = outputPQSnapPoints; break;
-            case DynamicPuzzleColumn.OUTPUT_QP: activeArray = outputQPSnapPoints; break;
+            switch (currentColumnIndex)
+            {
+                case 0: activeArray = col1SnapPoints; break;
+                case 1: activeArray = col2SnapPoints; break;
+                case 2: activeArray = col3SnapPoints; break;
+            }
+        }
+        else
+        {
+            int stepCol = GetEasyModeExpectedColumnIndex();
+            switch (stepCol)
+            {
+                case 0: activeArray = col1SnapPoints; break;
+                case 1: activeArray = col2SnapPoints; break;
+                case 2: activeArray = col3SnapPoints; break;
+            }
         }
 
-        // Return the snap point matching the active row index (0 = top row, 3 = bottom row)
         if (activeArray != null && currentRow >= 0 && currentRow < activeArray.Length)
         {
             return activeArray[currentRow];
@@ -201,11 +218,12 @@ public class DynamicLogicPuzzle : MonoBehaviour
             placementIndicator.gameObject.SetActive(false);
         }
     }
+
     // =========================================================
-    // ENTRY CONTROLLER
+    // PLACEMENT PROCESSOR
     // =========================================================
 
-    public void TryPlace(TruthBlock block, DynamicPuzzleColumn column)
+    public void TryPlace(TruthBlock block, int columnIndex)
     {
         if (!isActivePuzzle || puzzleCompleted || isProcessingPlacement)
         {
@@ -217,95 +235,55 @@ public class DynamicLogicPuzzle : MonoBehaviour
 
         if (puzzleMode == PuzzleMode.HardMode)
         {
-            ProcessHardMode(block, column);
+            ProcessHardMode(block, columnIndex);
         }
         else
         {
-            ProcessEasyMode(block, column);
+            ProcessEasyMode(block, columnIndex);
         }
 
         isProcessingPlacement = false;
     }
 
-    // =========================================================
-    // EASY MODE CORE MECHANICS (PROGRESSIVE TOPICS)
-    // =========================================================
-
-    private void ProcessEasyMode(TruthBlock block, DynamicPuzzleColumn column)
+    private void ProcessHardMode(TruthBlock block, int columnIndex)
     {
-        // 1. Validate if player is trying to interact with the correct sequential column
-        DynamicPuzzleColumn expectedPhysicalColumn = GetEasyModeExpectedColumn();
-
-        if (column != expectedPhysicalColumn)
+        if (columnIndex != currentColumnIndex)
         {
             block.ReturnToOrigin(true);
             return;
         }
 
-        // 2. Fetch baseline mathematical standard P and Q values based on row index
-        // Row 0: T, T | Row 1: T, F | Row 2: F, T | Row 3: F, F
         bool p = (currentRow == 0 || currentRow == 1);
         bool q = (currentRow == 0 || currentRow == 2);
 
-        // 3. Compute target truth value for the active topic
-        bool correctValue = false;
-        switch (easyModeStep)
-        {
-            case 0: correctValue = p && q; break;       // Conjunction (Physical Column 1)
-            case 1: correctValue = p || q; break;       // Disjunction (Physical Column 2)
-            case 2: correctValue = p != q; break;      // Exclusive OR (Physical Column 3)
-            case 3: correctValue = !p || q; break;     // Implication / Conditional (Physical Column 1)
-            case 4: correctValue = p == q; break;      // Biconditional (Physical Column 2)
-        }
+        bool expectedValue = EvaluateLogic(hardModeTypes[currentColumnIndex], p, q);
 
-        if (block.value != correctValue)
+        if (block.value != expectedValue)
         {
             block.ReturnToOrigin(true);
             return;
         }
 
-        // 4. Find the matching snap point position
         Transform targetSnap = null;
-        if (expectedPhysicalColumn == DynamicPuzzleColumn.P) targetSnap = pSnapPoints[currentRow];
-        else if (expectedPhysicalColumn == DynamicPuzzleColumn.Q) targetSnap = qSnapPoints[currentRow];
-        else if (expectedPhysicalColumn == DynamicPuzzleColumn.OUTPUT_PQ) targetSnap = outputPQSnapPoints[currentRow];
+        if (currentColumnIndex == 0) targetSnap = col1SnapPoints[currentRow];
+        else if (currentColumnIndex == 1) targetSnap = col2SnapPoints[currentRow];
+        else if (currentColumnIndex == 2) targetSnap = col3SnapPoints[currentRow];
 
         LockBlock(block, targetSnap);
-        AdvanceEasyMode();
+        AdvanceHardMode();
     }
 
-    private DynamicPuzzleColumn GetEasyModeExpectedColumn()
-    {
-        switch (easyModeStep)
-        {
-            case 0: return DynamicPuzzleColumn.P;          // Conjunction uses Column 1
-            case 1: return DynamicPuzzleColumn.Q;          // Disjunction uses Column 2
-            case 2: return DynamicPuzzleColumn.OUTPUT_PQ;   // XOR uses Column 3
-            case 3: return DynamicPuzzleColumn.P;          // Implication reuses Column 1
-            case 4: return DynamicPuzzleColumn.Q;          // Biconditional reuses Column 2
-            default: return DynamicPuzzleColumn.P;
-        }
-    }
-
-    private void AdvanceEasyMode()
+    private void AdvanceHardMode()
     {
         currentRow++;
-
-        // FIX: Update indicator position immediately after incrementing currentRow
         UpdatePlacementIndicator();
 
-        if (currentRow < 4) return; // Must finish all 4 rows of the current topic first
+        if (currentRow < 4) return;
 
         currentRow = 0;
-        easyModeStep++;
+        currentColumnIndex++;
 
-        // Phase Transition Trigger: Conjunction, Disjunction, and XOR are all completed!
-        // Clear columns 1 and 2 automatically so Implication and Biconditional can occupy them.
-        if (easyModeStep == 3)
-        {
-            ClearPhysicalColumnsForPhase2();
-        }
-        else if (easyModeStep >= 5)
+        if (currentColumnIndex >= 3)
         {
             CompletePuzzle();
             return;
@@ -314,13 +292,114 @@ public class DynamicLogicPuzzle : MonoBehaviour
         UpdateColumnMasking();
         UpdateColumnHeaderLabels();
         UpdatePlacementIndicator();
+        SpawnCurrentStepBlocks();
+    }
 
-        // Notify the spawner to spawn blocks for the next step
-        if (blockSpawner != null)
+    public static bool EvaluateLogic(DynamicLogicType type, bool left, bool right)
+    {
+        switch (type)
         {
-            blockSpawner.SpawnBlocksForStep(easyModeStep);
+            case DynamicLogicType.AND:          return left && right;
+            case DynamicLogicType.OR:           return left || right;
+            case DynamicLogicType.EXCLUSIVE_OR: return left != right;
+            case DynamicLogicType.CONDITIONAL:  return !left || right;
+            case DynamicLogicType.BICONDITIONAL:return left == right;
+            default:                            return false;
+        }
+    }
+
+    // =========================================================
+    // EASY MODE LOGIC & TRANSITION
+    // =========================================================
+
+    private void ProcessEasyMode(TruthBlock block, int columnIndex)
+    {
+        int expectedCol = GetEasyModeExpectedColumnIndex();
+        if (columnIndex != expectedCol)
+        {
+            block.ReturnToOrigin(true);
+            return;
         }
 
+        bool p = (currentRow == 0 || currentRow == 1);
+        bool q = (currentRow == 0 || currentRow == 2);
+
+        bool correctValue = false;
+        switch (easyModeStep)
+        {
+            case 0: correctValue = p && q; break;
+            case 1: correctValue = p || q; break;
+            case 2: correctValue = p != q; break;
+            case 3: correctValue = !p || q; break;
+            case 4: correctValue = p == q; break;
+        }
+
+        if (block.value != correctValue)
+        {
+            block.ReturnToOrigin(true);
+            return;
+        }
+
+        Transform targetSnap = (columnIndex == 0) ? col1SnapPoints[currentRow] : 
+                               (columnIndex == 1) ? col2SnapPoints[currentRow] : col3SnapPoints[currentRow];
+
+        LockBlock(block, targetSnap);
+        AdvanceEasyMode();
+    }
+
+    private int GetEasyModeExpectedColumnIndex()
+    {
+        switch (easyModeStep)
+        {
+            case 0: return 0; // Column 1
+            case 1: return 1; // Column 2
+            case 2: return 2; // Column 3
+            case 3: return 0; // Reuse Column 1
+            case 4: return 1; // Reuse Column 2
+            default: return 0;
+        }
+    }
+
+    private void AdvanceEasyMode()
+    {
+        currentRow++;
+        UpdatePlacementIndicator();
+
+        if (currentRow < 4) return;
+
+        currentRow = 0;
+        easyModeStep++;
+
+        if (easyModeStep == 3)
+        {
+            ClearPhysicalColumnsForPhase2();
+        }
+        else if (easyModeStep >= 5)
+        {
+            // Transition directly into Hard Mode after Easy Mode completion
+            StartHardMode();
+            return;
+        }
+
+        UpdateColumnMasking();
+        UpdateColumnHeaderLabels();
+        UpdatePlacementIndicator();
+        SpawnCurrentStepBlocks();
+    }
+
+    private void StartHardMode()
+    {
+        puzzleMode = PuzzleMode.HardMode;
+        currentColumnIndex = 0;
+        currentRow = 0;
+
+        ClearAllSnappedBlocks();
+        GenerateRandomHardModeLogics();
+
+        UpdateColumnMasking();
+        UpdateColumnHeaderLabels();
+        UpdatePlacementIndicator();
+        SpawnCurrentStepBlocks();
     }
 
     private void ClearPhysicalColumnsForPhase2()
@@ -328,11 +407,22 @@ public class DynamicLogicPuzzle : MonoBehaviour
         TruthBlock[] allBlocks = FindObjectsByType<TruthBlock>(FindObjectsSortMode.None);
         foreach (var block in allBlocks)
         {
-            // Only send back items snapped into physical columns 1 & 2
-            if (IsSnappedToAny(block, pSnapPoints) || IsSnappedToAny(block, qSnapPoints))
+            if (IsSnappedToAny(block, col1SnapPoints) || IsSnappedToAny(block, col2SnapPoints))
             {
                 block.StopAllCoroutines();
-                // block.ReturnToOrigin(false);
+                Destroy(block.gameObject);
+            }
+        }
+    }
+
+    private void ClearAllSnappedBlocks()
+    {
+        TruthBlock[] allBlocks = FindObjectsByType<TruthBlock>(FindObjectsSortMode.None);
+        foreach (var block in allBlocks)
+        {
+            if (IsSnappedToAny(block, col1SnapPoints) || IsSnappedToAny(block, col2SnapPoints) || IsSnappedToAny(block, col3SnapPoints))
+            {
+                block.StopAllCoroutines();
                 Destroy(block.gameObject);
             }
         }
@@ -349,144 +439,43 @@ public class DynamicLogicPuzzle : MonoBehaviour
     }
 
     // =========================================================
-    // ORIGINAL HARD MODE MECHANICS
-    // =========================================================
-
-    private void ProcessHardMode(TruthBlock block, DynamicPuzzleColumn column)
-    {
-        if (column != currentColumn)
-        {
-            block.ReturnToOrigin(true);
-            return;
-        }
-
-        switch (currentColumn)
-        {
-            case DynamicPuzzleColumn.P:
-                if (block.value != expectedP[currentRow]) { block.ReturnToOrigin(true); return; }
-                LockBlock(block, pSnapPoints[currentRow]);
-                placedP[currentRow] = block.value;
-                AdvanceHardMode();
-                break;
-
-            case DynamicPuzzleColumn.Q:
-                if (block.value != expectedQ[currentRow]) { block.ReturnToOrigin(true); return; }
-                LockBlock(block, qSnapPoints[currentRow]);
-                placedQ[currentRow] = block.value;
-                AdvanceHardMode();
-                break;
-
-            case DynamicPuzzleColumn.OUTPUT_PQ:
-                if (block.value != EvaluateHardModeLogic(placedP[currentRow], placedQ[currentRow])) { block.ReturnToOrigin(true); return; }
-                LockBlock(block, outputPQSnapPoints[currentRow]);
-                AdvanceHardMode();
-                break;
-
-            case DynamicPuzzleColumn.OUTPUT_QP:
-                if (block.value != EvaluateHardModeLogic(placedQ[currentRow], placedP[currentRow])) { block.ReturnToOrigin(true); return; }
-                LockBlock(block, outputQPSnapPoints[currentRow]);
-                AdvanceHardMode();
-                break;
-        }
-    }
-
-    private void AdvanceHardMode()
-    {
-        currentRow++;
-
-        UpdatePlacementIndicator();
-        if (currentRow < 4) return;
-
-        currentRow = 0;
-        switch (currentColumn)
-        {
-            case DynamicPuzzleColumn.P: currentColumn = DynamicPuzzleColumn.Q; break;
-            case DynamicPuzzleColumn.Q: currentColumn = DynamicPuzzleColumn.OUTPUT_PQ; break;
-            case DynamicPuzzleColumn.OUTPUT_PQ: currentColumn = DynamicPuzzleColumn.OUTPUT_QP; break;
-            case DynamicPuzzleColumn.OUTPUT_QP: CompletePuzzle(); return;
-        }
-        UpdateColumnMasking();
-        UpdateColumnHeaderLabels();
-        UpdatePlacementIndicator();
-
-    }
-
-    private bool EvaluateHardModeLogic(bool left, bool right)
-    {
-        switch (logicType)
-        {
-            case DynamicLogicType.AND: return left && right;
-            case DynamicLogicType.OR: return left || right;
-            case DynamicLogicType.EXCLUSIVE_OR: return left != right;
-            case DynamicLogicType.CONDITIONAL: return !left || right;
-            case DynamicLogicType.BICONDITIONAL: return left == right;
-            default: return false;
-        }
-    }
-
-    // =========================================================
-    // MASKING AND BARRIER SYSTEM (STATE ENGINE)
+    // BARRIER MASKING SYSTEM
     // =========================================================
 
     private void UpdateColumnMasking()
     {
         if (puzzleMode == PuzzleMode.HardMode)
         {
-            SetBarrierStateHardMode(pBarrier, DynamicPuzzleColumn.P);
-            SetBarrierStateHardMode(qBarrier, DynamicPuzzleColumn.Q);
-            SetBarrierStateHardMode(outputPQBarrier, DynamicPuzzleColumn.OUTPUT_PQ);
-            SetBarrierStateHardMode(outputQPBarrier, DynamicPuzzleColumn.OUTPUT_QP);
+            SetBarrierState(col1Barrier, 0, currentColumnIndex);
+            SetBarrierState(col2Barrier, 1, currentColumnIndex);
+            SetBarrierState(col3Barrier, 2, currentColumnIndex);
         }
         else
         {
-            // --- EASY MODE PROGRESSIVE TOPIC MASKING ---
-            
-            // Set everything to locked default first
-            SetBarrierVisual(pBarrier, true, lockedMaterial);
-            SetBarrierVisual(qBarrier, true, lockedMaterial);
-            SetBarrierVisual(outputPQBarrier, true, lockedMaterial);
-            SetBarrierVisual(outputQPBarrier, true, lockedMaterial); // Column 4 is completely unused in Easy Mode
+            SetBarrierVisual(col1Barrier, true, lockedMaterial);
+            SetBarrierVisual(col2Barrier, true, lockedMaterial);
+            SetBarrierVisual(col3Barrier, true, lockedMaterial);
 
             if (puzzleCompleted)
             {
-                SetBarrierVisual(pBarrier, true, completedMaterial);
-                SetBarrierVisual(qBarrier, true, completedMaterial);
-                SetBarrierVisual(outputPQBarrier, true, completedMaterial);
+                SetBarrierVisual(col1Barrier, true, completedMaterial);
+                SetBarrierVisual(col2Barrier, true, completedMaterial);
+                SetBarrierVisual(col3Barrier, true, completedMaterial);
                 return;
             }
 
             switch (easyModeStep)
             {
-                case 0: // Conjunction (Column 1 Open, others Locked)
-                    SetBarrierVisual(pBarrier, false, null); 
-                    break;
-
-                case 1: // Disjunction (Column 2 Open, Column 1 Protected/Completed)
-                    SetBarrierVisual(pBarrier, true, completedMaterial);
-                    SetBarrierVisual(qBarrier, false, null); 
-                    break;
-
-                case 2: // Exclusive OR (Column 3 Open, Columns 1 & 2 Protected/Completed)
-                    SetBarrierVisual(pBarrier, true, completedMaterial);
-                    SetBarrierVisual(qBarrier, true, completedMaterial);
-                    SetBarrierVisual(outputPQBarrier, false, null); 
-                    break;
-
-                case 3: // Implication (Column 1 Cleared & Open Again, Column 3 Protected/Completed)
-                    SetBarrierVisual(pBarrier, false, null); 
-                    SetBarrierVisual(outputPQBarrier, true, completedMaterial);
-                    break;
-
-                case 4: // Biconditional (Column 2 Cleared & Open Again, Columns 1 & 3 Protected/Completed)
-                    SetBarrierVisual(pBarrier, true, completedMaterial);
-                    SetBarrierVisual(qBarrier, false, null); 
-                    SetBarrierVisual(outputPQBarrier, true, completedMaterial);
-                    break;
+                case 0: SetBarrierVisual(col1Barrier, false, null); break;
+                case 1: SetBarrierVisual(col1Barrier, true, completedMaterial); SetBarrierVisual(col2Barrier, false, null); break;
+                case 2: SetBarrierVisual(col1Barrier, true, completedMaterial); SetBarrierVisual(col2Barrier, true, completedMaterial); SetBarrierVisual(col3Barrier, false, null); break;
+                case 3: SetBarrierVisual(col1Barrier, false, null); SetBarrierVisual(col3Barrier, true, completedMaterial); break;
+                case 4: SetBarrierVisual(col1Barrier, true, completedMaterial); SetBarrierVisual(col2Barrier, false, null); SetBarrierVisual(col3Barrier, true, completedMaterial); break;
             }
         }
     }
 
-    private void SetBarrierStateHardMode(GameObject barrier, DynamicPuzzleColumn barrierColumn)
+    private void SetBarrierState(GameObject barrier, int barrierIndex, int activeIndex)
     {
         if (barrier == null) return;
 
@@ -496,9 +485,9 @@ public class DynamicLogicPuzzle : MonoBehaviour
             return;
         }
 
-        if (currentColumn == barrierColumn)
+        if (activeIndex == barrierIndex)
             SetBarrierVisual(barrier, false, null);
-        else if (currentColumn > barrierColumn)
+        else if (activeIndex > barrierIndex)
             SetBarrierVisual(barrier, true, completedMaterial);
         else
             SetBarrierVisual(barrier, true, lockedMaterial);
@@ -525,7 +514,7 @@ public class DynamicLogicPuzzle : MonoBehaviour
     }
 
     // =========================================================
-    // SYSTEM UTILITIES
+    // UTILITIES
     // =========================================================
 
     private void LockBlock(TruthBlock block, Transform snapPoint)
@@ -541,8 +530,6 @@ public class DynamicLogicPuzzle : MonoBehaviour
 
         block.GetComponent<Collider>().enabled = false;
 
-        // ---> ADD THIS CRITICAL FIX HERE <---
-        // Tell the inventory to stop tracking and hiding this block!
         if (InventoryManager.Instance != null)
         {
             InventoryManager.Instance.TryRemoveBlock(block);
@@ -558,13 +545,10 @@ public class DynamicLogicPuzzle : MonoBehaviour
         UpdateColumnHeaderLabels();
         UpdatePlacementIndicator();
 
-        Debug.Log("Easy Mode Progressive Puzzle Finished!");
+        Debug.Log("Entire Puzzle (Easy + Hard Mode) Completed!");
 
-        if (reviewCoroutine != null)
-            StopCoroutine(reviewCoroutine);
-
+        if (reviewCoroutine != null) StopCoroutine(reviewCoroutine);
         reviewCoroutine = StartCoroutine(ReviewThenReturn());
-        
     }
 
     private IEnumerator ReviewThenReturn()
@@ -575,7 +559,6 @@ public class DynamicLogicPuzzle : MonoBehaviour
         foreach (var block in blocks)
         {
             block.StopAllCoroutines();
-            // block.ReturnToOrigin(false);
             Destroy(block.gameObject);
         }
 
@@ -585,24 +568,17 @@ public class DynamicLogicPuzzle : MonoBehaviour
 
     private void ResetPuzzle()
     {
-        currentColumn = DynamicPuzzleColumn.P;
-        easyModeStep = 0;
+        puzzleMode = PuzzleMode.EasyMode;
+        currentColumnIndex = 0;
         currentRow = 0;
-
-        placedP = new bool[4];
-        placedQ = new bool[4];
+        easyModeStep = 0;
 
         puzzleCompleted = false;
         isProcessingPlacement = false;
 
         UpdateColumnMasking(); 
         UpdateColumnHeaderLabels();
-        UpdateColumnHeaderLabels();
-
-        if (puzzleMode == PuzzleMode.EasyMode && blockSpawner != null)
-        {
-            blockSpawner.SpawnBlocksForStep(easyModeStep);
-        }
+        SpawnCurrentStepBlocks();
     }
 
     public void SetActiveState(bool state)

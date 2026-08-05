@@ -91,7 +91,7 @@ GameObject:
   - component: {fileID: 2303940940861658699}
   - component: {fileID: 2466284378822690939}
   - component: {fileID: 6477987932467592437}
-  - component: {fileID: 8845202583172406698}
+  - component: {fileID: 2899879663749263268}
   m_Layer: 7
   m_Name: Player_Female
   m_TagString: Player
@@ -211,7 +211,7 @@ MonoBehaviour:
   baseVolume: 1
   stepInterval: 0.4
   rayDistance: 1.2
---- !u!114 &8845202583172406698
+--- !u!114 &2899879663749263268
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -226,7 +226,7 @@ MonoBehaviour:
   playerRenderers: []
   cameraTransform: {fileID: 0}
   fadeEndDistance: 0.8
-  fadeStartDistance: 1
+  fadeStartDistance: 2
 --- !u!1001 &2085095438381498764
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -802,6 +802,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 7a72fab6ea1f042438c4217d1e843a0c, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7a72fab6ea1f042438c4217d1e843a0c, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
       objectReference: {fileID: 0}
     - target: {fileID: 1998402122912833052, guid: 7a72fab6ea1f042438c4217d1e843a0c, type: 3}
       propertyPath: m_Layer
