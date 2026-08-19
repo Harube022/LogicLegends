@@ -276,8 +276,19 @@ public class QuizManager : MonoBehaviour
         if (currentTopicIndex >= challenges.Count) 
         {
             Debug.Log("All challenges complete!");
-            if (timerManager != null) timerManager.StopTimer(); 
+            if (timerManager != null) 
+            {
+                timerManager.StopTimer(); 
+                // NEW: Hide the timer from the screen
+                timerManager.SetTimerVisibility(false); 
+            }
             if (quizPanel != null) quizPanel.SetActive(false);
+
+            // NEW: Show the inventory bar for the Truth Table game
+            if (InventoryManager.Instance != null)
+            {
+                InventoryManager.Instance.SetInventoryVisibility(true);
+            }
         }
     }
 

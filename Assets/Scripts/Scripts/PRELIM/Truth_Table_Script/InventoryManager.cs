@@ -10,12 +10,18 @@ public class InventoryManager : MonoBehaviour
     private int selectedSlotIndex = -1; 
 
     [Header("Mobile UI References")]
-    [SerializeField] private MobileInventoryUI uiController; 
+    [SerializeField] private MobileInventoryUI uiController;
+
+    // NEW: Direct reference to the UI Canvas object
+    [Tooltip("Drag the InventoryBar from Canvas 1 -> SafeArea -> Gameplay_Interface here")]
+    [SerializeField] private GameObject inventoryBarUI;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+
+        SetInventoryVisibility(false);
 
         UpdateUI();
     }
@@ -259,6 +265,15 @@ public class InventoryManager : MonoBehaviour
         if (uiController != null)
         {
             uiController.RefreshInventoryDisplay(slots, selectedSlotIndex);
+        }
+    }
+
+    // NEW METHOD: Toggles the Inventory Bar UI on or off
+    public void SetInventoryVisibility(bool isVisible)
+    {
+        if (inventoryBarUI != null)
+        {
+            inventoryBarUI.SetActive(isVisible);
         }
     }
 }

@@ -23,15 +23,9 @@ public class TruthBlockSpawner : MonoBehaviour
         }
     }
 
-    public void SpawnBlocksForCurrentStep()
-    {
-        if (puzzle == null) return;
-        SpawnBlocksForStep(puzzle.EasyModeStep);
-    }
+    // NOTE: SpawnBlocksForCurrentStep() was removed. 
+    // The phases (Easy/Hard) now explicitly pass the parameters they need directly!
 
-    /// <summary>
-    /// Spawns 4 required True/False blocks for the active Easy Mode topic step.
-    /// </summary>
     public void SpawnBlocksForStep(int easyModeStep)
     {
         ClearActiveBlocks();
@@ -64,10 +58,7 @@ public class TruthBlockSpawner : MonoBehaviour
         SpawnBlockGroup(trueCount, falseCount);
     }
 
-    /// <summary>
-    /// Spawns 4 required True/False blocks specifically for the active Hard Mode column logic type.
-    /// </summary>
-    public void SpawnBlocksForHardModeColumn(DynamicLogicType logicType)
+    public void SpawnBlocksForHardModeColumnSimple(DynamicLogicType logicType)
     {
         ClearActiveBlocks();
 
@@ -82,7 +73,30 @@ public class TruthBlockSpawner : MonoBehaviour
             bool p = (row == 0 || row == 1);
             bool q = (row == 0 || row == 2);
 
-            bool expected = DynamicLogicPuzzle.EvaluateLogic(logicType, p, q);
+            bool expected = LogicUtility.EvaluateLogic(logicType, p, q);
+            if (expected) trueCount++;
+            else falseCount++;
+        }
+
+        SpawnBlockGroup(trueCount, falseCount);
+    }
+
+    public void SpawnBlocksForHardModeColumnComplex(ComplexLogicExpression expr)
+    {
+        ClearActiveBlocks();
+
+        if (spawnPoints == null || spawnPoints.Length == 0) return;
+        if (trueBlockPrefab == null || falseBlockPrefab == null) return;
+
+        int trueCount = 0;
+        int falseCount = 0;
+
+        for (int row = 0; row < 4; row++)
+        {
+            bool p = (row == 0 || row == 1);
+            bool q = (row == 0 || row == 2);
+
+            bool expected = LogicUtility.EvaluateComplexLogic(expr, p, q);
             if (expected) trueCount++;
             else falseCount++;
         }

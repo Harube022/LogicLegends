@@ -215,6 +215,12 @@ public class GrabbableObject : MonoBehaviourPun
         holdPoint = point;
         isStoredInInventory = stored;
 
+        // ---> NEW: Immediately disable the HUD to prevent the 1-frame flash when equipping <---
+        if ((held || stored) && interactionHUD != null)
+        {
+            interactionHUD.SetActive(false);
+        }
+
         if (rb != null)
         {
             // Physics should be disabled if the object is held in hand or hidden in inventory
@@ -228,4 +234,4 @@ public class GrabbableObject : MonoBehaviourPun
             col.enabled = !(held || stored);
         }
     }
-    }
+}
