@@ -123,8 +123,24 @@ public class DynamicLogicPuzzle : MonoBehaviour
 
         Debug.Log("Entire Puzzle Completed!");
 
-        if (reviewCoroutine != null) StopCoroutine(reviewCoroutine);
-        reviewCoroutine = StartCoroutine(ReviewThenReturn());
+        // if (reviewCoroutine != null) StopCoroutine(reviewCoroutine);
+        // reviewCoroutine = StartCoroutine(ReviewThenReturn());
+        StartCoroutine(TriggerTransitionWithDelay());
+    }
+
+    private IEnumerator TriggerTransitionWithDelay()
+    {
+        yield return new WaitForSeconds(2f); // Brief delay for feedback
+
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.SetInventoryVisibility(false);
+        }
+
+        if (AreaVisibilityManager.Instance != null)
+        {
+            AreaVisibilityManager.Instance.TransitionToRulesOfInference();
+        }
     }
 
     public void SetHeaderLabel(int columnIndex, string text)

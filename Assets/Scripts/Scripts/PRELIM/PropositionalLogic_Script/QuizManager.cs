@@ -289,6 +289,12 @@ public class QuizManager : MonoBehaviour
             {
                 InventoryManager.Instance.SetInventoryVisibility(true);
             }
+
+            // Call the dedicated visibility manager
+            if (AreaVisibilityManager.Instance != null)
+            {
+                AreaVisibilityManager.Instance.TransitionToTruthTable();
+            }
         }
     }
 

@@ -16,7 +16,7 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject customizationMenuPanel;
     [SerializeField] private GameObject achievementsMenuPanel;
     [SerializeField] private GameObject settingsMenuPanel;
-    // [SerializeField] private string Stage = "PRELIM";
+    [SerializeField] private string Stage = "PRELIM";
 
     // ---> NEW: Variable to remember the player's progress <---
     private int highestUnlockedStage = 1; 
@@ -119,48 +119,51 @@ public class MainMenuManager : MonoBehaviour
 
     public void LoadSolo()
     {
+        // Directly load the PRELIM scene
+        SceneManager.LoadScene(Stage);
+        
         // ---> THE FIX: Fetch the database the exact moment they click the button! <---
-        if (FirebaseAuth.DefaultInstance != null && FirebaseAuth.DefaultInstance.CurrentUser != null)
-        {
-            string userId = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
-            DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
+        // if (FirebaseAuth.DefaultInstance != null && FirebaseAuth.DefaultInstance.CurrentUser != null)
+        // {
+        //     string userId = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
+        //     DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
 
-            // dbRef.Child("users").Child(userId).Child("unlockedStage").GetValueAsync().ContinueWithOnMainThread(task =>
-            // {
-            //     if (task.IsCompleted && task.Result.Exists)
-            //     {
-            //         highestUnlockedStage = int.Parse(task.Result.Value.ToString());
-            //     }
+        //     // dbRef.Child("users").Child(userId).Child("unlockedStage").GetValueAsync().ContinueWithOnMainThread(task =>
+        //     // {
+        //     //     if (task.IsCompleted && task.Result.Exists)
+        //     //     {
+        //     //         highestUnlockedStage = int.Parse(task.Result.Value.ToString());
+        //     //     }
                 
-            //     string sceneToLoad = "Stage " + highestUnlockedStage;
-            //     Debug.Log("Loading saved progress: " + sceneToLoad);
-            //     SceneManager.LoadScene(sceneToLoad);
-            // });
-            dbRef.Child("users").Child(userId).Child("unlockedStage").GetValueAsync().ContinueWithOnMainThread(task =>
-            {
-                // Check if the task faulted before trying to access task.Result
-                if (task.IsFaulted || task.IsCanceled)
-                {
-                    Debug.LogWarning("Database fetch failed. Defaulting to Stage 1.");
-                    SceneManager.LoadScene("Stage 1");
-                    return;
-                }
+        //     //     string sceneToLoad = "Stage " + highestUnlockedStage;
+        //     //     Debug.Log("Loading saved progress: " + sceneToLoad);
+        //     //     SceneManager.LoadScene(sceneToLoad);
+        //     // });
+        //     dbRef.Child("users").Child(userId).Child("unlockedStage").GetValueAsync().ContinueWithOnMainThread(task =>
+        //     {
+        //         // Check if the task faulted before trying to access task.Result
+        //         if (task.IsFaulted || task.IsCanceled)
+        //         {
+        //             Debug.LogWarning("Database fetch failed. Defaulting to Stage 1.");
+        //             SceneManager.LoadScene("Stage 1");
+        //             return;
+        //         }
 
-                if (task.IsCompleted && task.Result.Exists)
-                {
-                    highestUnlockedStage = int.Parse(task.Result.Value.ToString());
-                }
+        //         if (task.IsCompleted && task.Result.Exists)
+        //         {
+        //             highestUnlockedStage = int.Parse(task.Result.Value.ToString());
+        //         }
                 
-                string sceneToLoad = "Stage " + highestUnlockedStage;
-                Debug.Log("Loading saved progress: " + sceneToLoad);
-                SceneManager.LoadScene(sceneToLoad);
-            });
-        }
-        else
-        {
-            // Fallback just in case they are offline
-            SceneManager.LoadScene("Stage 1");
-        }
+        //         string sceneToLoad = "Stage " + highestUnlockedStage;
+        //         Debug.Log("Loading saved progress: " + sceneToLoad);
+        //         SceneManager.LoadScene(sceneToLoad);
+        //     });
+        // }
+        // else
+        // {
+        //     // Fallback just in case they are offline
+        //     SceneManager.LoadScene("Stage 1");
+        // }
     }
 
     public void LoadLogicGarden()
