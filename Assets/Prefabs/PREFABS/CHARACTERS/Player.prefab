@@ -45,8 +45,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraTargetController
   sensitivity: 0.15
-  topClamp: 89
-  bottomClamp: -89
+  topClamp: 60
+  bottomClamp: -35
 --- !u!1 &5830582641664197603
 GameObject:
   m_ObjectHideFlags: 0
@@ -60,7 +60,7 @@ GameObject:
   - component: {fileID: 6219587653480151915}
   - component: {fileID: 7780191382793854349}
   - component: {fileID: -6652158086944124035}
-  - component: {fileID: 6685914274643895348}
+  - component: {fileID: 6600037681469807048}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -173,28 +173,29 @@ MonoBehaviour:
   concreteSound: {fileID: 8300000, guid: c8657061120b2da4fb645654b16201f6, type: 3}
   woodSound: {fileID: 8300000, guid: 9a7a2d7c3f0efa7408e14bd09744808d, type: 3}
   lilypadSound: {fileID: 8300000, guid: a6b8bbfba8fdd5c43aa9c688a28cb0bb, type: 3}
-  defaultSound: {fileID: 0}
+  defaultSound: {fileID: 8300000, guid: b662731f964d624449b092d4198147de, type: 3}
   jumpSound: {fileID: 8300000, guid: c025c43d1749af5469c7dd8af13e162f, type: 3}
   minPitch: 0.9
   maxPitch: 1.1
   baseVolume: 1
   stepInterval: 0.4
   rayDistance: 1.2
---- !u!114 &6685914274643895348
+--- !u!114 &6600037681469807048
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5830582641664197603}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9e2e37adc838e743a57160655e8c3a9, type: 3}
+  m_Script: {fileID: 11500000, guid: c6c2b05066c174445971726ab23ce186, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CameraTargetController
-  sensitivity: 0.15
-  topClamp: 89
-  bottomClamp: -89
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerVisibilityController
+  playerRenderers: []
+  cameraTransform: {fileID: 0}
+  fadeEndDistance: 0.8
+  fadeStartDistance: 2
 --- !u!1 &7302036948749081053
 GameObject:
   m_ObjectHideFlags: 0
