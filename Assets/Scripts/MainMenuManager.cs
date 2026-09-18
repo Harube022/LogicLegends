@@ -16,7 +16,7 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject customizationMenuPanel;
     [SerializeField] private GameObject achievementsMenuPanel;
     [SerializeField] private GameObject settingsMenuPanel;
-    [SerializeField] private string Stage = "PRELIM";
+    // [SerializeField] private string Stage = "PRELIM";
 
     // ---> NEW: Variable to remember the player's progress <---
     private int highestUnlockedStage = 1; 
@@ -120,7 +120,7 @@ public class MainMenuManager : MonoBehaviour
     public void LoadSolo()
     {
         // Directly load the PRELIM scene
-        SceneManager.LoadScene(Stage);
+        SceneManager.LoadScene("PRELIM");
         
         // ---> THE FIX: Fetch the database the exact moment they click the button! <---
         // if (FirebaseAuth.DefaultInstance != null && FirebaseAuth.DefaultInstance.CurrentUser != null)

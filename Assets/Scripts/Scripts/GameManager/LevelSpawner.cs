@@ -47,26 +47,47 @@ public class LevelSpawner : MonoBehaviour
             }
 
             DataSnapshot snapshot = task.Result;
-            string selectedCharacter = "";
+            // string selectedCharacter = "";
+            string selectedCharacter = snapshot.Exists && snapshot.Value != null ? snapshot.Value.ToString() : "";
 
-            if (snapshot.Exists && snapshot.Value != null)
+            // Case-insensitive check to accept "Female", "female", "Female_Character", etc.
+            if (!string.IsNullOrEmpty(selectedCharacter) && selectedCharacter.ToLower().Contains("female"))
             {
-                selectedCharacter = snapshot.Value.ToString();
-            }
-
-            // Spawn the correct prefab based on the exact string!
-            if (selectedCharacter == "Female_Character")
-            {
-                SpawnAndSetupPlayer(femalePrefab);
-                Debug.Log("Spawned Female Character!");
+                if (femalePrefab != null)
+                {
+                    SpawnAndSetupPlayer(femalePrefab);
+                    Debug.Log("Spawned Female Character!");
+                }
+                else
+                {
+                    Debug.LogError("LevelSpawner: Female Prefab is missing in the Inspector!");
+                    SpawnAndSetupPlayer(malePrefab);
+                }
             }
             else 
             {
-                // Defaults to male if it is "Male_Character" or if the data is completely missing
                 SpawnAndSetupPlayer(malePrefab);
                 Debug.Log("Spawned Male Character!");
             }
         });
+        //     if (snapshot.Exists && snapshot.Value != null)
+        //     {
+        //         selectedCharacter = snapshot.Value.ToString();
+        //     }
+
+        //     // Spawn the correct prefab based on the exact string!
+        //     if (selectedCharacter == "Female_Character")
+        //     {
+        //         SpawnAndSetupPlayer(femalePrefab);
+        //         Debug.Log("Spawned Female Character!");
+        //     }
+        //     else 
+        //     {
+        //         // Defaults to male if it is "Male_Character" or if the data is completely missing
+        //         SpawnAndSetupPlayer(malePrefab);
+        //         Debug.Log("Spawned Male Character!");
+        //     }
+        // });
     }
 
     // --- NEW: The Setup Manager ---
