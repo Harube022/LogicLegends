@@ -167,8 +167,14 @@ public class DynamicDoorTrigger : MonoBehaviour
         CharacterController charController = player.GetComponent<CharacterController>();
         if (charController != null) charController.enabled = false;
 
+        // Calculate displacement vector before moving the player
+        Vector3 deltaPosition = target.position - player.transform.position;
+
         player.transform.position = target.position;
         player.transform.rotation = target.rotation;
+
+        // Notify Cinemachine to warp the camera instantly
+        Unity.Cinemachine.CinemachineCore.OnTargetObjectWarped(player.transform, deltaPosition);
 
         if (charController != null) charController.enabled = true;
     }

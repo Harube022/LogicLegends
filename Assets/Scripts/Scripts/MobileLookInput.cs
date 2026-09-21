@@ -11,6 +11,19 @@ public class MobileLookInput : MonoBehaviour, IDragHandler, IPointerDownHandler,
 
     public static Vector2 LookDelta { get; private set; }
 
+    // Add these inside MobileLookInput.cs
+    private void Awake()
+    {
+        LookDelta = Vector2.zero;
+    }
+
+    private void OnDisable()
+    {
+        // Clears any stuck drag states when the script is destroyed or disabled during a scene change
+        isDragging = false;
+        LookDelta = Vector2.zero;
+    }
+
     public void OnPointerDown(PointerEventData eventData)
     {
         lastPosition = eventData.position;

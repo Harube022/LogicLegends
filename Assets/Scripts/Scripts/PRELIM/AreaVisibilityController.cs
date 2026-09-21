@@ -62,8 +62,14 @@ public class AreaVisibilityManager : MonoBehaviour
 
         yield return new WaitForFixedUpdate();
 
+        // Calculate displacement vector
+        Vector3 deltaPosition = target.position - player.transform.position;
+
         player.transform.position = target.position;
         player.transform.rotation = target.rotation;
+        
+        // Notify Cinemachine to warp the camera instantly
+        Unity.Cinemachine.CinemachineCore.OnTargetObjectWarped(player.transform, deltaPosition);
 
         yield return null;
 
