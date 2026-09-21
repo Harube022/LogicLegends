@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1908f4dda07515458622fb06228cf34, type: 3}
+  m_Name: TAU
+  m_EditorClassIdentifier: Assembly-CSharp::LogicLegends.Inference.InferenceRule
+  ruleName: Tautology
+  abbreviation: TAU
+  instruction: Repeating a proposition with OR or AND leaves its meaning unchanged.
+  forms:
+  - premises:
+    - tokens:
+      - '{p}'
+      - '[OR]'
+      - '{p}'
+    conclusion: '{p}'
+    distractors:
+    - NOT ({p})
+    - '{q}'
+    - '{r}'
+  - premises:
+    - tokens:
+      - '{p}'
+      - '[AND]'
+      - '{p}'
+    conclusion: '{p}'
+    distractors:
+    - NOT ({p})
+    - '{q}'
+    - '{r}'
+  examples:
+  - title: Weather
+    statements:
+    - It is raining
+    - The ground is wet
+    - The grass is slippery
+    - The path is closed
+    aliases:
+    - It's raining
+    - 
+    - 
+    - 
+  - title: Temple
+    statements:
+    - The torch is lit
+    - The gate is open
+    - The bell is ringing
+    - The bridge is lowered
+    aliases: []
+  - title: Study
+    statements:
+    - Sara studies
+    - Sara passes the quiz
+    - Lee practices
+    - Lee solves the puzzle
+    aliases: []
+  - title: Garden
+    statements:
+    - The seed is planted
+    - The flower grows
+    - The sun is shining
+    - The soil is warm
+    aliases: []
+  - title: Library
+    statements:
+    - I make tea
+    - I read a book
+    - I take notes
+    - I remember the lesson
+    aliases: []
+  - title: Morning
+    statements:
+    - Sara wakes up early
+    - Sara exercises
+    - Lee stays up late
+    - Lee drinks coffee
+    aliases: []

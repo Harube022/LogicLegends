@@ -68,11 +68,13 @@ public class Player : MonoBehaviourPun
 
     private void GameInput_OnJumpAction(object sender, System.EventArgs e)
     {
+        if (!enabled) return; // UI puzzles can temporarily suspend player control.
         jumpBufferTimer = jumpBufferTime;
     }
 
     private void GameInput_OnInteractAction(object sender, System.EventArgs e)
     {
+        if (!enabled) return; // Event subscriptions still fire on disabled behaviours.
         float interactionDistance = 2f;
         Vector3 rayStart = transform.position + Vector3.up * 0.5f; 
         float castRadius = 0.5f; 
@@ -297,6 +299,7 @@ public class Player : MonoBehaviourPun
         // If we are freezing the player, force the animation variables to false
         if (!hasControl)
         {
+            jumpBufferTimer = 0f;
             isWalking = false; 
             isJumping = false;
 
