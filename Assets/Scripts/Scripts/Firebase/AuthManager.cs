@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Extensions;
@@ -32,13 +33,13 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private string webClientId = "";
 
     [Header("Login Inputs")]
-    [SerializeField] private InputField emailLoginInput;
-    [SerializeField] private InputField passwordLoginInput;
+    [SerializeField] private TMP_InputField emailLoginInput;
+    [SerializeField] private TMP_InputField passwordLoginInput;
 
     [Header("Sign Up Inputs")]
-    [SerializeField] private InputField emailSignUpInput;
-    [SerializeField] private InputField usernameSignUpInput;
-    [SerializeField] private InputField passwordSignUpInput;
+    [SerializeField] private TMP_InputField emailSignUpInput;
+    [SerializeField] private TMP_InputField usernameSignUpInput;
+    [SerializeField] private TMP_InputField passwordSignUpInput;
 
     // ---> NEW: Web Registration URL <---
     [Header("Web Links")]
