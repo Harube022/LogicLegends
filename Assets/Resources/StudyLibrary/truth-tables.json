@@ -1,0 +1,44 @@
+{
+  "pages": [
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 3",
+      "text": "WHAT IS TRUTH TABLE?\nA truth table is a table used in logic to show the truth values of logical expressions. It lists all possible combinations of truth values for the variables in the expression and the resulting truth value of the expression itself."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 4",
+      "text": "Negation\nIt reverses the truth value of a proposition.\nExamples:\np: “It is raining.”\n~p: “It is not raining.”\np: “I will not study.”\n~p: “I will study.”\np | ~p\nT | F\nF | T"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 5",
+      "text": "Conjunction (AND)\np | q | p ^ q\nT | T | T\nT | F | F\nF | T | F\nF | F | F\nIt is TRUE only when BOTH statements are true.\np: I will have salad for lunch.\nq: I will have rice for dinner.\nTherefore:\np ∧ q = I will have salad for lunch and rice for dinner."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 6",
+      "text": "Disjunction/ Inclusive OR\nIt is FALSE only when BOTH statements are false\np | q | p ∨ q\nTrue | True | TRUE\nTrue | False | TRUE\nFalse | True | TRUE\nFalse | False | FALSE\np: I will go to school.\nq: I will stay home.\nTherefore:  p v q = I will go to school or I will stay at home.\nNote: This operation is also called inclusive or, because it includes the possibility that both p and q are true."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 7",
+      "text": "Exclusive OR\nIt is True if exactly one is true.\np | q | p ⊕ q\nTrue | True | FALSE\nTrue | False | TRUE\nFalse | True | TRUE\nFalse | False | FALSE\np: Switch A is ON.\nq: Switch B is OFF.\nThis means: The alarm will not sound if:\nBoth Switch A and Switch B is ON.\n  OR\nBoth Switch A and Switch B is OFF."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 8",
+      "text": "Conditional (Implication)\nIt is FALSE only when p is TRUE and q is FALSE\np: The car is Rolls-Royce.\nq: Sarah will buy it.\nTherefore:\np ⇒ q = If the car is Rolls-Royce, then Sarah will buy it. 🡺 TRUE\np ⇒ ~ q = If the car is Rolls-Royce, then Sarah will NOT buy it. 🡺 FALSE\np | q | p ⇒ q\nTrue | True | TRUE\nTrue | False | FALSE\nFalse | True | TRUE\nFalse | False | TRUE"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 9",
+      "text": "Biconditional (If and only if)\nIt is TRUE when both values  are the same.\np: Today is Monday.\nq: Tomorrow is Tuesday.\np | q | p ↔ q\nTrue | True | TRUE\nTrue | False | FALSE\nFalse | True | FASLE\nFalse | False | TRUE\np ↔ q = Today is Monday if and\nonly if tomorrow is Tuesday. 🡺TRUE\n~ p ↔ ~ q = Today is not Monday,\nso tomorrow is not Tuesday. 🡺 TRUE"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 10",
+      "text": "Example:\np: The restaurant is open.\nq: I have a reservation.\n~p v q:\nThe restaurant is not open OR I have a reservation."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 11",
+      "text": "Truth table:\n~p v q\np | q | ~p\nTrue | True | False\nTrue | False | False\nFalse | True | True\nFalse | False | True\n~p | q | ~p v q\nFalse | True | True\nFalse | False | False\nTrue | True | True\nTrue | False | True"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 12",
+      "text": "Example: Truth table:\n(p ⇒ q) ⇒ (~q)\np | q | ~q | p => q | (p ⇒ q) ⇒ (~q)\nT | T | F | T | F\nT | F | T | F | T\nF | T | F | T | F\nF | F | T | T | T"
+    }
+  ]
+}

@@ -157,6 +157,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipmentLoader
   clothesModels:
+  - itemID: Elite_Skin
+    model: {fileID: 1324355811477619316}
   - itemID: male_default
     model: {fileID: 5773408517454332509}
   - itemID: male_tuxedo
@@ -165,8 +167,6 @@ MonoBehaviour:
     model: {fileID: 1339760864929434283}
   - itemID: Common_Skin
     model: {fileID: 2418405600321672625}
-  - itemID: Elite_Skin
-    model: {fileID: 1324355811477619316}
   - itemID: Rare_Skin
     model: {fileID: 2156441538550500143}
   - itemID: Special_Skin
@@ -174,7 +174,7 @@ MonoBehaviour:
   - itemID: Epic_Skin
     model: {fileID: 3951567716079000427}
   petModels: []
-  defaultClothesID: Common_Skin
+  defaultClothesID: Elite_Skin
 --- !u!114 &-6652158086944124035
 MonoBehaviour:
   m_ObjectHideFlags: 0
