@@ -107,6 +107,10 @@ public class SelectionPad : MonoBehaviour
     [Tooltip("0 for Door 1, 1 for Door 2, etc. Must match the door index configuration.")]
     [SerializeField] private int padIndex;
     [SerializeField] private float timeRequiredToSelect = 2.0f;
+
+    [Header("Confirmed Door Guidance")]
+    [Tooltip("Movement speed while the player is automatically guided through the confirmed door.")]
+    [SerializeField] private float guidedMovementSpeed = 8.0f;
     
     [Tooltip("Drag the physical Door GameObject that blocks the pathway here")]
     [SerializeField] private GameObject doorVisualObject;
@@ -135,7 +139,7 @@ public class SelectionPad : MonoBehaviour
                 quizManager.PrepareSharedLoader(uiAnchorPoint != null ? uiAnchorPoint : transform);
                 
                 if (chargeCoroutine != null) StopCoroutine(chargeCoroutine);
-                chargeCoroutine = StartCoroutine(ChargeSelection());
+                chargeCoroutine = StartCoroutine(ChargeSelection(other.gameObject));
             }
         }
     }
@@ -148,7 +152,7 @@ public class SelectionPad : MonoBehaviour
         }
     }
 
-    private IEnumerator ChargeSelection()
+    private IEnumerator ChargeSelection(GameObject playerObject)
     {
         currentChargeTime = 0f;
         while (currentChargeTime < timeRequiredToSelect)
@@ -178,7 +182,46 @@ public class SelectionPad : MonoBehaviour
             doorVisualObject.SetActive(false);
         }
 
+        DynamicDoorTrigger selectedDoorTrigger = FindSelectedDoorTrigger();
+        Player player = playerObject != null ? playerObject.GetComponent<Player>() : null;
+
+        if (player != null && selectedDoorTrigger != null)
+        {
+            player.BeginGuidedMovement(selectedDoorTrigger.transform, guidedMovementSpeed);
+        }
+        else
+        {
+            Debug.LogWarning($"{name} could not start guided door movement because its player or matching door trigger was not found.", this);
+        }
+
         StopChargingSequence();
+    }
+
+    private DynamicDoorTrigger FindSelectedDoorTrigger()
+    {
+        DynamicDoorTrigger closestMatch = null;
+        float closestDistance = float.PositiveInfinity;
+
+        DynamicDoorTrigger[] doorTriggers = Object.FindObjectsByType<DynamicDoorTrigger>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        foreach (DynamicDoorTrigger doorTrigger in doorTriggers)
+        {
+            if (doorTrigger.DoorIndex != padIndex || !doorTrigger.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            float distance = (doorTrigger.transform.position - transform.position).sqrMagnitude;
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestMatch = doorTrigger;
+            }
+        }
+
+        return closestMatch;
     }
 
     private void StopChargingSequence()
