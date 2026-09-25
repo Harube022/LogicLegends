@@ -23,6 +23,11 @@ public class PlayerEquipmentLoader : MonoBehaviour
 
     private void Start()
     {
+        // Character models are stored inactive in the prefab. Show the configured
+        // fallback immediately so the player is visible while Firebase loads (and
+        // also during offline/editor play).
+        ApplyEquipment(defaultClothesID, clothesModels);
+
         // 1. Double check that we are actually logged in
         if (FirebaseAuth.DefaultInstance != null && FirebaseAuth.DefaultInstance.CurrentUser != null)
         {
@@ -64,7 +69,7 @@ public class PlayerEquipmentLoader : MonoBehaviour
             DataSnapshot snapshot = task.Result;
 
             // ---> THE FIX: Start with the default, and only overwrite it if Firebase has data!
-            string equippedClothes = ""; 
+            string equippedClothes = "";
             string equippedPet = "";
 
             if (snapshot.Exists)
@@ -73,7 +78,7 @@ public class PlayerEquipmentLoader : MonoBehaviour
             //     {
             //         equippedClothes = snapshot.Child("clothes").Value.ToString();
             //     }
-                
+
             //     if (snapshot.HasChild("pets") && !string.IsNullOrEmpty(snapshot.Child("pets").Value.ToString()))
             //     {
             //         equippedPet = snapshot.Child("pets").Value.ToString();
@@ -122,7 +127,7 @@ public class PlayerEquipmentLoader : MonoBehaviour
                 // Send them to the dressing function
                 ApplyEquipment(equippedClothes, clothesModels);
                 ApplyEquipment(equippedPet, petModels);
-            
+
         });
     }
 
@@ -144,33 +149,53 @@ public class PlayerEquipmentLoader : MonoBehaviour
 
     private void ApplyEquipment(string equippedID, EquippableModel[] models)
     {
-        // foreach (EquippableModel entry in models)
-        // {
-        //     if (entry.model != null)
-        //     {
-        //         // This single line does the magic: 
-        //         // If the IDs match, it sets it to true (ON). If they don't, it sets it to false (OFF).
-        //         entry.model.SetActive(entry.itemID == equippedID);
-        //     }
-        // }
         if (models == null || models.Length == 0) return;
 
-        bool matchedAny = false;
+        GameObject selectedModel = null;
+
+        foreach (EquippableModel entry in models)
+        {
+            if (entry != null && entry.model != null && entry.itemID == equippedID)
+            {
+                selectedModel = entry.model;
+                break;
+            }
+        }
+
+        // Old or mistyped database IDs must not make the whole character invisible.
+        if (selectedModel == null)
+        {
+            foreach (EquippableModel entry in models)
+            {
+                if (entry != null && entry.model != null && entry.itemID == defaultClothesID)
+                {
+                    selectedModel = entry.model;
+                    break;
+                }
+            }
+        }
+
+        if (selectedModel == null)
+        {
+            foreach (EquippableModel entry in models)
+            {
+                if (entry != null && entry.model != null)
+                {
+                    selectedModel = entry.model;
+                    break;
+                }
+            }
+        }
+
         foreach (EquippableModel entry in models)
         {
             if (entry != null && entry.model != null)
             {
-                bool matches = entry.itemID == equippedID;
-                entry.model.SetActive(matches);
-                if (matches) matchedAny = true;
+                entry.model.SetActive(entry.model == selectedModel);
             }
         }
 
-        // Safety net: If no model matched, enable the first model so the character is visible
-        if (!matchedAny && models[0].model != null)
-        {
-            Debug.LogWarning($"[PlayerEquipmentLoader] No mesh matched itemID '{equippedID}'. Enabling fallback mesh '{models[0].itemID}'.");
-            models[0].model.SetActive(true);
-        }
+        PlayerVisibilityController visibility = GetComponent<PlayerVisibilityController>();
+        if (visibility != null) visibility.RefreshRenderers();
     }
 }

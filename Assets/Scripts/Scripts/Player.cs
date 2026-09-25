@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun; 
@@ -32,23 +32,41 @@ public class Player : MonoBehaviourPun
 
     // ---> NEW: Unity's Built-in Physics Controller <---
     private CharacterController controller;
+    private bool ownsLocalInput;
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
         if (gameInput == null) gameInput = FindFirstObjectByType<GameInput>();
 
-        // ---> ADD THIS PIECE <---
         if (IsLocalPlayer())
         {
+            // Offline Player components all appear local. Only one may own the shared
+            // GameInput and gameplay camera.
+            if (LocalInstance != null && LocalInstance != this && LocalInstance.gameObject.activeInHierarchy)
+            {
+                Debug.LogError($"Duplicate local Player detected: '{name}'. " +
+                               $"'{LocalInstance.name}' already owns local input. Disabling duplicate control.");
+                enabled = false;
+                return;
+            }
+
             LocalInstance = this;
+            ownsLocalInput = true;
         }
     }
 
     private void Start()
     {
-        if (IsLocalPlayer())
+        if (ownsLocalInput)
         {
+            if (gameInput == null)
+            {
+                Debug.LogError($"{name} cannot receive input because no GameInput exists.");
+                enabled = false;
+                return;
+            }
+
             gameInput.OnInteractAction += GameInput_OnInteractAction;
             gameInput.OnJumpAction += GameInput_OnJumpAction;
 
@@ -56,7 +74,10 @@ public class Player : MonoBehaviourPun
             // if (cam != null) cam.SetPlayerTarget(this.transform);
 
             // Find Cinemachine camera and set target
-            Unity.Cinemachine.CinemachineCamera cmCam = FindFirstObjectByType<Unity.Cinemachine.CinemachineCamera>();
+            GameObject gameplayCameraObject = GameObject.Find("CM_ThirdPersonCam");
+            Unity.Cinemachine.CinemachineCamera cmCam = gameplayCameraObject != null
+                ? gameplayCameraObject.GetComponent<Unity.Cinemachine.CinemachineCamera>()
+                : FindFirstObjectByType<Unity.Cinemachine.CinemachineCamera>();
             if (cmCam != null)
             {
                 // Use child CameraTarget if available, otherwise fall back to player root
@@ -178,7 +199,7 @@ public class Player : MonoBehaviourPun
 
     private void Update()
     {
-        if (!IsLocalPlayer()) return; 
+        if (!ownsLocalInput) return;
 
         HandleMovementAndGravity();
         HandleInteractions();
@@ -285,12 +306,16 @@ public class Player : MonoBehaviourPun
 
     private void OnDestroy()
     {
-        if (gameInput != null && IsLocalPlayer())
+        if (gameInput != null && ownsLocalInput)
         {
             gameInput.OnInteractAction -= GameInput_OnInteractAction;
             gameInput.OnJumpAction -= GameInput_OnJumpAction;
         }
+
+        if (LocalInstance == this)
+            LocalInstance = null;
     }
+
 
     public void ToggleControl(bool hasControl)
     {
