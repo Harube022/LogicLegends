@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Extensions;
@@ -32,13 +33,17 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private string webClientId = "";
 
     [Header("Login Inputs")]
-    [SerializeField] private InputField emailLoginInput;
-    [SerializeField] private InputField passwordLoginInput;
+    [SerializeField] private TMP_InputField emailLoginInput;
+    [SerializeField] private TMP_InputField passwordLoginInput;
+
+    [Header("Password Reset")]
+    [SerializeField] private Button forgotPasswordButton;
+    [SerializeField] private TMP_Text passwordResetMessage;
 
     [Header("Sign Up Inputs")]
-    [SerializeField] private InputField emailSignUpInput;
-    [SerializeField] private InputField usernameSignUpInput;
-    [SerializeField] private InputField passwordSignUpInput;
+    [SerializeField] private TMP_InputField emailSignUpInput;
+    [SerializeField] private TMP_InputField usernameSignUpInput;
+    [SerializeField] private TMP_InputField passwordSignUpInput;
 
     // ---> NEW: Web Registration URL <---
     [Header("Web Links")]
@@ -46,6 +51,7 @@ public class AuthManager : MonoBehaviour
 
     private FirebaseAuth auth;
     private GoogleSignInConfiguration configuration;
+    private bool sendingPasswordReset;
 
     // ---> FIX 1: THE FLASHING LOGIN SCREEN <---
     private void Awake()
@@ -57,6 +63,8 @@ public class AuthManager : MonoBehaviour
         if (modeSelection != null) modeSelection.SetActive(false);
         if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
         if (settingsMenu != null) settingsMenu.SetActive(false);
+        if (cinematicPanel != null) cinematicPanel.SetActive(false);
+        if (introVideoPlayer != null) introVideoPlayer.Stop();
         if (skipButton != null) skipButton.SetActive(false);
     }
 
@@ -163,8 +171,11 @@ public class AuthManager : MonoBehaviour
         // 3. Play the video and listen for the end
         if (introVideoPlayer != null)
         {
+            introVideoPlayer.loopPointReached -= OnCutsceneFinished;
+            introVideoPlayer.errorReceived -= OnCutsceneError;
             // Subscribe to the event that fires when the video finishes
             introVideoPlayer.loopPointReached += OnCutsceneFinished;
+            introVideoPlayer.errorReceived += OnCutsceneError;
             introVideoPlayer.Play();
         }
         else
@@ -176,6 +187,12 @@ public class AuthManager : MonoBehaviour
 
     private void OnCutsceneFinished(VideoPlayer vp)
     {
+        FinishCutsceneAndShowMainMenu();
+    }
+
+    private void OnCutsceneError(VideoPlayer vp, string message)
+    {
+        Debug.LogError($"Intro video playback failed: {message}");
         FinishCutsceneAndShowMainMenu();
     }
 
@@ -191,6 +208,7 @@ public class AuthManager : MonoBehaviour
         if (introVideoPlayer != null)
         {
             introVideoPlayer.loopPointReached -= OnCutsceneFinished;
+            introVideoPlayer.errorReceived -= OnCutsceneError;
             introVideoPlayer.Stop();
         }
 
@@ -292,6 +310,51 @@ public class AuthManager : MonoBehaviour
         });
     }
 
+    public void OnClickForgotPassword()
+    {
+        if (sendingPasswordReset) return;
+
+        if (auth == null)
+        {
+            passwordResetMessage.text = "Please wait while we connect.";
+            return;
+        }
+
+        string email = emailLoginInput.text.Trim();
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            passwordResetMessage.text = "Enter your email address first.";
+            return;
+        }
+
+        sendingPasswordReset = true;
+        forgotPasswordButton.interactable = false;
+        passwordResetMessage.text = "Sending reset link...";
+
+        auth.SendPasswordResetEmailAsync(email)
+            .ContinueWithOnMainThread(task =>
+            {
+                if (this == null) return;
+
+                sendingPasswordReset = false;
+                forgotPasswordButton.interactable = true;
+
+                if (task.IsCanceled || task.IsFaulted)
+                {
+                    passwordResetMessage.text =
+                        "Couldn't request a reset. Check your email address " +
+                        "and connection, then try again.";
+                    return;
+                }
+
+                passwordResetMessage.text =
+                    // "If an eligible account exists for this email, " +
+                    // "you'll receive a reset link. Check your spam folder too.";
+                    "Reset password link has been sent to your email";
+            });
+    }
+
     // ---> NEW: Opens the Web Browser <---
     public void OnClickOpenWebRegistration()
     {
@@ -356,6 +419,7 @@ public class AuthManager : MonoBehaviour
 
     private void ClearAllInputs()
     {
+        if (passwordResetMessage != null) passwordResetMessage.text = "";
         if (emailLoginInput != null) emailLoginInput.text = "";
         if (passwordLoginInput != null) passwordLoginInput.text = "";
         if (emailSignUpInput != null) emailSignUpInput.text = "";
