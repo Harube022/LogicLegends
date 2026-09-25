@@ -141,45 +141,54 @@ namespace Crystal
             }
         }
 
-        Rect GetSafeArea ()
+Rect GetSafeArea ()
         {
             Rect safeArea = Screen.safeArea;
 
+            // In some Editor/Game View layouts Screen.safeArea can briefly report the
+            // host display dimensions instead of the current Game View dimensions.
+            // Reject that stale rectangle so UI anchors stay inside the active canvas.
+            if (safeArea.xMin < 0f || safeArea.yMin < 0f ||
+                safeArea.xMax > Screen.width + 0.5f ||
+                safeArea.yMax > Screen.height + 0.5f)
+            {
+                safeArea = new Rect(0f, 0f, Screen.width, Screen.height);
+            }
+
             if (Application.isEditor && Sim != SimDevice.None)
             {
-                Rect nsa = new Rect (0, 0, Screen.width, Screen.height);
+                Rect nsa = new Rect(0, 0, Screen.width, Screen.height);
 
                 switch (Sim)
                 {
                     case SimDevice.iPhoneX:
-                        if (Screen.height > Screen.width)  // Portrait
+                        if (Screen.height > Screen.width)
                             nsa = NSA_iPhoneX[0];
-                        else  // Landscape
+                        else
                             nsa = NSA_iPhoneX[1];
                         break;
                     case SimDevice.iPhoneXsMax:
-                        if (Screen.height > Screen.width)  // Portrait
+                        if (Screen.height > Screen.width)
                             nsa = NSA_iPhoneXsMax[0];
-                        else  // Landscape
+                        else
                             nsa = NSA_iPhoneXsMax[1];
                         break;
                     case SimDevice.Pixel3XL_LSL:
-                        if (Screen.height > Screen.width)  // Portrait
+                        if (Screen.height > Screen.width)
                             nsa = NSA_Pixel3XL_LSL[0];
-                        else  // Landscape
+                        else
                             nsa = NSA_Pixel3XL_LSL[1];
                         break;
                     case SimDevice.Pixel3XL_LSR:
-                        if (Screen.height > Screen.width)  // Portrait
+                        if (Screen.height > Screen.width)
                             nsa = NSA_Pixel3XL_LSR[0];
-                        else  // Landscape
+                        else
                             nsa = NSA_Pixel3XL_LSR[1];
-                        break;
-                    default:
                         break;
                 }
 
-                safeArea = new Rect (Screen.width * nsa.x, Screen.height * nsa.y, Screen.width * nsa.width, Screen.height * nsa.height);
+                safeArea = new Rect(Screen.width * nsa.x, Screen.height * nsa.y,
+                    Screen.width * nsa.width, Screen.height * nsa.height);
             }
 
             return safeArea;

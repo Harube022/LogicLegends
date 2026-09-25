@@ -9,6 +9,12 @@ public class CameraTargetController : MonoBehaviour
 
     private float cameraPitch = 0f;
     private float cameraYaw = 0f;
+    private Player owningPlayer;
+
+    private void Awake()
+    {
+        owningPlayer = GetComponentInParent<Player>();
+    }
 
     private void Start()
     {
@@ -19,6 +25,9 @@ public class CameraTargetController : MonoBehaviour
 
     private void LateUpdate()
     {
+        // Only the authoritative local player's target may consume the shared look delta.
+        if (owningPlayer != null && owningPlayer != Player.LocalInstance) return;
+
         Vector2 lookDelta = MobileLookInput.LookDelta;
 
         cameraYaw += lookDelta.x * sensitivity;

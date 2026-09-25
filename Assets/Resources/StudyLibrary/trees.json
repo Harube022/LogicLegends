@@ -1,0 +1,80 @@
+{
+  "pages": [
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 2",
+      "text": "TREES"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 3",
+      "text": "WHAT IS A TREE?\nThe concept of trees originated from graph theory, a branch of mathematics. In Discrete Structures, a tree is a special type of graph used to represent hierarchical relationships.\nA tree is a non-linear and hierarchical data structure that has a group of nodes. When it comes to the tree, each node stores a value."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 4",
+      "text": "TREES IN GRAPH\nTree\nA tree in a graph is the connection between undirected networks which are having only one path between any two vertices. It was introduced by British mathematician Arthur Cayley in 1857. The graph trees have only straight lines between the nodes in any specific direction but do not have any cycles or loops. Therefore, trees are the directed graph.\nNot a Tree"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 5",
+      "text": "Trees can be structured in various ways. We can categorize them as either rooted or unrooted depending on their structure and use.\nUnrooted Trees − These are trees with no designated root or starting point. All vertices in unrooted trees are equally important without any hierarchy.\nRooted Trees − In contrast, a rooted tree designates one vertex as the “root”. This vertex serves as a reference point for organizing all other vertices hierarchically."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 6",
+      "text": "A ROOTED TREE\nA rooted tree is a tree in which one vertex has been designated as the root and every edge is directed away from the root."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 7",
+      "diagram": "rooted-unrooted-trees"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 8",
+      "text": "TREE TERMINOLOGY\nRoot: Note at the top of the three.\nParent: Any node, except root has exactly one edge running upward to another node.\nChild:  Any node may have one or more lines running downward to other nodes. Nodes below are children"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 9",
+      "text": "TREE TERMINOLOGY\nLeaf:  A node that has no children.\nSubtree:  Any node can be considered to be the root of a subtree, which consists of its children and its children’s and so on.\nLevels:  The level of a particular node refers to how many generations the node is from the root."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 10",
+      "text": "TREE TERMINOLOGY\nNode: A node is an entity that contains a key or value and pointers to its child nodes.\nEdge:  The connection between any two nodes."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 11",
+      "text": "Properties of Trees\nA tree is a hierarchical structure as it contains multiple levels.\nIn a tree, the topmost node is known as the root node.\nA node that doesn’t have a child node is known as a leaf node or terminal node."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 12",
+      "text": "Properties of Trees\nThe highest number of nodes at every level of i is 2i.\nHeight of the tree = the longest path from the root node to the leaf node.\nDepth of a node = the length of the path to its root."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 13",
+      "text": "TYPES OF TREES\nBINARY TREES\nN-ARY TREES\nTERNARY TREES"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 14",
+      "text": "BINARY TREES\nTree nodes can have any number of children. In a binary tree, each node can have at most two children. A binary tree is either empty or consists of a node called the root together with two binary trees called the left subtree and the right subtree. A tree with no nodes is called as a null tree"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 15",
+      "text": "BINARY TREE\nA tree is a binary tree, which is either an empty tree or every node has either no children, a left child, a right child or both a left and a right child."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 16",
+      "text": "TERNARY TREE\nA ternary tree is a tree in which each node has at most 3 children, commonly referred to as “left”, “mid”, and “right”. It is also called a 3-ary tree."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 17",
+      "text": "N-ARY TREE\nAn N-ary Tree, also called a Generic Tree, is a type of tree data structure. In an N-ary tree, each node holds data records and references to its children. It prohibits duplicate references among its children.\nEach node can have multiple children.\nThe exact number of children for each node is not predetermined and may vary."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 19",
+      "text": "SPANNING TREE\nA spanning tree of a graph is a sub group which is a tree and contains all vertices of the graph. If a vertex is missing, then it is not a spanning tree."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 20",
+      "text": "Properties of Spanning Tree\nA connected graph G can have more than one spanning tree.\nThere are no loops or cycles in a spanning tree.\nAs a spanning tree is loosely connected, if you remove one edge from the tree, it will disconnect the graph."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx — slide 21",
+      "text": "Properties of Spanning Tree\nBecause a spanning tree is most acyclic, adding one edge will result in a loop.\nThe total number of edges in a spanning tree is n-1, where n represents the number of nodes.\nIf the graph is complete, the spanning tree can be produced by destroying the maximum (e-n+1) edges, where ‘e’ denotes the number of edges and ‘n’ denotes the number of vertices."
+    }
+  ]
+}

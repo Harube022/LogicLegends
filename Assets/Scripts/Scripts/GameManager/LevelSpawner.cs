@@ -16,9 +16,14 @@ public class LevelSpawner : MonoBehaviour
     [Header("Camera Reference")]
     [SerializeField] private CinemachineCamera cmCamera;
 
+    private bool playerCommitted;
+
     private void Start()
     {
-        // Make sure we are logged in before trying to spawn
+        // Scene transitions may already have supplied the local player. Reuse it instead
+        // of starting a delayed database spawn that would create a duplicate.
+        if (TryUseExistingPlayer()) return;
+
         if (FirebaseAuth.DefaultInstance != null && FirebaseAuth.DefaultInstance.CurrentUser != null)
         {
             SpawnPlayerFromDatabase();
@@ -47,64 +52,66 @@ public class LevelSpawner : MonoBehaviour
             }
 
             DataSnapshot snapshot = task.Result;
-            string selectedCharacter = "";
+            string selectedCharacter = snapshot.Exists && snapshot.Value != null
+                ? snapshot.Value.ToString()
+                : string.Empty;
 
-            if (snapshot.Exists && snapshot.Value != null)
-            {
-                selectedCharacter = snapshot.Value.ToString();
-            }
-
-            // Spawn the correct prefab based on the exact string!
             if (selectedCharacter == "Female_Character")
-            {
                 SpawnAndSetupPlayer(femalePrefab);
-                Debug.Log("Spawned Female Character!");
-            }
-            else 
-            {
-                // Defaults to male if it is "Male_Character" or if the data is completely missing
+            else
                 SpawnAndSetupPlayer(malePrefab);
-                Debug.Log("Spawned Male Character!");
-            }
         });
     }
 
-    // --- NEW: The Setup Manager ---
     private void SpawnAndSetupPlayer(GameObject prefabToSpawn)
     {
-        // 1. Spawn the physical player into the world
+        // Firebase returns asynchronously. Recheck at commit time in case another
+        // scene system supplied the player while the request was in flight.
+        if (playerCommitted || TryUseExistingPlayer()) return;
+
+        if (prefabToSpawn == null || spawnPoint == null)
+        {
+            Debug.LogError("LevelSpawner cannot create the player: prefab or spawn point is missing.");
+            return;
+        }
+
+        playerCommitted = true;
         GameObject spawnedPlayer = Instantiate(prefabToSpawn, spawnPoint.position, spawnPoint.rotation);
+        SetupPlayer(spawnedPlayer);
+        Debug.Log($"LevelSpawner created the single local player '{spawnedPlayer.name}'.");
+    }
 
-        // 2. Find the child "CameraTarget" inside the spawned player prefab
-        Transform cameraTarget = spawnedPlayer.transform.Find("CameraTarget");
-        Transform targetToFollow = cameraTarget != null ? cameraTarget : spawnedPlayer.transform;
+    private bool TryUseExistingPlayer()
+    {
+        Player existing = Player.LocalInstance;
+        if (existing == null || !existing.gameObject.activeInHierarchy) return false;
 
-        // 3. Fallback to find camera if not assigned in Inspector
+        if (!playerCommitted)
+            Debug.Log($"LevelSpawner is reusing existing local player '{existing.name}'.");
+
+        playerCommitted = true;
+        SetupPlayer(existing.gameObject);
+        return true;
+    }
+
+    private void SetupPlayer(GameObject playerObject)
+    {
+        Transform cameraTarget = playerObject.transform.Find("CameraTarget");
+        Transform targetToFollow = cameraTarget != null ? cameraTarget : playerObject.transform;
+
         if (cmCamera == null)
         {
-            cmCamera = FindFirstObjectByType<CinemachineCamera>();
+            GameObject gameplayCameraObject = GameObject.Find("CM_ThirdPersonCam");
+            cmCamera = gameplayCameraObject != null
+                ? gameplayCameraObject.GetComponent<CinemachineCamera>()
+                : FindFirstObjectByType<CinemachineCamera>();
         }
 
-        // 4. Assign target to Cinemachine
         if (cmCamera != null)
-        {
             cmCamera.Target.TrackingTarget = targetToFollow;
-        }
 
-        // 2. Find the Camera Pivot and tell it to follow our new player!
-        // ThirdPersonCameraController camController = Object.FindFirstObjectByType<ThirdPersonCameraController>();
-        // if (camController != null)
-        // {
-        //     camController.SetPlayerTarget(spawnedPlayer.transform);
-            
-        //     // We Warp it so the camera snaps instantly behind the player instead of flying across the map!
-        //     camController.WarpCamera(spawnedPlayer.transform); 
-        // }
-
-        // 5. Keep the LevelManager from breaking! (See Step 2 below)
         if (LevelManager.Instance != null)
-        {
-            LevelManager.Instance.player = spawnedPlayer.transform;
-        }
+            LevelManager.Instance.player = playerObject.transform;
     }
 }
+

@@ -23,6 +23,11 @@ public class PlayerEquipmentLoader : MonoBehaviour
 
     private void Start()
     {
+        // Character models are stored inactive in the prefab. Show the configured
+        // fallback immediately so the player is visible while Firebase loads (and
+        // also during offline/editor play).
+        ApplyEquipment(defaultClothesID, clothesModels);
+
         // 1. Double check that we are actually logged in
         if (FirebaseAuth.DefaultInstance != null && FirebaseAuth.DefaultInstance.CurrentUser != null)
         {
@@ -40,9 +45,9 @@ public class PlayerEquipmentLoader : MonoBehaviour
 
         dbRef.Child("users").Child(userId).Child("equipped").GetValueAsync().ContinueWithOnMainThread(task =>
         {
-            if (task.IsFaulted)
+            if (task.IsFaulted || task.IsCanceled)
             {
-                Debug.LogError("Failed to load equipment data.");
+                Debug.LogError("Failed to load equipment data. Keeping the default outfit.");
                 return;
             }
 
@@ -72,14 +77,53 @@ public class PlayerEquipmentLoader : MonoBehaviour
 
     private void ApplyEquipment(string equippedID, EquippableModel[] models)
     {
+        if (models == null || models.Length == 0) return;
+
+        GameObject selectedModel = null;
+
         foreach (EquippableModel entry in models)
         {
-            if (entry.model != null)
+            if (entry != null && entry.model != null && entry.itemID == equippedID)
             {
-                // This single line does the magic: 
-                // If the IDs match, it sets it to true (ON). If they don't, it sets it to false (OFF).
-                entry.model.SetActive(entry.itemID == equippedID);
+                selectedModel = entry.model;
+                break;
             }
         }
+
+        // Old or mistyped database IDs must not make the whole character invisible.
+        if (selectedModel == null)
+        {
+            foreach (EquippableModel entry in models)
+            {
+                if (entry != null && entry.model != null && entry.itemID == defaultClothesID)
+                {
+                    selectedModel = entry.model;
+                    break;
+                }
+            }
+        }
+
+        if (selectedModel == null)
+        {
+            foreach (EquippableModel entry in models)
+            {
+                if (entry != null && entry.model != null)
+                {
+                    selectedModel = entry.model;
+                    break;
+                }
+            }
+        }
+
+        foreach (EquippableModel entry in models)
+        {
+            if (entry != null && entry.model != null)
+            {
+                entry.model.SetActive(entry.model == selectedModel);
+            }
+        }
+
+        PlayerVisibilityController visibility = GetComponent<PlayerVisibilityController>();
+        if (visibility != null) visibility.RefreshRenderers();
     }
 }

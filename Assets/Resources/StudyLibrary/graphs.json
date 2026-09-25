@@ -1,0 +1,72 @@
+{
+  "pages": [
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 2",
+      "text": "GRAPH"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 3",
+      "text": "HISTORY\nThe history of graph theory states it was introduced by the famous Swiss mathematician named Leonhard Euler, to solve many mathematical problems by constructing graphs based on given data or a set of points. The graphical representation shows different types of data in the form of bar graphs, frequency tables, line graphs, circle graphs, line plots, etc."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 4",
+      "text": "WHAT IS GRAPH?\nIn Mathematics, a graph is a pictorial representation of any data in an organized manner. The graph shows the relationship between variable quantities. In a graph theory, the graph represents the set of objects, that are related in some sense to each other. The objects are basically mathematical concepts, expressed by vertices or nodes and the relation between the pair of nodes, are expressed by edges."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 5",
+      "text": "A graph is a mathematical structure used to show relationships between objects.\nA graph is made up of:\nVertices (Nodes) – the points\nEdges (Links) – the lines connecting the points\nWe write a graph as:\t\t𝐺=(𝑉,𝐸)\nWhere:\tV = set of vertices\t\tE = set of edges"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 6",
+      "text": "Example:\nLet: V = {a, b, c, d} and E = { ab, ac, bd, cd}.\nVertices: a, b, c, d\nEdges: ab, ac, bd, cd"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 7",
+      "text": "TYPES OF GRAPHS\nThe graphs are basically of two types, directed and undirected. It is best understood by the figure given below. The arrow in the figure indicates the direction."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 8",
+      "text": "DIRECTED GRAPH\nIn graph theory, a directed graph is a graph made up of a set of vertices connected by edges, in which the edges have a direction associated with them."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 9",
+      "text": "DIRECTED GRAPH\nB\nA\nEdges have arrows showing direction.\nA sends to B\nB sends to C\nC sends to A\nB may not send back to A\nC"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 10",
+      "text": "UNDIRECTED GRAPH\nThe undirected graph is defined as a graph where the set of nodes are connected together, in which all the edges are bidirectional. Sometimes, this type of graph is known as the undirected network."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 11",
+      "text": "UNDIRECTED GRAPH\nB\nA\nEdges have no direction.\nIf A is connected to B, then B is also connected to A.\nC"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 12",
+      "text": "DEGREE, PATH, AND CYCLE OF A GRAPH\nThere are certain terms that are used in graph representation such as Degree, Path, and Cycle, etc.\nDegree\nPath\nCycle"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 13",
+      "text": "DEGREE\nA degree in a graph is mentioned to be the number of edges connected to a vertex. It is denoted deg(v), where v is a vertex of the graph. So basically, it the measure of the vertex."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 14",
+      "text": "DEGREE: The number of edges connected to a vertex.\nExample:\ndeg(30) = 2\ndeg(60) = 3"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 15",
+      "text": "PATH\nA path in a graph is a sequence of vertices where each consecutive pair of vertices is connected by an edge."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 16",
+      "text": "PATH: A sequence of vertices connected by edges.\nKey characteristics of a path:\nVertices are not repeated.\nEdges are not repeated.\nPath: 6->8->3->1->2->4"
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 17",
+      "text": "CYCLE\nA cycle is a closed path in a graph that forms a loop. When the starting and ending point is the same in a graph that contains a set of vertices, then the cycle of the graph is formed. When there is no repetition of the vertex in a closed circuit, then the cycle is a simple cycle. The cycle graph is denoted by Cn."
+    },
+    {
+      "source": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx — slide 18",
+      "text": "CYCLE: A path that starts and ends at the same vertex.\nKey characteristics of a path:\nEdges cannot be repeated.\nVertices cannot be repeated, except for the first and last vertex, which must be the same.\nCycle:  1->2->3->4->5->6->1"
+    }
+  ]
+}
