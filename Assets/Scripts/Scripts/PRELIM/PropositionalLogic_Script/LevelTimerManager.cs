@@ -182,4 +182,12 @@ public class LevelTimerManager : MonoBehaviour
 
         SceneManager.LoadScene("Main Menu");
     }
+
+    // Add this directly inside LevelTimerManager
+    public static void ResetSession()
+    {
+        savedTopicIndex = 0;
+        isRespawningFromFail = false;
+        savedRemainingTime = -1f;
+    }
 }

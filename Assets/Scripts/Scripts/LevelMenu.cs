@@ -9,17 +9,20 @@ public class LevelMenu : MonoBehaviourPunCallbacks
     public void OpenPause()
     {
         pausePanel.SetActive(true);
-        // Time.timeScale = 0f; // pause game
+        Time.timeScale = 0f; // pause game
     }
 
     public void ClosePause()
     {
         pausePanel.SetActive(false);
-        // Time.timeScale = 1f; // resume game
+        Time.timeScale = 1f; // resume game
     }
 
     public void ReturnToMainMenu()
     {
+        // Add this to unfreeze global time before transitioning scenes
+        Time.timeScale = 1f; 
+
         // 3. If we are in a multiplayer room, tell the server we are leaving
         if (PhotonNetwork.InRoom)
         {

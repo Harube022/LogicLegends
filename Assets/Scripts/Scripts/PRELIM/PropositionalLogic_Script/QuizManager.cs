@@ -95,6 +95,7 @@ public class QuizManager : MonoBehaviour
             // Clean fresh run sequence execution setup
             currentTopicIndex = 0;
             LevelTimerManager.savedTopicIndex = 0;
+            LevelTimerManager.ResetSession();
             InitializeLevelState();
             
             // Note: timerManager.StartLevelTimer() is omitted here intentionally 

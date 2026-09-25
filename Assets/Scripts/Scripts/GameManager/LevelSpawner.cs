@@ -56,10 +56,23 @@ public class LevelSpawner : MonoBehaviour
                 ? snapshot.Value.ToString()
                 : string.Empty;
 
-            if (selectedCharacter == "Female_Character")
-                SpawnAndSetupPlayer(femalePrefab);
+            // Accept both short names and saved IDs such as Female_Character.
+            if (selectedCharacter.IndexOf("female", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                if (femalePrefab != null)
+                {
+                    SpawnAndSetupPlayer(femalePrefab);
+                }
+                else
+                {
+                    Debug.LogError("LevelSpawner: Female Prefab is missing in the Inspector!");
+                    SpawnAndSetupPlayer(malePrefab);
+                }
+            }
             else
+            {
                 SpawnAndSetupPlayer(malePrefab);
+            }
         });
     }
 

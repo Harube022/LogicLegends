@@ -22,6 +22,8 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private GameObject cinematicPanel;
     [Tooltip("Drag the Video Player component here")]
     [SerializeField] private VideoPlayer introVideoPlayer;
+    [Tooltip("Drag your Skip Button GameObject here")]
+    [SerializeField] private GameObject skipButton;
     [Tooltip("The exact name of the tutorial scene")]
     [SerializeField] private string tutorialSceneName = "LogicGarden";
 
@@ -55,6 +57,7 @@ public class AuthManager : MonoBehaviour
         if (modeSelection != null) modeSelection.SetActive(false);
         if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
         if (settingsMenu != null) settingsMenu.SetActive(false);
+        if (skipButton != null) skipButton.SetActive(false);
     }
 
     public void CheckLoginState()
@@ -155,6 +158,7 @@ public class AuthManager : MonoBehaviour
 
         // 2. Show the Cinematic Panel
         if (cinematicPanel != null) cinematicPanel.SetActive(true);
+        if (skipButton != null) skipButton.SetActive(true);
 
         // 3. Play the video and listen for the end
         if (introVideoPlayer != null)
@@ -166,23 +170,51 @@ public class AuthManager : MonoBehaviour
         else
         {
             Debug.LogWarning("No Video Player assigned! Skipping straight to tutorial.");
-            LoadTutorialScene();
+            FinishCutsceneAndShowMainMenu();
         }
     }
 
     private void OnCutsceneFinished(VideoPlayer vp)
     {
-        // Unsubscribe from the event to prevent memory leaks
-        vp.loopPointReached -= OnCutsceneFinished; 
-        
-        LoadTutorialScene();
+        FinishCutsceneAndShowMainMenu();
     }
 
-    private void LoadTutorialScene()
+    // Call this method from your Skip Button's OnClick event in the Unity Editor
+    public void OnClickSkipCutscene()
     {
-        // Load the LogicGarden scene
-        SceneManager.LoadScene(tutorialSceneName);
+        FinishCutsceneAndShowMainMenu();
     }
+
+    private void FinishCutsceneAndShowMainMenu()
+    {
+        // Clean up video player events and stop playback
+        if (introVideoPlayer != null)
+        {
+            introVideoPlayer.loopPointReached -= OnCutsceneFinished;
+            introVideoPlayer.Stop();
+        }
+
+        // Hide the video panel
+        if (cinematicPanel != null) cinematicPanel.SetActive(false);
+        if (skipButton != null) skipButton.SetActive(false);
+
+        // Load the Main Menu UI
+        ShowModeSelection();
+    }
+
+    // private void OnCutsceneFinished(VideoPlayer vp)
+    // {
+    //     // Unsubscribe from the event to prevent memory leaks
+    //     vp.loopPointReached -= OnCutsceneFinished; 
+        
+    //     LoadTutorialScene();
+    // }
+
+    // private void LoadTutorialScene()
+    // {
+    //     // Load the LogicGarden scene
+    //     SceneManager.LoadScene(tutorialSceneName);
+    // }
 
     // --- GOOGLE SIGN-IN ---
 
