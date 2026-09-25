@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun; 
@@ -30,25 +30,48 @@ public class Player : MonoBehaviourPun
     private float jumpBufferTimer;
     private bool tutorialMovementDone = false;
 
+    private bool isGuidedMovementActive;
+    private Transform guidedMovementTarget;
+    private float guidedMovementSpeed;
+    private float guidedMovementStoppingDistance;
+
     // ---> NEW: Unity's Built-in Physics Controller <---
     private CharacterController controller;
+    private bool ownsLocalInput;
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
         if (gameInput == null) gameInput = FindFirstObjectByType<GameInput>();
 
-        // ---> ADD THIS PIECE <---
         if (IsLocalPlayer())
         {
+            // Offline Player components all appear local. Only one may own the shared
+            // GameInput and gameplay camera.
+            if (LocalInstance != null && LocalInstance != this && LocalInstance.gameObject.activeInHierarchy)
+            {
+                Debug.LogError($"Duplicate local Player detected: '{name}'. " +
+                               $"'{LocalInstance.name}' already owns local input. Disabling duplicate control.");
+                enabled = false;
+                return;
+            }
+
             LocalInstance = this;
+            ownsLocalInput = true;
         }
     }
 
     private void Start()
     {
-        if (IsLocalPlayer())
+        if (ownsLocalInput)
         {
+            if (gameInput == null)
+            {
+                Debug.LogError($"{name} cannot receive input because no GameInput exists.");
+                enabled = false;
+                return;
+            }
+
             gameInput.OnInteractAction += GameInput_OnInteractAction;
             gameInput.OnJumpAction += GameInput_OnJumpAction;
 
@@ -56,7 +79,10 @@ public class Player : MonoBehaviourPun
             // if (cam != null) cam.SetPlayerTarget(this.transform);
 
             // Find Cinemachine camera and set target
-            Unity.Cinemachine.CinemachineCamera cmCam = FindFirstObjectByType<Unity.Cinemachine.CinemachineCamera>();
+            GameObject gameplayCameraObject = GameObject.Find("CM_ThirdPersonCam");
+            Unity.Cinemachine.CinemachineCamera cmCam = gameplayCameraObject != null
+                ? gameplayCameraObject.GetComponent<Unity.Cinemachine.CinemachineCamera>()
+                : FindFirstObjectByType<Unity.Cinemachine.CinemachineCamera>();
             if (cmCam != null)
             {
                 // Use child CameraTarget if available, otherwise fall back to player root
@@ -68,13 +94,13 @@ public class Player : MonoBehaviourPun
 
     private void GameInput_OnJumpAction(object sender, System.EventArgs e)
     {
-        if (!enabled) return; // UI puzzles can temporarily suspend player control.
+        if (!enabled || isGuidedMovementActive) return; // Guided movement owns locomotion until the door transition finishes.
         jumpBufferTimer = jumpBufferTime;
     }
 
     private void GameInput_OnInteractAction(object sender, System.EventArgs e)
     {
-        if (!enabled) return; // Event subscriptions still fire on disabled behaviours.
+        if (!enabled || isGuidedMovementActive) return; // Event subscriptions still fire on disabled behaviours.
         float interactionDistance = 2f;
         Vector3 rayStart = transform.position + Vector3.up * 0.5f; 
         float castRadius = 0.5f; 
@@ -178,7 +204,13 @@ public class Player : MonoBehaviourPun
 
     private void Update()
     {
-        if (!IsLocalPlayer()) return; 
+        if (!ownsLocalInput) return;
+
+        if (isGuidedMovementActive)
+        {
+            HandleGuidedMovement();
+            return;
+        }
 
         HandleMovementAndGravity();
         HandleInteractions();
@@ -258,6 +290,69 @@ public class Player : MonoBehaviourPun
         controller.Move(finalMovement * Time.deltaTime);
     }
 
+    private void HandleGuidedMovement()
+    {
+        if (guidedMovementTarget == null)
+        {
+            EndGuidedMovement();
+            return;
+        }
+
+        // Door targets differ slightly in height, so guide only along the floor plane.
+        Vector3 toTarget = guidedMovementTarget.position - transform.position;
+        toTarget.y = 0f;
+
+        if (toTarget.sqrMagnitude <= guidedMovementStoppingDistance * guidedMovementStoppingDistance)
+        {
+            EndGuidedMovement();
+            return;
+        }
+
+        Vector3 moveDirection = toTarget.normalized;
+        transform.forward = Vector3.Slerp(transform.forward, moveDirection, Time.deltaTime * 10f);
+        isWalking = true;
+        isJumping = false;
+        jumpBufferTimer = 0f;
+
+        if (controller.isGrounded)
+        {
+            verticalVelocity = -5f;
+        }
+        else
+        {
+            verticalVelocity += gravity * Time.deltaTime;
+            if (verticalVelocity < -25f) verticalVelocity = -25f;
+        }
+
+        Vector3 movement = (moveDirection * guidedMovementSpeed) + (Vector3.up * verticalVelocity);
+        controller.Move(movement * Time.deltaTime);
+    }
+
+    public void BeginGuidedMovement(Transform target, float speed, float stoppingDistance = 0.2f)
+    {
+        if (!IsLocalPlayer() || target == null) return;
+
+        guidedMovementTarget = target;
+        guidedMovementSpeed = Mathf.Max(0.1f, speed);
+        guidedMovementStoppingDistance = Mathf.Max(0.05f, stoppingDistance);
+        isGuidedMovementActive = true;
+        jumpBufferTimer = 0f;
+
+        MobileInputUI mobileJoystick = FindFirstObjectByType<MobileInputUI>();
+        if (mobileJoystick != null)
+        {
+            mobileJoystick.ResetJoystick();
+        }
+    }
+
+    public void EndGuidedMovement()
+    {
+        isGuidedMovementActive = false;
+        guidedMovementTarget = null;
+        isWalking = false;
+        isJumping = false;
+    }
+
     // ---> NEW PUSH LOGIC <---
     // This built-in function triggers when the CharacterController bumps into something
     private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -285,15 +380,24 @@ public class Player : MonoBehaviourPun
 
     private void OnDestroy()
     {
-        if (gameInput != null && IsLocalPlayer())
+        if (gameInput != null && ownsLocalInput)
         {
             gameInput.OnInteractAction -= GameInput_OnInteractAction;
             gameInput.OnJumpAction -= GameInput_OnJumpAction;
         }
+
+        if (LocalInstance == this)
+            LocalInstance = null;
     }
+
 
     public void ToggleControl(bool hasControl)
     {
+        if (!hasControl)
+        {
+            EndGuidedMovement();
+        }
+
         this.enabled = hasControl;
         
         // If we are freezing the player, force the animation variables to false

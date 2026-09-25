@@ -1,0 +1,120 @@
+{
+  "pages": [
+    {
+      "source": "User-provided exact content — Rules of Inference — page 1",
+      "text": "IT 105 — DISCRETE STRUCTURES 1\nCombined Week 3 & Week 4 — Rules of Inference\nBelow is the combined extraction of Week 3 and Week 4. I kept the PPT's terminology, formulas, examples, rules, and explanations, while organizing the two presentations into one continuous lesson for your game's educational/book system.\nWeek 3 introduces the arguments and the first set of rules of inference. Week 4 continues directly with additional logical equivalences and inference rules."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 2",
+      "text": "WEEK 3 — RULES OF INFERENCE\n1. RULES OF INFERENCE\nDefinition\nRules of inference are fundamental principles used in logic to draw valid conclusions from given premises.\nThese rules help ensure that logical arguments are structured in a way that preserves the truth of the premises."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 3",
+      "text": "2. ARGUMENT\nDefinition\nAn argument is a structured series of statements or propositions where:\n\tOne or more statements, known as premises, are presented as evidence or reasons.\n\tThese premises support or justify another statement, known as the conclusion.\nBasic structure\nPremises → Conclusion"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 4",
+      "text": "3. TWO PARTS OF AN ARGUMENT\nAn argument consists of two main parts:\nPremise\nA premise is a statement or proposition presented as evidence or a reason.\nPremises are intended to provide support for the conclusion.\nConclusion\nThe conclusion is the statement that the argument is trying to establish or prove.\nThe conclusion is the main point or claim of the argument."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 5",
+      "text": "4. ARGUMENT EXAMPLE\nThe PPT gives the following argument:\nPremise 1\nAll birds have wings\nPremise 2\nA parrot is a bird\nConclusion\nTherefore, parrot has a wing.\nThe first two statements are the premises, while the final statement is the conclusion."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 6",
+      "text": "5. MODUS PONENS\nDefinition\nModus Ponens (MP)\nIf P implies Q, and P is true, then Q must be true.\nFormal Form\np ⇒ q\np\n∴ q\nExample\np: It’s raining.\nq: The ground is wet.\nPremise\nIf it’s raining, then the ground is wet.\nPremise\nIt is raining.\nConclusion\n∴ The ground is wet.\nStructure\nIf:\n\tp ⇒ q\n\tp is true\nThen:\n\tq must be true."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 7",
+      "text": "6. MODUS TOLLENS\nDefinition\nModus Tollens (MT)\nIf P implies Q, and Q is false, then P must be false.\nFormal Form\np ⇒ q\n¬q\n∴ ¬p\nExample\np: It’s raining.\nq: The ground is wet.\nPremise\nIf it’s raining, then the ground is wet.\nPremise\nThe ground is not wet.\nConclusion\n∴ It is not raining.\nStructure\nIf:\n\tp ⇒ q\n\t¬q\nThen:\n\t¬p"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 8",
+      "text": "7. HYPOTHETICAL SYLLOGISM\nDefinition\nHypothetical Syllogism (HS)\nIf P implies Q, and Q implies R, then P implies R.\nFormal Form\np ⇒ q\nq ⇒ r\n∴ p ⇒ r\nExample\np: It’s raining.\nq: The ground is wet.\nr: The grass is slippery.\nPremise 1\nIf it is raining, then the ground is wet.\nPremise 2\nIf the ground is wet, then the grass is slippery.\nConclusion\n∴ Therefore, it is raining, then the grass is slippery."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 9",
+      "text": "Structure\nIf:\np ⇒ q\nand:\nq ⇒ r\nthen:\np ⇒ r"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 10",
+      "text": "8. DISJUNCTIVE SYLLOGISM\nDefinition\nDisjunctive Syllogism (DS)\nIf either P or Q is true, and P is false, then Q must be true.\nFormal Form\np ∨ q\n¬p\n∴ q\nExample\np: I will make tea.\nq: I will read a book.\nPremise\nI will make tea or read a book.\nPremise\nI will not make tea.\nConclusion\n∴ Therefore, I will read a book."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 11",
+      "text": "9. CONSTRUCTIVE DILEMMA\nDefinition\nConstructive Dilemma (CD)\nIf P implies Q, and R implies S, and P or R is true, then Q or S is true.\nFormal Form\nThe PPT presents:\n(p ⇒ q) ^ (r ⇒ s)\np ∨ r\nq ∨ s\nVariables\np: Sara will wake up early.\nq: Sara will exercise.\nr: Lee will stay up late.\ns: Lee will drink coffee.\nPremise 1\nIf Sara will wake up early, then she will exercise AND If Lee will stay up late, then he will drink coffee.\nPremise 2\nEither Sara woke up early, or Lee stayed up late.\nConclusion\nTherefore, Sara will either exercise or Lee will drink coffee."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 12",
+      "text": "10. SIMPLIFICATION\nDefinition\nSimplification (SIMP)\nIf P ∧ Q is true, then both P and Q are true.\nFormal Form\np ^ q\n∴ p\nExample\nThe sky is blue and the grass is green.\nTherefore:\n∴ Therefore, the sky is blue.\nVariables\np: Sky is blue\nq: Grass is green\nStructure\nFrom:\np ∧ q\nwe can infer:\np\nThe same principle can also be used to infer:\nq"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 13",
+      "text": "11. CONJUNCTION\nDefinition\nConjunction (CONJ)\nIf both P and Q are true, then P is true, and Q is true.\nFormal Form\np\nq\n∴ p ^ q\nExample\np: Juan is drinking coffee.\nq: Juan reading a book.\nConclusion\n∴ Therefore, Juan is drinking coffee AND reading a book\nStructure\nIf:\n\tp is true\n\tq is true\nThen:\np ∧ q\nis true."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 14",
+      "text": "12. ADDITION\nDefinition\nAddition (ADD)\nIf P is true, then P or any other statement is true.\nFormal Form\np\n∴ p ∨ q\nExample\nPremise 1\nIt is sunny.\nConclusion\n∴ Therefore, either it’s sunny or cloudy.\nStructure\nFrom:\np\nwe can infer:\np ∨ q"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 15",
+      "text": "13. DOUBLE NEGATION\nDefinition\nThe Double Negation (DN) rule allows us to simplify expressions by removing double negations without altering the meaning or truth value of the proposition.\nFormal Form\np ↔ ¬ ¬ p\nExample\nPremise 1: DJ attended the class.\nSame as:\nDJ attended the class if and only if he did not, not attend class.\nSo:\nDJ attended the class.\nImportant statement\nNot not p is just p"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 16",
+      "text": "14. TAUTOLOGY\nDefinition\nTautology (TAU)\nIf P is a tautology, then P can be asserted as true without needing any premises.\nExpressions\np ↔ (p ∨ p)\np ↔ (p ^ p)\nExample\nPremise: I will go to school.\nI will go to school if and only if I will go to school OR I will go to school.\nI will go to school if and only if I will go to school AND I will go to school.\nConclusion\nI will go to school.\n15. DE MORGAN'S RULE\nDefinition\nDe Morgan's Rule (DM) in logic is a pair of rules that describe how to negate:\n\tConjunctions\n\tDisjunctions\nThere are two aspects of De Morgan's Rule:\n\tNegation of Conjunction (DM1)\n\tNegation of Disjunction (DM2)"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 17",
+      "text": "15.1 NEGATION OF CONJUNCTION — DM1\nThe negation of a conjunction is logically equivalent to the disjunction of the negations of its components.\nFormula\n¬ (p ^ q) ⇒ (¬p ∨ ¬q)\nMeaning\nWhen a conjunction is negated:\n¬(p ∧ q)\nit becomes:\n¬p ∨ ¬q\nThe conjunction AND changes to OR, and each proposition is negated."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 18",
+      "text": "15.2 NEGATION OF DISJUNCTION — DM2\nThe negation of a disjunction is logically equivalent to the conjunction of the negations of its components.\nFormula\n¬ (p ∨ q) ⇒ (¬p ^ ¬q)\nMeaning\nWhen a disjunction is negated:\n¬(p ∨ q)\nit becomes:\n¬p ∧ ¬q\nThe disjunction OR changes to AND, and each proposition is negated."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 19",
+      "text": "16. COMMUTATIVITY\nDefinition\nThe Commutativity (Com) property in logic refers to the ability to interchange the order of operands in a binary operation without changing the result.\nIn propositional logic, the Commutativity property applies to:\n\tConjunction (∧)\n\tDisjunction (∨)\nFormula shown in the PPT\np ∨ (q ∨ r) ↔ (q ∨ r) ∨ p\nCore idea\nThe order of the operands can be changed without changing the result."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 20",
+      "text": "17. ASSOCIATIVITY\nDefinition\nThe Associativity (Assoc) property in logic refers to the ability to group operands in a binary operation without changing the result.\nIn propositional logic, the Associativity property applies to:\n\tConjunction (∧)\n\tDisjunction (∨)\nThe PPT identifies:\n\tAssociativity of Conjunction (Assoc ∧)\n\tAssociativity of Disjunction (Assoc ∨)"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 21",
+      "text": "17.1 Associativity of Conjunction\nWhen multiple propositions are connected by conjunction, the result is the same regardless of how they are grouped.\nFormula\n[ p ^ (q ^ r) ] ↔ [ (p ^ q) ^ r ]\nCore idea\nThe grouping can change:\np ∧ (q ∧ r)\nto:\n(p ∧ q) ∧ r\nwithout changing the result."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 22",
+      "text": "17.2 Associativity of Disjunction\nWhen multiple propositions are connected by disjunction, the result is the same regardless of how they are grouped.\nFormula\n[ p ∨ (q ∨ r) ] ↔ [ (p ∨ q) ∨ r ]"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 23",
+      "text": "18. DISTRIBUTION\nDefinition\nThe Distribution (DIST) property in logic refers to the relationship between conjunction (∧) and disjunction (∨) operations.\nIt states how one operation distributes over the other.\nThe PPT identifies two forms:\n\tDistribution of Disjunction over Conjunction (DIST ∨/∧)\n\tDistribution of Conjunction over Disjunction (DIST ∧/∨)"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 24",
+      "text": "18.1 Distribution of Disjunction over Conjunction\nFormula\n[ p ∨ (q ^ r) ] ↔ [ (p ∨ q) ^ (p ∨ r) ]\nExplanation\nThis means that disjunction distributes over conjunction, allowing us to expand a disjunction of a conjunction into a conjunction of disjunctions.\nTransformation\np ∨ (q ∧ r)\nbecomes:\n(p ∨ q) ∧ (p ∨ r)"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 25",
+      "text": "18.2 Distribution of Conjunction over Disjunction\nFormula\n[ p ^ (q ∨ r) ] ↔ [ (p ^ q) ∨ (p ^ r) ]\nExplanation\nThis means that conjunction distributes over disjunction, allowing us to expand a conjunction of a disjunction into a disjunction of conjunctions.\nTransformation\np ∧ (q ∨ r)\nbecomes:\n(p ∧ q) ∨ (p ∧ r)"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 26",
+      "text": "19. TRANSPOSITION\nDefinition\nTransposition (TRANS) is a rule of inference in logic that involves switching the positions of the antecedent and consequent of a conditional statement, as long as both are negated.\nFormula\n(p ⇒ q) ↔ (¬q ⇒ ¬p)\nStructure\nOriginal:\np ⇒ q\nTransposed:\n¬q ⇒ ¬p\nThe antecedent and consequent switch positions, and both are negated."
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 27",
+      "text": "20. MATERIAL IMPLICATION\nDefinition / Rule\nMaterial Implication (IMPL)\nThe PPT states:\nIf P is false, then P→Q is considered true, regardless of the truth value of Q.\nFormula\n(p ⇒ q) ↔ (¬p ∨ q)\nTransformation\nA conditional:\np ⇒ q\ncan be expressed as:\n¬p ∨ q"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 28",
+      "text": "21. MATERIAL EQUIVALENCE\nDefinition / Rule\nMaterial Equivalence (EQUIV)\nThe PPT states:\nIf P and Q are materially equivalent, then P implies Q and Q implies P.\nFormula shown in the PPT\n(p ⇒ q) ↔ [(p ⇒ q) ^ (q ⇒ p)]\nCore idea\nMaterial equivalence involves implications in both directions:\np ⇒ q\nand:\nq ⇒ p"
+    },
+    {
+      "source": "User-provided exact content — Rules of Inference — page 29",
+      "text": "22. EXPORTATION\nDefinition\nExportation (EXP)\nThe Exportation rule states that if we have a nested implication of the form:\nP → (Q → R)\nwe can transform it into an equivalent form using conjunctions and implications.\nFormula\n[(p ^ q) ⇒ r] ↔ [p ⇒ (q ⇒ r)]\nTransformation\nOne equivalent form is:\n(p ∧ q) ⇒ r\nThe other equivalent form is:\np ⇒ (q ⇒ r)"
+    }
+  ]
+}
