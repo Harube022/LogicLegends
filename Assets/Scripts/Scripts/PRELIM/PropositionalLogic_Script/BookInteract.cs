@@ -167,11 +167,6 @@ public class BookInteract : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (timerManager != null && !timerManager.IsTimerRunning && LevelTimerManager.savedTopicIndex > 0)
-        {
-            return;
-        }
-
         if (other.CompareTag("Player") && !hasBeenInteracted)
         {
             if (quizManager != null && (quizManager.IsQuizActive || hasBeenInteracted))
@@ -206,6 +201,13 @@ public class BookInteract : MonoBehaviour
             {
                 if (interactButton != null && !interactButton.activeSelf)
                 {
+                    // Teleports and wrong-answer resets can restore eligibility while
+                    // the player is already inside the trigger. Bind this book too.
+                    if (btnComponent != null)
+                    {
+                        btnComponent.onClick.RemoveAllListeners();
+                        btnComponent.onClick.AddListener(OnInteractClicked);
+                    }
                     interactButton.SetActive(true);
                 }
             }
@@ -225,9 +227,10 @@ public class BookInteract : MonoBehaviour
 
     private void OnInteractClicked()
     {
-        if (timerManager != null && !timerManager.IsTimerRunning && LevelTimerManager.savedTopicIndex > 0)
+        if (hasBeenInteracted || quizManager == null || quizManager.IsQuizActive ||
+            quizManager.IsSequenceComplete || (timerManager != null && timerManager.RemainingTime <= 0f))
         {
-            interactButton.SetActive(false);
+            if (interactButton != null) interactButton.SetActive(false);
             return;
         }
         

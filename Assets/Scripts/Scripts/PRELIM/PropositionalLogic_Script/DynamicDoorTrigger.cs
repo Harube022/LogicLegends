@@ -52,13 +52,24 @@ public class DynamicDoorTrigger : MonoBehaviour
 
             if (quizManager.IsChoiceCorrect(doorIndex))
             {
+                Player playerController = other.GetComponent<Player>();
                 quizManager.FinalizeChallengeCompletion();
-                quizManager.AdvanceToNextChallenge();
-                
-                if (successDestination != null) 
+                Transform nextChallengeDestination = quizManager.AdvanceToNextChallenge();
+
+                if (nextChallengeDestination != null)
                 {
-                    TeleportPlayer(other.gameObject, successDestination);
+                    TeleportPlayer(other.gameObject, nextChallengeDestination);
                 }
+                else if (!quizManager.IsSequenceComplete)
+                {
+                    Debug.LogError(
+                        $"No spawn point is configured for the next randomized challenge. " +
+                        $"Legacy fixed destination was '{(successDestination != null ? successDestination.name : "None")}'.",
+                        this);
+                }
+
+                // The player has crossed the chosen doorway and reached the next challenge spawn.
+                playerController?.EndGuidedMovement();
             }
             else
             {
@@ -70,6 +81,12 @@ public class DynamicDoorTrigger : MonoBehaviour
     private IEnumerator HammerTrapSequence(GameObject player)
     {
         isProcessingTrap = true;
+
+        Player playerController = player.GetComponent<Player>();
+        if (playerController != null)
+        {
+            playerController.ToggleControl(false);
+        }
 
         if (timerManager != null) 
         {
@@ -120,6 +137,11 @@ public class DynamicDoorTrigger : MonoBehaviour
         }
 
         if (charController != null) charController.enabled = true;
+
+        if (playerController != null)
+        {
+            playerController.ToggleControl(true);
+        }
 
         if (quizManager != null) quizManager.ResetCurrentChallengeDoors();
 
