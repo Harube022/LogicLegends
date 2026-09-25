@@ -1,0 +1,9 @@
+{
+  "name": "logic-legends-local-payments",
+  "private": true,
+  "scripts": {
+    "start": "firebase emulators:start --project demo-logic-legends --only functions,database --import .emulator-data --export-on-exit .emulator-data",
+    "test": "npm --prefix functions test"
+  },
+  "devDependencies": { "firebase-tools": "^14.0.0" }
+}
