@@ -87,7 +87,7 @@ public static class LogicGardenStudyLibrarySetup
             for (int i = 0; i < books.Count; i++)
                 cardPositions[i] = books[i].position + Vector3.up * 0.35f + outward * 0.72f;
 
-            Vector3 labelPosition = new Vector3(bookCenter.x, bookCenter.y + 4.98f, bookCenter.z) + outward * 0.9f;
+            Vector3 labelPosition = new Vector3(bookCenter.x, bookCenter.y + 6.18f, bookCenter.z) + outward * 0.9f;
             Vector3 canvasRotation = outward == Vector3.back ? Vector3.zero : new Vector3(0f, 180f, 0f);
             zone.Configure(controller, focusCamera, periods[shelfIndex], StudyLibraryCatalog.GetShelf(periods[shelfIndex]),
                 labelPosition, cardPositions, canvasRotation);

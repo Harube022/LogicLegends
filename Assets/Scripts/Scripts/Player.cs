@@ -288,6 +288,11 @@ public class Player : MonoBehaviourPun
         // 4. Combine and Move! (This automatically calculates stairs, walls, and slopes)
         Vector3 finalMovement = (moveDir * moveSpeed) + (Vector3.up * verticalVelocity);
         controller.Move(finalMovement * Time.deltaTime);
+
+        // Move updates CharacterController.isGrounded. Clear the visual jump flag
+        // on the landing frame instead of waiting for the next Update.
+        if (isJumping && verticalVelocity <= 0f && controller.isGrounded)
+            isJumping = false;
     }
 
     private void HandleGuidedMovement()

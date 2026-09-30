@@ -149,7 +149,7 @@ public static class StudyLibraryPointerValidation
         if (!string.IsNullOrWhiteSpace(page.text))
         {
             Require(!image.gameObject.activeInHierarchy, "Text page still shows the " + side + " source image.");
-            Require(text.gameObject.activeInHierarchy && text.text == page.text, "Wrong " + side + " text page.");
+            Require(text.gameObject.activeInHierarchy && text.text == StudyLibraryController.FormatStudyText(page.text), "Wrong " + side + " text page.");
             return;
         }
 
