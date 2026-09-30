@@ -1,4 +1,6 @@
 using TMPro;
+using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -88,7 +90,7 @@ public class StudyLibraryController : MonoBehaviour
 
         currentBook = book;
         spreadStartPage = 0;
-        titleText.text = book.title;
+        titleText.text = StandardizeTerminology(book.title);
         sourceText.text = book.source;
         readerRoot.SetActive(true);
         readerRoot.transform.SetAsLastSibling();
@@ -315,7 +317,7 @@ public class StudyLibraryController : MonoBehaviour
         }
         if (isTextPage)
         {
-            fallback.text = page.text;
+            fallback.text = FormatStudyText(page.text);
             return;
         }
 
@@ -363,30 +365,28 @@ public class StudyLibraryController : MonoBehaviour
     private static void BuildRelationRepresentations(Transform root)
     {
         AddLabel(root, "RELATION REPRESENTATION", 0f, 0.91f, 1f, 1f, 28f, FontStyles.Bold);
-        AddPanel(root, 0.02f, 0.62f, 0.98f, 0.88f);
-        AddLabel(root, "RELATION IN TABLE", 0.04f, 0.82f, 0.34f, 0.88f, 17f, FontStyles.Bold);
-        AddLabel(root, "x        y\n−2       1\n−2       3\n 0      −3\n 1       4\n 3       1", 0.08f, 0.625f, 0.31f, 0.82f, 18f, FontStyles.Normal);
-        AddLabel(root, "RELATION IN GRAPH", 0.37f, 0.82f, 0.68f, 0.88f, 17f, FontStyles.Bold);
-        DrawAxes(root, 0.40f, 0.64f, 0.66f, 0.81f);
+        AddPanel(root, 0.04f, 0.67f, 0.96f, 0.89f);
+        AddLabel(root, "RELATION IN TABLE", 0.08f, 0.83f, 0.92f, 0.89f, 18f, FontStyles.Bold);
+        AddLabel(root, "x      y\n−2     1\n−2     3\n 0    −3\n 1     4\n 3     1", 0.25f, 0.675f, 0.75f, 0.83f, 18f, FontStyles.Normal);
+        AddPanel(root, 0.04f, 0.36f, 0.96f, 0.64f);
+        AddLabel(root, "RELATION IN GRAPH", 0.08f, 0.58f, 0.92f, 0.64f, 18f, FontStyles.Bold);
+        DrawAxes(root, 0.18f, 0.38f, 0.82f, 0.57f);
         float[,] points = { { -2, 1 }, { -2, 3 }, { 0, -3 }, { 1, 4 }, { 3, 1 } };
         for (int i = 0; i < points.GetLength(0); i++)
-            AddDot(root, 0.53f + points[i, 0] * 0.021f, 0.725f + points[i, 1] * 0.017f, 8f, new Color(0.75f, 0.13f, 0.35f));
-        AddLabel(root, "RELATION IN MAPPING DIAGRAM", 0.70f, 0.82f, 0.97f, 0.88f, 15f, FontStyles.Bold);
+            AddDot(root, 0.50f + points[i, 0] * 0.052f, 0.475f + points[i, 1] * 0.019f, 8f, new Color(0.75f, 0.13f, 0.35f));
+        AddPanel(root, 0.04f, 0.04f, 0.96f, 0.33f);
+        AddLabel(root, "RELATION IN MAPPING DIAGRAM", 0.08f, 0.27f, 0.92f, 0.33f, 18f, FontStyles.Bold);
         string[] lx = { "−2", "0", "1", "3" }, ry = { "−3", "1", "3", "4" };
-        float[] ly = { .79f, .745f, .70f, .655f }, ryy = { .79f, .745f, .70f, .655f };
-        for (int i = 0; i < lx.Length; i++) AddLabel(root, lx[i], .73f, ly[i] - .015f, .79f, ly[i] + .015f, 16f, FontStyles.Bold);
-        for (int i = 0; i < ry.Length; i++) AddLabel(root, ry[i], .91f, ryy[i] - .015f, .97f, ryy[i] + .015f, 16f, FontStyles.Bold);
-        AddArrow(root, .785f, ly[0], .92f, ryy[1]); AddArrow(root, .785f, ly[0], .92f, ryy[2]);
-        AddArrow(root, .785f, ly[1], .92f, ryy[0]); AddArrow(root, .785f, ly[2], .92f, ryy[3]); AddArrow(root, .785f, ly[3], .92f, ryy[1]);
-        AddLabel(root, "A relation may be represented as ordered pairs in a table, points on a graph, or arrows in a mapping diagram.", .04f, .46f, .96f, .58f, 21f, FontStyles.Normal);
-        AddLabel(root, "Ordered pairs:  (−2, 1), (−2, 3), (0, −3), (1, 4), (3, 1)", .06f, .31f, .94f, .43f, 20f, FontStyles.Bold);
-        AddLabel(root, "Each representation shows the same relation.", .06f, .18f, .94f, .29f, 20f, FontStyles.Italic);
+        float[] ly = { .245f, .195f, .145f, .095f }, ryy = { .245f, .195f, .145f, .095f };
+        for (int i = 0; i < lx.Length; i++) AddLabel(root, lx[i], .18f, ly[i] - .018f, .28f, ly[i] + .018f, 17f, FontStyles.Bold);
+        for (int i = 0; i < ry.Length; i++) AddLabel(root, ry[i], .72f, ryy[i] - .018f, .82f, ryy[i] + .018f, 17f, FontStyles.Bold);
+        AddArrow(root, .28f, ly[0], .72f, ryy[1]); AddArrow(root, .28f, ly[0], .72f, ryy[2]);
+        AddArrow(root, .28f, ly[1], .72f, ryy[0]); AddArrow(root, .28f, ly[2], .72f, ryy[3]); AddArrow(root, .28f, ly[3], .72f, ryy[1]);
     }
 
     private static void BuildFunctionMappings(Transform root)
     {
-        AddLabel(root, "FUNCTIONS AS MAPPINGS", 0f, .92f, 1f, 1f, 27f, FontStyles.Bold);
-        AddLabel(root, "A relation or function is represented by the set of all connections shown by the arrows.", .03f, .82f, .97f, .92f, 18f, FontStyles.Normal);
+        AddLabel(root, "Functions can also be represented through mapping. In this case, the relation or function is represented by the set of all the connections by the arrows.", .03f, .82f, .97f, .99f, 20f, FontStyles.Normal);
         DrawMapping(root, .03f, .56f, .97f, .80f, new[] { "1", "2", "3", "4", "5" }, new[] { "3", "5", "9", "17", "33" }, new[,] { { 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 3 }, { 4, 4 } }, "X", "Y");
         DrawMapping(root, .03f, .30f, .97f, .53f, new[] { "5", "6", "7", "8", "9" }, new[] { "0", "1" }, new[,] { { 0, 1 }, { 1, 0 }, { 2, 1 }, { 3, 0 }, { 4, 0 } }, "X", "Y");
         DrawMapping(root, .03f, .04f, .97f, .27f, new[] { "7", "2", "1" }, new[] { "11", "13", "17", "19", "23" }, new[,] { { 0, 0 }, { 0, 1 }, { 1, 2 }, { 1, 3 }, { 2, 4 } }, "X", "Y");
@@ -416,11 +416,10 @@ public class StudyLibraryController : MonoBehaviour
 
     private static void BuildVerticalLineTest(Transform root)
     {
-        AddLabel(root, "WHICH GRAPHS REPRESENT A FUNCTION?", 0f, .90f, 1f, 1f, 25f, FontStyles.Bold);
-        AddLabel(root, "Use the Vertical Line Test", .1f, .84f, .9f, .91f, 19f, FontStyles.Italic);
-        DrawGraphCard(root, .03f, .56f, .97f, .82f, "A", 0);
-        DrawGraphCard(root, .03f, .29f, .97f, .53f, "B", 1);
-        DrawGraphCard(root, .03f, .02f, .97f, .26f, "C", 2);
+        AddLabel(root, "Which of the following graphs represent a function?", 0f, .89f, 1f, 1f, 25f, FontStyles.Bold);
+        DrawGraphCard(root, .03f, .59f, .97f, .86f, "A", 0);
+        DrawGraphCard(root, .03f, .30f, .97f, .56f, "B", 1);
+        DrawGraphCard(root, .03f, .01f, .97f, .27f, "C", 2);
     }
 
     private static void DrawGraphCard(Transform root, float x0, float y0, float x1, float y1, string label, int type)
@@ -449,7 +448,6 @@ public class StudyLibraryController : MonoBehaviour
         }
         float vx = Mathf.Lerp(gx0, gx1, .72f);
         AddLine(root, vx, gy0, vx, gy1, 2f, new Color(.78f,.32f,.12f));
-        AddLabel(root, type == 0 ? "FUNCTION" : "NOT A FUNCTION", x1 - .28f, y0 + .01f, x1 - .02f, y0 + .07f, 15f, FontStyles.Bold);
     }
 
     private static void BuildTreeComparison(Transform root)
@@ -458,15 +456,11 @@ public class StudyLibraryController : MonoBehaviour
         Vector2[] un = { new(.12f,.78f), new(.29f,.707f), new(.43f,.737f), new(.17f,.627f), new(.06f,.615f), new(.12f,.535f), new(.38f,.645f), new(.35f,.56f), new(.29f,.48f), new(.45f,.48f) };
         int[,] ue = { {0,1},{1,2},{1,3},{1,6},{3,4},{3,5},{6,7},{7,8},{7,9} };
         DrawNodeGraph(root, un, ue);
-        AddLabel(root, "Unrooted Tree", .05f, .38f, .47f, .46f, 21f, FontStyles.Bold);
-        AddLabel(root, "No root is designated.", .05f, .30f, .47f, .37f, 18f, FontStyles.Italic);
+        AddLabel(root, "Unrooted Tree", .05f, .34f, .47f, .43f, 21f, FontStyles.Bold);
         Vector2[] rt = { new(.76f,.78f), new(.65f,.722f), new(.54f,.664f), new(.65f,.659f), new(.77f,.659f), new(.88f,.678f), new(.65f,.596f), new(.65f,.533f), new(.56f,.48f), new(.74f,.48f), new(.88f,.61f) };
         int[,] re = { {0,1},{1,2},{1,3},{1,5},{2,4},{3,6},{6,7},{7,8},{7,9},{5,10} };
         DrawNodeGraph(root, rt, re);
-        AddLabel(root, "Root", .79f, .77f, .91f, .83f, 17f, FontStyles.Bold);
-        AddLabel(root, "Rooted Tree", .53f, .38f, .95f, .46f, 21f, FontStyles.Bold);
-        AddLabel(root, "A root establishes parent–child levels.", .53f, .30f, .97f, .37f, 18f, FontStyles.Italic);
-        AddLabel(root, "Both are connected and have no cycles.", .08f, .05f, .92f, .15f, 21f, FontStyles.Bold);
+        AddLabel(root, "Rooted Tree", .53f, .34f, .95f, .43f, 21f, FontStyles.Bold);
     }
 
     private static void DrawNodeGraph(Transform root, Vector2[] nodes, int[,] edges)
@@ -550,13 +544,67 @@ public class StudyLibraryController : MonoBehaviour
         text.color = new Color(0.16f, 0.10f, 0.06f);
         text.textWrappingMode = TextWrappingModes.Normal;
         text.enableAutoSizing = true;
-        text.fontSizeMin = 20f;
-        text.fontSizeMax = 31f;
-        text.lineSpacing = 7f;
-        text.rectTransform.anchorMin = new Vector2(0.07f, 0.10f);
-        text.rectTransform.anchorMax = new Vector2(0.93f, 0.92f);
+        text.fontSizeMin = 22f;
+        text.fontSizeMax = 34f;
+        text.lineSpacing = 9f;
+        text.paragraphSpacing = 11f;
+        text.rectTransform.anchorMin = new Vector2(0.065f, 0.105f);
+        text.rectTransform.anchorMax = new Vector2(0.935f, 0.915f);
         text.rectTransform.offsetMin = text.rectTransform.offsetMax = Vector2.zero;
         return text;
+    }
+
+    public static string StandardizeTerminology(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return value;
+        return Regex.Replace(value, @"\bbi[\s-]?conditional\b", "Bi-Conditional", RegexOptions.IgnoreCase);
+    }
+
+    public static string FormatStudyText(string value)
+    {
+        string normalized = StandardizeTerminology(value).Replace("\r\n", "\n");
+        string[] lines = normalized.Split('\n');
+        var result = new StringBuilder(normalized.Length + 128);
+        for (int i = 0; i < lines.Length; i++)
+        {
+            string line = lines[i];
+            string trimmed = line.Trim();
+            if (IsMainHeading(trimmed))
+                result.Append("<size=112%><b>").Append(trimmed).Append("</b></size>");
+            else if (IsSubheading(trimmed))
+                result.Append("<b>").Append(trimmed).Append("</b>");
+            else
+                result.Append(line);
+            if (i + 1 < lines.Length) result.Append('\n');
+        }
+        return result.ToString();
+    }
+
+    private static bool IsMainHeading(string line)
+    {
+        if (string.IsNullOrEmpty(line) || line.Length > 64) return false;
+        bool hasLetter = false;
+        for (int i = 0; i < line.Length; i++)
+        {
+            char c = line[i];
+            if (!char.IsLetter(c)) continue;
+            hasLetter = true;
+            if (char.IsLower(c)) return false;
+        }
+        return hasLetter;
+    }
+
+    private static bool IsSubheading(string line)
+    {
+        switch (line)
+        {
+            case "Definition": case "Example": case "Examples": case "Explanation":
+            case "Core Rule": case "Main Rule": case "Logical Form": case "Formal Form":
+            case "Formula": case "Meaning": case "Symbol": case "Properties":
+            case "Characteristics": case "Conclusion": case "Practice Problem":
+                return true;
+            default: return false;
+        }
     }
 
     private static TMP_Text CreatePageNumber(Transform parent)

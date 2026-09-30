@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
+[DefaultExecutionOrder(100)] // Read Player's movement flags after its Update.
 public class PlayerAnimator : MonoBehaviour
 {
     private const string IS_WALKING = "IsWalking";
