@@ -204,7 +204,7 @@ public class Player : MonoBehaviourPun
 
     private void Update()
     {
-        if (!ownsLocalInput) return;
+        if (!ownsLocalInput || controller == null || !controller.enabled) return;
 
         if (isGuidedMovementActive)
         {

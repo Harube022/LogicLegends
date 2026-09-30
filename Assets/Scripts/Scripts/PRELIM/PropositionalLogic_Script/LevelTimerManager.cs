@@ -8,6 +8,7 @@ public class LevelTimerManager : MonoBehaviour
 {
     [Header("UI Display")]
     [SerializeField] private TextMeshProUGUI timerTextUI;
+    [SerializeField] private TextMeshProUGUI challengeNumberTextUI;
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private Button startOverButton;
     [FormerlySerializedAs("retryButton")]
@@ -19,12 +20,15 @@ public class LevelTimerManager : MonoBehaviour
     [SerializeField] private GameObject safeAreaPanel;
     [Tooltip("Drag your Quiz Panel here")]
     [SerializeField] private GameObject quizPanel;
+    [SerializeField] private QuizManager quizManager;
 
     [Header("Global Timer Configuration")]
     [Tooltip("Total time shared by all five Propositional Logic challenges.")]
-    [SerializeField] private float initialLevelDuration = 540f;
-    [Tooltip("Time granted after retrying a timeout.")]
-    [SerializeField] private float retryLevelDuration = 270f;
+    [SerializeField] private float initialLevelDuration = 360f;
+    [Tooltip("Retry time for challenges 1–3.")]
+    [SerializeField] private float retryLevelDuration = 240f;
+    [Tooltip("Retry time for challenges 4–5.")]
+    [SerializeField] private float lateChallengeRetryLevelDuration = 180f;
 
     [Header("Game Over Navigation")]
     [SerializeField] private string mainMenuSceneName = "Main Menu";
@@ -32,6 +36,7 @@ public class LevelTimerManager : MonoBehaviour
 
     [SerializeField] private float currentTimer;
     private bool isTimerRunning = false;
+    private bool hasPlayedGameOverSound;
 
     // Static variables persist automatically when reloading the scene
     public static int savedTopicIndex = 0;
@@ -56,6 +61,7 @@ public class LevelTimerManager : MonoBehaviour
 
         // Display the correct remaining time numbers immediately so the HUD isn't blank
         InitializeTimeDisplay();
+        UpdateChallengeNumberUI(savedTopicIndex);
     }
 
     private void InitializeTimeDisplay()
@@ -127,6 +133,19 @@ public class LevelTimerManager : MonoBehaviour
         {
             timerTextUI.gameObject.SetActive(isVisible);
         }
+
+        if (challengeNumberTextUI != null)
+        {
+            challengeNumberTextUI.gameObject.SetActive(isVisible);
+        }
+    }
+
+    public void UpdateChallengeNumberUI(int zeroBasedChallengeIndex)
+    {
+        if (challengeNumberTextUI == null) return;
+
+        int challengeNumber = Mathf.Clamp(zeroBasedChallengeIndex + 1, 1, 5);
+        challengeNumberTextUI.text = $"Challenge #{challengeNumber}";
     }
 
     // private void OnValidate()
@@ -170,8 +189,23 @@ public class LevelTimerManager : MonoBehaviour
     {
         isTimerRunning = false;
 
+        if (!hasPlayedGameOverSound)
+        {
+            hasPlayedGameOverSound = true;
+
+            if (quizManager == null)
+            {
+                quizManager = Object.FindFirstObjectByType<QuizManager>();
+            }
+
+            if (quizManager != null)
+            {
+                quizManager.PlayGameOverSound();
+            }
+        }
+
         // 1. Force close ongoing game interfaces
-        if (timerTextUI != null) timerTextUI.gameObject.SetActive(false);
+        SetTimerVisibility(false);
         if (quizPanel != null) quizPanel.SetActive(false);
         if (safeAreaPanel != null) safeAreaPanel.SetActive(false);
 
@@ -197,16 +231,26 @@ public class LevelTimerManager : MonoBehaviour
 
     public void OnMiddleActionClicked()
     {
-        Time.timeScale = 1f;
-
-        if (!TryPrepareTryAgainState())
+        if (TryPrepareTryAgainState())
         {
-            ResetSession();
-            SceneManager.LoadScene(logicGardenSceneName);
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             return;
         }
 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // The middle button becomes the study action after the two allowed retries.
+        // Validate the destination before resetting the counter so a failed scene load
+        // cannot turn the next tap back into Try Again.
+        if (!Application.CanStreamedLevelBeLoaded(logicGardenSceneName))
+        {
+            Debug.LogError($"Cannot load the Logic Garden study scene '{logicGardenSceneName}'. " +
+                "Add and enable it in Build Settings before using the study option.");
+            return;
+        }
+
+        Time.timeScale = 1f;
+        ResetSession();
+        SceneManager.LoadScene(logicGardenSceneName);
     }
 
     public void PrepareStartOverState()
@@ -230,11 +274,14 @@ public class LevelTimerManager : MonoBehaviour
     public void PrepareRetryState()
     {
         isRespawningFromFail = true;
-        savedTopicIndex = 0;
-        savedRemainingTime = retryLevelDuration;
-        currentTimer = retryLevelDuration;
+        float retryDuration = savedTopicIndex < 3
+            ? retryLevelDuration
+            : lateChallengeRetryLevelDuration;
+        savedRemainingTime = retryDuration;
+        currentTimer = retryDuration;
         isTimerRunning = false;
         UpdateTimerUI();
+        UpdateChallengeNumberUI(savedTopicIndex);
     }
 
     public void OnMainMenuClicked()

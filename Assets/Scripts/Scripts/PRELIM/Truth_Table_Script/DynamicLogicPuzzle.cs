@@ -117,6 +117,7 @@ public class DynamicLogicPuzzle : MonoBehaviour
         if (PuzzleCompleted) return;
 
         PuzzleCompleted = true;
+        StageCompleteManager.UnlockStage(3);
         currentPhase.UpdateMasking();
         currentPhase.UpdateHeaders();
         UpdatePlacementIndicator();

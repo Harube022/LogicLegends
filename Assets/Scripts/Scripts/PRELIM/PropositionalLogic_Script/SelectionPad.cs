@@ -177,21 +177,30 @@ public class SelectionPad : MonoBehaviour
             quizManager.ClearQuizUI();
         }
 
-        if (doorVisualObject != null)
-        {
-            doorVisualObject.SetActive(false);
-        }
-
         DynamicDoorTrigger selectedDoorTrigger = FindSelectedDoorTrigger();
         Player player = playerObject != null ? playerObject.GetComponent<Player>() : null;
 
-        if (player != null && selectedDoorTrigger != null)
+        if (selectedDoorTrigger == null || player == null)
         {
-            player.BeginGuidedMovement(selectedDoorTrigger.transform, guidedMovementSpeed);
+            Debug.LogWarning(
+                $"{name} could not start the selected door route because its matching door trigger or Player component was not found.",
+                this);
         }
         else
         {
-            Debug.LogWarning($"{name} could not start guided door movement because its player or matching door trigger was not found.", this);
+            // Door models in PRELIM are static and have no open animation. The
+            // existing doorway-open behavior removes the selected model so the
+            // player can pass through. The wrong-answer trigger restores it after
+            // the hammer/retry sequence.
+            if (doorVisualObject != null)
+            {
+                doorVisualObject.SetActive(false);
+            }
+
+            // Correctness is resolved by DynamicDoorTrigger only after the player
+            // reaches the selected doorway. Both routes use the same movement path;
+            // only a wrong trigger runs the hammer trap.
+            player.BeginGuidedMovement(selectedDoorTrigger.transform, guidedMovementSpeed);
         }
 
         StopChargingSequence();

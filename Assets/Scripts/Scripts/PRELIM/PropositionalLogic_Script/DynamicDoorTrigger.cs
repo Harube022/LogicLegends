@@ -53,6 +53,7 @@ public class DynamicDoorTrigger : MonoBehaviour
             if (quizManager.IsChoiceCorrect(doorIndex))
             {
                 Player playerController = other.GetComponent<Player>();
+                quizManager.PlayCorrectDoorSound();
                 quizManager.FinalizeChallengeCompletion();
                 Transform nextChallengeDestination = quizManager.AdvanceToNextChallenge();
 
@@ -73,6 +74,7 @@ public class DynamicDoorTrigger : MonoBehaviour
             }
             else
             {
+                quizManager.PlayWrongDoorSound();
                 StartCoroutine(HammerTrapSequence(other.gameObject));
             }
         }
@@ -123,6 +125,12 @@ public class DynamicDoorTrigger : MonoBehaviour
             elapsed += Time.deltaTime;
             player.transform.position = Vector3.Lerp(startPosition, targetPosition, elapsed / knockbackDuration);
             yield return null; 
+        }
+
+        // The voice is tied to the completed knockback movement, not the door selection or hammer wind-up.
+        if (quizManager != null)
+        {
+            quizManager.PlayKnockbackVoiceSound();
         }
 
         float remainingStunTime = stunDuration - knockbackDelay - knockbackDuration;

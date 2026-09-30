@@ -69,23 +69,8 @@ public class StageCompleteManager : MonoBehaviour
         string userId = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
         DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
 
-        // A. Save the highest stage unlocked
-        int nextStageUnlock = thisStageNumber + 1;
-        dbRef.Child("users").Child(userId).Child("unlockedStage").GetValueAsync().ContinueWithOnMainThread(task =>
-        {
-            if (task.IsCompleted && task.Result.Exists)
-            {
-                int currentUnlocked = int.Parse(task.Result.Value.ToString());
-                if (nextStageUnlock > currentUnlocked)
-                {
-                    dbRef.Child("users").Child(userId).Child("unlockedStage").SetValueAsync(nextStageUnlock);
-                }
-            }
-            else
-            {
-                dbRef.Child("users").Child(userId).Child("unlockedStage").SetValueAsync(nextStageUnlock);
-            }
-        });
+        // A. Save the highest stage unlocked through the shared progression path.
+        UnlockStage(Mathf.Min(thisStageNumber + 1, StageSelectionState.LastStage));
 
         // B. Add the newly earned Coins and Gems
         dbRef.Child("users").Child(userId).GetValueAsync().ContinueWithOnMainThread(task =>
@@ -98,6 +83,44 @@ public class StageCompleteManager : MonoBehaviour
 
                 dbRef.Child("users").Child(userId).Child("coins").SetValueAsync(currentCoins + coinsEarned);
                 dbRef.Child("users").Child(userId).Child("gems").SetValueAsync(currentGems + gemsEarned);
+            }
+        });
+    }
+
+    public static void UnlockStage(int stageNumber)
+    {
+        int requestedStage = Mathf.Clamp(
+            stageNumber,
+            StageSelectionState.FirstStage,
+            StageSelectionState.LastStage);
+
+        FirebaseAuth auth = FirebaseAuth.DefaultInstance;
+        if (auth == null || auth.CurrentUser == null)
+        {
+            Debug.LogWarning($"Cannot persist Stage {requestedStage}: no Firebase user is signed in.");
+            return;
+        }
+
+        DatabaseReference unlockedStageReference = FirebaseDatabase.DefaultInstance.RootReference
+            .Child("users").Child(auth.CurrentUser.UserId).Child("unlockedStage");
+
+        unlockedStageReference.GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted || task.IsCanceled)
+            {
+                Debug.LogWarning($"Could not read unlockedStage while unlocking Stage {requestedStage}.");
+                return;
+            }
+
+            int currentUnlocked = StageSelectionState.FirstStage;
+            if (task.Result.Exists && task.Result.Value != null)
+            {
+                int.TryParse(task.Result.Value.ToString(), out currentUnlocked);
+            }
+
+            if (requestedStage > currentUnlocked)
+            {
+                unlockedStageReference.SetValueAsync(requestedStage);
             }
         });
     }

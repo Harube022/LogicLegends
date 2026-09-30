@@ -38,6 +38,18 @@ public class QuizManager : MonoBehaviour
     [Header("System References")]
     [SerializeField] private LevelTimerManager timerManager;
 
+    [Header("Gameplay Sound Effects")]
+    [SerializeField] private AudioSource soundEffectsSource;
+    [SerializeField] private AudioClip correctDoorSound;
+    [SerializeField, Range(0f, 1f)] private float correctDoorVolume = 0.85f;
+    [SerializeField] private AudioClip wrongDoorSound;
+    [SerializeField, Range(0f, 1f)] private float wrongDoorVolume = 0.9f;
+    [Tooltip("Assign the approved Mamaaaaa voice clip here. This is intentionally empty until that exact clip is available.")]
+    [SerializeField] private AudioClip knockbackVoiceSound;
+    [SerializeField, Range(0f, 1f)] private float knockbackVoiceVolume = 1f;
+    [SerializeField] private AudioClip gameOverSound;
+    [SerializeField, Range(0f, 1f)] private float gameOverVolume = 1f;
+
     [Header("UI References (Top HUD Overlay)")]
     [SerializeField] private GameObject quizPanel;
     [SerializeField] private GameObject safeAreaPanel;
@@ -73,11 +85,71 @@ public class QuizManager : MonoBehaviour
     public bool IsQuizActive => quizPanel != null && quizPanel.activeSelf;
     public bool IsSequenceComplete => challengeOrder.Count > 0 && currentTopicIndex >= challengeOrder.Count;
 
+    private void Awake()
+    {
+        if (soundEffectsSource == null)
+        {
+            soundEffectsSource = GetComponent<AudioSource>();
+        }
+
+        if (soundEffectsSource != null)
+        {
+            soundEffectsSource.playOnAwake = false;
+            soundEffectsSource.loop = false;
+            soundEffectsSource.spatialBlend = 0f;
+            soundEffectsSource.ignoreListenerPause = true;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (soundEffectsSource != null)
+        {
+            soundEffectsSource.Stop();
+        }
+    }
+
+    public void PlayCorrectDoorSound()
+    {
+        PlayGameplaySound(correctDoorSound, correctDoorVolume);
+    }
+
+    public void PlayWrongDoorSound()
+    {
+        PlayGameplaySound(wrongDoorSound, wrongDoorVolume);
+    }
+
+    public void PlayKnockbackVoiceSound()
+    {
+        PlayGameplaySound(knockbackVoiceSound, knockbackVoiceVolume);
+    }
+
+    public void PlayGameOverSound()
+    {
+        PlayGameplaySound(gameOverSound, gameOverVolume);
+    }
+
+    private void PlayGameplaySound(AudioClip clip, float volume)
+    {
+        if (soundEffectsSource == null || clip == null)
+        {
+            return;
+        }
+
+        soundEffectsSource.PlayOneShot(clip, volume);
+    }
+
     private void Start()
     {
         if (quizPanel != null) quizPanel.SetActive(false);
         HideSharedLoader();
         HideAllRoomCanvases(); // Ensure all 3D texts are completely hidden at launch
+
+        if (StageSelectionState.SelectedStage != 1)
+        {
+            enabled = false;
+            return;
+        }
 
         if (timerManager == null)
         {
@@ -104,7 +176,7 @@ public class QuizManager : MonoBehaviour
             // Clean setup handling for the doors of the room we just respawned into
             ResetCurrentChallengeDoors();
 
-            // Retry remains paused at 04:30 until the player activates this room's Book.
+            // Retry remains paused until the player activates this room's Book.
             PrepareCurrentHintBoard();
         }
         else
@@ -127,6 +199,11 @@ public class QuizManager : MonoBehaviour
             
             // Note: timerManager.StartLevelTimer() is omitted here intentionally 
             // so fresh runs stay completely frozen until the first book stand button is clicked!
+        }
+
+        if (timerManager != null)
+        {
+            timerManager.UpdateChallengeNumberUI(currentTopicIndex);
         }
     }
 
@@ -242,6 +319,10 @@ public class QuizManager : MonoBehaviour
         if (quizPanel != null) quizPanel.SetActive(true); 
 
         LevelTimerManager.savedTopicIndex = currentTopicIndex; 
+        if (timerManager != null)
+        {
+            timerManager.UpdateChallengeNumberUI(currentTopicIndex);
+        }
 
         bool isFirstActivationForChallenge = !currentChallengeStarted;
         if (isFirstActivationForChallenge)
@@ -421,6 +502,10 @@ public class QuizManager : MonoBehaviour
 
         currentTopicIndex++; 
         LevelTimerManager.savedTopicIndex = currentTopicIndex; 
+        if (timerManager != null)
+        {
+            timerManager.UpdateChallengeNumberUI(currentTopicIndex);
+        }
         currentChallengeStarted = false;
         currentQuestion = null;
         ResetQuestionSequence();

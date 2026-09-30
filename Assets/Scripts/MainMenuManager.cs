@@ -5,6 +5,29 @@ using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Extensions;
 
+/// <summary>
+/// Carries the player's stage choice across the Main Menu -> PRELIM scene load.
+/// Progress remains owned by the existing Firebase unlockedStage value.
+/// </summary>
+public static class StageSelectionState
+{
+    public const int FirstStage = 1;
+    public const int LastStage = 3;
+
+    public static int SelectedStage { get; private set; } = FirstStage;
+
+    public static void Select(int stageNumber)
+    {
+        SelectedStage = Mathf.Clamp(stageNumber, FirstStage, LastStage);
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetForNewSession()
+    {
+        SelectedStage = FirstStage;
+    }
+}
+
 public class MainMenuManager : MonoBehaviour
 {
     [Header("Menu Panels")]
@@ -16,10 +39,24 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject customizationMenuPanel;
     [SerializeField] private GameObject achievementsMenuPanel;
     [SerializeField] private GameObject settingsMenuPanel;
-    // [SerializeField] private string Stage = "PRELIM";
+    [SerializeField] private GameObject stageSelectionPanel;
+
+    [Header("Stage Selection")]
+    [SerializeField] private UnityEngine.UI.Button stage1Button;
+    [SerializeField] private UnityEngine.UI.Button stage2Button;
+    [SerializeField] private UnityEngine.UI.Button stage3Button;
+    [SerializeField] private GameObject stage2LockedUI;
+    [SerializeField] private GameObject stage3LockedUI;
+    [SerializeField] private string prelimSceneName = "PRELIM";
 
     // ---> NEW: Variable to remember the player's progress <---
     private int highestUnlockedStage = 1; 
+    private bool isLoadingStage;
+
+    private void Start()
+    {
+        RefreshStageSelectionUI();
+    }
 
     public void ShowMainMenu()
     {
@@ -31,6 +68,7 @@ public class MainMenuManager : MonoBehaviour
         customizationMenuPanel.SetActive(false);
         achievementsMenuPanel.SetActive(false);
         settingsMenuPanel.SetActive(false);
+        SetStageSelectionVisible(false);
     }
 
     public void ShowLoginMenu()
@@ -43,6 +81,7 @@ public class MainMenuManager : MonoBehaviour
         customizationMenuPanel.SetActive(false);
         achievementsMenuPanel.SetActive(false);
         settingsMenuPanel.SetActive(false);
+        SetStageSelectionVisible(false);
     }
 
     public void ShowSignUpMenu()
@@ -55,6 +94,7 @@ public class MainMenuManager : MonoBehaviour
         customizationMenuPanel.SetActive(false);
         achievementsMenuPanel.SetActive(false);
         settingsMenuPanel.SetActive(false);
+        SetStageSelectionVisible(false);
     }
 
     public void ShowPlayMenu()
@@ -67,6 +107,7 @@ public class MainMenuManager : MonoBehaviour
         customizationMenuPanel.SetActive(false);
         achievementsMenuPanel.SetActive(false);
         settingsMenuPanel.SetActive(false);
+        SetStageSelectionVisible(false);
     }
 
     public void ShowShopMenu()
@@ -79,6 +120,7 @@ public class MainMenuManager : MonoBehaviour
         customizationMenuPanel.SetActive(false);
         achievementsMenuPanel.SetActive(false);
         settingsMenuPanel.SetActive(false);
+        SetStageSelectionVisible(false);
     }
 
     public void ShowCustomizationMenu()
@@ -91,6 +133,7 @@ public class MainMenuManager : MonoBehaviour
         customizationMenuPanel.SetActive(true);
         achievementsMenuPanel.SetActive(false);
         settingsMenuPanel.SetActive(false);
+        SetStageSelectionVisible(false);
     }
 
     public void ShowAchievementsMenu()
@@ -103,6 +146,7 @@ public class MainMenuManager : MonoBehaviour
         customizationMenuPanel.SetActive(false);
         achievementsMenuPanel.SetActive(true);
         settingsMenuPanel.SetActive(false);
+        SetStageSelectionVisible(false);
     }
 
     public void ShowSettingsMenu()
@@ -115,55 +159,105 @@ public class MainMenuManager : MonoBehaviour
         customizationMenuPanel.SetActive(false);
         achievementsMenuPanel.SetActive(false);
         settingsMenuPanel.SetActive(true);
+        SetStageSelectionVisible(false);
     }
 
     public void LoadSolo()
     {
-        // Directly load the PRELIM scene
-        SceneManager.LoadScene("PRELIM");
-        
-        // ---> THE FIX: Fetch the database the exact moment they click the button! <---
-        // if (FirebaseAuth.DefaultInstance != null && FirebaseAuth.DefaultInstance.CurrentUser != null)
-        // {
-        //     string userId = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
-        //     DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
+        ShowStageSelection();
+    }
 
-        //     // dbRef.Child("users").Child(userId).Child("unlockedStage").GetValueAsync().ContinueWithOnMainThread(task =>
-        //     // {
-        //     //     if (task.IsCompleted && task.Result.Exists)
-        //     //     {
-        //     //         highestUnlockedStage = int.Parse(task.Result.Value.ToString());
-        //     //     }
-                
-        //     //     string sceneToLoad = "Stage " + highestUnlockedStage;
-        //     //     Debug.Log("Loading saved progress: " + sceneToLoad);
-        //     //     SceneManager.LoadScene(sceneToLoad);
-        //     // });
-        //     dbRef.Child("users").Child(userId).Child("unlockedStage").GetValueAsync().ContinueWithOnMainThread(task =>
-        //     {
-        //         // Check if the task faulted before trying to access task.Result
-        //         if (task.IsFaulted || task.IsCanceled)
-        //         {
-        //             Debug.LogWarning("Database fetch failed. Defaulting to Stage 1.");
-        //             SceneManager.LoadScene("Stage 1");
-        //             return;
-        //         }
+    public void ShowStageSelection()
+    {
+        if (stageSelectionPanel == null)
+        {
+            Debug.LogError("MainMenuManager: Stage Selection Panel is not assigned.");
+            return;
+        }
 
-        //         if (task.IsCompleted && task.Result.Exists)
-        //         {
-        //             highestUnlockedStage = int.Parse(task.Result.Value.ToString());
-        //         }
-                
-        //         string sceneToLoad = "Stage " + highestUnlockedStage;
-        //         Debug.Log("Loading saved progress: " + sceneToLoad);
-        //         SceneManager.LoadScene(sceneToLoad);
-        //     });
-        // }
-        // else
-        // {
-        //     // Fallback just in case they are offline
-        //     SceneManager.LoadScene("Stage 1");
-        // }
+        loginMenuPanel.SetActive(false);
+        signUpMenuPanel.SetActive(false);
+        mainMenuPanel.SetActive(false);
+        playMenuPanel.SetActive(false);
+        shopMenuPanel.SetActive(false);
+        customizationMenuPanel.SetActive(false);
+        achievementsMenuPanel.SetActive(false);
+        settingsMenuPanel.SetActive(false);
+        SetStageSelectionVisible(true);
+
+        // Stage 1 is always available while the persisted value is loading.
+        highestUnlockedStage = StageSelectionState.FirstStage;
+        isLoadingStage = false;
+        RefreshStageSelectionUI();
+        LoadUnlockedStage();
+    }
+
+    public void SelectStage1() => SelectStage(1);
+    public void SelectStage2() => SelectStage(2);
+    public void SelectStage3() => SelectStage(3);
+
+    public void SelectStage(int stageNumber)
+    {
+        if (isLoadingStage || stageNumber < StageSelectionState.FirstStage ||
+            stageNumber > StageSelectionState.LastStage || stageNumber > highestUnlockedStage)
+        {
+            return;
+        }
+
+        isLoadingStage = true;
+        RefreshStageSelectionUI();
+        StageSelectionState.Select(stageNumber);
+        SceneManager.LoadScene(prelimSceneName);
+    }
+
+    private void LoadUnlockedStage()
+    {
+        FirebaseAuth auth = FirebaseAuth.DefaultInstance;
+        if (auth == null || auth.CurrentUser == null)
+        {
+            Debug.LogWarning("No signed-in Firebase user. Only Stage 1 is available.");
+            return;
+        }
+
+        string userId = auth.CurrentUser.UserId;
+        FirebaseDatabase.DefaultInstance.RootReference
+            .Child("users").Child(userId).Child("unlockedStage")
+            .GetValueAsync().ContinueWithOnMainThread(task =>
+            {
+                // The player may choose Stage 1 before Firebase finishes and leave this scene.
+                if (this == null) return;
+
+                if (task.IsFaulted || task.IsCanceled)
+                {
+                    Debug.LogWarning("Could not load unlockedStage. Keeping Stage 1 available.");
+                    return;
+                }
+
+                if (task.Result.Exists && task.Result.Value != null &&
+                    int.TryParse(task.Result.Value.ToString(), out int savedStage))
+                {
+                    highestUnlockedStage = Mathf.Clamp(
+                        savedStage,
+                        StageSelectionState.FirstStage,
+                        StageSelectionState.LastStage);
+                }
+
+                RefreshStageSelectionUI();
+            });
+    }
+
+    private void RefreshStageSelectionUI()
+    {
+        if (stage1Button != null) stage1Button.interactable = !isLoadingStage;
+        if (stage2Button != null) stage2Button.interactable = !isLoadingStage && highestUnlockedStage >= 2;
+        if (stage3Button != null) stage3Button.interactable = !isLoadingStage && highestUnlockedStage >= 3;
+        if (stage2LockedUI != null) stage2LockedUI.SetActive(highestUnlockedStage < 2);
+        if (stage3LockedUI != null) stage3LockedUI.SetActive(highestUnlockedStage < 3);
+    }
+
+    private void SetStageSelectionVisible(bool visible)
+    {
+        if (stageSelectionPanel != null) stageSelectionPanel.SetActive(visible);
     }
 
     public void LoadLogicGarden()

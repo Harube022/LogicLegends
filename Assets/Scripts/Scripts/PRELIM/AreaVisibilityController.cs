@@ -11,37 +11,103 @@ public class AreaVisibilityManager : MonoBehaviour
     [SerializeField] private GameObject rulesOfInferenceGroup;
 
     [Header("Spawn Locations")]
+    [SerializeField] private Transform propositionalLogicSpawnPoint;
     [SerializeField] private Transform truthTableSpawnPoint;
     [SerializeField] private Transform rulesOfInferenceSpawnPoint;
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+            ActivateOnly(StageSelectionState.SelectedStage);
+        }
         else Destroy(gameObject);
     }
 
     private void Start()
     {
-        // Initial setup: Show Propositional Logic, hide the rest
-        if (propositionalLogicGroup != null) propositionalLogicGroup.SetActive(true);
-        if (truthTableGroup != null) truthTableGroup.SetActive(false);
-        if (rulesOfInferenceGroup != null) rulesOfInferenceGroup.SetActive(false);
+        ConfigureSelectedStageUI();
+
+        // QuizManager owns the randomized Propositional Logic room spawn. Starting a
+        // second teleport here would race it and can leave the player in the fixed
+        // Conjunction room while another randomized challenge is active.
+        if (StageSelectionState.SelectedStage != 1)
+        {
+            StartCoroutine(TeleportWhenPlayerIsReady(GetSpawnPoint(StageSelectionState.SelectedStage)));
+        }
     }
 
     public void TransitionToTruthTable()
     {
-        if (truthTableGroup != null) truthTableGroup.SetActive(true);
-        if (propositionalLogicGroup != null) propositionalLogicGroup.SetActive(false);
-
+        StageSelectionState.Select(2);
+        StageCompleteManager.UnlockStage(2);
+        ActivateOnly(2);
         TeleportPlayer(truthTableSpawnPoint);
     }
 
     public void TransitionToRulesOfInference()
     {
-        if (rulesOfInferenceGroup != null) rulesOfInferenceGroup.SetActive(true);
-        if (truthTableGroup != null) truthTableGroup.SetActive(false);
-
+        StageSelectionState.Select(3);
+        StageCompleteManager.UnlockStage(3);
+        ActivateOnly(3);
         TeleportPlayer(rulesOfInferenceSpawnPoint);
+    }
+
+    private void ActivateOnly(int stageNumber)
+    {
+        if (propositionalLogicGroup != null) propositionalLogicGroup.SetActive(stageNumber == 1);
+        if (truthTableGroup != null) truthTableGroup.SetActive(stageNumber == 2);
+        if (rulesOfInferenceGroup != null) rulesOfInferenceGroup.SetActive(stageNumber == 3);
+    }
+
+    private Transform GetSpawnPoint(int stageNumber)
+    {
+        switch (stageNumber)
+        {
+            case 2: return truthTableSpawnPoint;
+            case 3: return rulesOfInferenceSpawnPoint;
+            default: return propositionalLogicSpawnPoint;
+        }
+    }
+
+    private void ConfigureSelectedStageUI()
+    {
+        bool isTruthTable = StageSelectionState.SelectedStage == 2;
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.SetInventoryVisibility(isTruthTable);
+        }
+
+        if (StageSelectionState.SelectedStage == 1)
+        {
+            return;
+        }
+
+        LevelTimerManager propositionalTimer = Object.FindFirstObjectByType<LevelTimerManager>();
+        if (propositionalTimer != null)
+        {
+            propositionalTimer.StopTimer();
+            propositionalTimer.SetTimerVisibility(false);
+        }
+    }
+
+    private IEnumerator TeleportWhenPlayerIsReady(Transform target)
+    {
+        if (target == null)
+        {
+            Debug.LogError($"AreaVisibilityManager: Stage {StageSelectionState.SelectedStage} spawn point is not assigned.");
+            yield break;
+        }
+
+        GameObject player = null;
+        while (player == null)
+        {
+            player = GameObject.FindGameObjectWithTag("Player");
+            yield return null;
+        }
+
+        yield return TeleportRoutine(player, target);
     }
 
     private void TeleportPlayer(Transform target)

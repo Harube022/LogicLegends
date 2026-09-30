@@ -223,6 +223,7 @@ namespace LogicLegends.Inference
             if (newlyCompleted)
             {
                 PuzzleCompleted = true;
+                StageCompleteManager.UnlockStage(3);
                 if (completionMarker != null) completionMarker.SetActive(!IsBoardOpen);
                 onChallengeCompleted.Invoke();
             }

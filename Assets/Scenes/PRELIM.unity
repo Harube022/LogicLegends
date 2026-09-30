@@ -4599,6 +4599,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelTimerManager
   timerTextUI: {fileID: 545612496}
+  challengeNumberTextUI: {fileID: 733822158}
   gameOverPanel: {fileID: 322401006}
   startOverButton: {fileID: 1727235016}
   middleActionButton: {fileID: 1964619891}
@@ -4606,8 +4607,10 @@ MonoBehaviour:
   middleActionLabel: {fileID: 1438349029}
   safeAreaPanel: {fileID: 1574430812}
   quizPanel: {fileID: 325880916}
-  initialLevelDuration: 540
-  retryLevelDuration: 270
+  quizManager: {fileID: 1139044745}
+  initialLevelDuration: 360
+  retryLevelDuration: 240
+  lateChallengeRetryLevelDuration: 180
   mainMenuSceneName: Main Menu
   logicGardenSceneName: LogicGarden
   currentTimer: 300
@@ -5344,6 +5347,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3152049389575916624, guid: 22f0da62785929f478733cb234677266, type: 3}
       insertIndex: 10
       addedObject: {fileID: 1872648481}
+    - targetCorrespondingSourceObject: {fileID: 3152049389575916624, guid: 22f0da62785929f478733cb234677266, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 733822157}
     - targetCorrespondingSourceObject: {fileID: 593392687532575432, guid: 22f0da62785929f478733cb234677266, type: 3}
       insertIndex: 1
       addedObject: {fileID: 1727235019}
@@ -11423,6 +11429,143 @@ CapsuleCollider:
   m_Height: 16.109665
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &733822156
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 733822157}
+  - component: {fileID: 733822159}
+  - component: {fileID: 733822158}
+  m_Layer: 5
+  m_Name: ChallengeNumberText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &733822157
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 733822156}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 612786599}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: -0.00012207031, y: -148}
+  m_SizeDelta: {x: 200, y: 36}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &733822158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 733822156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: Challenge #1
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 9ca18c5d73c03b94482ab52bbf95aa11, type: 2}
+  m_sharedMaterial: {fileID: -5950265838230738108, guid: 9ca18c5d73c03b94482ab52bbf95aa11, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 28
+  m_fontSizeBase: 28
+  m_fontWeight: 400
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 20
+  m_fontSizeMax: 28
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &733822159
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 733822156}
+  m_CullTransparentMesh: 1
 --- !u!1 &733995959
 GameObject:
   m_ObjectHideFlags: 0
@@ -37431,6 +37574,7 @@ MonoBehaviour:
   propositionalLogicGroup: {fileID: 1060388068}
   truthTableGroup: {fileID: 1126939809}
   rulesOfInferenceGroup: {fileID: 858548076}
+  propositionalLogicSpawnPoint: {fileID: 1755672906}
   truthTableSpawnPoint: {fileID: 194987167}
   rulesOfInferenceSpawnPoint: {fileID: 1092121135}
 --- !u!4 &1098416210
@@ -37834,6 +37978,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1139044746}
   - component: {fileID: 1139044745}
+  - component: {fileID: 1139044747}
   m_Layer: 0
   m_Name: QuizManager
   m_TagString: Untagged
@@ -37854,6 +37999,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuizManager
   timerManager: {fileID: 303304567}
+  soundEffectsSource: {fileID: 1139044747}
+  correctDoorSound: {fileID: 8300000, guid: b14a12bfdb24b024a955573b38abe006, type: 3}
+  correctDoorVolume: 0.85
+  wrongDoorSound: {fileID: 8300000, guid: 7df44bdfb0744b74382b721feef8cf75, type: 3}
+  wrongDoorVolume: 0.9
+  knockbackVoiceSound: {fileID: 0}
+  knockbackVoiceVolume: 1
+  gameOverSound: {fileID: 8300000, guid: e1097f5d4e24b05498c4db16cf77fa47, type: 3}
+  gameOverVolume: 1
   quizPanel: {fileID: 325880916}
   safeAreaPanel: {fileID: 1574430812}
   questionTextUI: {fileID: 325880915}
@@ -37862,77 +38016,77 @@ MonoBehaviour:
     questionsPool:
     - questionText: It is only true when both statements are true.
       options:
-      - Exclusive Disconjunction
+      - Exclusive OR
       - Conjunction
-      - Bi-Conditional
+      - Biconditional
       - Disjunction
       correctOptionIndex: 1
     - questionText: Both statements must be true for the whole statement to be true.
       options:
       - Conjunction
-      - Exclusive Disconjunction
-      - Bi-Conditional
+      - Exclusive OR
+      - Biconditional
       - Disjunction
       correctOptionIndex: 0
     - questionText: I combine two statements using the word AND.
       options:
-      - Exclusive Disconjunction
-      - Bi-Conditional
+      - Exclusive OR
+      - Biconditional
       - Conjunction
       - Disjunction
       correctOptionIndex: 2
     - questionText: If even one of the two statements is false, the entire statement
         becomes false.
       options:
-      - Exclusive Disconjunction
-      - Bi-Conditional
+      - Exclusive OR
+      - Biconditional
       - Disjunction
       - Conjunction
       correctOptionIndex: 3
     - questionText: Given P and Q, I am true only when P is true and Q is true.
       options:
-      - Exclusive Disconjunction
+      - Exclusive OR
       - Conjunction
-      - Bi-Conditional
+      - Biconditional
       - Disjunction
       correctOptionIndex: 1
     - questionText: "My symbol is \u2227, and I require both sides to hold true."
       options:
       - Conjunction
-      - Exclusive Disconjunction
-      - Bi-Conditional
+      - Exclusive OR
+      - Biconditional
       - Disjunction
       correctOptionIndex: 0
     - questionText: P is true. Q is true. Therefore, P ___ Q is true. What operation
         belongs between them?
       options:
-      - Exclusive Disconjunction
-      - Bi-Conditional
+      - Exclusive OR
+      - Biconditional
       - Conjunction
       - Disjunction
       correctOptionIndex: 2
     - questionText: 'Four possibilities exist: TT, TF, FT, and FF. Only TT gives
         me a true result.'
       options:
-      - Exclusive Disconjunction
-      - Bi-Conditional
+      - Exclusive OR
+      - Biconditional
       - Disjunction
       - Conjunction
       correctOptionIndex: 3
     - questionText: The gate opens only if you possess the key AND activate the switch.
         Which logical operation does this represent?
       options:
-      - Exclusive Disconjunction
+      - Exclusive OR
       - Conjunction
-      - Bi-Conditional
+      - Biconditional
       - Disjunction
       correctOptionIndex: 1
     - questionText: "Two conditions guard the path. Satisfying only one is not enough\u2014you
         must satisfy both."
       options:
       - Conjunction
-      - Exclusive Disconjunction
-      - Bi-Conditional
+      - Exclusive OR
+      - Biconditional
       - Disjunction
       correctOptionIndex: 0
     roomChoiceCanvas: {fileID: 739869761}
@@ -37948,46 +38102,46 @@ MonoBehaviour:
     - questionText: It is true when at least one statement is true.
       options:
       - Conjunction
-      - Exclusive Disconjunction
+      - Exclusive OR
       - Disjunction
-      - BICONDITIONAL
+      - Biconditional
       correctOptionIndex: 2
     - questionText: I combine two statements using the word OR.
       options:
       - Conjunction
-      - Exclusive Disconjunction
-      - BICONDITIONAL
+      - Exclusive OR
+      - Biconditional
       - Disjunction
       correctOptionIndex: 3
     - questionText: I am false only when both statements are false.
       options:
       - Disjunction
       - Conjunction
-      - Exclusive Disconjunction
-      - BICONDITIONAL
+      - Exclusive OR
+      - Biconditional
       correctOptionIndex: 1
     - questionText: Given P and Q, I am true if P is true, Q is true, or both are
         true.
       options:
       - Conjunction
       - Disjunction
-      - Exclusive Disconjunction
-      - BICONDITIONAL
+      - Exclusive OR
+      - Biconditional
       correctOptionIndex: 1
     - questionText: "My symbol is \u2228, and only one side needs to be true for
         me to be true."
       options:
       - Conjunction
-      - Exclusive Disconjunction
+      - Exclusive OR
       - Disjunction
-      - BICONDITIONAL
+      - Biconditional
       correctOptionIndex: 2
     - questionText: P is false, but Q is true. Even so, P ___ Q is true. What operation
         belongs between them?
       options:
       - Conjunction
-      - Exclusive Disconjunction
-      - BICONDITIONAL
+      - Exclusive OR
+      - Biconditional
       - Disjunction
       correctOptionIndex: 3
     - questionText: 'Four possibilities exist: TT, TF, FT, and FF. I am true in every
@@ -37995,31 +38149,31 @@ MonoBehaviour:
       options:
       - Disjunction
       - Conjunction
-      - Exclusive Disconjunction
-      - BICONDITIONAL
+      - Exclusive OR
+      - Biconditional
       correctOptionIndex: 0
     - questionText: The gate opens if you possess the key OR know the secret code.
         Either condition is enough. Which logical operation does this represent?
       options:
       - Conjunction
       - Disjunction
-      - Exclusive Disconjunction
-      - BICONDITIONAL
+      - Exclusive OR
+      - Biconditional
       correctOptionIndex: 1
     - questionText: Two paths can activate the mechanism. Either path may succeed,
         and activating both also works.
       options:
       - Conjunction
-      - Exclusive Disconjunction
+      - Exclusive OR
       - Disjunction
-      - BICONDITIONAL
+      - Biconditional
       correctOptionIndex: 2
     - questionText: You don't need both conditions to succeed. One true condition
         is enough, but two true conditions work as well.
       options:
       - Conjunction
-      - Exclusive Disconjunction
-      - BICONDITIONAL
+      - Exclusive OR
+      - Biconditional
       - Disjunction
       correctOptionIndex: 3
     roomChoiceCanvas: {fileID: 663565263}
@@ -38030,83 +38184,83 @@ MonoBehaviour:
     - {fileID: 1307875938}
     topicSpawnPoint: {fileID: 1818508646}
     hintBoard: {fileID: 786922124}
-  - topicName: EXCLUSIVE OR
+  - topicName: Exclusive OR
     questionsPool:
     - questionText: It is true only when exactly one statement is true.
       options:
       - Disjunction
-      - BICONDITIONAL
+      - Biconditional
       - Conjunction
-      - 'Exclusive Disconjunction '
+      - Exclusive OR
       correctOptionIndex: 3
     - questionText: I become true when one statement is true and the other is false.
       options:
-      - 'Exclusive Disconjunction '
+      - Exclusive OR
       - Disjunction
-      - BICONDITIONAL
+      - Biconditional
       - Conjunction
       correctOptionIndex: 0
     - questionText: If both statements have the same truth value, I become false.
       options:
       - Disjunction
-      - 'Exclusive Disconjunction '
-      - BICONDITIONAL
+      - Exclusive OR
+      - Biconditional
       - Conjunction
       correctOptionIndex: 1
     - questionText: Given P and Q, I am true when P is true or Q is true, but not
         both.
       options:
       - Disjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Biconditional
+      - Exclusive OR
       - Conjunction
       correctOptionIndex: 2
     - questionText: I require the two statements to have different truth values for
         the result to be true.
       options:
       - Disjunction
-      - BICONDITIONAL
+      - Biconditional
       - Conjunction
-      - 'Exclusive Disconjunction '
+      - Exclusive OR
       correctOptionIndex: 3
     - questionText: P is true and Q is false. The resulting statement is true. But
         if both become true, the result becomes false.
       options:
-      - 'Exclusive Disconjunction '
+      - Exclusive OR
       - Disjunction
-      - BICONDITIONAL
+      - Biconditional
       - Conjunction
       correctOptionIndex: 0
     - questionText: 'Four possibilities exist: TT, TF, FT, and FF. Only TF and FT
         make me true.'
       options:
       - Disjunction
-      - 'Exclusive Disconjunction '
-      - BICONDITIONAL
+      - Exclusive OR
+      - Biconditional
       - Conjunction
       correctOptionIndex: 1
     - questionText: Two switches control the gate. Activate either one to open it,
         but activating both will keep it closed.
       options:
       - Disjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Biconditional
+      - Exclusive OR
       - Conjunction
       correctOptionIndex: 2
     - questionText: You may choose the sword or the shield, but choosing both will
         not satisfy the condition.
       options:
       - Disjunction
-      - BICONDITIONAL
+      - Biconditional
       - Conjunction
-      - 'Exclusive Disconjunction '
+      - Exclusive OR
       correctOptionIndex: 3
     - questionText: 'I resemble OR, but there is one important restriction: both
         statements cannot be true at the same time.'
       options:
-      - 'Exclusive Disconjunction '
+      - Exclusive OR
       - Disjunction
-      - BICONDITIONAL
+      - Biconditional
       - Conjunction
       correctOptionIndex: 0
     roomChoiceCanvas: {fileID: 1869334697}
@@ -38117,85 +38271,85 @@ MonoBehaviour:
     - {fileID: 426082871}
     topicSpawnPoint: {fileID: 27035736}
     hintBoard: {fileID: 2007710495}
-  - topicName: IMPLICATION
+  - topicName: Conditional
     questionsPool:
     - questionText: It is false only when the first statement is true and the second
         statement is false
       options:
-      - IMPLICATION
+      - Conditional
       - Conjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Biconditional
+      - 'Exclusive OR '
       correctOptionIndex: 0
     - questionText: 'I connect two statements in the form: If P, then Q.'
       options:
       - Conjunction
-      - IMPLICATION
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Conditional
+      - Biconditional
+      - 'Exclusive OR '
       correctOptionIndex: 1
     - questionText: 'I make a promise: whenever the first statement is true, the
         second statement must also be true.'
       options:
       - Conjunction
-      - BICONDITIONAL
-      - IMPLICATION
-      - 'Exclusive Disconjunction '
+      - Biconditional
+      - Conditional
+      - 'Exclusive OR '
       correctOptionIndex: 2
     - questionText: "Given P and Q, I am written as P \u2192 Q."
       options:
       - Conjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
-      - IMPLICATION
+      - Biconditional
+      - 'Exclusive OR '
+      - Conditional
       correctOptionIndex: 3
     - questionText: When my first statement is true, but my second statement is false,
         the entire statement becomes false.
       options:
-      - IMPLICATION
+      - Conditional
       - Conjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Biconditional
+      - 'Exclusive OR '
       correctOptionIndex: 0
     - questionText: 'Four possibilities exist: TT, TF, FT, and FF. Only TF makes
         me false.'
       options:
       - Conjunction
-      - IMPLICATION
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Conditional
+      - Biconditional
+      - 'Exclusive OR '
       correctOptionIndex: 1
     - questionText: P is true and Q is true, so 'If P, then Q' is satisfied. Which
         logical operation does this represent?
       options:
       - Conjunction
-      - BICONDITIONAL
-      - IMPLICATION
-      - 'Exclusive Disconjunction '
+      - Biconditional
+      - Conditional
+      - 'Exclusive OR '
       correctOptionIndex: 2
     - questionText: If you defeat the guardian, then the gate will open. Which logical
         operation describes this condition?
       options:
       - Conjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
-      - IMPLICATION
+      - Biconditional
+      - 'Exclusive OR '
+      - Conditional
       correctOptionIndex: 3
     - questionText: 'The rule says: If the torch is lit, then the hidden passage
         will appear.'
       options:
-      - IMPLICATION
+      - Conditional
       - Conjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Biconditional
+      - 'Exclusive OR '
       correctOptionIndex: 0
     - questionText: "My symbol is \u2192. The statement before me is the condition,
         while the statement after me is the consequence."
       options:
       - Conjunction
-      - IMPLICATION
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Conditional
+      - Biconditional
+      - 'Exclusive OR '
       correctOptionIndex: 1
     roomChoiceCanvas: {fileID: 624272468}
     choiceDoors:
@@ -38205,84 +38359,84 @@ MonoBehaviour:
     - {fileID: 326782642}
     topicSpawnPoint: {fileID: 2096429220}
     hintBoard: {fileID: 1668108364}
-  - topicName: IF&ONLYIF
+  - topicName: Biconditional
     questionsPool:
     - questionText: It is true when both statements have the same truth value.
       options:
-      - IFANDONLYIF
+      - Biconditional
       - Conjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Conditional
+      - 'Exclusive OR '
       correctOptionIndex: 0
     - questionText: I am true when both statements are true or when both statements
         are false.
       options:
       - Conjunction
-      - IFANDONLYIF
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Biconditional
+      - Conditional
+      - 'Exclusive OR '
       correctOptionIndex: 1
     - questionText: I become false whenever the two statements have different truth
         values.
       options:
       - Conjunction
-      - BICONDITIONAL
-      - IFANDONLYIF
-      - 'Exclusive Disconjunction '
+      - Conditional
+      - Biconditional
+      - 'Exclusive OR '
       correctOptionIndex: 2
     - questionText: "Given P and Q, I am written as P \u2194 Q."
       options:
       - Conjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
-      - IFANDONLYIF
+      - Conditional
+      - 'Exclusive OR '
+      - Biconditional
       correctOptionIndex: 3
     - questionText: I connect two statements where each one implies the other.
       options:
-      - IFANDONLYIF
+      - Biconditional
       - Conjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Conditional
+      - 'Exclusive OR '
       correctOptionIndex: 0
     - questionText: 'Four possibilities exist: TT, TF, FT, and FF. Only TT and FF
         make me true.'
       options:
       - Conjunction
-      - IFANDONLYIF
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Biconditional
+      - Conditional
+      - 'Exclusive OR '
       correctOptionIndex: 1
     - questionText: P is true and Q is true, so the statement is true. If both become
         false, the statement remains true.
       options:
       - Conjunction
-      - BICONDITIONAL
-      - IFANDONLYIF
-      - 'Exclusive Disconjunction '
+      - Conditional
+      - Biconditional
+      - 'Exclusive OR '
       correctOptionIndex: 2
     - questionText: The gate opens if the two magical switches are either both activated
         or both deactivated.
       options:
       - Conjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
-      - IFANDONLYIF
+      - Conditional
+      - 'Exclusive OR '
+      - Biconditional
       correctOptionIndex: 3
     - questionText: The two conditions must agree. If one is true while the other
         is false, the condition fails.
       options:
-      - IFANDONLYIF
+      - Biconditional
       - Conjunction
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Conditional
+      - 'Exclusive OR '
       correctOptionIndex: 0
     - questionText: "My symbol is \u2194, and I express that one statement is true
         exactly when the other statement is true."
       options:
       - Conjunction
-      - IFANDONLYIF
-      - BICONDITIONAL
-      - 'Exclusive Disconjunction '
+      - Biconditional
+      - Conditional
+      - 'Exclusive OR '
       correctOptionIndex: 1
     roomChoiceCanvas: {fileID: 379839360}
     choiceDoors:
@@ -38309,6 +38463,103 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &1139044747
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1139044744}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1140451439
 GameObject:
   m_ObjectHideFlags: 0
