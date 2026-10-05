@@ -84,12 +84,14 @@ public class GrabbableObject : MonoBehaviourPun
         if (isStoredInInventory) return; // Ignore grabs if securely stored in inventory UI
 
         // --- FIX: Ensure current item is handled/stored before grabbing new one ---
-        if (Player.LocalInstance != null && Player.LocalInstance.GetHeldObject() != null)
+        if (Player.LocalInstance != null && Player.LocalInstance.GetHeldObject() != null && Player.LocalInstance.GetHeldObject() != this)
         {
             GrabbableObject currentHeld = Player.LocalInstance.GetHeldObject();
             // Force the currently held item into the inventory first
-            InventoryManager.Instance.TryPickupBlock(currentHeld.GetComponent<TruthBlock>().value, currentHeld.GetComponent<TruthBlock>());
-            }
+            if (currentHeld.TryGetComponent(out TruthBlock previousBlock))
+                InventoryManager.Instance.TryPickupBlock(previousBlock.value, previousBlock);
+            else currentHeld.Drop();
+        }
 
         // ---> FIXED: Only request ownership and notify others IF we are online <---
         if (PhotonNetwork.InRoom && photonView != null)

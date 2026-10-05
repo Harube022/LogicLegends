@@ -18,7 +18,7 @@ namespace LogicLegends.Inference
             var text = rect.gameObject.AddComponent<TextMeshProUGUI>();
             text.font = font; text.text = value; text.fontSize = size;
             text.color = new Color(0.91f, 0.95f, 0.93f); text.raycastTarget = false;
-            text.richText = false; text.alignment = TextAlignmentOptions.MidlineLeft;
+            text.richText = false; text.alignment = TextAlignmentOptions.Center;
             if (width > 0)
             {
                 var layout = rect.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();

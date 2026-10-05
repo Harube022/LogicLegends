@@ -157,14 +157,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipmentLoader
   clothesModels:
+  - itemID: male default
+    model: {fileID: 1339760864929434283}
   - itemID: Elite_Skin
     model: {fileID: 1324355811477619316}
-  - itemID: male_default
-    model: {fileID: 5773408517454332509}
   - itemID: male_tuxedo
     model: {fileID: 687146314444077285}
-  - itemID: Uniform
-    model: {fileID: 1339760864929434283}
   - itemID: Common_Skin
     model: {fileID: 2418405600321672625}
   - itemID: Rare_Skin
@@ -174,7 +172,7 @@ MonoBehaviour:
   - itemID: Epic_Skin
     model: {fileID: 3951567716079000427}
   petModels: []
-  defaultClothesID: Elite_Skin
+  defaultClothesID: male_default
 --- !u!114 &-6652158086944124035
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1267,7 +1265,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 82aaff82a7f6bf2479d82c95df552f32, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -1.03
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 82aaff82a7f6bf2479d82c95df552f32, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1495,7 +1493,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3ca7566599956cb46a3255b3a3a31747, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 0.62
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3ca7566599956cb46a3255b3a3a31747, type: 3}
       propertyPath: m_LocalRotation.w
