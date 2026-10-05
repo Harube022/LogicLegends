@@ -25,6 +25,12 @@ public class GameOverManager : MonoBehaviourPun
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
         if (gameplayInterfacePanel != null) gameplayInterfacePanel.SetActive(false);
 
+        if (gameOverPanel == null)
+        {
+            SetsUIController setsUI = FindFirstObjectByType<SetsUIController>();
+            if (setsUI != null) setsUI.ShowGameOver();
+        }
+
         // NEW (Play sound when game over appears)
         PlayGameOverSound();
     }

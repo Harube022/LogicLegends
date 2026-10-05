@@ -28,11 +28,12 @@ public class AreaVisibilityManager : MonoBehaviour
     private void Start()
     {
         ConfigureSelectedStageUI();
+        StartCoroutine(ConfigureRunningWhenPlayerIsReady());
 
         // QuizManager owns the randomized Propositional Logic room spawn. Starting a
         // second teleport here would race it and can leave the player in the fixed
         // Conjunction room while another randomized challenge is active.
-        if (StageSelectionState.SelectedStage != 1)
+        if (StageSelectionState.SelectedStage != 1 && !StageSelectionState.UsesEditorSpawnPoint)
         {
             StartCoroutine(TeleportWhenPlayerIsReady(GetSpawnPoint(StageSelectionState.SelectedStage)));
         }
@@ -40,9 +41,17 @@ public class AreaVisibilityManager : MonoBehaviour
 
     public void TransitionToTruthTable()
     {
+        if (StageSelectionState.SelectedStage != 1) return;
+
+        // The old area's ambient layer may live outside its hierarchy, so clearing
+        // it explicitly prevents its music from continuing into Truth_Table.
+        if (EnvironmentAudioManager.Instance != null)
+            EnvironmentAudioManager.Instance.DeactivateAllLayers();
+
         StageSelectionState.Select(2);
         StageCompleteManager.UnlockStage(2);
         ActivateOnly(2);
+        ConfigureSelectedStageUI();
         TeleportPlayer(truthTableSpawnPoint);
     }
 
@@ -59,6 +68,14 @@ public class AreaVisibilityManager : MonoBehaviour
         if (propositionalLogicGroup != null) propositionalLogicGroup.SetActive(stageNumber == 1);
         if (truthTableGroup != null) truthTableGroup.SetActive(stageNumber == 2);
         if (rulesOfInferenceGroup != null) rulesOfInferenceGroup.SetActive(stageNumber == 3);
+        if (Player.LocalInstance != null)
+            Player.LocalInstance.SetRunningEnabled(stageNumber == 2);
+    }
+
+    private IEnumerator ConfigureRunningWhenPlayerIsReady()
+    {
+        while (Player.LocalInstance == null) yield return null;
+        Player.LocalInstance.SetRunningEnabled(StageSelectionState.SelectedStage == 2);
     }
 
     private Transform GetSpawnPoint(int stageNumber)
@@ -69,6 +86,32 @@ public class AreaVisibilityManager : MonoBehaviour
             case 3: return rulesOfInferenceSpawnPoint;
             default: return propositionalLogicSpawnPoint;
         }
+    }
+
+    public bool TryGetStageForSpawnPoint(Transform spawnPoint, out int stageNumber)
+    {
+        stageNumber = StageSelectionState.FirstStage;
+        if (spawnPoint == null) return false;
+
+        if (spawnPoint == truthTableSpawnPoint ||
+            (truthTableGroup != null && spawnPoint.IsChildOf(truthTableGroup.transform)))
+        {
+            stageNumber = 2;
+            return true;
+        }
+
+        if (spawnPoint == rulesOfInferenceSpawnPoint ||
+            (rulesOfInferenceGroup != null && spawnPoint.IsChildOf(rulesOfInferenceGroup.transform)))
+        {
+            stageNumber = 3;
+            return true;
+        }
+
+        if (spawnPoint == propositionalLogicSpawnPoint ||
+            (propositionalLogicGroup != null && spawnPoint.IsChildOf(propositionalLogicGroup.transform)))
+            return true;
+
+        return false;
     }
 
     private void ConfigureSelectedStageUI()

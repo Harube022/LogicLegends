@@ -14,11 +14,18 @@ public class Player : MonoBehaviourPun
     private GrabbableObject heldObject;
 
     [SerializeField] public float moveSpeed = 8f;
+    [Header("Optional running")]
+    [SerializeField, Min(0f)] private float walkSecondsBeforeRun = 3f;
+    [SerializeField, Min(1f)] private float runSpeedMultiplier = 1.5f;
+    [SerializeField, Range(0f, 0.5f)] private float movementInputDeadZone = 0.12f;
     [SerializeField] private GameInput gameInput;
     [SerializeField] private LayerMask countersLayerMask;
     [SerializeField] private LayerMask Modules;
 
     private bool isWalking;
+    private bool runningEnabled;
+    private bool isRunning;
+    private float continuousWalkSeconds;
     private Vector3 lastInteractions;
 
     [SerializeField] private float jumpForce = 15f;
@@ -27,6 +34,7 @@ public class Player : MonoBehaviourPun
 
     private float verticalVelocity;
     private bool isJumping;
+    private float airborneSeconds;
     private float jumpBufferTimer;
     private bool tutorialMovementDone = false;
 
@@ -65,6 +73,9 @@ public class Player : MonoBehaviourPun
     {
         if (ownsLocalInput)
         {
+            // Prefer the persistent singleton in case a scene-local prefab duplicate
+            // was destroyed during GameInput.Awake after this Player's Awake ran.
+            if (GameInput.Instance != null) gameInput = GameInput.Instance;
             if (gameInput == null)
             {
                 Debug.LogError($"{name} cannot receive input because no GameInput exists.");
@@ -204,7 +215,12 @@ public class Player : MonoBehaviourPun
 
     private void Update()
     {
-        if (!ownsLocalInput || controller == null || !controller.enabled) return;
+        if (!ownsLocalInput || controller == null || !controller.enabled)
+        {
+            OffRun();
+            isWalking = false;
+            return;
+        }
 
         if (isGuidedMovementActive)
         {
@@ -218,10 +234,33 @@ public class Player : MonoBehaviourPun
 
     public bool IsWalking() => isWalking;
     public bool IsJumping() => isJumping;
+    public bool IsRunning() => isRunning;
+
+    public void SetRunningEnabled(bool value)
+    {
+        if (runningEnabled == value) return;
+        runningEnabled = value;
+        OffRun(); // Enabling starts a fresh three-second walk, never an instant run.
+    }
+
+    public void OnRun()
+    {
+        if (!runningEnabled || !enabled || isGuidedMovementActive ||
+            controller == null || !controller.enabled ||
+            gameInput == null || gameInput.GameplayInputBlocked || !isWalking)
+            return;
+        isRunning = true;
+    }
+
+    public void OffRun()
+    {
+        isRunning = false;
+        continuousWalkSeconds = 0f;
+    }
 
     private void HandleInteractions()
     {
-        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        Vector2 inputVector = GetMovementInput();
         Vector3 moveDir = new Vector3(inputVector.x, 0, inputVector.y);
         if (moveDir != Vector3.zero) lastInteractions = moveDir;
 
@@ -236,9 +275,14 @@ public class Player : MonoBehaviourPun
     private void HandleMovementAndGravity()
     {
 
-        if (Camera.main == null || gameInput == null) return;
+        if (Camera.main == null || gameInput == null)
+        {
+            isWalking = false;
+            OffRun();
+            return;
+        }
         // 1. Get Camera Direction
-        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        Vector2 inputVector = GetMovementInput();
         Vector3 camForward = Camera.main.transform.forward;
         Vector3 camRight = Camera.main.transform.right;
 
@@ -248,10 +292,12 @@ public class Player : MonoBehaviourPun
         Vector3 moveDir = camForward * inputVector.y + camRight * inputVector.x;
 
         // 2. Horizontal Movement & Rotation
-        if (moveDir != Vector3.zero)
+        // The same dead-zone-filtered input drives both movement and the run
+        // countdown. Grounding, velocity, and direction changes do not reset it.
+        isWalking = inputVector != Vector2.zero;
+        if (isWalking && moveDir != Vector3.zero)
         {
             transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * 10f);
-            isWalking = true;
 
             if (!tutorialMovementDone)
             {
@@ -259,11 +305,6 @@ public class Player : MonoBehaviourPun
                 if (tutorial != null) { tutorial.CompleteMovementStep(); tutorialMovementDone = true; }
             }
         }
-        else
-        {
-            isWalking = false;
-        }
-
         // 3. Gravity & Jumping (Controller automatically handles floor detection!)
         if (controller.isGrounded)
         {
@@ -281,18 +322,47 @@ public class Player : MonoBehaviourPun
         {
             verticalVelocity += gravity * Time.deltaTime;
             if (verticalVelocity < -25f) verticalVelocity = -25f; // Terminal velocity
+
+            // These controllers have a Jump state but no separate Fall state.
+            // Use it for a real fall while avoiding flicker over tiny floor gaps.
+            if (runningEnabled && verticalVelocity < 0f)
+            {
+                airborneSeconds += Time.deltaTime;
+                if (airborneSeconds >= 0.1f) isJumping = true;
+            }
         }
+
+        if (controller.isGrounded) airborneSeconds = 0f;
 
         jumpBufferTimer -= Time.deltaTime;
 
-        // 4. Combine and Move! (This automatically calculates stairs, walls, and slopes)
-        Vector3 finalMovement = (moveDir * moveSpeed) + (Vector3.up * verticalVelocity);
+        // Count continuous movement input, including jumping and falling. Only
+        // releasing input or disabling gameplay resets the run state.
+        if (runningEnabled && isWalking && !gameInput.GameplayInputBlocked)
+        {
+            if (!isRunning)
+            {
+                continuousWalkSeconds += Time.deltaTime;
+                if (continuousWalkSeconds >= walkSecondsBeforeRun) OnRun();
+            }
+        }
+        else OffRun();
+
+        // The serialized moveSpeed stays the normal walk speed. Multiplying only
+        // the current movement prevents repeated activation from stacking speed.
+        Vector3 finalMovement = (moveDir * moveSpeed * (isRunning ? runSpeedMultiplier : 1f)) +
+                                (Vector3.up * verticalVelocity);
         controller.Move(finalMovement * Time.deltaTime);
 
         // Move updates CharacterController.isGrounded. Clear the visual jump flag
         // on the landing frame instead of waiting for the next Update.
         if (isJumping && verticalVelocity <= 0f && controller.isGrounded)
             isJumping = false;
+    }
+
+    private Vector2 GetMovementInput()
+    {
+        return gameInput.GetMovementVectorNormalized(runningEnabled ? movementInputDeadZone : 0f);
     }
 
     private void HandleGuidedMovement()
@@ -337,6 +407,8 @@ public class Player : MonoBehaviourPun
     {
         if (!IsLocalPlayer() || target == null) return;
 
+        OffRun();
+
         guidedMovementTarget = target;
         guidedMovementSpeed = Mathf.Max(0.1f, speed);
         guidedMovementStoppingDistance = Mathf.Max(0.05f, stoppingDistance);
@@ -352,6 +424,8 @@ public class Player : MonoBehaviourPun
 
     public void EndGuidedMovement()
     {
+        OffRun();
+        airborneSeconds = 0f;
         isGuidedMovementActive = false;
         guidedMovementTarget = null;
         isWalking = false;
@@ -400,6 +474,7 @@ public class Player : MonoBehaviourPun
     {
         if (!hasControl)
         {
+            OffRun();
             EndGuidedMovement();
         }
 
@@ -411,6 +486,7 @@ public class Player : MonoBehaviourPun
             jumpBufferTimer = 0f;
             isWalking = false; 
             isJumping = false;
+            airborneSeconds = 0f;
 
             MobileInputUI mobileJoystick = FindFirstObjectByType<MobileInputUI>();
             if (mobileJoystick != null)
@@ -418,6 +494,12 @@ public class Player : MonoBehaviourPun
                 mobileJoystick.ResetJoystick();
             }
         }
+    }
+
+    private void OnDisable()
+    {
+        OffRun();
+        isWalking = false;
     }
 
     // ---> ADD THESE THREE HELPER METHODS TO THE BOTTOM OF PLAYER.CS <---

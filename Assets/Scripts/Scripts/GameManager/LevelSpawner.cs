@@ -4,6 +4,9 @@ using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Extensions;
 
+#if UNITY_EDITOR
+[DefaultExecutionOrder(-1000)]
+#endif
 public class LevelSpawner : MonoBehaviour
 {
     [Header("Player Prefabs")]
@@ -17,6 +20,21 @@ public class LevelSpawner : MonoBehaviour
     [SerializeField] private CinemachineCamera cmCamera;
 
     private bool playerCommitted;
+
+    private void Awake()
+    {
+#if UNITY_EDITOR
+        // Direct Play in PRELIM has no menu selection. Match its active area to
+        // the spawn point assigned for debugging before area/quiz startup runs.
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "PRELIM" ||
+            Time.frameCount > 1 ||
+            StageSelectionState.HasExplicitSelection || spawnPoint == null) return;
+
+        AreaVisibilityManager area = FindFirstObjectByType<AreaVisibilityManager>(FindObjectsInactive.Include);
+        if (area != null && area.TryGetStageForSpawnPoint(spawnPoint, out int stageNumber))
+            StageSelectionState.SelectForEditorSpawn(stageNumber);
+#endif
+    }
 
     private void Start()
     {

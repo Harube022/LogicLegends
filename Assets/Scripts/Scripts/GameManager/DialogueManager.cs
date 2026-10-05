@@ -61,9 +61,15 @@ public class DialogueManager : MonoBehaviour
 
     public void ToggleInteractButton(bool isOn)
     {
-        if (interactButton != null && !dialoguePanel.activeSelf) 
+        if (interactButton != null && (dialoguePanel == null || !dialoguePanel.activeSelf))
         {
             interactButton.SetActive(isOn);
         }
+    }
+
+    public void ConfigureInteractButton(GameObject button)
+    {
+        interactButton = button;
+        if (interactButton != null) interactButton.SetActive(false);
     }
 }

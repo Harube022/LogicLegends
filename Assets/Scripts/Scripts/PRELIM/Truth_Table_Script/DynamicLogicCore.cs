@@ -27,6 +27,8 @@ public interface IPuzzlePhase
 {
     void StartPhase();
     void HandleTryPlace(TruthBlock block, int columnIndex);
+    bool CanSubmitColumn { get; }
+    bool SubmitColumn();
     Transform GetActiveSnapPoint();
     void UpdateHeaders();
     void UpdateMasking();
