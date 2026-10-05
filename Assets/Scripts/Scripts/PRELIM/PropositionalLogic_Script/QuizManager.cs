@@ -209,7 +209,7 @@ public class QuizManager : MonoBehaviour
 
     private void Update()
     {
-        if (!currentChallengeStarted || timerManager == null || !timerManager.IsTimerRunning)
+        if (!currentChallengeStarted || timerManager == null || !timerManager.IsTimerAdvancing)
         {
             return;
         }
@@ -495,6 +495,10 @@ public class QuizManager : MonoBehaviour
 
     public Transform AdvanceToNextChallenge()
     {
+        // Door triggers can fire again while the final doorway is being crossed.
+        // A completed sequence must not advance or transition a second time.
+        if (IsSequenceComplete) return null;
+
         // A correct answer pauses the shared timer before any transition work occurs.
         if (timerManager != null) timerManager.StopTimer();
 
@@ -514,6 +518,7 @@ public class QuizManager : MonoBehaviour
         if (currentTopicIndex >= challengeOrder.Count)
         {
             Debug.Log("All challenges complete!");
+            HideSharedLoader();
             if (timerManager != null) 
             {
                 timerManager.StopTimer(); 

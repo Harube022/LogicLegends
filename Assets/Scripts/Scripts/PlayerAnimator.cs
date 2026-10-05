@@ -8,15 +8,20 @@ public class PlayerAnimator : MonoBehaviour
 {
     private const string IS_WALKING = "IsWalking";
     private const string IS_JUMPING = "IsJumping";
+    private const string IS_RUNNING = "IsRunning";
 
     [SerializeField] private Player player;
 
     private Animator animator;
     private PhotonView view;
+    private bool hasRunParameter;
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
+        foreach (AnimatorControllerParameter parameter in animator.parameters)
+            if (parameter.name == IS_RUNNING && parameter.type == AnimatorControllerParameterType.Bool)
+                hasRunParameter = true;
 
         // Grab the PhotonView from this object or the parent object
         view = GetComponentInParent<PhotonView>();
@@ -33,5 +38,6 @@ public class PlayerAnimator : MonoBehaviour
 
         animator.SetBool(IS_WALKING, player.IsWalking());
         animator.SetBool(IS_JUMPING, player.IsJumping());
+        if (hasRunParameter) animator.SetBool(IS_RUNNING, player.IsRunning());
     }
 }

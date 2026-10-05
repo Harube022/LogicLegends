@@ -12,6 +12,16 @@ public class GameInput : MonoBehaviour
     private Vector2 mobileMovementVector;
     private static GameInput instance;
 
+    // Modal gameplay UI can temporarily suppress controls without disabling the
+    // shared input component or changing input behavior in other stages.
+    public bool GameplayInputBlocked { get; private set; }
+
+    public void SetGameplayInputBlocked(bool blocked)
+    {
+        GameplayInputBlocked = blocked;
+        if (blocked) mobileMovementVector = Vector2.zero;
+    }
+
     private void Awake()
     {
         if (instance != null)
@@ -32,24 +42,33 @@ public class GameInput : MonoBehaviour
 
     private void Jump_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
+        if (GameplayInputBlocked) return;
         OnJumpAction?.Invoke(this, EventArgs.Empty);
     }
 
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
+        if (GameplayInputBlocked) return;
         OnInteractAction?.Invoke(this, EventArgs.Empty);
     }
 
     public Vector2 GetMovementVectorNormalized()
     {
+        return GetMovementVectorNormalized(0f);
+    }
+
+    public Vector2 GetMovementVectorNormalized(float deadZone)
+    {
+        if (GameplayInputBlocked) return Vector2.zero;
         Vector2 inputVector = playerInputActions.Player.Move.ReadValue<Vector2>();
 
-        if (mobileMovementVector != Vector2.zero)
+        float deadZoneSquared = deadZone * deadZone;
+        if (mobileMovementVector.sqrMagnitude > deadZoneSquared)
         {
             inputVector = mobileMovementVector;
         }
 
-        return inputVector.normalized;
+        return inputVector.sqrMagnitude > deadZoneSquared ? inputVector.normalized : Vector2.zero;
     }
 
     // ===== MOBILE =====
@@ -61,11 +80,13 @@ public class GameInput : MonoBehaviour
 
     public void MobileJump()
     {
+        if (GameplayInputBlocked) return;
         OnJumpAction?.Invoke(this, EventArgs.Empty);
     }
 
     public void MobileInteract()
     {
+        if (GameplayInputBlocked) return;
         // 1. FIRST CHECK: Do we have a block selected in our inventory? If so, drop it!
         if (InventoryManager.Instance != null && InventoryManager.Instance.HasBlockSelected())
         {

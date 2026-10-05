@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 public class TruthBlock : MonoBehaviour
 {
@@ -8,6 +7,15 @@ public class TruthBlock : MonoBehaviour
     private Vector3 originalPosition;
     private Quaternion originalRotation;
     private Rigidbody rb;
+    private TruthBlockSpawner spawnOwner;
+    private Transform currentSpawnPoint;
+    private Transform lastCollectedSpawnPoint;
+    private bool isAtSpawnPoint;
+    private bool isPlacedInColumn;
+
+    public Transform CurrentSpawnPoint => currentSpawnPoint;
+    public Transform LastCollectedSpawnPoint => lastCollectedSpawnPoint;
+    public bool IsPlacedInColumn => isPlacedInColumn;
 
     private void Awake()
     {
@@ -16,56 +24,99 @@ public class TruthBlock : MonoBehaviour
         originalRotation = transform.rotation;
     }
 
-    public void ReturnToOrigin(bool smooth = true)
+    public void InitializeSpawn(TruthBlockSpawner owner, Transform point)
     {
-        Collider col = GetComponent<Collider>();
-        col.enabled = false;
-
-        rb.isKinematic = true;
-        rb.useGravity = false;
-        rb.linearVelocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-
-        if (smooth)
-        {
-            StartCoroutine(SmoothReturn(col));
-        }
-        else
-        {
-            transform.position = originalPosition;
-            transform.rotation = originalRotation;
-
-            rb.isKinematic = false;
-            rb.useGravity = true;
-            col.enabled = true;
-        }
+        spawnOwner = owner;
+        currentSpawnPoint = point;
+        isAtSpawnPoint = true;
+        isPlacedInColumn = false;
     }
 
-    private IEnumerator SmoothReturn(Collider col)
+    public void MarkCollectedFromSpawn()
     {
-        float duration = 0.4f;
-        float time = 0f;
+        if (!isAtSpawnPoint) return;
+        lastCollectedSpawnPoint = currentSpawnPoint;
+        isAtSpawnPoint = false;
+        if (spawnOwner != null) spawnOwner.ReleaseSpawn(this);
+    }
 
-        Vector3 startPos = transform.position;
-        Quaternion startRot = transform.rotation;
+    public void MarkPlacedInColumn()
+    {
+        isPlacedInColumn = true;
+        isAtSpawnPoint = false;
+        if (spawnOwner != null) spawnOwner.ReleaseSpawn(this);
+    }
 
-        while (time < duration)
+    public void ReturnToOrigin(bool smooth = true)
+    {
+        // Preserve the existing API, but remove the timed return from every path.
+        if (spawnOwner != null)
         {
-            time += Time.deltaTime;
-            float t = time / duration;
+            spawnOwner.RespawnBlock(this);
+            return;
+        }
+        RestoreInWorld(originalPosition, originalRotation);
+    }
 
-            transform.position = Vector3.Lerp(startPos, originalPosition, t);
-            transform.rotation = Quaternion.Slerp(startRot, originalRotation, t);
+    public void RespawnAt(Transform point)
+    {
+        currentSpawnPoint = point;
+        isAtSpawnPoint = true;
+        isPlacedInColumn = false;
+        RestoreInWorld(point.position, point.rotation);
+    }
 
-            yield return null;
+    public void RestoreWithoutSpawn()
+    {
+        isAtSpawnPoint = false;
+        isPlacedInColumn = false;
+        RestoreInWorld(transform.position, transform.rotation);
+    }
+
+    public void PrepareForDespawn()
+    {
+        if (spawnOwner != null) spawnOwner.ReleaseSpawn(this);
+        ClearInventoryAndHand();
+    }
+
+    private void RestoreInWorld(Vector3 position, Quaternion rotation)
+    {
+        Collider col = GetComponent<Collider>();
+        if (col != null) col.enabled = false;
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
 
-        transform.position = originalPosition;
-        transform.rotation = originalRotation;
+        ClearInventoryAndHand();
+        transform.SetParent(null, true);
+        transform.SetPositionAndRotation(position, rotation);
+        gameObject.SetActive(true);
+        if (TryGetComponent(out MeshRenderer renderer)) renderer.enabled = true;
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = false;
+            rb.useGravity = true;
+        }
+        if (col != null) col.enabled = true;
+        Physics.SyncTransforms();
+    }
 
-        rb.isKinematic = false;
-        rb.useGravity = true;
-        col.enabled = true;
+    private void ClearInventoryAndHand()
+    {
+        if (InventoryManager.Instance != null)
+            InventoryManager.Instance.TryRemoveBlock(this);
+        if (TryGetComponent(out GrabbableObject grabbable))
+        {
+            if (Player.LocalInstance != null && Player.LocalInstance.GetHeldObject() == grabbable)
+                Player.LocalInstance.SetHeldObjectSilently(null);
+            grabbable.ConfigureInventoryState(false, null, false);
+        }
     }
 
     // Call this via a mobile interaction button or OnTriggerEnter

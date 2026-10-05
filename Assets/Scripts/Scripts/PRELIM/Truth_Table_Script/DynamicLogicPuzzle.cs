@@ -5,6 +5,7 @@ using TMPro;
 public class DynamicLogicPuzzle : MonoBehaviour
 {
     private IPuzzlePhase currentPhase;
+    private TruthTableChallengePhase challengePhase;
     private bool isProcessingPlacement = false;
     private Coroutine reviewCoroutine;
     private bool isActivePuzzle = true;
@@ -45,15 +46,102 @@ public class DynamicLogicPuzzle : MonoBehaviour
     [Header("External Block Spawner Reference")]
     [SerializeField] private TruthBlockSpawner blockSpawner;
 
+    [Header("Completed Column Submission (Truth_Table board)")]
+    [SerializeField] private UnityEngine.UI.Button submitColumnButton;
+    [SerializeField] private TruthTableDoorInteraction houseDoors;
+    [SerializeField] private GameObject columnFeedbackPanel;
+    [SerializeField] private TMP_Text columnFeedbackText;
+    [SerializeField, Min(0.5f)] private float columnFeedbackSeconds = 3f;
+    private Coroutine columnFeedbackCoroutine;
+
+    private void OnEnable()
+    {
+        if (submitColumnButton != null) submitColumnButton.onClick.AddListener(SubmitCurrentColumn);
+    }
+
+    private void OnDisable()
+    {
+        if (submitColumnButton != null)
+        {
+            submitColumnButton.onClick.RemoveListener(SubmitCurrentColumn);
+            submitColumnButton.gameObject.SetActive(false);
+        }
+        ClearColumnFeedback();
+    }
+
+    private void Update()
+    {
+        if (submitColumnButton == null) return;
+        bool ready = isActivePuzzle && !PuzzleCompleted &&
+                     (houseDoors == null || houseDoors.IsStageRunning) &&
+                     currentPhase != null && currentPhase.CanSubmitColumn;
+        if (submitColumnButton.gameObject.activeSelf != ready)
+            submitColumnButton.gameObject.SetActive(ready);
+    }
+
+    public void SubmitCurrentColumn()
+    {
+        if (!isActivePuzzle || PuzzleCompleted || currentPhase == null || !currentPhase.CanSubmitColumn ||
+            (houseDoors != null && !houseDoors.IsStageRunning))
+            return;
+
+        bool correct = currentPhase.SubmitColumn();
+        if (houseDoors != null) houseDoors.PlayAnswerFeedback(correct);
+        if (!correct && houseDoors != null) houseDoors.ApplyIncorrectColumnPenalty();
+        if (houseDoors != null && !houseDoors.IsStageRunning && !correct) return;
+        if (houseDoors != null) houseDoors.ResetAfterColumnEvaluation();
+        ShowColumnFeedback(correct);
+        UpdatePlacementIndicator();
+        Debug.Log(correct ? "Truth_Table column correct; advancing." :
+                            "Truth_Table column incorrect; retry the same column.");
+    }
+
     private void Start()
     {
+        ClearColumnFeedback();
         InitializeMode(puzzleMode);
+    }
+
+    private void ShowColumnFeedback(bool correct)
+    {
+        if (columnFeedbackPanel == null || columnFeedbackText == null) return;
+        ClearColumnFeedback();
+        columnFeedbackText.text = correct ? "Correct!" : "Incorrect! Try again.";
+        columnFeedbackText.color = correct ? new Color(0.25f, 0.95f, 0.35f) :
+                                             new Color(1f, 0.27f, 0.27f);
+        columnFeedbackPanel.SetActive(true);
+        columnFeedbackCoroutine = StartCoroutine(HideColumnFeedbackAfterDelay());
+    }
+
+    private IEnumerator HideColumnFeedbackAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(columnFeedbackSeconds);
+        columnFeedbackCoroutine = null;
+        ClearColumnFeedback();
+    }
+
+    private void ClearColumnFeedback()
+    {
+        if (columnFeedbackCoroutine != null)
+        {
+            StopCoroutine(columnFeedbackCoroutine);
+            columnFeedbackCoroutine = null;
+        }
+        if (columnFeedbackText != null) columnFeedbackText.text = string.Empty;
+        if (columnFeedbackPanel != null) columnFeedbackPanel.SetActive(false);
     }
 
     private void InitializeMode(PuzzleMode mode)
     {
         puzzleMode = mode;
-        if (mode == PuzzleMode.HardMode)
+        // The active TRUTIBOL puzzle has the shared house-door controller. Keep
+        // legacy puzzle components on their existing modes.
+        if (houseDoors != null && blockSpawner != null)
+        {
+            if (challengePhase == null) challengePhase = new TruthTableChallengePhase(this);
+            currentPhase = challengePhase;
+        }
+        else if (mode == PuzzleMode.HardMode)
             currentPhase = new HardPuzzlePhase(this);
         else
             currentPhase = new EasyPuzzlePhase(this);
@@ -68,20 +156,39 @@ public class DynamicLogicPuzzle : MonoBehaviour
 
     public void TryPlace(TruthBlock block, int columnIndex)
     {
-        if (!isActivePuzzle || PuzzleCompleted || isProcessingPlacement || currentPhase == null)
+        if (!isActivePuzzle || PuzzleCompleted || currentPhase == null ||
+            (houseDoors != null && !houseDoors.IsStageRunning))
         {
             block.ReturnToOrigin(true);
             return;
         }
+        if (isProcessingPlacement)
+        {
+            RejectInvalidPlacement(block);
+            return;
+        }
 
         isProcessingPlacement = true;
+        ClearColumnFeedback();
         currentPhase.HandleTryPlace(block, columnIndex);
         isProcessingPlacement = false;
+    }
+
+    public void RejectInvalidPlacement(TruthBlock block)
+    {
+        block.ReturnToOrigin(true);
+        if (houseDoors != null && houseDoors.IsStageRunning)
+            houseDoors.ResetAfterColumnEvaluation();
     }
 
     public void SetPlayerProximity(bool near)
     {
         isPlayerNear = near;
+        if (houseDoors != null)
+        {
+            TruthTableStageClock clock = houseDoors.GetComponent<TruthTableStageClock>();
+            if (clock != null) clock.SetPlayerAtBoard(near);
+        }
         UpdatePlacementIndicator();
     }
 
@@ -112,11 +219,21 @@ public class DynamicLogicPuzzle : MonoBehaviour
         InitializeMode(PuzzleMode.HardMode);
     }
 
+    public void PrepareNextChallenge()
+    {
+        if (houseDoors != null) houseDoors.PrepareNextChallenge();
+    }
+
     public void CompletePuzzle()
     {
         if (PuzzleCompleted) return;
 
         PuzzleCompleted = true;
+        if (houseDoors != null)
+        {
+            houseDoors.ResetAfterColumnEvaluation();
+            houseDoors.CompleteStage();
+        }
         StageCompleteManager.UnlockStage(3);
         currentPhase.UpdateMasking();
         currentPhase.UpdateHeaders();
@@ -174,6 +291,17 @@ public class DynamicLogicPuzzle : MonoBehaviour
     }
 
     public void SpawnEasyBlocks(int step) => blockSpawner.SpawnBlocksForStep(step);
+
+    public void SpawnBlocksForTruthValues(bool[] values) => blockSpawner.SpawnBlocksForTruthValues(values);
+
+    public void RespawnBlocksForRetry(bool[] values) => blockSpawner.RespawnBlocksForRetry(values);
+
+    public void SetChallengeProgress(int challenge, string difficulty, int column, string expression)
+    {
+        if (houseDoors == null) return;
+        TruthTableStageClock clock = houseDoors.GetComponent<TruthTableStageClock>();
+        if (clock != null) clock.SetChallengeProgress(challenge, difficulty, column, expression);
+    }
     
     // Replace the old SpawnHardBlocks with these two:
     public void SpawnHardBlocksSimple(DynamicLogicType type) => blockSpawner.SpawnBlocksForHardModeColumnSimple(type);
@@ -181,6 +309,7 @@ public class DynamicLogicPuzzle : MonoBehaviour
     public void SpawnHardBlocksComplex(ComplexLogicExpression expr) => blockSpawner.SpawnBlocksForHardModeColumnComplex(expr);
     public void LockBlock(TruthBlock block, Transform snapPoint)
     {
+        block.MarkPlacedInColumn();
         block.transform.position = snapPoint.position;
         block.transform.rotation = snapPoint.rotation;
 

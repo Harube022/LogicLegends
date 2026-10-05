@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0f382cdb9e0cc2458a24e4a891aea0e, type: 3}
+  m_Name: TruthTableDoorQuestions
+  m_EditorClassIdentifier: Assembly-CSharp::TruthTableDoorQuestionBank
+  questions:
+  - prompt: What does a truth table show?
+    choices:
+    - All truth-value combinations and the resulting expression value
+    - Only true values of p
+    - Only the final value, without input combinations
+    - The steps of a formal proof
+    correctChoice: 0
+  - prompt: If p is true, what is ~p?
+    choices:
+    - False
+    - True
+    - Both true and false
+    - It cannot be evaluated
+    correctChoice: 0
+  - prompt: "If p is true and q is false, what is p \u2227 q?"
+    choices:
+    - True
+    - False
+    - Both true and false
+    - Cannot be determined from p and q
+    correctChoice: 1
+  - prompt: "If p and q are both false, what is p \u2228 q (inclusive OR)?"
+    choices:
+    - False
+    - True
+    - Both true and false
+    - Cannot be determined from p and q
+    correctChoice: 0
+  - prompt: "If p and q are both true, what is p \u2228 q (inclusive OR)?"
+    choices:
+    - True
+    - False
+    - Both true and false
+    - Cannot be determined from p and q
+    correctChoice: 0
+  - prompt: "If p and q are both true, what is p \u2295 q (exclusive OR)?"
+    choices:
+    - False
+    - True
+    - Both true and false
+    - Cannot be determined from p and q
+    correctChoice: 0
+  - prompt: "If p is true and q is false, what is p \u2192 q?"
+    choices:
+    - True
+    - False
+    - Both true and false
+    - Cannot be determined from p and q
+    correctChoice: 1
+  - prompt: "If p and q are both false, what is p \u2194 q?"
+    choices:
+    - False
+    - True
+    - Both true and false
+    - Cannot be determined from p and q
+    correctChoice: 1
+  - prompt: "If p is true and q is false, what is ~p \u2228 q?"
+    choices:
+    - False
+    - True
+    - Both true and false
+    - Cannot be determined from p and q
+    correctChoice: 0
+  - prompt: "If p is false and q is true, which row correctly evaluates (p \u2192
+      q) \u2192 (~q)?"
+    choices:
+    - "p \u2192 q = T, ~q = F, result = F"
+    - "p \u2192 q = F, ~q = F, result = T"
+    - "p \u2192 q = T, ~q = T, result = T"
+    - "p \u2192 q = F, ~q = T, result = F"
+    correctChoice: 0
