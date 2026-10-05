@@ -12,6 +12,8 @@ public class GameInput : MonoBehaviour
     private Vector2 mobileMovementVector;
     private static GameInput instance;
 
+    public static GameInput Instance => instance;
+
     // Modal gameplay UI can temporarily suppress controls without disabling the
     // shared input component or changing input behavior in other stages.
     public bool GameplayInputBlocked { get; private set; }

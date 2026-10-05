@@ -73,6 +73,9 @@ public class Player : MonoBehaviourPun
     {
         if (ownsLocalInput)
         {
+            // Prefer the persistent singleton in case a scene-local prefab duplicate
+            // was destroyed during GameInput.Awake after this Player's Awake ran.
+            if (GameInput.Instance != null) gameInput = GameInput.Instance;
             if (gameInput == null)
             {
                 Debug.LogError($"{name} cannot receive input because no GameInput exists.");

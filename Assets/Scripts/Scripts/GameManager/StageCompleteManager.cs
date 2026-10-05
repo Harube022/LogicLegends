@@ -40,6 +40,11 @@ public class StageCompleteManager : MonoBehaviour
         // 2. Swap the UI Panels
         if (gameplayInterfacePanel != null) gameplayInterfacePanel.SetActive(false);
         if (stageCompletePanel != null) stageCompletePanel.SetActive(true);
+        else
+        {
+            SetsUIController setsUI = FindFirstObjectByType<SetsUIController>();
+            if (setsUI != null) setsUI.ShowStageComplete();
+        }
 
         // 3. Retrieve the Stats
         float timeTaken = LevelManager.Instance != null ? LevelManager.Instance.totalStageTime : 0f;

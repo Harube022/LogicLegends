@@ -1,0 +1,133 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c677e07afdc541a99f9bd7d31db5a0aa, type: 3}
+  m_Name: SetsChallengeCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::SetsChallengeCatalog
+  challenges:
+  - challengeNumber: 1
+    challengeType: 0
+    setA:
+    - 1
+    - 2
+    - 3
+    - 4
+    setB:
+    - 3
+    - 4
+    - 5
+    - 6
+    universalSet: []
+    instruction: Place 3 in the correct region.
+    elements:
+    - value: 3
+      correctZone: 1
+  - challengeNumber: 2
+    challengeType: 1
+    setA:
+    - 1
+    - 3
+    - 5
+    setB:
+    - 1
+    - 2
+    - 6
+    universalSet:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    instruction: "Construct A \u222A B by placing every distinct element from either
+      set."
+    elements:
+    - value: 1
+      correctZone: 1
+    - value: 3
+      correctZone: 0
+    - value: 5
+      correctZone: 0
+    - value: 2
+      correctZone: 2
+    - value: 6
+      correctZone: 2
+  - challengeNumber: 3
+    challengeType: 2
+    setA:
+    - 1
+    - 2
+    - 3
+    - 4
+    setB:
+    - 3
+    - 4
+    - 5
+    - 6
+    universalSet:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    instruction: "Construct A \u2229 B by placing the elements common to both sets."
+    elements:
+    - value: 3
+      correctZone: 1
+    - value: 4
+      correctZone: 1
+  - challengeNumber: 4
+    challengeType: 3
+    setA:
+    - 1
+    - 2
+    - 3
+    - 4
+    setB:
+    - 3
+    - 4
+    - 5
+    universalSet:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    instruction: "Construct A \u2212 B by placing elements in A that are not in B."
+    elements:
+    - value: 1
+      correctZone: 0
+    - value: 2
+      correctZone: 0
+  - challengeNumber: 5
+    challengeType: 4
+    setA:
+    - 1
+    - 2
+    - 3
+    setB: []
+    universalSet:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    instruction: "Construct A\u1D9C by placing elements in U that are not in A outside
+      Circle A."
+    elements:
+    - value: 4
+      correctZone: 3
+    - value: 5
+      correctZone: 3
+    - value: 6
+      correctZone: 3
