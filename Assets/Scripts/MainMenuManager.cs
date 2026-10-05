@@ -15,16 +15,30 @@ public static class StageSelectionState
     public const int LastStage = 3;
 
     public static int SelectedStage { get; private set; } = FirstStage;
+    public static bool HasExplicitSelection { get; private set; }
+    public static bool UsesEditorSpawnPoint { get; private set; }
 
     public static void Select(int stageNumber)
     {
         SelectedStage = Mathf.Clamp(stageNumber, FirstStage, LastStage);
+        HasExplicitSelection = true;
+        UsesEditorSpawnPoint = false;
     }
+
+#if UNITY_EDITOR
+    public static void SelectForEditorSpawn(int stageNumber)
+    {
+        Select(stageNumber);
+        UsesEditorSpawnPoint = true;
+    }
+#endif
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetForNewSession()
     {
         SelectedStage = FirstStage;
+        HasExplicitSelection = false;
+        UsesEditorSpawnPoint = false;
     }
 }
 

@@ -12,6 +12,9 @@ public class HardPuzzlePhase : IPuzzlePhase
     
     private int currentColumnIndex = 0;
     private int currentRow = 0;
+    private TruthBlock[] placedBlocks = new TruthBlock[4];
+
+    public bool CanSubmitColumn => currentRow == placedBlocks.Length;
 
     // NEW: Track the current round
     private int currentRound = 1;
@@ -26,6 +29,7 @@ public class HardPuzzlePhase : IPuzzlePhase
         GenerateRandomLogics();
         currentColumnIndex = 0;
         currentRow = 0;
+        placedBlocks = new TruthBlock[4];
 
         puzzle.ClearAllSnappedBlocks();
         UpdateMasking();
@@ -74,42 +78,59 @@ public class HardPuzzlePhase : IPuzzlePhase
     {
         if (columnIndex != currentColumnIndex)
         {
-            block.ReturnToOrigin(true);
+            puzzle.RejectInvalidPlacement(block);
             return;
         }
-
-        bool p = (currentRow == 0 || currentRow == 1);
-        bool q = (currentRow == 0 || currentRow == 2);
-
-        bool expectedValue = false;
-
-        // Evaluate based on which column the player is currently on
-        if (currentColumnIndex == 0)
-            expectedValue = LogicUtility.EvaluateLogic(col1Logic, p, q);
-        else if (currentColumnIndex == 1)
-            expectedValue = LogicUtility.EvaluateLogic(col2Logic, p, q);
-        else if (currentColumnIndex == 2)
-            expectedValue = LogicUtility.EvaluateComplexLogic(col3Logic, p, q);
-
-        if (block.value != expectedValue)
+        if (CanSubmitColumn)
         {
-            block.ReturnToOrigin(true);
+            puzzle.RejectInvalidPlacement(block);
             return;
         }
 
         Transform targetSnap = puzzle.GetColumnSnapPoints(currentColumnIndex)[currentRow];
         puzzle.LockBlock(block, targetSnap);
+        placedBlocks[currentRow] = block;
+        currentRow++;
+        puzzle.UpdatePlacementIndicator();
+    }
+
+    public bool SubmitColumn()
+    {
+        if (!CanSubmitColumn) return false;
+        Transform[] snaps = puzzle.GetColumnSnapPoints(currentColumnIndex);
+        bool correct = true;
+        for (int row = 0; row < placedBlocks.Length; row++)
+        {
+            bool p = row == 0 || row == 1;
+            bool q = row == 0 || row == 2;
+            bool expected = currentColumnIndex == 0 ? LogicUtility.EvaluateLogic(col1Logic, p, q) :
+                            currentColumnIndex == 1 ? LogicUtility.EvaluateLogic(col2Logic, p, q) :
+                            LogicUtility.EvaluateComplexLogic(col3Logic, p, q);
+            TruthBlock block = placedBlocks[row];
+            if (block == null || block.value != expected ||
+                Vector3.Distance(block.transform.position, snaps[row].position) > 0.2f)
+                correct = false;
+        }
+
+        if (!correct)
+        {
+            foreach (TruthBlock block in placedBlocks)
+                if (block != null) block.ReturnToOrigin(true);
+            placedBlocks = new TruthBlock[4];
+            currentRow = 0;
+            puzzle.UpdatePlacementIndicator();
+            return false;
+        }
+
         AdvancePhase();
+        return true;
     }
 
     private void AdvancePhase()
     {
-        currentRow++;
-        puzzle.UpdatePlacementIndicator();
-
-        if (currentRow < 4) return;
-
         currentRow = 0;
+        placedBlocks = new TruthBlock[4];
+        puzzle.UpdatePlacementIndicator();
         currentColumnIndex++;
 
         // CHANGED: Check against the required rounds before completing the puzzle

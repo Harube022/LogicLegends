@@ -33,6 +33,7 @@ public class InventoryManager : MonoBehaviour
         {
             if (!slots[i].isEmpty && slots[i].physicalBlocks.Contains(blockInstance))
             {
+                blockInstance.MarkCollectedFromSpawn();
                 return i; 
             }
         }
@@ -44,6 +45,7 @@ public class InventoryManager : MonoBehaviour
             {
                 if (slots[i].TryAdd(isTrueBlock, blockInstance))
                 {
+                    blockInstance.MarkCollectedFromSpawn();
                     SetSelectedSlotDirectly(i); 
                     return i;
                 }
@@ -57,6 +59,7 @@ public class InventoryManager : MonoBehaviour
             {
                 if (slots[i].TryAdd(isTrueBlock, blockInstance))
                 {
+                    blockInstance.MarkCollectedFromSpawn();
                     SetSelectedSlotDirectly(i); 
                     return i;
                 }

@@ -36,6 +36,7 @@ public class LevelTimerManager : MonoBehaviour
 
     [SerializeField] private float currentTimer;
     private bool isTimerRunning = false;
+    private bool isTutorialPaused;
     private bool hasPlayedGameOverSound;
 
     // Static variables persist automatically when reloading the scene
@@ -47,7 +48,13 @@ public class LevelTimerManager : MonoBehaviour
     public static float savedRemainingTime = -1f;
 
     public bool IsTimerRunning => isTimerRunning;
+    public bool IsTimerAdvancing => isTimerRunning && !isTutorialPaused;
     public float RemainingTime => currentTimer;
+
+    public void SetTutorialPaused(bool paused)
+    {
+        isTutorialPaused = paused;
+    }
     public static int TryAgainCount => tryAgainCount;
     public bool IsStudyOptionAvailable => tryAgainCount >= 2;
 
@@ -112,7 +119,7 @@ public class LevelTimerManager : MonoBehaviour
 
     private void Update()
     {
-        if (isTimerRunning)
+        if (IsTimerAdvancing)
         {
             currentTimer -= Time.deltaTime;
             savedRemainingTime = currentTimer; // Keep static backup updated constantly

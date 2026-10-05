@@ -5,6 +5,9 @@ public class EasyPuzzlePhase : IPuzzlePhase
     private DynamicLogicPuzzle puzzle;
     private int easyModeStep = 0;
     private int currentRow = 0;
+    private TruthBlock[] placedBlocks = new TruthBlock[4];
+
+    public bool CanSubmitColumn => currentRow == placedBlocks.Length;
 
     public EasyPuzzlePhase(DynamicLogicPuzzle puzzle)
     {
@@ -15,6 +18,7 @@ public class EasyPuzzlePhase : IPuzzlePhase
     {
         easyModeStep = 0;
         currentRow = 0;
+        placedBlocks = new TruthBlock[4];
         UpdateMasking();
         UpdateHeaders();
         puzzle.SpawnEasyBlocks(easyModeStep);
@@ -36,36 +40,57 @@ public class EasyPuzzlePhase : IPuzzlePhase
         int expectedCol = GetExpectedColumnIndex();
         if (columnIndex != expectedCol)
         {
-            block.ReturnToOrigin(true);
+            puzzle.RejectInvalidPlacement(block);
             return;
         }
-
-        bool p = (currentRow == 0 || currentRow == 1);
-        bool q = (currentRow == 0 || currentRow == 2);
-
-        // Map step directly to logic type for cleaner evaluation
-        DynamicLogicType expectedType = (DynamicLogicType)easyModeStep;
-        bool correctValue = LogicUtility.EvaluateLogic(expectedType, p, q);
-
-        if (block.value != correctValue)
+        if (CanSubmitColumn)
         {
-            block.ReturnToOrigin(true);
+            puzzle.RejectInvalidPlacement(block);
             return;
         }
 
         Transform targetSnap = puzzle.GetColumnSnapPoints(columnIndex)[currentRow];
         puzzle.LockBlock(block, targetSnap);
+        placedBlocks[currentRow] = block;
+        currentRow++;
+        puzzle.UpdatePlacementIndicator();
+    }
+
+    public bool SubmitColumn()
+    {
+        if (!CanSubmitColumn) return false;
+        Transform[] snaps = puzzle.GetColumnSnapPoints(GetExpectedColumnIndex());
+        bool correct = true;
+        for (int row = 0; row < placedBlocks.Length; row++)
+        {
+            bool p = row == 0 || row == 1;
+            bool q = row == 0 || row == 2;
+            bool expected = LogicUtility.EvaluateLogic((DynamicLogicType)easyModeStep, p, q);
+            TruthBlock block = placedBlocks[row];
+            if (block == null || block.value != expected ||
+                Vector3.Distance(block.transform.position, snaps[row].position) > 0.2f)
+                correct = false;
+        }
+
+        if (!correct)
+        {
+            foreach (TruthBlock block in placedBlocks)
+                if (block != null) block.ReturnToOrigin(true);
+            placedBlocks = new TruthBlock[4];
+            currentRow = 0;
+            puzzle.UpdatePlacementIndicator();
+            return false;
+        }
+
         AdvancePhase();
+        return true;
     }
 
     private void AdvancePhase()
     {
-        currentRow++;
-        puzzle.UpdatePlacementIndicator();
-
-        if (currentRow < 4) return;
-
         currentRow = 0;
+        placedBlocks = new TruthBlock[4];
+        puzzle.UpdatePlacementIndicator();
         easyModeStep++;
 
         if (easyModeStep == 3)
