@@ -39,7 +39,9 @@ public class LevelManager : MonoBehaviourPun
     [SerializeField] private float timeRemaining = 180f;
     [SerializeField] private float currentMaxTime = 180f;
     private bool isTimerRunning = false;
+    private bool isSetsStageTimer = false;
     [SerializeField] private TextMeshProUGUI timerText; 
+    public float TimeRemaining => Mathf.Max(0f, timeRemaining);
 
     [Header("Current Progress")]
     [HideInInspector] public Transform player;
@@ -69,7 +71,7 @@ public class LevelManager : MonoBehaviourPun
 
         if (isTimerRunning)
         {
-            timeRemaining -= Time.deltaTime;
+            timeRemaining = Mathf.Max(0f, timeRemaining - Time.deltaTime);
             UpdateTimerUI();
 
             if (timeRemaining <= 0) HandleTimeout();
@@ -233,6 +235,18 @@ public class LevelManager : MonoBehaviourPun
     private void HandleTimeout()
     {
         isTimerRunning = false;
+
+        if (isSetsStageTimer)
+        {
+            timeRemaining = 0f;
+            isStageActive = false;
+            UpdateTimerUI();
+            if (gameOverManager != null) gameOverManager.ShowGameOver();
+            SetsStageManager setsStageManager = FindFirstObjectByType<SetsStageManager>();
+            if (setsStageManager != null) setsStageManager.HandleSetsGameOver();
+            return;
+        }
+
         playerHearts--;
         totalHeartsLostThisStage++;
         UpdateHeartsUI();
@@ -252,6 +266,16 @@ public class LevelManager : MonoBehaviourPun
 
     public void ResetFromGameOver()
     {
+        if (isSetsStageTimer)
+        {
+            SetsStageManager setsStageManager = FindFirstObjectByType<SetsStageManager>();
+            if (setsStageManager != null)
+            {
+                setsStageManager.ResetStageAfterGameOver();
+                return;
+            }
+        }
+
         // 1. Refill Hearts
         playerHearts = 3;
         UpdateHeartsUI();
@@ -449,6 +473,69 @@ public class LevelManager : MonoBehaviourPun
         timeRemaining = currentMaxTime;
         UpdateTimerUI();
         StartTimer();
+    }
+
+    /// <summary>Initializes the shared stage timer for Sets without starting it.</summary>
+    public void BeginSetsStageTimer(float durationInSeconds)
+    {
+        isSetsStageTimer = true;
+        currentMaxTime = Mathf.Max(1f, durationInSeconds);
+        timeRemaining = currentMaxTime;
+        isTimerRunning = false;
+        isStageActive = false;
+        totalStageTime = 0f;
+        totalHeartsLostThisStage = 0;
+        UpdateTimerUI();
+        if (timerText != null) timerText.gameObject.SetActive(false);
+    }
+
+    public void ConfigureSetsStage(GameOverManager setsGameOverManager)
+    {
+        gameOverManager = setsGameOverManager;
+    }
+
+    /// <summary>Resumes the Sets timer without resetting its remaining time.</summary>
+    public void ResumeSetsStageTimer()
+    {
+        if (!isSetsStageTimer || isTimerRunning) return;
+        if (timeRemaining <= 0f)
+        {
+            HandleTimeout();
+            return;
+        }
+
+        isStageActive = true;
+        StartTimer();
+    }
+
+    public void PauseSetsStageTimer()
+    {
+        if (!isSetsStageTimer) return;
+        isStageActive = false;
+        StopTimer();
+    }
+
+    public void DeductSetsStageTime(float seconds)
+    {
+        if (!isSetsStageTimer || !isTimerRunning || seconds <= 0f) return;
+        timeRemaining = Mathf.Max(0f, timeRemaining - seconds);
+        UpdateTimerUI();
+        if (timeRemaining <= 0f) HandleTimeout();
+    }
+
+    public void ResetSetsStageTimer(float durationInSeconds)
+    {
+        if (!isSetsStageTimer) return;
+        currentMaxTime = Mathf.Max(1f, durationInSeconds);
+        timeRemaining = currentMaxTime;
+        isTimerRunning = false;
+        isStageActive = false;
+        totalStageTime = 0f;
+        totalHeartsLostThisStage = 0;
+        playerHearts = 3;
+        UpdateHeartsUI();
+        UpdateTimerUI();
+        if (timerText != null) timerText.gameObject.SetActive(false);
     }
 
     private void UpdateTimerUI()

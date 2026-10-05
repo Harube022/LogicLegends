@@ -72,6 +72,17 @@ public class WizardInteraction : MonoBehaviourPun
 
     private void Start()
     {
+        // A scene-local GameInput can destroy itself in favor of the persistent
+        // instance. Refresh after all Awake calls so this statue stays subscribed.
+        GameInput activeInput = GameInput.Instance != null ? GameInput.Instance : FindFirstObjectByType<GameInput>();
+        if (activeInput != gameInput)
+        {
+            if (gameInput != null) gameInput.OnInteractAction -= GameInput_OnInteractAction;
+            gameInput = activeInput;
+            if (gameInput != null && isActiveAndEnabled)
+                gameInput.OnInteractAction += GameInput_OnInteractAction;
+        }
+
         // Save the original text once at the very beginning
         if (wizardObjectiveText != null) originalObjectiveString = wizardObjectiveText.text;
     }

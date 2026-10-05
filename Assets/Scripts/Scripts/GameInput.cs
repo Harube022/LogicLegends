@@ -12,6 +12,8 @@ public class GameInput : MonoBehaviour
     private Vector2 mobileMovementVector;
     private static GameInput instance;
 
+    public static GameInput Instance => instance;
+
     private void Awake()
     {
         if (instance != null)
