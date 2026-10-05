@@ -15,7 +15,7 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
 
     private void Awake()
     {
-        gameInput = FindFirstObjectByType<GameInput>();
+        gameInput = GameInput.Instance != null ? GameInput.Instance : FindFirstObjectByType<GameInput>();
     }
 
     // public void ToggleJoystick(bool state)
