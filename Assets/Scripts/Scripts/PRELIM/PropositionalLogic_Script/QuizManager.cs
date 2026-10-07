@@ -111,7 +111,21 @@ public class QuizManager : MonoBehaviour
 
     public void PlayCorrectDoorSound()
     {
-        PlayGameplaySound(correctDoorSound, correctDoorVolume);
+        if (correctDoorSound == null) return;
+
+        // Correct confirmation can immediately advance out of the Propositional
+        // Logic hierarchy. A short-lived 2D source at scene root lets this one
+        // shot finish even when this manager's AudioSource is disabled.
+        GameObject oneShot = new GameObject("Propositional Correct Answer Sound");
+        AudioSource source = oneShot.AddComponent<AudioSource>();
+        source.playOnAwake = false;
+        source.loop = false;
+        source.spatialBlend = 0f;
+        source.ignoreListenerPause = true;
+        if (soundEffectsSource != null)
+            source.outputAudioMixerGroup = soundEffectsSource.outputAudioMixerGroup;
+        source.PlayOneShot(correctDoorSound, correctDoorVolume);
+        Destroy(oneShot, correctDoorSound.length + 0.1f);
     }
 
     public void PlayWrongDoorSound()

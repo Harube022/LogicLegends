@@ -28,10 +28,19 @@ public class DynamicDoorTrigger : MonoBehaviour
     [Tooltip("Drag the Animator component belonging to this door's hammer here")]
     [SerializeField] private Animator hammerAnimator;
     [SerializeField] private float knockbackDelay = 0.4f;
-    [SerializeField] private float stunDuration = 5f;
+    [Tooltip("Total wrong-door recovery time, including hammer wind-up and knockback.")]
+    [SerializeField, Min(0.1f)] private float stunDuration = 5f;
     [SerializeField] private float knockbackDistance = 3f;
 
     private bool isProcessingTrap = false;
+    private static DynamicDoorTrigger activeTrap;
+    private GameObject trappedPlayer;
+    private Player trappedController;
+    private CharacterController trappedCharacterController;
+    private GameInput trappedInput;
+    private bool playerControlBeforeTrap;
+    private bool inputBlockedBeforeTrap;
+    private bool stunAnimationActive;
 
     public int DoorIndex => doorIndex;
 
@@ -46,14 +55,13 @@ public class DynamicDoorTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") && !isProcessingTrap)
+        if (other.CompareTag("Player") && !isProcessingTrap && activeTrap == null)
         {
             if (quizManager == null) return;
 
             if (quizManager.IsChoiceCorrect(doorIndex))
             {
                 Player playerController = other.GetComponent<Player>();
-                quizManager.PlayCorrectDoorSound();
                 quizManager.FinalizeChallengeCompletion();
                 Transform nextChallengeDestination = quizManager.AdvanceToNextChallenge();
 
@@ -83,12 +91,15 @@ public class DynamicDoorTrigger : MonoBehaviour
     private IEnumerator HammerTrapSequence(GameObject player)
     {
         isProcessingTrap = true;
-
-        Player playerController = player.GetComponent<Player>();
-        if (playerController != null)
-        {
-            playerController.ToggleControl(false);
-        }
+        activeTrap = this;
+        trappedPlayer = player;
+        trappedController = player.GetComponent<Player>();
+        trappedCharacterController = player.GetComponent<CharacterController>();
+        trappedInput = GameInput.Instance != null ? GameInput.Instance : FindFirstObjectByType<GameInput>();
+        playerControlBeforeTrap = trappedController != null && trappedController.enabled;
+        inputBlockedBeforeTrap = trappedInput != null && trappedInput.GameplayInputBlocked;
+        trappedInput?.SetGameplayInputBlocked(true);
+        trappedController?.ToggleControl(false);
 
         if (timerManager != null) 
         {
@@ -101,15 +112,26 @@ public class DynamicDoorTrigger : MonoBehaviour
             }
         }
 
+        if (ShouldAbortTrap())
+        {
+            FinishTrap(false);
+            yield break;
+        }
+
         if (hammerAnimator != null)
         {
             hammerAnimator.SetTrigger("Swing");
         }
 
-        CharacterController charController = player.GetComponent<CharacterController>();
-        if (charController != null) charController.enabled = false;
+        if (trappedCharacterController != null) trappedCharacterController.enabled = false;
 
-        yield return new WaitForSeconds(knockbackDelay);
+        float windupElapsed = 0f;
+        while (windupElapsed < knockbackDelay)
+        {
+            if (ShouldAbortTrap()) { FinishTrap(false); yield break; }
+            windupElapsed += Time.deltaTime;
+            yield return null;
+        }
 
         Vector3 knockbackDirection = -transform.forward; 
         knockbackDirection.y = 0; 
@@ -122,10 +144,13 @@ public class DynamicDoorTrigger : MonoBehaviour
 
         while (elapsed < knockbackDuration)
         {
+            if (ShouldAbortTrap()) { FinishTrap(false); yield break; }
             elapsed += Time.deltaTime;
             player.transform.position = Vector3.Lerp(startPosition, targetPosition, elapsed / knockbackDuration);
             yield return null; 
         }
+
+        if (ShouldAbortTrap()) { FinishTrap(false); yield break; }
 
         // The voice is tied to the completed knockback movement, not the door selection or hammer wind-up.
         if (quizManager != null)
@@ -133,29 +158,70 @@ public class DynamicDoorTrigger : MonoBehaviour
             quizManager.PlayKnockbackVoiceSound();
         }
 
-        float remainingStunTime = stunDuration - knockbackDelay - knockbackDuration;
-        if (remainingStunTime > 0)
+        SetStunAnimation(true);
+        float remainingStunTime = Mathf.Max(0.1f, stunDuration - knockbackDelay - knockbackDuration);
+        float stunElapsed = 0f;
+        while (stunElapsed < remainingStunTime)
         {
-            yield return new WaitForSeconds(remainingStunTime);
+            if (ShouldAbortTrap()) { FinishTrap(false); yield break; }
+            stunElapsed += Time.deltaTime;
+            yield return null;
         }
 
-        if (hammerAnimator != null)
+        FinishTrap(!ShouldAbortTrap());
+    }
+
+    private bool ShouldAbortTrap()
+    {
+        return trappedPlayer == null || (timerManager != null && timerManager.RemainingTime <= 0f);
+    }
+
+    private void SetStunAnimation(bool active)
+    {
+        stunAnimationActive = active;
+        if (trappedPlayer == null) return;
+        foreach (PlayerAnimator skin in trappedPlayer.GetComponentsInChildren<PlayerAnimator>(true))
+            skin.SetStunned(active);
+    }
+
+    private void FinishTrap(bool completedNormally)
+    {
+        if (!isProcessingTrap) return;
+        if (stunAnimationActive) SetStunAnimation(false);
+        if (hammerAnimator != null) hammerAnimator.SetTrigger("Reset");
+        if (trappedCharacterController != null) trappedCharacterController.enabled = true;
+
+        PropositionalLogicTutorial tutorial = FindFirstObjectByType<PropositionalLogicTutorial>();
+        if (!completedNormally && tutorial != null && tutorial.IsOpen)
+            tutorial.CloseTutorial();
+        bool mayRestoreControls = (timerManager == null || timerManager.RemainingTime > 0f) &&
+                                  (tutorial == null || !tutorial.IsOpen);
+        if (mayRestoreControls)
         {
-            hammerAnimator.SetTrigger("Reset");
+            if (trappedInput != null) trappedInput.SetGameplayInputBlocked(inputBlockedBeforeTrap);
+            if (trappedController != null) trappedController.ToggleControl(playerControlBeforeTrap);
         }
 
-        if (charController != null) charController.enabled = true;
-
-        if (playerController != null)
+        if (completedNormally && mayRestoreControls)
         {
-            playerController.ToggleControl(true);
+            quizManager?.ResetCurrentChallengeDoors();
+            ResetAllBooks();
         }
 
-        if (quizManager != null) quizManager.ResetCurrentChallengeDoors();
-
-        ResetAllBooks();
-
+        trappedPlayer = null;
+        trappedController = null;
+        trappedCharacterController = null;
+        trappedInput = null;
         isProcessingTrap = false;
+        if (activeTrap == this) activeTrap = null;
+    }
+
+    private void OnDisable()
+    {
+        if (!isProcessingTrap) return;
+        StopAllCoroutines();
+        if (penaltyTextUI != null) penaltyTextUI.gameObject.SetActive(false);
+        FinishTrap(false);
     }
 
     // --- NEW COROUTINE: Handles floating up and fading out the text ---

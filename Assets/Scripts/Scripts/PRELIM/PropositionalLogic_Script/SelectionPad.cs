@@ -172,10 +172,16 @@ public class SelectionPad : MonoBehaviour
             yield return null;
         }
 
-        if (quizManager != null)
+        if (quizManager == null || !quizManager.IsQuizActive)
         {
-            quizManager.ClearQuizUI();
+            StopChargingSequence();
+            yield break;
         }
+
+        // The answer is confirmed when the selection pad fills, before guided
+        // movement to the doorway. Play success here once for this selection.
+        if (quizManager.IsChoiceCorrect(padIndex)) quizManager.PlayCorrectDoorSound();
+        quizManager.ClearQuizUI();
 
         DynamicDoorTrigger selectedDoorTrigger = FindSelectedDoorTrigger();
         Player player = playerObject != null ? playerObject.GetComponent<Player>() : null;

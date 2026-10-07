@@ -13,6 +13,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
     private float remainingSeconds = StartSeconds;
     private bool quizOpen;
     private bool playerAtBoard;
+    private bool tutorialOpen;
     private TruthTableDoorInteraction doors;
     private RectTransform hudRoot;
     private RectTransform hudHost;
@@ -32,7 +33,9 @@ public sealed class TruthTableStageClock : MonoBehaviour
     public bool IsWaitingForBook => state == StageState.WaitingForBook;
     public bool IsRunning => state == StageState.Running;
     public bool IsGameOver => state == StageState.GameOver;
-    public bool IsCountdownPaused => state != StageState.Running || quizOpen || playerAtBoard;
+    public bool IsCompleted => state == StageState.Completed;
+    public bool IsTutorialOpen => tutorialOpen;
+    public bool IsCountdownPaused => state != StageState.Running || quizOpen || playerAtBoard || tutorialOpen;
     public float RemainingSeconds => remainingSeconds;
     public int CurrentChallengeNumber => currentChallengeNumber;
     public static float LastCompletedRemainingSeconds { get; private set; }
@@ -88,6 +91,8 @@ public sealed class TruthTableStageClock : MonoBehaviour
     public void SetQuizOpen(bool open) { quizOpen = open; }
 
     public void SetPlayerAtBoard(bool atBoard) { playerAtBoard = atBoard; }
+
+    public void SetTutorialOpen(bool open) { tutorialOpen = open; }
 
     public void PrepareNextChallenge()
     {

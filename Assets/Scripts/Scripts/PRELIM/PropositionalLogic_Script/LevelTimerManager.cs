@@ -232,6 +232,7 @@ public class LevelTimerManager : MonoBehaviour
     public void OnStartOverClicked()
     {
         Time.timeScale = 1f;
+        GameInput.Instance?.SetGameplayInputBlocked(false);
         PrepareStartOverState();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
@@ -241,6 +242,7 @@ public class LevelTimerManager : MonoBehaviour
         if (TryPrepareTryAgainState())
         {
             Time.timeScale = 1f;
+            GameInput.Instance?.SetGameplayInputBlocked(false);
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             return;
         }
@@ -256,6 +258,7 @@ public class LevelTimerManager : MonoBehaviour
         }
 
         Time.timeScale = 1f;
+        GameInput.Instance?.SetGameplayInputBlocked(false);
         ResetSession();
         SceneManager.LoadScene(logicGardenSceneName);
     }
@@ -295,6 +298,7 @@ public class LevelTimerManager : MonoBehaviour
     {
         Debug.Log("Returning to Main Menu...");
         Time.timeScale = 1f; 
+        GameInput.Instance?.SetGameplayInputBlocked(false);
         ResetSession();
         SceneManager.LoadScene(mainMenuSceneName);
     }
