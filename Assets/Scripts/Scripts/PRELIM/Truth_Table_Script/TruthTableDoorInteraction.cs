@@ -61,6 +61,7 @@ public class TruthTableDoorInteraction : MonoBehaviour
     private bool warnedAboutMissingBook;
 
     public bool IsStageRunning => stageClock != null && stageClock.IsRunning;
+    public bool IsQuizOpen => panelOpen;
     public RectTransform UiHost => interactionPrompt != null ? interactionPrompt.transform.parent as RectTransform : null;
     public TMP_Text UiTextStyle => questionText;
     public RectTransform MinimapPanel => minimap != null ? minimap.Panel : null;
@@ -451,7 +452,7 @@ public class TruthTableDoorInteraction : MonoBehaviour
 
     public void ActivateFocusedInteraction()
     {
-        if (!IsTruthTableActive || stageClock == null) return;
+        if (!IsTruthTableActive || stageClock == null || stageClock.IsTutorialOpen) return;
         if (stageClock.IsWaitingForBook)
         {
             if (!IsPlayerNearBook()) return;
@@ -468,7 +469,7 @@ public class TruthTableDoorInteraction : MonoBehaviour
 
     public void OpenFocusedDoor()
     {
-        if (!IsTruthTableActive || !IsStageRunning || panelOpen || focusedDoor == null || player == null ||
+        if (!IsTruthTableActive || !IsStageRunning || stageClock.IsTutorialOpen || panelOpen || focusedDoor == null || player == null ||
             blankPanel == null || gameInput == null) return;
 
         int index = Array.IndexOf(doors, focusedDoor);

@@ -8,11 +8,15 @@ public class MobileInventoryUI : MonoBehaviour
     public struct SlotUIElements
     {
         public Image slotBackground;
+        public Image blockIcon;
         public TextMeshProUGUI blockTypeText;
         public TextMeshProUGUI countText;
     }
 
     [SerializeField] private SlotUIElements[] uiSlots = new SlotUIElements[2];
+    [Header("Block Icons")]
+    [SerializeField] private Sprite trueBlockIcon;
+    [SerializeField] private Sprite falseBlockIcon;
     [SerializeField] private Color selectedColor = Color.green;
     [SerializeField] private Color normalColor = Color.white;
 
@@ -25,11 +29,19 @@ public class MobileInventoryUI : MonoBehaviour
 
             if (slots[i].isEmpty)
             {
+                if (uiSlots[i].blockIcon != null)
+                    uiSlots[i].blockIcon.gameObject.SetActive(false);
                 uiSlots[i].blockTypeText.gameObject.SetActive(false);
+                uiSlots[i].countText.text = string.Empty;
                 uiSlots[i].countText.gameObject.SetActive(false);
             }
             else
             {
+                if (uiSlots[i].blockIcon != null)
+                {
+                    uiSlots[i].blockIcon.sprite = slots[i].blockValue ? trueBlockIcon : falseBlockIcon;
+                    uiSlots[i].blockIcon.gameObject.SetActive(uiSlots[i].blockIcon.sprite != null);
+                }
                 // ALWAYS turn on text components once a block occupies the slot data
                 uiSlots[i].blockTypeText.gameObject.SetActive(true);
                 uiSlots[i].countText.gameObject.SetActive(true);
