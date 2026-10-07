@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class AreaVisibilityManager : MonoBehaviour
 {
@@ -59,8 +60,15 @@ public class AreaVisibilityManager : MonoBehaviour
     {
         StageSelectionState.Select(3);
         StageCompleteManager.UnlockStage(3);
-        ActivateOnly(3);
-        TeleportPlayer(rulesOfInferenceSpawnPoint);
+
+        if (TeleportManager.Instance != null)
+        {
+            TeleportManager.Instance.LoadSceneWithFade("RulesOfInference");
+        }
+        else
+        {
+            SceneManager.LoadScene("RulesOfInference");
+        }
     }
 
     private void ActivateOnly(int stageNumber)
@@ -69,13 +77,13 @@ public class AreaVisibilityManager : MonoBehaviour
         if (truthTableGroup != null) truthTableGroup.SetActive(stageNumber == 2);
         if (rulesOfInferenceGroup != null) rulesOfInferenceGroup.SetActive(stageNumber == 3);
         if (Player.LocalInstance != null)
-            Player.LocalInstance.SetRunningEnabled(stageNumber == 2);
+            Player.LocalInstance.SetRunningEnabled(stageNumber == 2 || stageNumber == 3);
     }
 
     private IEnumerator ConfigureRunningWhenPlayerIsReady()
     {
         while (Player.LocalInstance == null) yield return null;
-        Player.LocalInstance.SetRunningEnabled(StageSelectionState.SelectedStage == 2);
+        Player.LocalInstance.SetRunningEnabled(StageSelectionState.SelectedStage == 2 || StageSelectionState.SelectedStage == 3);
     }
 
     private Transform GetSpawnPoint(int stageNumber)

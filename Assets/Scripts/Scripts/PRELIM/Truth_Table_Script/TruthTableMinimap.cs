@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Displays the PRELIM Truth_Table map while that stage is active.
+/// Displays the map in PRELIM Truth Table and RulesOfInference.
 /// The dedicated camera renders into a small texture; the normal gameplay camera is untouched.
 /// </summary>
 public class TruthTableMinimap : MonoBehaviour
@@ -37,8 +37,9 @@ public class TruthTableMinimap : MonoBehaviour
             return;
         }
 
-        bool inTruthTable = SceneManager.GetActiveScene().name == "PRELIM" &&
-                            StageSelectionState.SelectedStage == 2;
+        bool inTruthTable = (SceneManager.GetActiveScene().name == "PRELIM" &&
+                             StageSelectionState.SelectedStage == 2) ||
+                            SceneManager.GetActiveScene().name == "RulesOfInference";
         minimapPanel.gameObject.SetActive(inTruthTable);
         minimapCamera.enabled = inTruthTable;
         if (inTruthTable) UpdatePanelLayout();
@@ -47,8 +48,9 @@ public class TruthTableMinimap : MonoBehaviour
     private void LateUpdate()
     {
         // The stage can change in this same scene after Propositional Logic ends.
-        bool inTruthTable = SceneManager.GetActiveScene().name == "PRELIM" &&
-                            StageSelectionState.SelectedStage == 2;
+        bool inTruthTable = (SceneManager.GetActiveScene().name == "PRELIM" &&
+                             StageSelectionState.SelectedStage == 2) ||
+                            SceneManager.GetActiveScene().name == "RulesOfInference";
         bool wasVisible = minimapPanel.gameObject.activeSelf && minimapCamera.enabled;
         if (minimapPanel.gameObject.activeSelf != inTruthTable)
             minimapPanel.gameObject.SetActive(inTruthTable);
