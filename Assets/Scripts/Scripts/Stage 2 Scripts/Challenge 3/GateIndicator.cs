@@ -77,6 +77,7 @@ public class GateIndicator : MonoBehaviour
         audioObj.transform.position = transform.position;
 
         AudioSource source = audioObj.AddComponent<AudioSource>();
+        AudioVolumeSettings.Route(source, GameAudioChannel.SoundFX);
         source.clip = clip;
         source.volume = audioVolume; 
         

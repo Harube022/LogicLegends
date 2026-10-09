@@ -139,7 +139,11 @@ public class LevelSpawner : MonoBehaviour
         }
 
         if (cmCamera != null)
+        {
             cmCamera.Target.TrackingTarget = targetToFollow;
+            // A spawned target has no valid follow history at the scene camera's old position.
+            if (TeleportManager.UsesCoveredTransitions) cmCamera.PreviousStateIsValid = false;
+        }
 
         if (LevelManager.Instance != null)
             LevelManager.Instance.player = playerObject.transform;

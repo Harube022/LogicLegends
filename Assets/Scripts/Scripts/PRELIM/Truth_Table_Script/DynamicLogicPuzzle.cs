@@ -256,22 +256,7 @@ public class DynamicLogicPuzzle : MonoBehaviour
 
         // if (reviewCoroutine != null) StopCoroutine(reviewCoroutine);
         // reviewCoroutine = StartCoroutine(ReviewThenReturn());
-        StartCoroutine(TriggerTransitionWithDelay());
-    }
-
-    private IEnumerator TriggerTransitionWithDelay()
-    {
-        yield return new WaitForSeconds(2f); // Brief delay for feedback
-
-        if (InventoryManager.Instance != null)
-        {
-            InventoryManager.Instance.SetInventoryVisibility(false);
-        }
-
-        if (AreaVisibilityManager.Instance != null)
-        {
-            AreaVisibilityManager.Instance.TransitionToRulesOfInference();
-        }
+        // Completion now waits for the result panel's Next Stage or Main Menu action.
     }
 
     public void SetHeaderLabel(int columnIndex, string text)

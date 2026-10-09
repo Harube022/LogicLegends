@@ -44,16 +44,16 @@ public class AreaVisibilityManager : MonoBehaviour
     {
         if (StageSelectionState.SelectedStage != 1) return;
 
-        // The old area's ambient layer may live outside its hierarchy, so clearing
-        // it explicitly prevents its music from continuing into Truth_Table.
-        if (EnvironmentAudioManager.Instance != null)
-            EnvironmentAudioManager.Instance.DeactivateAllLayers();
-
-        StageSelectionState.Select(2);
-        StageCompleteManager.UnlockStage(2);
-        ActivateOnly(2);
-        ConfigureSelectedStageUI();
-        TeleportPlayer(truthTableSpawnPoint);
+        if (Player.LocalInstance == null || truthTableSpawnPoint == null) return;
+        TeleportManager.EnsureExists().StartTeleport(Player.LocalInstance.gameObject, truthTableSpawnPoint, () =>
+        {
+            // Swap the area and its UI only after the black frame has rendered.
+            EnvironmentAudioManager.Instance?.DeactivateAllLayers();
+            StageSelectionState.Select(2);
+            StageCompleteManager.UnlockStage(2);
+            ActivateOnly(2);
+            ConfigureSelectedStageUI();
+        });
     }
 
     public void TransitionToRulesOfInference()
@@ -61,14 +61,7 @@ public class AreaVisibilityManager : MonoBehaviour
         StageSelectionState.Select(3);
         StageCompleteManager.UnlockStage(3);
 
-        if (TeleportManager.Instance != null)
-        {
-            TeleportManager.Instance.LoadSceneWithFade("RulesOfInference");
-        }
-        else
-        {
-            SceneManager.LoadScene("RulesOfInference");
-        }
+        TeleportManager.EnsureExists().LoadSceneWithFade("RulesOfInference");
     }
 
     private void ActivateOnly(int stageNumber)
@@ -174,22 +167,6 @@ public class AreaVisibilityManager : MonoBehaviour
 
     private IEnumerator TeleportRoutine(GameObject player, Transform target)
     {
-        CharacterController charController = player.GetComponent<CharacterController>();
-        if (charController != null) charController.enabled = false;
-
-        yield return new WaitForFixedUpdate();
-
-        // Calculate displacement vector
-        Vector3 deltaPosition = target.position - player.transform.position;
-
-        player.transform.position = target.position;
-        player.transform.rotation = target.rotation;
-        
-        // Notify Cinemachine to warp the camera instantly
-        Unity.Cinemachine.CinemachineCore.OnTargetObjectWarped(player.transform, deltaPosition);
-
-        yield return null;
-
-        if (charController != null) charController.enabled = true;
+        yield return TeleportManager.EnsureExists().TeleportAndWait(player, target);
     }
 }

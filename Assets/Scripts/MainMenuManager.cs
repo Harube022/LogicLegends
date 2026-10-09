@@ -68,7 +68,7 @@ public class MainMenuManager : MonoBehaviour
     private int highestUnlockedStage = 1; 
     private bool isLoadingStage;
     private bool isLoadingProgress;
-    private string progressMessage = "Complete each stage to unlock the next.";
+    private string progressMessage = "Conquer each trial to unlock the next.";
     private int progressRequestVersion;
 
     private void Start()
@@ -230,7 +230,7 @@ public class MainMenuManager : MonoBehaviour
             : stageNumber == 3 ? "RulesOfInference" : stageNumber <= 2 ? prelimSceneName : string.Empty;
         if (string.IsNullOrWhiteSpace(targetScene) || !Application.CanStreamedLevelBeLoaded(targetScene))
         {
-            progressMessage = "This stage is unavailable.";
+            progressMessage = "This trial is unavailable.";
             RefreshStageSelectionUI();
             return;
         }
@@ -250,7 +250,7 @@ public class MainMenuManager : MonoBehaviour
         {
             Debug.LogWarning("No signed-in Firebase user. Only Stage 1 is available.");
             isLoadingProgress = false;
-            progressMessage = "Sign in to save your stage progress.";
+            progressMessage = "Sign in to save your trial progress.";
             RefreshStageSelectionUI();
             return;
         }
@@ -283,7 +283,7 @@ public class MainMenuManager : MonoBehaviour
                         StageSelectionState.LastStage);
                 }
 
-                progressMessage = "Complete each stage to unlock the next.";
+                progressMessage = "Conquer each trial to unlock the next.";
                 RefreshStageSelectionUI();
             });
     }

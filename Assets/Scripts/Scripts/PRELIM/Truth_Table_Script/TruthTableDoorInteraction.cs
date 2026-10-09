@@ -123,6 +123,8 @@ public class TruthTableDoorInteraction : MonoBehaviour
         feedbackSource.loop = false;
         feedbackSource.spatialBlend = 0f;
         feedbackSource.volume = 1f;
+        AudioVolumeSettings.Route(musicSource, GameAudioChannel.Music);
+        AudioVolumeSettings.Route(feedbackSource, GameAudioChannel.SoundFX);
     }
 
     private void StartMusic()

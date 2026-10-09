@@ -379,6 +379,7 @@ public class WizardInteraction : MonoBehaviourPun
         audioObj.transform.position = spawnPosition;
 
         AudioSource source = audioObj.AddComponent<AudioSource>();
+        AudioVolumeSettings.Route(source, GameAudioChannel.SoundFX);
         source.clip = clip;
         source.volume = volume; // Applies your lowered volume
         

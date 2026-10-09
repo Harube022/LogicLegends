@@ -18,6 +18,7 @@ public class TruthBlockSpawner : MonoBehaviour
     private List<GameObject> activeSpawnedBlocks = new List<GameObject>();
     private readonly Dictionary<TruthBlock, Transform> occupiedSpawns = new Dictionary<TruthBlock, Transform>();
     private readonly Dictionary<int, int> houseUseCounts = new Dictionary<int, int>();
+    private NearbyTruthBlockTestSpawner nearbyTestSpawner;
 
     private void Awake()
     {
@@ -25,6 +26,7 @@ public class TruthBlockSpawner : MonoBehaviour
         {
             puzzle = GetComponent<DynamicLogicPuzzle>();
         }
+        nearbyTestSpawner = NearbyTruthBlockTestSpawner.AttachForTesting(this, spawnPoints);
     }
 
     // NOTE: SpawnBlocksForCurrentStep() was removed. 
@@ -177,12 +179,18 @@ public class TruthBlockSpawner : MonoBehaviour
             RecordHouseUse(chosenSpawn);
             activeSpawnedBlocks.Add(spawnedBlock);
         }
+        // A different difficulty can request blocks before its spawner's Awake.
+        if (nearbyTestSpawner == null)
+            nearbyTestSpawner = NearbyTruthBlockTestSpawner.AttachForTesting(this, spawnPoints);
+        if (nearbyTestSpawner != null)
+            nearbyTestSpawner.SpawnGroup(trueBlockPrefab, falseBlockPrefab, trueCount, falseCount);
     }
 
     // The initial puzzle creates its blocks before the statue is used. Deal those
     // existing blocks again when the stage actually starts, without duplicating them.
     public void RerollActiveBlocks()
     {
+        if (nearbyTestSpawner != null) nearbyTestSpawner.RestoreCurrentGroupAtNearbyPoints();
         var blocks = new List<TruthBlock>();
         var previousSpawns = new Dictionary<TruthBlock, Transform>();
         foreach (GameObject spawned in activeSpawnedBlocks)
@@ -333,6 +341,7 @@ public class TruthBlockSpawner : MonoBehaviour
 
     public void ClearActiveBlocks(bool includePlacedBlocks = false)
     {
+        if (nearbyTestSpawner != null) nearbyTestSpawner.ClearCurrentGroup(includePlacedBlocks);
         foreach (var block in activeSpawnedBlocks)
         {
             if (block == null) continue;

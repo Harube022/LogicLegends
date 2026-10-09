@@ -123,6 +123,7 @@ public class QuizManager : MonoBehaviour
             soundEffectsSource.loop = false;
             soundEffectsSource.spatialBlend = 0f;
             soundEffectsSource.ignoreListenerPause = true;
+            AudioVolumeSettings.Route(soundEffectsSource, GameAudioChannel.SoundFX);
         }
     }
 
@@ -156,6 +157,7 @@ public class QuizManager : MonoBehaviour
         source.ignoreListenerPause = true;
         if (soundEffectsSource != null)
             source.outputAudioMixerGroup = soundEffectsSource.outputAudioMixerGroup;
+        AudioVolumeSettings.Route(source, GameAudioChannel.SoundFX);
         source.PlayOneShot(correctDoorSound, correctDoorVolume);
         Destroy(oneShot, correctDoorSound.length + 0.1f);
     }
@@ -454,16 +456,7 @@ public class QuizManager : MonoBehaviour
         return string.Join(" -> ", names);
     }
 
-    private System.Collections.IEnumerator RespawnPlayerPosition(GameObject player, Transform targetSpawn)
-    {
-        CharacterController charController = player.GetComponent<CharacterController>(); 
-        if (charController != null) charController.enabled = false; 
-        yield return new WaitForFixedUpdate(); 
-        player.transform.position = targetSpawn.position; 
-        player.transform.rotation = targetSpawn.rotation; 
-        yield return null;
-        if (charController != null) charController.enabled = true; 
-    }
+
 
     public void OpenQuiz(BookInteract callingBook)
     {
@@ -600,23 +593,7 @@ public class QuizManager : MonoBehaviour
             yield return null; // Wait for the next frame and try again
         }
 
-        // 2. Safely disable the CharacterController for the teleport
-        CharacterController charController = player.GetComponent<CharacterController>();
-        if (charController != null) charController.enabled = false;
-
-        // 3. Wait for the physics engine to update
-        yield return new WaitForFixedUpdate();
-
-        // 4. Move the player to the saved challenge room
-        Vector3 deltaPosition = targetSpawn.position - player.transform.position;
-        player.transform.position = targetSpawn.position;
-        player.transform.rotation = targetSpawn.rotation;
-        Unity.Cinemachine.CinemachineCore.OnTargetObjectWarped(player.transform, deltaPosition);
-
-        yield return null;
-
-        // 5. Re-enable the controller
-        if (charController != null) charController.enabled = true;
+        yield return TeleportManager.EnsureExists().TeleportAndWait(player, targetSpawn);
     }
 
     private void InitializeLevelState()
@@ -689,17 +666,10 @@ public class QuizManager : MonoBehaviour
             }
             if (quizPanel != null) quizPanel.SetActive(false);
 
-            // NEW: Show the inventory bar for the Truth Table game
-            if (InventoryManager.Instance != null)
-            {
-                InventoryManager.Instance.SetInventoryVisibility(true);
-            }
-
-            // Call the dedicated visibility manager
-            if (AreaVisibilityManager.Instance != null)
-            {
-                AreaVisibilityManager.Instance.TransitionToTruthTable();
-            }
+            StageCompleteManager.UnlockStage(2);
+            StageJourneyUI.Instance?.ShowCompletion(1,
+                "All five logic challenges completed!\nTime remaining: " +
+                StageJourneyUI.FormatTime(timerManager != null ? timerManager.RemainingTime : 0));
 
             return null;
         }

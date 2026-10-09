@@ -32,6 +32,11 @@ public class ShopManager : MonoBehaviour
     private readonly HashSet<string> ownedItems = new HashSet<string>();
     private int requestVersion;
     private bool dataLoaded;
+
+    [Header("Purchase Feedback Timing")]
+    [SerializeField] private float purchaseProgressDelay = 0.2f;
+    [SerializeField] private float purchaseFeedbackDuration = 1.5f;
+    private int purchaseFeedbackVersion;
     private bool purchasing;
 
     private void OnEnable() { RetryLoad(); }
@@ -228,15 +233,17 @@ public class ShopManager : MonoBehaviour
             !Fits(itemToBuy) || ownedItems.Contains(itemToBuy.ItemID) || itemToBuy.Price < 0) return;
         bool coins = itemToBuy.CurrencyType == ShopItem.Currency.Coins;
         int balance = coins ? currentCoins : currentGems;
+        int version = requestVersion;
+        int feedbackVersion = ++purchaseFeedbackVersion;
         if (balance < itemToBuy.Price)
         {
             Status("Not enough " + itemToBuy.CurrencyType.ToString().ToLowerInvariant() + ".", false);
+            StartCoroutine(ClearPurchaseFeedback(version, feedbackVersion));
             return;
         }
         purchasing = true;
-        int version = requestVersion;
-        UpdateShopUI();
-        Status("Saving your purchase...", false);
+        Status("", false);
+        StartCoroutine(DelayedPurchaseFeedback(version, feedbackVersion));
         // Save the inventory and the charged balance together; leave the other currency untouched.
         var updates = new Dictionary<string, object>
         {
@@ -259,8 +266,24 @@ public class ShopManager : MonoBehaviour
             ownedItems.Add(itemToBuy.ItemID);
             UpdateShopUI();
             Status("Purchase successful.", false);
+            StartCoroutine(ClearPurchaseFeedback(version, feedbackVersion));
         });
     }
+
+    private IEnumerator DelayedPurchaseFeedback(int version, int feedbackVersion)
+    {
+        yield return new WaitForSecondsRealtime(Mathf.Max(0f, purchaseProgressDelay));
+        if (IsCurrent(version) && feedbackVersion == purchaseFeedbackVersion && purchasing)
+            Status("Saving your purchase...", false);
+    }
+
+    private IEnumerator ClearPurchaseFeedback(int version, int feedbackVersion)
+    {
+        yield return new WaitForSecondsRealtime(Mathf.Max(0f, purchaseFeedbackDuration));
+        if (IsCurrent(version) && feedbackVersion == purchaseFeedbackVersion && !purchasing)
+            Status("", false);
+    }
+
 
     private void UpdateShopUI()
     {
@@ -270,7 +293,7 @@ public class ShopManager : MonoBehaviour
         {
             if (item == null) continue;
             item.gameObject.SetActive(Fits(item));
-            item.UpdateUI(purchasing || ownedItems.Contains(item.ItemID));
+            item.UpdateUI(ownedItems.Contains(item.ItemID));
         }
     }
 }

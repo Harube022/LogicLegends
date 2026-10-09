@@ -59,6 +59,11 @@ public class AuthManager : MonoBehaviour
     private int sessionVersion;
     private string observedUserId;
     private volatile bool authStateChanged;
+
+    [Header("Feedback Timing")]
+    [SerializeField] private float loginProgressDelay = 0.2f;
+    [SerializeField] private float loginFeedbackDuration = 1f;
+    [SerializeField] private float logoutFeedbackDuration = 1.5f;
     private Coroutine feedbackTimer;
 
     private void OnAuthStateChanged(object sender, System.EventArgs args)
@@ -99,8 +104,8 @@ public class AuthManager : MonoBehaviour
             if (group != null) group.alpha = string.IsNullOrEmpty(message) ? 0f : 1f;
         }
         // Character selection should remain unobstructed even if a delayed request shows a message.
-        if (characterSelectMenu != null && characterSelectMenu.activeSelf)
-            hideAfterSeconds = 1f;
+        if (characterSelectMenu != null && characterSelectMenu.activeSelf && !string.IsNullOrEmpty(message))
+            hideAfterSeconds = loginFeedbackDuration;
         if (!string.IsNullOrEmpty(message) && hideAfterSeconds > 0f)
             feedbackTimer = StartCoroutine(HideFeedbackAfter(hideAfterSeconds));
     }
@@ -111,6 +116,14 @@ public class AuthManager : MonoBehaviour
         feedbackTimer = null;
         ClearFeedback();
     }
+
+    private IEnumerator DelayedSignInFeedback(int version, string message)
+    {
+        yield return new WaitForSecondsRealtime(Mathf.Max(0f, loginProgressDelay));
+        if (this != null && signingIn && version == sessionVersion)
+            Feedback(message);
+    }
+
 
     private void ClearFeedback() { Feedback(""); }
 
@@ -244,27 +257,24 @@ public class AuthManager : MonoBehaviour
         DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
 
         Debug.Log("Checking if player has chosen a base character...");
-
         dbRef.Child("users").Child(userId).Child("base_character").GetValueAsync().ContinueWithOnMainThread(task =>
         {
             if (!IsCurrentSession(version, userId)) return;
             if (task.IsFaulted || task.IsCanceled)
             {
-                Feedback("Signed in. Couldn't load your profile; check your connection.");
+                Feedback("Signed in. Couldn't load your profile; check your connection.", loginFeedbackDuration);
                 return;
             }
 
             DataSnapshot snapshot = task.Result;
             if (snapshot.Exists && snapshot.Value != null && snapshot.Value.ToString() != "")
             {
-                // They already have a character saved! Send them to the game.
-                Feedback("Logged in successfully.", 1f);
+                Feedback("Logged in successfully.", loginFeedbackDuration);
             }
             else
             {
-                // First time playing! Show the selection screen.
                 ShowCharacterSelectScreen();
-                Feedback("Logged in successfully.", 1f);
+                Feedback("Logged in successfully.", loginFeedbackDuration);
             }
         });
     }
@@ -381,18 +391,18 @@ public class AuthManager : MonoBehaviour
         if (signingIn) return;
         if (auth == null || !FirebaseManager.IsReady)
         {
-            Feedback("Please wait while login services connect.");
+            Feedback("Please wait while login services connect.", loginFeedbackDuration);
             return;
         }
         signingIn = true;
         int version = ++sessionVersion;
-        Feedback("Opening Google sign-in...");
+        ClearFeedback();
+        StartCoroutine(DelayedSignInFeedback(version, "Opening Google sign-in..."));
         GoogleSignIn.Configuration = configuration;
         GoogleSignIn.Configuration.UseGameSignIn = false;
         GoogleSignIn.Configuration.RequestIdToken = true;
 
         Debug.Log("Opening Google Sign-In Pop-up...");
-        
         GoogleSignIn.DefaultInstance.SignIn().ContinueWithOnMainThread(task =>
         {
             if (this == null || version != sessionVersion) return;
@@ -407,12 +417,11 @@ public class AuthManager : MonoBehaviour
             signingIn = false;
             Debug.LogError("Google Sign-In failed or was canceled.");
             ShowLoginScreen();
-            Feedback("Google sign-in was canceled or failed. Please try again.");
+            Feedback("Google sign-in was canceled or failed. Please try again.", loginFeedbackDuration);
             return;
         }
 
         Debug.Log("Google Token received! Handing over to Firebase...");
-        
         Credential credential = GoogleAuthProvider.GetCredential(task.Result.IdToken, null);
         int version = sessionVersion;
 
@@ -420,27 +429,16 @@ public class AuthManager : MonoBehaviour
         {
             if (this == null || version != sessionVersion) return;
             signingIn = false;
-            // if (authTask.IsCanceled || authTask.IsFaulted)
-            // {
-            //     Debug.LogError("Firebase Auth Failed: " + authTask.Exception);
-            //     return;
-            // }
-
-            // FirebaseUser newUser = auth.CurrentUser;
-            // Debug.Log($"Google Login Successful! Welcome {newUser.DisplayName}!");
-            
-            // ShowModeSelection();
-            if (authTask.IsCanceled || authTask.IsFaulted) 
+            if (authTask.IsCanceled || authTask.IsFaulted)
             {
                 Debug.LogError("Firebase failed to authenticate Google credential.");
                 ShowLoginScreen();
-                Feedback("Couldn't log in with Google. Check your connection and try again.");
+                Feedback("Couldn't log in with Google. Check your connection and try again.", loginFeedbackDuration);
                 return;
             }
 
             Debug.Log("Google Login Success! Waiting for Database Security Sync...");
-            // ---> THE FIX: Wait 0.5 seconds for the database to recognize the new Google token!
-            Feedback("Logged in successfully.", 1f);
+            Feedback("Logged in successfully.", loginFeedbackDuration);
             CheckFirstTimeSetup();
         });
     }
@@ -452,19 +450,20 @@ public class AuthManager : MonoBehaviour
         if (signingIn) return;
         if (auth == null || !FirebaseManager.IsReady)
         {
-            Feedback("Please wait while login services connect.");
+            Feedback("Please wait while login services connect.", loginFeedbackDuration);
             return;
         }
         string email = emailLoginInput.text.Trim();
         string password = passwordLoginInput.text;
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrEmpty(password))
         {
-            Feedback("Enter your email and password.");
+            Feedback("Enter your email and password.", loginFeedbackDuration);
             return;
         }
         signingIn = true;
         int version = ++sessionVersion;
-        Feedback("Logging in...");
+        ClearFeedback();
+        StartCoroutine(DelayedSignInFeedback(version, "Logging in..."));
         auth.SignInWithEmailAndPasswordAsync(email, password).ContinueWithOnMainThread(task =>
         {
             if (this == null || version != sessionVersion) return;
@@ -474,29 +473,26 @@ public class AuthManager : MonoBehaviour
                 var error = ErrorCode(task.Exception);
                 if (error == AuthError.InvalidEmail || error == AuthError.WrongPassword ||
                     error == AuthError.UserNotFound || error == AuthError.InvalidCredential)
-                    Feedback("Incorrect email or password. Please try again.");
+                    Feedback("Incorrect email or password. Please try again.", loginFeedbackDuration);
                 else if (error == AuthError.Failure)
-                    Feedback("Couldn't log in. Check your email and password and try again.");
+                    Feedback("Couldn't log in. Check your email and password and try again.", loginFeedbackDuration);
                 else if (error == AuthError.TooManyRequests)
-                    Feedback("Too many attempts. Please wait and try again.");
+                    Feedback("Too many attempts. Please wait and try again.", loginFeedbackDuration);
                 else if (error == AuthError.UserDisabled)
-                    Feedback("This account is disabled.");
-                else Feedback("Couldn't log in. Check your connection and try again.");
+                    Feedback("This account is disabled.", loginFeedbackDuration);
+                else Feedback("Couldn't log in. Check your connection and try again.", loginFeedbackDuration);
                 return;
             }
 
-            // ---> NEW: Force Email Verification! <---
             if (!auth.CurrentUser.IsEmailVerified)
             {
                 Debug.LogWarning("Access Denied: Please verify your email address first!");
-                auth.SignOut(); // Kick them out until they click the link!
-                Feedback("Please verify your email before logging in.");
+                auth.SignOut();
+                Feedback("Please verify your email before logging in.", loginFeedbackDuration);
                 return;
             }
-            // ---> THE FIX: Add the same delay here for testing new accounts!
-            Feedback("Logged in successfully.", 1f);
+            Feedback("Logged in successfully.", loginFeedbackDuration);
             CheckFirstTimeSetup();
-            // ShowModeSelection();
         });
     }
 
@@ -560,20 +556,15 @@ public class AuthManager : MonoBehaviour
         CancelInvoke();
         if (auth != null && auth.CurrentUser != null)
         {
-            // 1. Log out of Firebase (This works perfectly in the Editor)
             auth.SignOut();
-
-            // 2. Log out of the Google Plugin (ONLY run this on an actual Android phone)
 #if UNITY_ANDROID && !UNITY_EDITOR
-            if (GoogleSignIn.DefaultInstance != null) 
+            if (GoogleSignIn.DefaultInstance != null)
             {
-                GoogleSignIn.DefaultInstance.SignOut(); 
+                GoogleSignIn.DefaultInstance.SignOut();
             }
 #endif
-
-            // 3. Return to the Login Screen
             ShowLoginScreen();
-            Feedback("Logged out successfully.", 6f);
+            Feedback("Logged out successfully.", logoutFeedbackDuration);
         }
     }
 

@@ -39,6 +39,7 @@ public class EnvironmentAudioManager : MonoBehaviour
             src.playOnAwake = false;
             src.volume = 0f;
             src.spatialBlend = 0f; // BGM = 2D
+            AudioVolumeSettings.Route(src, GameAudioChannel.Music);
 
             layer.source = src;
             layer.targetVolume = 0f;

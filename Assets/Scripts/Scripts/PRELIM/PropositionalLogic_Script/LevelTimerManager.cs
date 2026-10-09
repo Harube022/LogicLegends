@@ -224,7 +224,9 @@ public class LevelTimerManager : MonoBehaviour
 
         // 2. Show Game Over panel options
         UpdateGameOverOptions();
-        if (gameOverPanel != null) gameOverPanel.SetActive(true);
+        if (StageJourneyUI.Instance != null)
+            StageJourneyUI.Instance.ShowFailure(1, "Your shared countdown reached 00:00.\nStart a fresh run or retry from your checkpoint.", OnStartOverClicked);
+        else if (gameOverPanel != null) gameOverPanel.SetActive(true);
         
         Time.timeScale = 0f; 
     }

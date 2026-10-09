@@ -36,9 +36,13 @@ public sealed class TruthTableStageClock : MonoBehaviour
     public bool IsGameOver => state == StageState.GameOver;
     public bool IsCompleted => state == StageState.Completed;
     public bool IsTutorialOpen => tutorialOpen;
-    public bool IsCountdownPaused => state != StageState.Running || quizOpen || playerAtBoard || tutorialOpen;
+    public bool IsPlayerAtBoard => playerAtBoard;
+    public bool IsCountdownPaused => state != StageState.Running || quizOpen || playerAtBoard || tutorialOpen || Time.timeScale <= 0f;
     public float RemainingSeconds => remainingSeconds;
     public int CurrentChallengeNumber => currentChallengeNumber;
+    public string ProgressSummary { get; private set; } = "Easy — Column 1 of 3";
+    public bool TimeAdjustmentVisible => adjustmentLabel != null && adjustmentLabel.gameObject.activeSelf;
+    public string TimeAdjustmentText => adjustmentLabel != null ? adjustmentLabel.text : string.Empty;
     public static float LastCompletedRemainingSeconds { get; private set; }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -69,14 +73,14 @@ public sealed class TruthTableStageClock : MonoBehaviour
     private void LateUpdate()
     {
         if (hudRoot == null) return;
-        hudRoot.gameObject.SetActive(StageSelectionState.SelectedStage == 2);
+        hudRoot.gameObject.SetActive(StageSelectionState.SelectedStage == 2 && StageJourneyUI.Instance == null);
         if (hudRoot.gameObject.activeSelf) UpdateHudLayout();
     }
 
     private void Update()
     {
         if (IsCountdownPaused || StageSelectionState.SelectedStage != 2) return;
-        remainingSeconds = Mathf.Max(0f, remainingSeconds - Time.unscaledDeltaTime);
+        remainingSeconds = Mathf.Max(0f, remainingSeconds - Time.deltaTime);
         RefreshTimer();
         if (remainingSeconds <= 0f) TriggerGameOver();
     }
@@ -115,6 +119,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
     {
         if (challengeLabel == null || columnLabel == null) return;
         currentChallengeNumber = challenge;
+        ProgressSummary = difficulty + " — Column " + column + " of 3";
         challengeLabel.text = string.Format("Challenge {0} — {1}", challenge, difficulty);
         columnLabel.text = string.Format("Column {0} of 3", column);
     }
@@ -139,8 +144,13 @@ public sealed class TruthTableStageClock : MonoBehaviour
         adjustmentLabel.gameObject.SetActive(false);
         resultLabel.text = "All challenges completed!\nTime Remaining: " + FormatTime(remainingSeconds);
         restartButton.gameObject.SetActive(false);
-        gameOverPanel.SetActive(true);
-        gameOverPanel.transform.SetAsLastSibling();
+        if (StageJourneyUI.Instance != null)
+            StageJourneyUI.Instance.ShowCompletion(2, "Easy, Medium and Hard mastered!\nTime remaining: " + FormatTime(remainingSeconds));
+        else
+        {
+            gameOverPanel.SetActive(true);
+            gameOverPanel.transform.SetAsLastSibling();
+        }
     }
 
     private void TriggerGameOver()
@@ -154,8 +164,13 @@ public sealed class TruthTableStageClock : MonoBehaviour
         if (adjustmentRoutine != null) StopCoroutine(adjustmentRoutine);
         adjustmentLabel.gameObject.SetActive(false);
         doors.EndForGameOver();
-        gameOverPanel.SetActive(true);
-        gameOverPanel.transform.SetAsLastSibling();
+        if (StageJourneyUI.Instance != null)
+            StageJourneyUI.Instance.ShowFailure(2, "The truth-table countdown reached 00:00.\nRestart at Easy and begin again at the book.", RestartStage);
+        else
+        {
+            gameOverPanel.SetActive(true);
+            gameOverPanel.transform.SetAsLastSibling();
+        }
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }

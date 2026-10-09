@@ -24,6 +24,7 @@ public class TruthTableMinimap : MonoBehaviour
     [SerializeField, Min(0f)] private float edgeMargin = 28f;
 
     private Transform playerTarget;
+    private TruthTableStageClock stageClock;
     private Vector2 lastSafeAreaSize;
 
     private void Awake()
@@ -51,6 +52,11 @@ public class TruthTableMinimap : MonoBehaviour
         bool inTruthTable = (SceneManager.GetActiveScene().name == "PRELIM" &&
                              StageSelectionState.SelectedStage == 2) ||
                             SceneManager.GetActiveScene().name == "RulesOfInference";
+        if (SceneManager.GetActiveScene().name == "PRELIM" && StageSelectionState.SelectedStage == 2)
+        {
+            if (stageClock == null) stageClock = FindFirstObjectByType<TruthTableStageClock>(FindObjectsInactive.Include);
+            if (stageClock != null && stageClock.IsPlayerAtBoard) inTruthTable = false;
+        }
         bool wasVisible = minimapPanel.gameObject.activeSelf && minimapCamera.enabled;
         if (minimapPanel.gameObject.activeSelf != inTruthTable)
             minimapPanel.gameObject.SetActive(inTruthTable);

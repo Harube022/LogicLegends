@@ -614,6 +614,7 @@ public class LevelManager : MonoBehaviourPun
         audioObj.transform.position = position;
 
         AudioSource source = audioObj.AddComponent<AudioSource>();
+        AudioVolumeSettings.Route(source, GameAudioChannel.SoundFX);
         source.clip = clip;
 
         source.pitch = Random.Range(0.95f, 1.05f);

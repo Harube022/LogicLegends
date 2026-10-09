@@ -10,6 +10,7 @@ public class CameraTargetController : MonoBehaviour
     private float cameraPitch = 0f;
     private float cameraYaw = 0f;
     private Player owningPlayer;
+    private bool lookInitialized;
 
     private void Awake()
     {
@@ -21,6 +22,19 @@ public class CameraTargetController : MonoBehaviour
         Vector3 currentRot = transform.eulerAngles;
         cameraYaw = currentRot.y;
         cameraPitch = currentRot.x;
+        lookInitialized = true;
+    }
+
+    public void RestoreLookAfterTeleport()
+    {
+        if (!lookInitialized)
+        {
+            cameraYaw = transform.eulerAngles.y;
+            cameraPitch = transform.eulerAngles.x;
+            lookInitialized = true;
+        }
+        // The player's new parent rotation must not change the stored world-space look.
+        transform.rotation = Quaternion.Euler(cameraPitch, cameraYaw, 0f);
     }
 
     private void LateUpdate()
