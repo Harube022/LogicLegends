@@ -32,7 +32,7 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
         ("Complete all five",
             "A correct door sends you to the next challenge room and pauses the countdown. Find that room’s book statue and tap READ again to reveal the next question and resume your remaining time. The challenge order is randomized."),
         ("Finish or retry",
-            "Finish all five challenges to continue to Truth Table. If time reaches zero, Game Over offers Start Over or Try Again. Try Again resumes at your checkpoint with a shorter timer (up to two retries); after that, you can study in Logic Garden or return to the Main Menu.")
+            "Finish all five challenges, then choose NEXT STAGE to enter Truth Table or MAIN MENU to leave. If time reaches zero, Start Over begins a fresh run. Try from Checkpoint resumes with a shorter timer (up to two retries); after that, study in Logic Garden or return to the Main Menu.")
     };
 
     private int pageIndex;
@@ -82,11 +82,14 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
         yield return new WaitForFixedUpdate();
         yield return new WaitForFixedUpdate();
         yield return null;
+        while (TeleportManager.Instance != null && TeleportManager.Instance.IsTransitioning)
+            yield return null;
         if (StageSelectionState.SelectedStage == 1) OpenTutorial();
     }
 
     public void OpenTutorial()
     {
+        if (TeleportManager.Instance != null && TeleportManager.Instance.IsTransitioning) return;
         if (isOpen || StageSelectionState.SelectedStage != 1 || tutorialOverlay == null ||
             Time.timeScale <= 0f) return;
 

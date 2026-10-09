@@ -87,7 +87,7 @@ public class TermStageSelectionUI : MonoBehaviour
         topicsView.SetActive(true);
         for (int i = 0; i < terms.Length; i++) terms[i].topics.SetActive(i == index);
         if (heading != null) heading.text = terms[index].title;
-        if (subtitle != null) subtitle.text = "Complete each stage to unlock the next";
+        if (subtitle != null) subtitle.text = "Conquer each trial to unlock the next.";
     }
 
     public void Back()
@@ -108,7 +108,7 @@ public class TermStageSelectionUI : MonoBehaviour
     {
         highestUnlockedStage = Mathf.Clamp(unlocked, 1, StageSelectionState.LastStage);
         loadingStage = loading;
-        if (progress != null) progress.text = loading ? "Opening stage..." : message;
+        if (progress != null) progress.text = loading ? "Opening trial..." : message;
         backButton.interactable = !loading;
 
         foreach (TermCard term in terms)
@@ -117,14 +117,14 @@ public class TermStageSelectionUI : MonoBehaviour
             if (term.status == null) continue;
             if (checking) term.status.text = "Checking progress...";
             else if (highestUnlockedStage < term.firstStage)
-                term.status.text = "Finish Stage " + (term.firstStage - 1) + " First";
+                term.status.text = "Conquer Trial " + (term.firstStage - 1) + " to unlock";
             else
             {
                 int completed = Mathf.Clamp(highestUnlockedStage - term.firstStage,
                     0, term.lastStage - term.firstStage + 1);
                 term.status.text = completed == term.lastStage - term.firstStage + 1
-                    ? "Completed - revisit your stages"
-                    : completed + " / " + (term.lastStage - term.firstStage + 1) + " stages completed";
+                    ? "Conquered - revisit your trials"
+                    : completed + " / " + (term.lastStage - term.firstStage + 1) + " trials conquered";
             }
             term.status.color = highestUnlockedStage >= term.firstStage ? ReadyInk : MutedInk;
         }
@@ -138,10 +138,10 @@ public class TermStageSelectionUI : MonoBehaviour
             if (stage.status == null) continue;
             if (checking) stage.status.text = "Checking progress...";
             else if (!unlockedStage)
-                stage.status.text = "LOCKED - Finish Stage " + (stage.stageNumber - 1) + " First";
+                stage.status.text = "LOCKED - Conquer Trial " + (stage.stageNumber - 1) + " to unlock";
             else if (!ready) stage.status.text = "LOCKED";
             else stage.status.text = stage.stageNumber < highestUnlockedStage
-                ? "COMPLETED - Replay" : "READY - Start stage";
+                ? "COMPLETED - Replay" : "READY - Start trial";
             stage.status.color = unlockedStage && ready ? ReadyInk : MutedInk;
         }
     }

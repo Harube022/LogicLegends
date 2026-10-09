@@ -110,6 +110,7 @@ public class TorchItem : MonoBehaviourPun
         audioObj.transform.position = spawnPosition;
 
         AudioSource source = audioObj.AddComponent<AudioSource>();
+        AudioVolumeSettings.Route(source, GameAudioChannel.SoundFX);
         source.clip = clip;
         source.volume = volume; 
         

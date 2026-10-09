@@ -40,6 +40,11 @@ public class CustomizationManager : MonoBehaviour
     private string equippedPet = "";
     private int requestVersion;
     private bool dataLoaded;
+
+    [Header("Equipment Save Feedback")]
+    [SerializeField] private float saveFeedbackDelay = 0.2f;
+    [SerializeField] private float savedFeedbackDuration = 1.5f;
+    private int saveFeedbackVersion;
     private bool saving;
 
     private void OnEnable() { RetryLoad(); }
@@ -243,8 +248,9 @@ public class CustomizationManager : MonoBehaviour
         if (itemToEquip.Type == CustomizationItem.ItemType.Clothes && !HasClothesModel(itemToEquip.ItemID)) return;
         saving = true;
         int version = requestVersion;
-        UpdateUIAndMannequin();
-        Status("Saving your equipment...", false);
+        int feedbackVersion = ++saveFeedbackVersion;
+        Status("", false);
+        StartCoroutine(DelayedSavingFeedback(version, feedbackVersion));
         dbRef.Child("users").Child(userId).Child("equipped")
             .Child(itemToEquip.Type.ToString().ToLowerInvariant()).SetValueAsync(itemToEquip.ItemID)
             .ContinueWithOnMainThread(task =>
@@ -262,8 +268,24 @@ public class CustomizationManager : MonoBehaviour
                 else equippedPet = itemToEquip.ItemID;
                 UpdateUIAndMannequin();
                 Status("Equipment saved.", false);
+                StartCoroutine(ClearSavedFeedback(version, feedbackVersion));
             });
     }
+
+    private IEnumerator DelayedSavingFeedback(int version, int feedbackVersion)
+    {
+        yield return new WaitForSecondsRealtime(Mathf.Max(0f, saveFeedbackDelay));
+        if (IsCurrent(version) && feedbackVersion == saveFeedbackVersion && saving)
+            Status("Saving your equipment...", false);
+    }
+
+    private IEnumerator ClearSavedFeedback(int version, int feedbackVersion)
+    {
+        yield return new WaitForSecondsRealtime(Mathf.Max(0f, savedFeedbackDuration));
+        if (IsCurrent(version) && feedbackVersion == saveFeedbackVersion && !saving)
+            Status("", false);
+    }
+
 
     private void UpdateUIAndMannequin()
     {
@@ -280,7 +302,7 @@ public class CustomizationManager : MonoBehaviour
             if (item == null) continue;
             bool owned = item.IsDefault || ownedItems.Contains(item.ItemID);
             item.gameObject.SetActive(owned && Fits(item));
-            item.UpdateUI(owned, saving || item.ItemID == equippedClothes || item.ItemID == equippedPet);
+            item.UpdateUI(owned, item.ItemID == equippedClothes || item.ItemID == equippedPet);
         }
     }
 }

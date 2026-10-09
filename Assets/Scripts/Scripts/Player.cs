@@ -9,6 +9,7 @@ public class Player : MonoBehaviourPun
 {
     // ---> ADD THIS SINGLETON INSTANCE TRACKING <---
     public static Player LocalInstance { get; private set; }
+    public event System.Action OnJumpStarted;
     [SerializeField] private Transform holdPoint;
     public Transform HoldPoint => holdPoint;
     private GrabbableObject heldObject;
@@ -99,13 +100,15 @@ public class Player : MonoBehaviourPun
                 // Use child CameraTarget if available, otherwise fall back to player root
                 Transform camTarget = transform.Find("CameraTarget");
                 cmCam.Target.TrackingTarget = camTarget != null ? camTarget : transform;
+                if (TeleportManager.UsesCoveredTransitions) cmCam.PreviousStateIsValid = false;
             }
         }
     }
 
     private void GameInput_OnJumpAction(object sender, System.EventArgs e)
     {
-        if (!enabled || isGuidedMovementActive) return; // Guided movement owns locomotion until the door transition finishes.
+        if (!enabled || isGuidedMovementActive || Time.timeScale <= 0f ||
+            (gameInput != null && gameInput.GameplayInputBlocked)) return;
         jumpBufferTimer = jumpBufferTime;
     }
 
@@ -222,6 +225,14 @@ public class Player : MonoBehaviourPun
             return;
         }
 
+        if (Time.timeScale <= 0f)
+        {
+            OffRun();
+            isWalking = false;
+            jumpBufferTimer = 0f;
+            return;
+        }
+
         if (isGuidedMovementActive)
         {
             HandleGuidedMovement();
@@ -315,6 +326,7 @@ public class Player : MonoBehaviourPun
                 verticalVelocity = jumpForce;
                 isJumping = true;
                 jumpBufferTimer = 0f;
+                OnJumpStarted?.Invoke();
             }
             else { isJumping = false; }
         }
@@ -469,6 +481,14 @@ public class Player : MonoBehaviourPun
             LocalInstance = null;
     }
 
+
+    public void ResetMotionAfterTeleport()
+    {
+        EndGuidedMovement();
+        verticalVelocity = 0f;
+        jumpBufferTimer = 0f;
+        airborneSeconds = 0f;
+    }
 
     public void ToggleControl(bool hasControl)
     {

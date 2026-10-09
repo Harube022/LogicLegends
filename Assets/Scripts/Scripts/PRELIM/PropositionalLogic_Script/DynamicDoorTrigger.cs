@@ -55,6 +55,7 @@ public class DynamicDoorTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (TeleportManager.Instance != null && TeleportManager.Instance.IsTransitioning) return;
         if (other.CompareTag("Player") && !isProcessingTrap && activeTrap == null)
         {
             if (quizManager == null) return;
@@ -260,19 +261,7 @@ public class DynamicDoorTrigger : MonoBehaviour
 
     private void TeleportPlayer(GameObject player, Transform target)
     {
-        CharacterController charController = player.GetComponent<CharacterController>();
-        if (charController != null) charController.enabled = false;
-
-        // Calculate displacement vector before moving the player
-        Vector3 deltaPosition = target.position - player.transform.position;
-
-        player.transform.position = target.position;
-        player.transform.rotation = target.rotation;
-
-        // Notify Cinemachine to warp the camera instantly
-        Unity.Cinemachine.CinemachineCore.OnTargetObjectWarped(player.transform, deltaPosition);
-
-        if (charController != null) charController.enabled = true;
+        TeleportManager.EnsureExists().StartTeleport(player, target);
     }
 
     private void ResetAllBooks()

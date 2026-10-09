@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class PlayerFootsteps : MonoBehaviour
 {
@@ -9,132 +10,159 @@ public class PlayerFootsteps : MonoBehaviour
     [SerializeField] private AudioClip lilypadSound;
     [SerializeField] private AudioClip defaultSound;
 
-    // NEW (Jump sound, same pattern as others)
     [Header("Audio Setup - Actions")]
     [SerializeField] private AudioClip jumpSound;
+    [SerializeField] private AudioClip runningSound;
+    [Tooltip("Optional sound-effects mixer routing for movement audio.")]
+    [SerializeField] private AudioMixerGroup outputMixerGroup;
 
-    [Header("Audio Polish (Like the Video!)")]
+    [Header("Movement Audio")]
     [SerializeField, Range(0.7f, 1.3f)] private float minPitch = 0.9f;
     [SerializeField, Range(0.7f, 1.3f)] private float maxPitch = 1.1f;
     [SerializeField, Range(0f, 1f)] private float baseVolume = 0.8f;
+    [SerializeField, Range(0f, 1f)] private float runningVolumeMultiplier = 0.85f;
 
     [Header("Footstep Settings")]
-    [SerializeField] private float stepInterval = 0.5f;
-    [SerializeField] private float rayDistance = 1.2f;
+    [SerializeField, Min(0.05f)] private float stepInterval = 0.5f;
+    [SerializeField, Min(0.1f)] private float rayDistance = 1.2f;
 
+    private Player player;
+    private CharacterController controller;
+    private AudioSource actionSource;
+    private AudioSource runningSource;
     private float stepTimer;
     private Vector3 lastPosition;
 
-    // NEW (tracks grounded state)
-    private bool wasGrounded;
-
-    void Start()
+    private void Awake()
     {
-        lastPosition = transform.position;
+        player = GetComponent<Player>();
+        controller = GetComponent<CharacterController>();
+        actionSource = CreateSource("MovementActions2D", false);
+        runningSource = CreateSource("RunningSteps2D", true);
     }
 
-    void Update()
+    private AudioSource CreateSource(string objectName, bool loop)
     {
-        float distanceMoved = Vector3.Distance(transform.position, lastPosition);
+        var audioObject = new GameObject(objectName);
+        audioObject.transform.SetParent(transform, false);
+        var source = audioObject.AddComponent<AudioSource>();
+        source.playOnAwake = false;
+        source.spatialBlend = 0f;
+        source.dopplerLevel = 0f;
+        source.loop = loop;
+        source.outputAudioMixerGroup = outputMixerGroup;
+        if (outputMixerGroup == null) AudioVolumeSettings.Route(source, GameAudioChannel.SoundFX);
+        return source;
+    }
+
+    private void OnEnable()
+    {
         lastPosition = transform.position;
+        if (player != null) player.OnJumpStarted += PlayJumpSound;
+    }
 
-        bool isMoving = distanceMoved > 0.001f;
+    private void OnDisable()
+    {
+        if (player != null) player.OnJumpStarted -= PlayJumpSound;
+        StopMovementAudio();
+    }
 
-        if (isMoving)
+    // Runs after Player.Update so movement and grounding describe this frame.
+    private void LateUpdate()
+    {
+        Vector3 movement = transform.position - lastPosition;
+        lastPosition = transform.position;
+        movement.y = 0f;
+        if (!CanPlay() || !controller.isGrounded || !player.IsWalking() ||
+            movement.sqrMagnitude <= 0.000001f ||
+            movement.magnitude > Mathf.Max(1f, player.moveSpeed * Time.deltaTime * 4f))
         {
-            stepTimer -= Time.deltaTime;
-
-            if (stepTimer <= 0f)
-            {
-                CheckGroundAndPlaySound();
-                stepTimer = stepInterval;
-            }
+            StopMovementAudio();
+            return;
         }
-        else
+
+        if (player.IsRunning() && runningSound != null)
         {
+            if (!runningSource.isPlaying)
+            {
+                actionSource.Stop();
+                runningSource.clip = runningSound;
+                runningSource.pitch = 1f;
+                runningSource.Play();
+            }
+            runningSource.volume = baseVolume * runningVolumeMultiplier;
             stepTimer = 0f;
+            return;
         }
 
-        // NEW (Jump detection using same logic style)
-        CharacterController controller = GetComponent<CharacterController>();
-        if (controller != null)
+        runningSource.Stop();
+        stepTimer -= Time.deltaTime;
+        if (stepTimer <= 0f)
         {
-            // Detect jump: was grounded  now NOT grounded
-            if (wasGrounded && !controller.isGrounded)
-            {
-                PlayJumpSound();
-            }
-
-            wasGrounded = controller.isGrounded;
+            CheckGroundAndPlaySound();
+            stepTimer = Mathf.Max(0.05f, stepInterval) / (player.IsRunning() ? 1.5f : 1f);
         }
     }
 
-    void CheckGroundAndPlaySound()
+    private bool CanPlay()
     {
-        CharacterController controller = GetComponent<CharacterController>();
-        if (controller == null) return;
+        // A remote player's movement must not play full-volume 2D sounds locally.
+        return player != null && Player.LocalInstance == player && player.enabled &&
+            controller != null && controller.enabled && Time.timeScale > 0f &&
+            (GameInput.Instance == null || !GameInput.Instance.GameplayInputBlocked);
+    }
 
-        Vector3 capsuleBottom = transform.position + controller.center - (Vector3.up * (controller.height / 2f));
-        Vector3 rayStart = capsuleBottom + (Vector3.up * 0.5f);
-        float castDistance = 1.0f;
-
-        // Create a layermask that excludes the "Player" layer
+    private void CheckGroundAndPlaySound()
+    {
+        Vector3 capsuleBottom = transform.TransformPoint(controller.center) -
+            Vector3.up * (controller.height * transform.lossyScale.y / 2f);
+        Vector3 rayStart = capsuleBottom + Vector3.up * 0.5f;
         int playerLayer = LayerMask.NameToLayer("Player");
-        int layerMask = ~(1 << playerLayer); // Everything EXCEPT Player
-
+        int layerMask = playerLayer >= 0 ? ~(1 << playerLayer) : ~0;
         RaycastHit hit;
-        if (Physics.Raycast(rayStart, Vector3.down, out hit, castDistance, layerMask))
+        AudioClip clip = defaultSound;
+        if (Physics.Raycast(rayStart, Vector3.down, out hit, rayDistance, layerMask, QueryTriggerInteraction.Ignore))
         {
-            Debug.Log($"<color=cyan>Footstep hit: {hit.collider.gameObject.name} | Tag: {hit.collider.tag}</color>");
-
-            AudioClip clipToPlay = defaultSound;
-
             switch (hit.collider.tag)
             {
-                case "Grass": clipToPlay = grassSound; break;
-                case "Concrete": clipToPlay = concreteSound; break;
-                case "Wood": clipToPlay = woodSound; break;
-                case "Lilypad": clipToPlay = lilypadSound; break;
-            }
-
-            if (clipToPlay != null)
-            {
-                SpawnFootstepAudio(clipToPlay, hit.point);
+                case "Grass": clip = grassSound; break;
+                case "Concrete": clip = concreteSound; break;
+                case "Wood": clip = woodSound; break;
+                case "Lilypad": clip = lilypadSound; break;
             }
         }
-        else
-        {
-            Debug.Log("<color=red>Footstep missed the ground entirely!</color>");
-        }
+        PlayAction(clip != null ? clip : defaultSound);
     }
 
-    //  NEW (Jump sound trigger using SAME audio system)
-    void PlayJumpSound()
+    private void PlayJumpSound()
     {
-        if (jumpSound == null) return;
-
-        Vector3 spawnPosition = transform.position;
-        SpawnFootstepAudio(jumpSound, spawnPosition);
+        if (!CanPlay()) return;
+        runningSource.Stop();
+        actionSource.Stop();
+        stepTimer = 0f;
+        PlayAction(jumpSound);
     }
 
-    // --- EXISTING AUDIO SYSTEM (UNCHANGED) ---
-    void SpawnFootstepAudio(AudioClip clip, Vector3 spawnPosition)
+    private void PlayAction(AudioClip clip)
     {
-        GameObject audioObj = new GameObject("TempFootstepAudio");
-        audioObj.transform.position = spawnPosition;
+        if (clip == null) return;
+        actionSource.pitch = Random.Range(minPitch, maxPitch);
+        actionSource.volume = baseVolume;
+        actionSource.PlayOneShot(clip);
+    }
 
-        AudioSource source = audioObj.AddComponent<AudioSource>();
-        source.clip = clip;
+    private void StopMovementAudio()
+    {
+        stepTimer = 0f;
+        if (runningSource != null) runningSource.Stop();
+        // Let an actual jump finish in the air, but silence all audio during a modal pause.
+        if (actionSource != null && !CanPlay()) actionSource.Stop();
+    }
 
-        source.pitch = Random.Range(minPitch, maxPitch);
-        source.volume = baseVolume * Random.Range(0.9f, 1.1f);
-
-        source.spatialBlend = 1f;
-        source.minDistance = 1f;
-        source.maxDistance = 15f;
-
-        source.Play();
-
-        Destroy(audioObj, clip.length + 0.1f);
+    public void SetVolume(float volume)
+    {
+        baseVolume = Mathf.Clamp01(volume);
+        if (actionSource != null) actionSource.volume = baseVolume;
+        if (runningSource != null) runningSource.volume = baseVolume * runningVolumeMultiplier;
     }
 }

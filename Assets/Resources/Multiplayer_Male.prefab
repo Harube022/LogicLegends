@@ -56,6 +56,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player
   holdPoint: {fileID: 1554153682107975567}
   moveSpeed: 13
+  walkSecondsBeforeRun: 3
+  runSpeedMultiplier: 1.5
+  movementInputDeadZone: 0.12
   gameInput: {fileID: 0}
   countersLayerMask:
     serializedVersion: 2
@@ -217,9 +220,12 @@ MonoBehaviour:
   lilypadSound: {fileID: 8300000, guid: 9a6dd89787dca4449af64fbe9be84945, type: 3}
   defaultSound: {fileID: 0}
   jumpSound: {fileID: 0}
+  runningSound: {fileID: 8300000, guid: b2c305fdeefa5194eaa2c69a95a9ae77, type: 3}
+  outputMixerGroup: {fileID: 0}
   minPitch: 0.9
   maxPitch: 1.1
   baseVolume: 1
+  runningVolumeMultiplier: 0.85
   stepInterval: 0.4
   rayDistance: 1.2
 --- !u!1 &8194970628455051466

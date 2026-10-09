@@ -37,7 +37,7 @@ public sealed class TruthTableTutorial : MonoBehaviour
         ("Watch the clock",
             "Each challenge starts with 18:00. The clock pauses while a door quiz is open or while you stand in the marked area in front of TRUTIBOL. Wrong-answer penalties still count while paused. At 00:00, the stage ends in Game Over."),
         ("Start the next challenge",
-            "After three correct columns, the next challenge waits at 18:00. Return to Book_Statue and tap Interact to begin it. After Hard's third column, Truth Table completes and you continue to the next area."),
+            "After three correct columns, the next challenge waits at 18:00. Return to Book_Statue and tap Interact to begin it. After Hard's third column, choose NEXT STAGE or MAIN MENU on the completion screen."),
         ("Move and retry",
             "Keep holding the joystick in a direction for 3 seconds to run at 1.5 times walking speed. Releasing it resets the run. On a keyboard, hold WASD. If time runs out, tap Restart to begin again at Easy, then use the book to start the clock.")
     };
@@ -90,6 +90,8 @@ public sealed class TruthTableTutorial : MonoBehaviour
         yield return new WaitForFixedUpdate();
         yield return new WaitForFixedUpdate();
         yield return null;
+        while (TeleportManager.Instance != null && TeleportManager.Instance.IsTransitioning)
+            yield return null;
         if (!hasShownAutomatically && StageSelectionState.SelectedStage == 2)
             OpenTutorial();
     }
@@ -99,13 +101,14 @@ public sealed class TruthTableTutorial : MonoBehaviour
         if (helpButton == null || isOpen || !hasShownAutomatically) return;
         bool available = StageSelectionState.SelectedStage == 2 &&
                          stageClock != null && !stageClock.IsGameOver &&
-                         !stageClock.IsCompleted && (doors == null || !doors.IsQuizOpen);
+                         !stageClock.IsCompleted && !stageClock.IsPlayerAtBoard && (doors == null || !doors.IsQuizOpen);
         if (helpButton.gameObject.activeSelf != available)
             helpButton.gameObject.SetActive(available);
     }
 
     public void OpenTutorial()
     {
+        if (TeleportManager.Instance != null && TeleportManager.Instance.IsTransitioning) return;
         if (isOpen || StageSelectionState.SelectedStage != 2 || tutorialOverlay == null ||
             stageClock == null || stageClock.IsGameOver || stageClock.IsCompleted ||
             (doors != null && doors.IsQuizOpen) || Time.timeScale <= 0f) return;
@@ -156,7 +159,7 @@ public sealed class TruthTableTutorial : MonoBehaviour
         Cursor.lockState = previousCursorLock;
         Cursor.visible = previousCursorVisible;
         if (helpButton != null && StageSelectionState.SelectedStage == 2 &&
-            stageClock != null && !stageClock.IsGameOver && !stageClock.IsCompleted)
+            stageClock != null && !stageClock.IsGameOver && !stageClock.IsCompleted && !stageClock.IsPlayerAtBoard)
             helpButton.gameObject.SetActive(true);
     }
 

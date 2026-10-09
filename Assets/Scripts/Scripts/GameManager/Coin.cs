@@ -80,6 +80,7 @@ public class Coin : MonoBehaviourPun
     {
         GameObject audioObj = new GameObject("2D_CoinSound");
         AudioSource source = audioObj.AddComponent<AudioSource>();
+        AudioVolumeSettings.Route(source, GameAudioChannel.SoundFX);
         source.clip = clip;
         source.spatialBlend = 0f;
         source.Play();
