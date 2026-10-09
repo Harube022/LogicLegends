@@ -33,6 +33,13 @@ public class SetsElementDefinition
 }
 
 [Serializable]
+public class SetsConditionData
+{
+    public string[] setA = Array.Empty<string>();
+    public string[] setB = Array.Empty<string>();
+}
+
+[Serializable]
 public class SetsChallengeData
 {
     [Min(1)] public int challengeNumber = 1;
@@ -42,6 +49,7 @@ public class SetsChallengeData
     public string[] universalSet = Array.Empty<string>();
     [TextArea(2, 4)] public string instruction;
     public List<SetsElementDefinition> elements = new List<SetsElementDefinition>();
+    public List<SetsConditionData> conditions = new List<SetsConditionData>();
 
     public int RequiredCorrectPlacements => elements == null ? 0 : elements.Count;
 
@@ -71,10 +79,18 @@ public sealed class SetsChallengeCatalog : ScriptableObject
             {
                 challengeNumber = 1,
                 challengeType = SetsChallengeType.MEMBERSHIP,
-                setA = new[] { "1", "2", "3", "4" },
-                setB = new[] { "3", "4", "5", "6" },
-                instruction = "Place 3 in the correct region.",
-                elements = new List<SetsElementDefinition> { new SetsElementDefinition("3", SetZone.INTERSECTION) }
+                setA = new[] { "1" },
+                setB = Array.Empty<string>(),
+                universalSet = new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9" },
+                instruction = "Place each member of A or B in the matching Venn region.",
+                conditions = new List<SetsConditionData>
+                {
+                    new SetsConditionData { setA = new[] { "1" } },
+                    new SetsConditionData { setA = new[] { "1", "2", "3" } },
+                    new SetsConditionData { setA = new[] { "1", "3", "5" }, setB = new[] { "2", "6" } },
+                    new SetsConditionData { setA = new[] { "1", "3", "5" }, setB = new[] { "1", "2", "6" } },
+                    new SetsConditionData { setA = new[] { "1", "2", "3", "4", "5" }, setB = new[] { "3", "4", "6", "9" } }
+                }
             },
             new SetsChallengeData
             {

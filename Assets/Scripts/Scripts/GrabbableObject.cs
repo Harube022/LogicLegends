@@ -87,10 +87,17 @@ public class GrabbableObject : MonoBehaviourPun
         if (Player.LocalInstance != null && Player.LocalInstance.GetHeldObject() != null && Player.LocalInstance.GetHeldObject() != this)
         {
             GrabbableObject currentHeld = Player.LocalInstance.GetHeldObject();
-            // Force the currently held item into the inventory first
-            if (currentHeld.TryGetComponent(out TruthBlock previousBlock))
-                InventoryManager.Instance.TryPickupBlock(previousBlock.value, previousBlock);
-            else currentHeld.Drop();
+            // Store a previous Truth Table block when inventory is available;
+            // otherwise release the previous object before holding this one.
+            if (currentHeld.TryGetComponent(out TruthBlock heldBlock) &&
+                InventoryManager.Instance != null)
+            {
+                InventoryManager.Instance.TryPickupBlock(heldBlock.value, heldBlock);
+            }
+            else
+            {
+                currentHeld.Drop();
+            }
         }
 
         // ---> FIXED: Only request ownership and notify others IF we are online <---
@@ -108,15 +115,18 @@ public class GrabbableObject : MonoBehaviourPun
 
         if (rb != null)
         {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
+            if (!rb.isKinematic)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
             rb.isKinematic = true;
         }
 
         if (col != null) col.enabled = false;
 
         // --- UPDATED INVENTORY COUPLING ---
-        if (TryGetComponent(out TruthBlock truthBlock))
+        if (TryGetComponent(out TruthBlock truthBlock) && InventoryManager.Instance != null)
         {
            int slotIndex = InventoryManager.Instance.TryPickupBlock(truthBlock.value, truthBlock);
             if (slotIndex != -1)
@@ -153,7 +163,7 @@ public class GrabbableObject : MonoBehaviourPun
 
         // ---> NEW CLEANUP WORKFLOW <---
         // If it leaves your hand (dropped or placed into a puzzle element), remove it from UI data
-        if (TryGetComponent(out TruthBlock truthBlock))
+        if (TryGetComponent(out TruthBlock truthBlock) && InventoryManager.Instance != null)
         {
             InventoryManager.Instance.TryRemoveBlock(truthBlock);
             InventoryManager.Instance.ClearSelectionSilently();

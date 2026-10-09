@@ -65,6 +65,8 @@ public class TruthTableDoorInteraction : MonoBehaviour
     public RectTransform UiHost => interactionPrompt != null ? interactionPrompt.transform.parent as RectTransform : null;
     public TMP_Text UiTextStyle => questionText;
     public RectTransform MinimapPanel => minimap != null ? minimap.Panel : null;
+    public Transform TutorialBook => bookStatue;
+    public Collider GetTutorialDoor(int index) => doors != null && index >= 0 && index < doors.Length ? doors[index] : null;
 
     private TruthTableDoorQuestionBank.Question[] assignedQuestions;
     private bool[] answered;
@@ -81,6 +83,7 @@ public class TruthTableDoorInteraction : MonoBehaviour
     private bool minimapWasEnabled;
     private CursorLockMode previousCursorLock;
     private bool previousCursorVisible;
+    private Coroutine tutorialDoorRoutine;
 
     private bool IsTruthTableActive
     {
@@ -290,6 +293,16 @@ public class TruthTableDoorInteraction : MonoBehaviour
             if (player == null) player = FindFirstObjectByType<Player>();
         }
 
+        TruthTableControlsOnboarding onboarding = TruthTableControlsOnboarding.Active;
+        if (onboarding != null && onboarding.IsActive)
+        {
+            UpdateBookIndicator();
+            if (promptLabel != null && onboarding.WantsDedicatedInteractionPrompt)
+                promptLabel.text = onboarding.IsDemonstratingBook ? "INTERACT WITH BOOK" : DoorPromptText;
+            SetPromptVisible(onboarding.WantsDedicatedInteractionPrompt);
+            return;
+        }
+
         if (stageClock == null || stageClock.IsGameOver || !stageClock.IsWaitingForBook && !stageClock.IsRunning)
         {
             focusedDoor = null;
@@ -375,7 +388,7 @@ public class TruthTableDoorInteraction : MonoBehaviour
         bookStartIndicator.alignment = TextAlignmentOptions.Center;
         bookStartIndicator.fontStyle = FontStyles.Bold;
         bookStartIndicator.color = new Color(1f, 0.93f, 0.7f);
-        bookStartIndicator.fontSize = 5f;
+        bookStartIndicator.fontSize = 10f;
         bookStartIndicator.enableAutoSizing = false;
         bookStartIndicator.textWrappingMode = TextWrappingModes.NoWrap;
         bookStartIndicator.outlineColor = new Color32(0, 0, 0, 255);
@@ -435,7 +448,7 @@ public class TruthTableDoorInteraction : MonoBehaviour
         if (bookStartIndicator.gameObject.activeSelf != visible)
             bookStartIndicator.gameObject.SetActive(visible);
         if (!visible) return;
-        string message = "Interact to start\nChallenge " + stageClock.CurrentChallengeNumber;
+        const string message = "Interact to start the game";
         if (bookStartIndicator.text != message) bookStartIndicator.text = message;
         bookStartIndicator.transform.position = bookStatue.position + Vector3.up * bookIndicatorHeight;
         Camera view = Camera.main;
@@ -452,6 +465,12 @@ public class TruthTableDoorInteraction : MonoBehaviour
 
     public void ActivateFocusedInteraction()
     {
+        TruthTableControlsOnboarding onboarding = TruthTableControlsOnboarding.Active;
+        if (onboarding != null && onboarding.IsActive)
+        {
+            onboarding.TryTutorialInteraction();
+            return;
+        }
         if (!IsTruthTableActive || stageClock == null || stageClock.IsTutorialOpen) return;
         if (stageClock.IsWaitingForBook)
         {
@@ -523,7 +542,7 @@ public class TruthTableDoorInteraction : MonoBehaviour
         int index = currentDoorIndex;
         answered[index] = true;
         bool correct = choiceIndex == assignedQuestions[index].correctChoice;
-        feedbackText.text = correct ? "correct" : "wrong";
+        feedbackText.text = correct ? "Correct" : "Incorrect, Try again";
         feedbackText.color = correct ? new Color(0.25f, 0.95f, 0.35f) : new Color(1f, 0.27f, 0.27f);
         PlayAnswerFeedback(correct);
         foreach (Button button in answerButtons) button.interactable = false;
@@ -539,6 +558,33 @@ public class TruthTableDoorInteraction : MonoBehaviour
         // HOUSE (2) also has a MeshCollider, so disable every collider on the door.
         foreach (Collider collider in doors[index].GetComponents<Collider>()) collider.enabled = false;
         if (hinges[index] != null) StartCoroutine(SwingDoor(index));
+    }
+
+    // Visual-only tutorial swing: answered state, colliders, and quiz assignments stay untouched.
+    public void SetTutorialDoorOpen(int index, bool open)
+    {
+        if (hinges == null || index < 0 || index >= hinges.Length || hinges[index] == null) return;
+        if (tutorialDoorRoutine != null) StopCoroutine(tutorialDoorRoutine);
+        tutorialDoorRoutine = null;
+        Quaternion destination = closedRotations[index] *
+            (open ? Quaternion.Euler(0f, openAngle, 0f) : Quaternion.identity);
+        if (open) tutorialDoorRoutine = StartCoroutine(AnimateTutorialDoor(index, destination));
+        else hinges[index].localRotation = destination;
+    }
+
+    private IEnumerator AnimateTutorialDoor(int index, Quaternion destination)
+    {
+        Quaternion start = hinges[index].localRotation;
+        float elapsed = 0f;
+        while (elapsed < openSeconds)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            hinges[index].localRotation = Quaternion.Slerp(start, destination,
+                Mathf.Clamp01(elapsed / openSeconds));
+            yield return null;
+        }
+        hinges[index].localRotation = destination;
+        tutorialDoorRoutine = null;
     }
 
     private IEnumerator SwingDoor(int index)

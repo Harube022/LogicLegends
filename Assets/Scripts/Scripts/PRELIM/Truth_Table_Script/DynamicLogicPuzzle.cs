@@ -12,6 +12,16 @@ public class DynamicLogicPuzzle : MonoBehaviour
     private bool isPlayerNear = false;
 
     public bool PuzzleCompleted { get; private set; }
+    public bool CanDebugClearChallenge => houseDoors != null && houseDoors.IsStageRunning &&
+        challengePhase != null && !PuzzleCompleted;
+
+    public bool DebugClearCurrentChallenge()
+    {
+        if (!CanDebugClearChallenge) return false;
+        ClearColumnFeedback();
+        challengePhase.DebugCompleteCurrentChallenge();
+        return true;
+    }
 
     [Header("Puzzle Configuration Mode")]
     [SerializeField] private PuzzleMode puzzleMode = PuzzleMode.EasyMode;
@@ -71,6 +81,9 @@ public class DynamicLogicPuzzle : MonoBehaviour
 
     private void Update()
     {
+        // The quiz has its own feedback label. Never leave the previous
+        // column result visible behind or above the quiz panel.
+        if (houseDoors != null && houseDoors.IsQuizOpen) ClearColumnFeedback();
         if (submitColumnButton == null) return;
         bool ready = isActivePuzzle && !PuzzleCompleted &&
                      (houseDoors == null || houseDoors.IsStageRunning) &&
@@ -106,7 +119,7 @@ public class DynamicLogicPuzzle : MonoBehaviour
     {
         if (columnFeedbackPanel == null || columnFeedbackText == null) return;
         ClearColumnFeedback();
-        columnFeedbackText.text = correct ? "Correct!" : "Incorrect! Try again.";
+        columnFeedbackText.text = correct ? "Correct" : "Incorrect, Try again";
         columnFeedbackText.color = correct ? new Color(0.25f, 0.95f, 0.35f) :
                                              new Color(1f, 0.27f, 0.27f);
         columnFeedbackPanel.SetActive(true);
@@ -349,6 +362,11 @@ public class DynamicLogicPuzzle : MonoBehaviour
     public void ClearAllSnappedBlocks()
     {
         ClearColumnsOfBlocks(0, 1, 2);
+    }
+
+    public void ClearActiveBlocksForDebug()
+    {
+        if (blockSpawner != null) blockSpawner.ClearActiveBlocks(true);
     }
 
     private bool IsSnappedToAny(TruthBlock block, Transform[] points)

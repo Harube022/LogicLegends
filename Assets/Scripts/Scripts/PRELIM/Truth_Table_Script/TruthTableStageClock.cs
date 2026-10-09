@@ -23,6 +23,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
     private TextMeshProUGUI challengeLabel;
     private TextMeshProUGUI columnLabel;
     private TextMeshProUGUI startLabel;
+    private PrelimChallengeCompletionNotice completionNotice;
     private Coroutine startMessageRoutine;
     private int currentChallengeNumber = 1;
     private GameObject gameOverPanel;
@@ -54,6 +55,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
         }
         minimapPanel = doors.MinimapPanel;
         BuildUi(doors.UiHost, doors.UiTextStyle);
+        completionNotice = PrelimChallengeCompletionNotice.GetOrCreate(doors.UiHost, doors.UiTextStyle);
         UpdateHudLayout();
         RefreshTimer();
     }
@@ -81,8 +83,9 @@ public sealed class TruthTableStageClock : MonoBehaviour
 
     public bool StartFromBook()
     {
-        if (state != StageState.WaitingForBook || StageSelectionState.SelectedStage != 2) return false;
+        if (state != StageState.WaitingForBook || StageSelectionState.SelectedStage != 2 || tutorialOpen) return false;
         state = StageState.Running;
+        completionNotice?.Hide();
         RefreshTimer();
         ShowStartMessage();
         return true;
@@ -99,6 +102,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
         if (state != StageState.Running) return;
         state = StageState.WaitingForBook;
         remainingSeconds = StartSeconds;
+        completionNotice?.ShowWaiting(currentChallengeNumber - 1, currentChallengeNumber);
         quizOpen = false;
         HideStartMessage();
         if (adjustmentRoutine != null) StopCoroutine(adjustmentRoutine);
@@ -129,10 +133,11 @@ public sealed class TruthTableStageClock : MonoBehaviour
         if (state != StageState.Running) return;
         state = StageState.Completed;
         HideStartMessage();
+        completionNotice?.Hide();
         LastCompletedRemainingSeconds = remainingSeconds;
         if (adjustmentRoutine != null) StopCoroutine(adjustmentRoutine);
         adjustmentLabel.gameObject.SetActive(false);
-        resultLabel.text = "Truth Table Complete\nTime Remaining: " + FormatTime(remainingSeconds);
+        resultLabel.text = "All challenges completed!\nTime Remaining: " + FormatTime(remainingSeconds);
         restartButton.gameObject.SetActive(false);
         gameOverPanel.SetActive(true);
         gameOverPanel.transform.SetAsLastSibling();
@@ -144,6 +149,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
         remainingSeconds = 0f;
         state = StageState.GameOver;
         HideStartMessage();
+        completionNotice?.Hide();
         RefreshTimer();
         if (adjustmentRoutine != null) StopCoroutine(adjustmentRoutine);
         adjustmentLabel.gameObject.SetActive(false);

@@ -180,7 +180,9 @@ public class SelectionPad : MonoBehaviour
 
         // The answer is confirmed when the selection pad fills, before guided
         // movement to the doorway. Play success here once for this selection.
-        if (quizManager.IsChoiceCorrect(padIndex)) quizManager.PlayCorrectDoorSound();
+        bool correct = quizManager.IsChoiceCorrect(padIndex);
+        quizManager.ShowAnswerFeedback(correct);
+        if (correct) quizManager.PlayCorrectDoorSound();
         quizManager.ClearQuizUI();
 
         DynamicDoorTrigger selectedDoorTrigger = FindSelectedDoorTrigger();
