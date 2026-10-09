@@ -45,12 +45,36 @@ public class GameInput : MonoBehaviour
     private void Jump_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        TruthTableControlsOnboarding truthPractice = TruthTableControlsOnboarding.Active;
+        if (truthPractice != null && truthPractice.IsActive)
+        {
+            if (!truthPractice.AllowsJump) return;
+            truthPractice.NoteJumpInput();
+        }
+        PropositionalControlsOnboarding practice = PropositionalControlsOnboarding.Active;
+        if (practice != null && practice.IsActive)
+        {
+            if (!practice.AllowsJump) return;
+            practice.NoteJumpInput();
+        }
         OnJumpAction?.Invoke(this, EventArgs.Empty);
     }
 
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        TruthTableControlsOnboarding truthPractice = TruthTableControlsOnboarding.Active;
+        if (truthPractice != null && truthPractice.IsActive)
+        {
+            truthPractice.TryPracticeInteraction();
+            return;
+        }
+        PropositionalControlsOnboarding practice = PropositionalControlsOnboarding.Active;
+        if (practice != null && practice.IsActive)
+        {
+            practice.TryPracticeInteraction();
+            return;
+        }
         OnInteractAction?.Invoke(this, EventArgs.Empty);
     }
 
@@ -62,6 +86,10 @@ public class GameInput : MonoBehaviour
     public Vector2 GetMovementVectorNormalized(float deadZone)
     {
         if (GameplayInputBlocked) return Vector2.zero;
+        if (PropositionalControlsOnboarding.Active != null &&
+            PropositionalControlsOnboarding.Active.SuppressMovement) return Vector2.zero;
+        if (TruthTableControlsOnboarding.Active != null &&
+            TruthTableControlsOnboarding.Active.SuppressMovement) return Vector2.zero;
         Vector2 inputVector = playerInputActions.Player.Move.ReadValue<Vector2>();
 
         float deadZoneSquared = deadZone * deadZone;
@@ -83,12 +111,36 @@ public class GameInput : MonoBehaviour
     public void MobileJump()
     {
         if (GameplayInputBlocked) return;
+        TruthTableControlsOnboarding truthPractice = TruthTableControlsOnboarding.Active;
+        if (truthPractice != null && truthPractice.IsActive)
+        {
+            if (!truthPractice.AllowsJump) return;
+            truthPractice.NoteJumpInput();
+        }
+        PropositionalControlsOnboarding practice = PropositionalControlsOnboarding.Active;
+        if (practice != null && practice.IsActive)
+        {
+            if (!practice.AllowsJump) return;
+            practice.NoteJumpInput();
+        }
         OnJumpAction?.Invoke(this, EventArgs.Empty);
     }
 
     public void MobileInteract()
     {
         if (GameplayInputBlocked) return;
+        TruthTableControlsOnboarding truthPractice = TruthTableControlsOnboarding.Active;
+        if (truthPractice != null && truthPractice.IsActive)
+        {
+            truthPractice.TryPracticeInteraction();
+            return;
+        }
+        PropositionalControlsOnboarding practice = PropositionalControlsOnboarding.Active;
+        if (practice != null && practice.IsActive)
+        {
+            practice.TryPracticeInteraction();
+            return;
+        }
         // 1. FIRST CHECK: Do we have a block selected in our inventory? If so, drop it!
         if (InventoryManager.Instance != null && InventoryManager.Instance.HasBlockSelected())
         {

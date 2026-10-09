@@ -21,6 +21,7 @@ public sealed class SetElement : MonoBehaviour
     public SetZone CorrectZone => correctZone;
     public bool IsCarried { get; private set; }
     public bool IsPlaced { get; private set; }
+    public SetPlacementZone PlacedZone => reservedZone;
 
     private void Awake()
     {
@@ -60,8 +61,11 @@ public sealed class SetElement : MonoBehaviour
         reservedZone = null;
         if (body != null)
         {
-            body.linearVelocity = Vector3.zero;
-            body.angularVelocity = Vector3.zero;
+            if (!body.isKinematic)
+            {
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+            }
             body.isKinematic = true;
         }
         SetCollidersEnabled(true);
@@ -72,12 +76,23 @@ public sealed class SetElement : MonoBehaviour
 
     public bool BeginCarry(Transform carryPoint)
     {
-        if (IsCarried || IsPlaced || carryPoint == null) return false;
+        if (IsCarried || carryPoint == null) return false;
+
+        if (reservedZone != null)
+        {
+            reservedZone.ReleasePlacementPoint(this);
+            reservedZone = null;
+        }
+        IsPlaced = false;
+        ResetFeedbackColor();
 
         if (body != null)
         {
-            body.linearVelocity = Vector3.zero;
-            body.angularVelocity = Vector3.zero;
+            if (!body.isKinematic)
+            {
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+            }
             body.isKinematic = true;
         }
 
@@ -89,7 +104,7 @@ public sealed class SetElement : MonoBehaviour
         return true;
     }
 
-    public void PlaceInZone(SetPlacementZone zone)
+    public void PlaceInZone(SetPlacementZone zone, bool tintCorrect = true)
     {
         if (zone == null || !IsCarried || IsPlaced) return;
 
@@ -101,12 +116,16 @@ public sealed class SetElement : MonoBehaviour
         transform.SetPositionAndRotation(placementPosition, Quaternion.identity);
         if (body != null)
         {
-            body.linearVelocity = Vector3.zero;
-            body.angularVelocity = Vector3.zero;
+            if (!body.isKinematic)
+            {
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+            }
             body.isKinematic = true;
         }
         SetCollidersEnabled(true);
-        SetFeedbackColor(new Color(0.25f, 0.85f, 0.35f, 1f));
+        if (tintCorrect) SetFeedbackColor(new Color(0.25f, 0.85f, 0.35f, 1f));
+        else ResetFeedbackColor();
     }
 
     public void ReturnToSpawn()
@@ -123,8 +142,11 @@ public sealed class SetElement : MonoBehaviour
         transform.SetPositionAndRotation(originalPosition, originalRotation);
         if (body != null)
         {
-            body.linearVelocity = Vector3.zero;
-            body.angularVelocity = Vector3.zero;
+            if (!body.isKinematic)
+            {
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+            }
             body.isKinematic = true;
         }
         SetCollidersEnabled(true);

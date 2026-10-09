@@ -55,6 +55,15 @@ public class QuizManager : MonoBehaviour
     [SerializeField] private GameObject safeAreaPanel;
     [SerializeField] private TextMeshProUGUI questionTextUI;
 
+    [Header("Propositional Logic Feedback")]
+    [SerializeField, Min(0.5f)] private float answerFeedbackSeconds = 2.5f;
+    private TextMeshProUGUI answerFeedbackText;
+    private Coroutine answerFeedbackCoroutine;
+    private PrelimChallengeCompletionNotice completionNotice;
+    private TextMeshPro bookStartIndicator;
+    private BookInteract indicatorBook;
+    private float indicatorHeight;
+
     [Header("Challenge Sequence")]
     [SerializeField] private List<TopicChallenge> challenges;
 
@@ -82,8 +91,24 @@ public class QuizManager : MonoBehaviour
     private TextMeshProUGUI[] activeRoomTexts = new TextMeshProUGUI[4];
 
     // Public property to let SelectionPads check if a question is actively visible
-    public bool IsQuizActive => quizPanel != null && quizPanel.activeSelf;
+    public bool IsQuizActive => quizPanel != null && quizPanel.activeSelf &&
+        (PropositionalControlsOnboarding.Active == null ||
+         !PropositionalControlsOnboarding.Active.IsActive);
+    public TopicChallenge CurrentChallengeForTutorial => GetCurrentChallenge();
     public bool IsSequenceComplete => challengeOrder.Count > 0 && currentTopicIndex >= challengeOrder.Count;
+    public bool CanDebugClearChallenge => currentChallengeStarted && !IsSequenceComplete &&
+        GetCurrentChallenge() != null && timerManager != null && timerManager.RemainingTime > 0f;
+
+    public bool DebugClearCurrentChallenge()
+    {
+        if (!CanDebugClearChallenge) return false;
+        ShowAnswerFeedback(true);
+        FinalizeChallengeCompletion();
+        Transform nextDestination = AdvanceToNextChallenge();
+        if (nextDestination != null)
+            StartCoroutine(WaitAndRespawnPlayer(nextDestination));
+        return true;
+    }
 
     private void Awake()
     {
@@ -104,6 +129,13 @@ public class QuizManager : MonoBehaviour
 
     private void OnDisable()
     {
+        if (answerFeedbackCoroutine != null)
+        {
+            StopCoroutine(answerFeedbackCoroutine);
+            answerFeedbackCoroutine = null;
+        }
+        if (answerFeedbackText != null) answerFeedbackText.gameObject.SetActive(false);
+        if (bookStartIndicator != null) bookStartIndicator.gameObject.SetActive(false);
         if (soundEffectsSource != null)
         {
             soundEffectsSource.Stop();
@@ -166,6 +198,13 @@ public class QuizManager : MonoBehaviour
             enabled = false;
             return;
         }
+
+        EnsureFeedbackUI();
+        EnsureBookIndicator();
+        RectTransform noticeHost = safeAreaPanel != null
+            ? safeAreaPanel.transform as RectTransform
+            : quizPanel != null ? quizPanel.GetComponentInParent<Canvas>()?.transform as RectTransform : null;
+        completionNotice = PrelimChallengeCompletionNotice.GetOrCreate(noticeHost, questionTextUI);
 
         if (timerManager == null)
         {
@@ -231,6 +270,110 @@ public class QuizManager : MonoBehaviour
         }
 
         GetCurrentChallenge()?.hintBoard?.AdvanceActiveTime(Time.deltaTime);
+    }
+
+    private void LateUpdate()
+    {
+        UpdateBookIndicator();
+        if (answerFeedbackText != null && timerManager != null && timerManager.RemainingTime <= 0f)
+            answerFeedbackText.gameObject.SetActive(false);
+    }
+
+    public void ShowAnswerFeedback(bool correct)
+    {
+        if (StageSelectionState.SelectedStage != 1) return;
+        EnsureFeedbackUI();
+        if (answerFeedbackText == null) return;
+        if (answerFeedbackCoroutine != null) StopCoroutine(answerFeedbackCoroutine);
+        answerFeedbackText.text = correct ? "Correct" : "Incorrect, Try again";
+        answerFeedbackText.color = correct ? new Color(0.25f, 0.95f, 0.35f) :
+                                             new Color(1f, 0.27f, 0.27f);
+        answerFeedbackText.gameObject.SetActive(true);
+        answerFeedbackCoroutine = StartCoroutine(HideAnswerFeedbackAfterDelay());
+    }
+
+    private System.Collections.IEnumerator HideAnswerFeedbackAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(answerFeedbackSeconds);
+        answerFeedbackCoroutine = null;
+        if (answerFeedbackText != null) answerFeedbackText.gameObject.SetActive(false);
+    }
+
+    private void EnsureFeedbackUI()
+    {
+        if (answerFeedbackText != null || quizPanel == null) return;
+        Canvas canvas = quizPanel.GetComponentInParent<Canvas>();
+        if (canvas == null) return;
+        GameObject label = new GameObject("PropositionalAnswerFeedback",
+            typeof(RectTransform), typeof(TextMeshProUGUI));
+        label.transform.SetParent(canvas.transform, false);
+        label.transform.SetAsLastSibling();
+        RectTransform rect = label.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = new Vector2(0f, -100f);
+        rect.sizeDelta = new Vector2(780f, 90f);
+        answerFeedbackText = label.GetComponent<TextMeshProUGUI>();
+        if (questionTextUI != null) answerFeedbackText.font = questionTextUI.font;
+        answerFeedbackText.fontSize = 48f;
+        answerFeedbackText.fontStyle = FontStyles.Bold;
+        answerFeedbackText.alignment = TextAlignmentOptions.Center;
+        answerFeedbackText.textWrappingMode = TextWrappingModes.NoWrap;
+        answerFeedbackText.outlineColor = new Color32(0, 0, 0, 255);
+        answerFeedbackText.outlineWidth = 0.25f;
+        answerFeedbackText.raycastTarget = false;
+        label.SetActive(false);
+    }
+
+    private void EnsureBookIndicator()
+    {
+        if (bookStartIndicator != null) return;
+        GameObject indicator = new GameObject("PropositionalBookStartIndicator",
+            typeof(RectTransform), typeof(TextMeshPro));
+        indicator.transform.SetParent(transform, false);
+        bookStartIndicator = indicator.GetComponent<TextMeshPro>();
+        if (questionTextUI != null) bookStartIndicator.font = questionTextUI.font;
+        bookStartIndicator.text = "Interact to start the game";
+        bookStartIndicator.fontSize = 10f;
+        bookStartIndicator.fontStyle = FontStyles.Bold;
+        bookStartIndicator.alignment = TextAlignmentOptions.Center;
+        bookStartIndicator.textWrappingMode = TextWrappingModes.NoWrap;
+        bookStartIndicator.color = new Color(1f, 0.93f, 0.7f);
+        bookStartIndicator.outlineColor = new Color32(0, 0, 0, 255);
+        bookStartIndicator.outlineWidth = 0.25f;
+        bookStartIndicator.rectTransform.pivot = new Vector2(0.5f, 0f);
+        bookStartIndicator.rectTransform.sizeDelta = new Vector2(44f, 12f);
+        indicator.transform.localScale = Vector3.one * 0.48f;
+        indicator.SetActive(false);
+    }
+
+    private void UpdateBookIndicator()
+    {
+        if (bookStartIndicator == null) return;
+        TopicChallenge challenge = GetCurrentChallenge();
+        Transform room = challenge != null && challenge.roomChoiceCanvas != null
+            ? challenge.roomChoiceCanvas.transform.parent : null;
+        BookInteract book = room != null ? room.GetComponentInChildren<BookInteract>(true) : null;
+        bool visible = StageSelectionState.SelectedStage == 1 &&
+                       (PropositionalControlsOnboarding.Active == null ||
+                        !PropositionalControlsOnboarding.Active.IsActive) &&
+                       challenge != null && book != null && book.IsReadyForInteraction &&
+                       !IsQuizActive && (timerManager == null || timerManager.RemainingTime > 0f);
+        if (bookStartIndicator.gameObject.activeSelf != visible)
+            bookStartIndicator.gameObject.SetActive(visible);
+        if (!visible) return;
+
+        if (indicatorBook != book)
+        {
+            indicatorBook = book;
+            float top = book.transform.position.y;
+            foreach (Renderer renderer in book.GetComponentsInChildren<Renderer>(true))
+                if (renderer.bounds.max.y > top) top = renderer.bounds.max.y;
+            indicatorHeight = top - book.transform.position.y + 0.3f;
+        }
+        bookStartIndicator.transform.position = book.transform.position + Vector3.up * indicatorHeight;
+        Camera view = Camera.main;
+        if (view != null) bookStartIndicator.transform.rotation = view.transform.rotation;
     }
 
     private void GenerateChallengeOrder()
@@ -317,8 +460,12 @@ public class QuizManager : MonoBehaviour
 
     public void OpenQuiz(BookInteract callingBook)
     {
+        if (PropositionalControlsOnboarding.Active != null &&
+            PropositionalControlsOnboarding.Active.IsActive) return;
         if (GetCurrentChallenge() == null || IsQuizActive ||
             (timerManager != null && timerManager.RemainingTime <= 0f)) return;
+
+        completionNotice?.Hide();
 
         activeBookInstance = callingBook; 
 
@@ -509,6 +656,7 @@ public class QuizManager : MonoBehaviour
         if (currentTopicIndex >= challengeOrder.Count)
         {
             Debug.Log("All challenges complete!");
+            completionNotice?.ShowFinal();
             HideSharedLoader();
             if (timerManager != null) 
             {
@@ -527,6 +675,7 @@ public class QuizManager : MonoBehaviour
         }
 
         TopicChallenge nextChallenge = GetCurrentChallenge();
+        completionNotice?.ShowWaiting(currentTopicIndex, currentTopicIndex + 1);
         ResetCurrentChallengeDoors();
         PrepareCurrentHintBoard();
         return nextChallenge != null ? nextChallenge.topicSpawnPoint : null;

@@ -94,6 +94,29 @@ public sealed class TruthTableChallengePhase : IPuzzlePhase
     public int ColumnNumber { get { return columnIndex + 1; } }
     public bool CanSubmitColumn { get { return currentRow == placedBlocks.Length; } }
 
+    public void DebugCompleteCurrentChallenge()
+    {
+        if (puzzle.PuzzleCompleted) return;
+        puzzle.ClearActiveBlocksForDebug();
+        Array.Clear(placedBlocks, 0, placedBlocks.Length);
+        currentRow = 0;
+        if (challengeIndex == 2)
+        {
+            columnIndex = 2;
+            puzzle.CompletePuzzle();
+            return;
+        }
+
+        challengeIndex++;
+        columnIndex = 0;
+        UpdateHeaders();
+        UpdateMasking();
+        UpdateProgress();
+        puzzle.UpdatePlacementIndicator();
+        SpawnCurrentBlocks();
+        puzzle.PrepareNextChallenge();
+    }
+
     public TruthTableChallengePhase(DynamicLogicPuzzle puzzle)
     {
         this.puzzle = puzzle;

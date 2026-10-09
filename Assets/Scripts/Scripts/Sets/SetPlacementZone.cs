@@ -9,7 +9,7 @@ public sealed class SetPlacementZone : MonoBehaviour
     [SerializeField] private Transform placementPoint;
     [SerializeField] private int zonePriority;
 
-    private readonly HashSet<SetElement> reservedElements = new HashSet<SetElement>();
+    private readonly Dictionary<SetElement, int> reservedElements = new Dictionary<SetElement, int>();
     private BoxCollider trigger;
 
     public SetZone Zone => zone;
@@ -60,10 +60,16 @@ public sealed class SetPlacementZone : MonoBehaviour
 
     public Vector3 ReservePlacementPoint(SetElement element)
     {
-        if (element != null) reservedElements.Add(element);
+        int slot = 0;
+        if (element != null && reservedElements.TryGetValue(element, out int existingSlot))
+            slot = existingSlot;
+        else
+        {
+            while (reservedElements.ContainsValue(slot)) slot++;
+            if (element != null) reservedElements[element] = slot;
+        }
 
         Transform anchor = placementPoint != null ? placementPoint : transform;
-        int slot = Mathf.Max(0, reservedElements.Count - 1);
         const float spacing = 0.75f;
         int column = slot % 3;
         int row = slot / 3;

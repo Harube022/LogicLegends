@@ -45,6 +45,9 @@ public sealed class TruthTableTutorial : MonoBehaviour
     private int pageIndex;
     private bool hasShownAutomatically;
     private bool isOpen;
+    private bool startControlsOnClose;
+    private TextMeshProUGUI gotItLabel;
+    private string originalGotItLabel;
     private GameInput gameInput;
     private Player pausedPlayer;
     private CinemachinePinchZoom pinchZoom;
@@ -72,6 +75,11 @@ public sealed class TruthTableTutorial : MonoBehaviour
         if (backButton != null) backButton.onClick.AddListener(PreviousPage);
         if (nextButton != null) nextButton.onClick.AddListener(NextPage);
         if (gotItButton != null) gotItButton.onClick.AddListener(CloseTutorial);
+        if (gotItButton != null)
+        {
+            gotItLabel = gotItButton.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (gotItLabel != null) originalGotItLabel = gotItLabel.text;
+        }
     }
 
     private void Start()
@@ -101,7 +109,9 @@ public sealed class TruthTableTutorial : MonoBehaviour
         if (helpButton == null || isOpen || !hasShownAutomatically) return;
         bool available = StageSelectionState.SelectedStage == 2 &&
                          stageClock != null && !stageClock.IsGameOver &&
-                         !stageClock.IsCompleted && !stageClock.IsPlayerAtBoard && (doors == null || !doors.IsQuizOpen);
+                         !stageClock.IsCompleted && !stageClock.IsPlayerAtBoard && (doors == null || !doors.IsQuizOpen) &&
+                         (TruthTableControlsOnboarding.Active == null ||
+                          !TruthTableControlsOnboarding.Active.IsActive);
         if (helpButton.gameObject.activeSelf != available)
             helpButton.gameObject.SetActive(available);
     }
@@ -136,6 +146,8 @@ public sealed class TruthTableTutorial : MonoBehaviour
         Cursor.visible = true;
         Time.timeScale = 0f;
 
+        startControlsOnClose = !hasShownAutomatically;
+        if (gotItLabel != null) gotItLabel.text = startControlsOnClose ? "Let’s Begin" : originalGotItLabel;
         isOpen = true;
         hasShownAutomatically = true;
         pageIndex = 0;
@@ -148,6 +160,8 @@ public sealed class TruthTableTutorial : MonoBehaviour
     public void CloseTutorial()
     {
         if (!isOpen) return;
+        bool beginControls = startControlsOnClose;
+        startControlsOnClose = false;
         isOpen = false;
         if (tutorialOverlay != null) tutorialOverlay.SetActive(false);
         stageClock?.SetTutorialOpen(false);
@@ -158,7 +172,14 @@ public sealed class TruthTableTutorial : MonoBehaviour
         Time.timeScale = previousTimeScale;
         Cursor.lockState = previousCursorLock;
         Cursor.visible = previousCursorVisible;
-        if (helpButton != null && StageSelectionState.SelectedStage == 2 &&
+        if (gotItLabel != null) gotItLabel.text = originalGotItLabel;
+        if (beginControls && StageSelectionState.SelectedStage == 2)
+        {
+            TruthTableControlsOnboarding onboarding = GetComponent<TruthTableControlsOnboarding>();
+            if (onboarding == null) onboarding = gameObject.AddComponent<TruthTableControlsOnboarding>();
+            onboarding.Begin(helpButton);
+        }
+        else if (helpButton != null && StageSelectionState.SelectedStage == 2 &&
             stageClock != null && !stageClock.IsGameOver && !stageClock.IsCompleted && !stageClock.IsPlayerAtBoard)
             helpButton.gameObject.SetActive(true);
     }
@@ -188,6 +209,7 @@ public sealed class TruthTableTutorial : MonoBehaviour
 
     private void OnDisable()
     {
+        startControlsOnClose = false;
         CloseTutorial();
         if (helpButton != null) helpButton.gameObject.SetActive(false);
     }

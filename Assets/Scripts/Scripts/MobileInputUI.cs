@@ -8,6 +8,7 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
     [SerializeField] private RectTransform joystickHandle;
 
     private Vector2 inputVector;
+    public Vector2 CurrentInput => inputVector;
     private GameInput gameInput;
 
     // ---> NEW: A lock to ignore touches during cutscenes <---

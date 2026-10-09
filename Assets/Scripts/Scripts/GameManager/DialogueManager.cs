@@ -11,6 +11,7 @@ public class DialogueManager : MonoBehaviour
     public GameObject gameplayInterfacePanel;
     public GameObject choicesPanel;
     public GameObject interactButton;
+    private bool keepInteractButtonVisible;
 
     [Header("Text Fields")]
     public TextMeshProUGUI dialogueText;
@@ -47,6 +48,7 @@ public class DialogueManager : MonoBehaviour
         dialoguePanel.SetActive(false);
         if (choicesPanel != null) choicesPanel.SetActive(false);
         gameplayInterfacePanel.SetActive(true);
+        if (interactButton != null && keepInteractButtonVisible) interactButton.SetActive(true);
     }
 
     public void UpdateText(string newText)
@@ -63,13 +65,22 @@ public class DialogueManager : MonoBehaviour
     {
         if (interactButton != null && (dialoguePanel == null || !dialoguePanel.activeSelf))
         {
-            interactButton.SetActive(isOn);
+            interactButton.SetActive(isOn || keepInteractButtonVisible);
         }
+    }
+
+    // Sets keeps the existing mobile hand control on screen; interaction
+    // handlers still decide whether the player is in range and may act.
+    public void KeepInteractButtonVisible(bool visible)
+    {
+        keepInteractButtonVisible = visible;
+        if (interactButton != null && (dialoguePanel == null || !dialoguePanel.activeSelf))
+            interactButton.SetActive(visible);
     }
 
     public void ConfigureInteractButton(GameObject button)
     {
         interactButton = button;
-        if (interactButton != null) interactButton.SetActive(false);
+        if (interactButton != null) interactButton.SetActive(keepInteractButtonVisible);
     }
 }

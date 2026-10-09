@@ -115,6 +115,11 @@ public class Player : MonoBehaviourPun
     private void GameInput_OnInteractAction(object sender, System.EventArgs e)
     {
         if (!enabled || isGuidedMovementActive) return; // Event subscriptions still fire on disabled behaviours.
+        // Setssss uses these same hand/E inputs for its book and numbered blocks.
+        // Consume a handled interaction so the generic overlap pickup cannot
+        // select a different nearby block or drop it a second time.
+        if (SetssssChallengeOne.ActiveInstance != null &&
+            SetssssChallengeOne.ActiveInstance.TryHandleInteraction()) return;
         float interactionDistance = 2f;
         Vector3 rayStart = transform.position + Vector3.up * 0.5f; 
         float castRadius = 0.5f; 
