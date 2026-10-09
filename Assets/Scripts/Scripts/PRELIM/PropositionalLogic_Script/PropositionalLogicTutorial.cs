@@ -48,6 +48,7 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
     private CursorLockMode previousCursorLock;
     private float previousTimeScale;
     private bool isOpen;
+    private bool startControlsAfterClose;
 
     public bool IsOpen => isOpen;
     public int PageIndex => pageIndex;
@@ -82,7 +83,11 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
         yield return new WaitForFixedUpdate();
         yield return new WaitForFixedUpdate();
         yield return null;
-        if (StageSelectionState.SelectedStage == 1) OpenTutorial();
+        if (StageSelectionState.SelectedStage == 1)
+        {
+            startControlsAfterClose = true;
+            OpenTutorial();
+        }
     }
 
     public void OpenTutorial()
@@ -137,6 +142,13 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
         Time.timeScale = previousTimeScale;
         Cursor.lockState = previousCursorLock;
         Cursor.visible = previousCursorVisible;
+        if (startControlsAfterClose && StageSelectionState.SelectedStage == 1)
+        {
+            startControlsAfterClose = false;
+            PropositionalControlsOnboarding controls = GetComponent<PropositionalControlsOnboarding>();
+            if (controls == null) controls = gameObject.AddComponent<PropositionalControlsOnboarding>();
+            controls.Begin(helpButton);
+        }
     }
 
     public void NextPage()
@@ -164,6 +176,7 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
 
     private void OnDisable()
     {
+        startControlsAfterClose = false;
         CloseTutorial();
         if (helpButton != null) helpButton.gameObject.SetActive(false);
     }

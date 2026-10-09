@@ -87,9 +87,15 @@ public class GrabbableObject : MonoBehaviourPun
         if (Player.LocalInstance != null && Player.LocalInstance.GetHeldObject() != null)
         {
             GrabbableObject currentHeld = Player.LocalInstance.GetHeldObject();
-            // Force the currently held item into the inventory first
-            InventoryManager.Instance.TryPickupBlock(currentHeld.GetComponent<TruthBlock>().value, currentHeld.GetComponent<TruthBlock>());
+            // Player assigns this object as held before calling Grab. Only a
+            // different Truth Table block belongs in that stage's inventory.
+            if (currentHeld != this &&
+                currentHeld.TryGetComponent(out TruthBlock heldBlock) &&
+                InventoryManager.Instance != null)
+            {
+                InventoryManager.Instance.TryPickupBlock(heldBlock.value, heldBlock);
             }
+        }
 
         // ---> FIXED: Only request ownership and notify others IF we are online <---
         if (PhotonNetwork.InRoom && photonView != null)
@@ -106,8 +112,11 @@ public class GrabbableObject : MonoBehaviourPun
 
         if (rb != null)
         {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
+            if (!rb.isKinematic)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
             rb.isKinematic = true;
         }
 

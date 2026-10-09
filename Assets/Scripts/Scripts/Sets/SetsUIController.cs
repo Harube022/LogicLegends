@@ -19,6 +19,8 @@ public sealed class SetsUIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI promptText;
     [SerializeField] private TextMeshProUGUI feedbackText;
     [SerializeField] private Button placeButton;
+    private TextMeshProUGUI placeButtonLabel;
+    private Button submitButton;
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private GameObject stageCompletePanel;
 
@@ -59,12 +61,12 @@ public sealed class SetsUIController : MonoBehaviour
     private static readonly Color Gold = new Color(0.93f, 0.76f, 0.42f);
     private static readonly (string title, string body)[] HelpPages =
     {
-        ("Start at the book", "Approach the Book Statue and tap Interact to begin the current Sets challenge. The timer waits until you start. Each new challenge also begins at the book."),
-        ("Read the sets", "Check A, B, and U on the Sets information board. Follow the current objective: find the indicated element or construct a union, intersection, difference, or complement."),
-        ("Collect an element", "Move with the on-screen joystick. When an element is nearby, tap Interact to carry it. On a keyboard, use WASD to move and E to interact."),
-        ("Place it in the Venn diagram", "Carry the element into the matching region of the Venn diagram. Tap PLACE when the region prompt appears. You may need A only, A ∩ B, B only, or the area outside A but inside U."),
-        ("Correct mistakes", "A correct placement stays in the diagram. A wrong placement costs 10 seconds, briefly stops movement, and returns that element so you can try again. The timer begins at 03:00; reaching zero ends the stage."),
-        ("Finish the stage", "Place every required element to complete a challenge. The next challenge waits for another book interaction. Finish all five challenges to complete Sets. If time runs out, use RETRY to start over.")
+        ("Start at the book", "Approach the Book Statue and tap the hand button to start Challenge 1. On a keyboard, press E. Interacting again during the challenge does not restart it."),
+        ("Read Board 1", "The board shows Condition 1 of 5, sets A and B, and U = {1, 2, 3, 4, 5, 6, 7, 8, 9}. The members of a set are the numbers inside its braces."),
+        ("Collect numbered blocks", "There is one block for each number from 1 through 9 at the spawner. Move with the on-screen joystick and tap the hand button near a block to carry it. On a keyboard, use WASD and E."),
+        ("Fill the Venn diagram", "Bring members of A only to the left region, members of both sets to A ∩ B, and members of B only to the right region. Tap PLACE in the matching region. Leave unused blocks at the spawner."),
+        ("Check and revise", "You can pick up a placed block and move it. If a number does not belong in either set, carry it out of the diagram and tap RETURN. Tap SUBMIT when ready. An incorrect answer keeps this condition active."),
+        ("Complete Challenge 1", "Each correct submission moves to the next condition and returns all nine blocks to the spawner. Complete all five conditions to finish Challenge 1. The next challenge waits for another book interaction.")
     };
     private Color neutralFeedback = new Color(0.04f, 0.09f, 0.15f, 0.9f);
     private Color correctFeedback = new Color(0.08f, 0.42f, 0.18f, 0.95f);
@@ -78,6 +80,32 @@ public sealed class SetsUIController : MonoBehaviour
     private void Awake()
     {
         BuildHudIfNeeded();
+    }
+
+    private void Start()
+    {
+        // Canvas 1 already routes this button to MobileInputUI.Interact, the
+        // same GameInput event used by the keyboard. Keep only this Sets
+        // instance visible; the shared prefab and other scenes stay unchanged.
+        Transform hand = safeAreaRoot != null
+            ? safeAreaRoot.Find("Gameplay_Interface/InteractButton")
+            : null;
+        if (hand == null || !hand.TryGetComponent(out Button button))
+        {
+            Debug.LogError("Sets is missing Canvas 1's InteractButton.", this);
+            return;
+        }
+
+        DialogueManager dialogue = FindFirstObjectByType<DialogueManager>();
+        if (dialogue != null)
+        {
+            dialogue.ConfigureInteractButton(button.gameObject);
+            dialogue.KeepInteractButtonVisible(true);
+        }
+        else
+        {
+            button.gameObject.SetActive(true);
+        }
     }
 
     private void LateUpdate()
@@ -131,9 +159,40 @@ public sealed class SetsUIController : MonoBehaviour
             instructionText.text = waitingForActivation ? "Interact with the Book Statue to begin." : challenge.instruction;
         SetPrompt(waitingForActivation ? "INTERACT WITH BOOK STATUE" : string.Empty);
         if (placeButton != null) placeButton.gameObject.SetActive(false);
+        if (submitButton != null) submitButton.gameObject.SetActive(false);
         ClearFeedback();
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (stageCompletePanel != null) stageCompletePanel.SetActive(false);
+    }
+
+    public void DisplayVennCondition(SetsConditionData condition, int conditionNumber, int totalConditions, bool waitingForActivation)
+    {
+        BuildHudIfNeeded();
+        if (condition == null) return;
+        if (challengeText != null) challengeText.text = $"CHALLENGE 1 — CONDITION {conditionNumber} OF {totalConditions}";
+        if (setAText != null) setAText.text = "A = " + FormatConditionSet(condition.setA);
+        if (setBText != null) setBText.text = "B = " + FormatConditionSet(condition.setB);
+        if (universalSetText != null)
+        {
+            universalSetText.gameObject.SetActive(true);
+            universalSetText.text = "U = {1, 2, 3, 4, 5, 6, 7, 8, 9}";
+        }
+        if (instructionText != null) instructionText.text = "Place each set member in its Venn region. Leave unused blocks at the spawner.";
+        SetPrompt(waitingForActivation ? "INTERACT WITH BOOK STATUE" : string.Empty);
+        if (placeButton != null) placeButton.gameObject.SetActive(false);
+        if (submitButton != null)
+        {
+            submitButton.gameObject.SetActive(!waitingForActivation);
+            submitButton.interactable = !waitingForActivation;
+        }
+        ClearFeedback();
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+        if (stageCompletePanel != null) stageCompletePanel.SetActive(false);
+    }
+
+    private static string FormatConditionSet(string[] values)
+    {
+        return values == null || values.Length == 0 ? "∅" : "{" + string.Join(", ", values) + "}";
     }
 
     public void SetTimer(float seconds)
@@ -151,10 +210,27 @@ public sealed class SetsUIController : MonoBehaviour
 
     public void ShowPlacementPrompt(bool canPlace, SetZone? zone)
     {
+        SetPlaceButtonLabel("PLACE");
         SetPrompt(!canPlace ? "Carry the element into a Venn region." :
             "[PLACE]  " + SetsStageManager.FormatZone(zone.Value));
 
         if (placeButton != null) placeButton.gameObject.SetActive(canPlace);
+    }
+
+    public void ShowVennPlacementPrompt(SetZone? zone)
+    {
+        bool canPlace = zone.HasValue && zone.Value != SetZone.OUTSIDE;
+        SetPlaceButtonLabel(canPlace ? "PLACE" : "RETURN");
+        SetPrompt(canPlace ? "[PLACE]  " + SetsStageManager.FormatZone(zone.Value) :
+            "[RETURN]  Send this block back to the spawner.");
+        if (placeButton != null) placeButton.gameObject.SetActive(true);
+    }
+
+    private void SetPlaceButtonLabel(string value)
+    {
+        if (placeButton == null) return;
+        if (placeButtonLabel == null) placeButtonLabel = placeButton.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (placeButtonLabel != null && placeButtonLabel.text != value) placeButtonLabel.text = value;
     }
 
     public void ShowFeedback(string message, SetsFeedbackKind kind)
@@ -192,13 +268,28 @@ public sealed class SetsUIController : MonoBehaviour
     public void ShowChallengeComplete(int challengeNumber)
     {
         if (placeButton != null) placeButton.gameObject.SetActive(false);
+        if (submitButton != null) submitButton.gameObject.SetActive(false);
         SetPrompt(string.Empty);
         ShowFeedback($"CHALLENGE {challengeNumber} COMPLETE", SetsFeedbackKind.Correct);
+    }
+
+    public void ShowVennChallengeComplete()
+    {
+        if (placeButton != null) placeButton.gameObject.SetActive(false);
+        if (submitButton != null) submitButton.gameObject.SetActive(false);
+        SetPrompt(string.Empty);
+        ShowFeedback("Challenge 1 Complete!", SetsFeedbackKind.Correct);
+    }
+
+    public void SetSubmitInteractable(bool value)
+    {
+        if (submitButton != null) submitButton.interactable = value;
     }
 
     public void ShowStageComplete()
     {
         if (placeButton != null) placeButton.gameObject.SetActive(false);
+        if (submitButton != null) submitButton.gameObject.SetActive(false);
         SetPrompt(string.Empty);
         ClearFeedback();
         if (helpButton != null) helpButton.gameObject.SetActive(false);
@@ -214,6 +305,7 @@ public sealed class SetsUIController : MonoBehaviour
     public void ShowGameOver()
     {
         if (placeButton != null) placeButton.gameObject.SetActive(false);
+        if (submitButton != null) submitButton.gameObject.SetActive(false);
         SetPrompt(string.Empty);
         SetTimer(0f);
         ClearFeedback();
@@ -226,6 +318,7 @@ public sealed class SetsUIController : MonoBehaviour
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (stageCompletePanel != null) stageCompletePanel.SetActive(false);
         if (placeButton != null) placeButton.gameObject.SetActive(false);
+        if (submitButton != null) submitButton.gameObject.SetActive(false);
         ClearFeedback();
         if (helpButton != null) helpButton.gameObject.SetActive(true);
     }
@@ -241,6 +334,11 @@ public sealed class SetsUIController : MonoBehaviour
     private void PlaceCurrentElement()
     {
         if (!helpOpen && stageManager != null) stageManager.PlaceCurrentElement();
+    }
+
+    private void SubmitCondition()
+    {
+        if (!helpOpen && stageManager != null) stageManager.SubmitCondition();
     }
 
     private void RetryStage()
@@ -311,9 +409,14 @@ public sealed class SetsUIController : MonoBehaviour
         feedbackText = CreateText(feedback.transform, "Feedback Text", new Vector2(520f, 72f), new Vector2(.5f, .5f), new Vector2(.5f, .5f), Vector2.zero, 29, TextAlignmentOptions.Center, heading: true);
         feedbackText.gameObject.SetActive(false);
 
-        GameObject placeObject = CreateButton(hudRoot.transform, "Place Button", "PLACE", new Vector2(205f, 90f), new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-530f, 345f), PlaceCurrentElement);
+        GameObject placeObject = CreateButton(hudRoot.transform, "Place Button", "PLACE", new Vector2(205f, 90f), new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-530f, 390f), PlaceCurrentElement);
         placeButton = placeObject.GetComponent<Button>();
         placeObject.SetActive(false);
+
+        GameObject submitObject = CreateButton(hudRoot.transform, "Submit Condition Button", "SUBMIT", new Vector2(205f, 90f),
+            new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-530f, 510f), SubmitCondition);
+        submitButton = submitObject.GetComponent<Button>();
+        submitObject.SetActive(false);
 
         gameOverPanel = CreateModal("Sets Game Over", "TIME IS UP", "RETRY", RetryStage);
         gameOverPanel.SetActive(false);
@@ -451,7 +554,7 @@ public sealed class SetsUIController : MonoBehaviour
         text.fontSize = fontSize;
         text.color = Color.white;
         text.alignment = alignment;
-        text.enableWordWrapping = true;
+        text.textWrappingMode = TextWrappingModes.Normal;
         text.overflowMode = TextOverflowModes.Ellipsis;
         text.raycastTarget = false;
         return text;

@@ -152,6 +152,8 @@ public class BookInteract : MonoBehaviour
     private Button btnComponent;
     private bool hasBeenInteracted = false; 
 
+    public bool IsReadyForInteraction => !hasBeenInteracted && gameObject.activeInHierarchy;
+
     private void Start()
     {
         if (interactButton != null)
@@ -167,6 +169,8 @@ public class BookInteract : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (PropositionalControlsOnboarding.Active != null &&
+            PropositionalControlsOnboarding.Active.IsActive) return;
         if (other.CompareTag("Player") && !hasBeenInteracted)
         {
             if (quizManager != null && (quizManager.IsQuizActive || hasBeenInteracted))
@@ -188,6 +192,13 @@ public class BookInteract : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        if (PropositionalControlsOnboarding.Active != null &&
+            PropositionalControlsOnboarding.Active.IsActive)
+        {
+            if (!PropositionalControlsOnboarding.Active.IsDemonstratingBook &&
+                interactButton != null) interactButton.SetActive(false);
+            return;
+        }
         if (other.CompareTag("Player"))
         {
             if (quizManager != null && (quizManager.IsQuizActive || hasBeenInteracted))
@@ -227,6 +238,13 @@ public class BookInteract : MonoBehaviour
 
     private void OnInteractClicked()
     {
+        if (PropositionalControlsOnboarding.Active != null &&
+            PropositionalControlsOnboarding.Active.IsActive)
+        {
+            PropositionalControlsOnboarding.Active.TryTutorialInteraction();
+            if (interactButton != null) interactButton.SetActive(false);
+            return;
+        }
         if (hasBeenInteracted || quizManager == null || quizManager.IsQuizActive ||
             quizManager.IsSequenceComplete || (timerManager != null && timerManager.RemainingTime <= 0f))
         {
