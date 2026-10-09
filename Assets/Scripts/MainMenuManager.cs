@@ -6,13 +6,13 @@ using Firebase.Database;
 using Firebase.Extensions;
 
 /// <summary>
-/// Carries the player's stage choice across the Main Menu -> PRELIM scene load.
+/// Carries the player's topic choice across scene loads.
 /// Progress remains owned by the existing Firebase unlockedStage value.
 /// </summary>
 public static class StageSelectionState
 {
     public const int FirstStage = 1;
-    public const int LastStage = 3;
+    public const int LastStage = 10;
 
     public static int SelectedStage { get; private set; } = FirstStage;
     public static bool HasExplicitSelection { get; private set; }
@@ -56,6 +56,7 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject stageSelectionPanel;
 
     [Header("Stage Selection")]
+    [SerializeField] private TermStageSelectionUI termStageSelection;
     [SerializeField] private UnityEngine.UI.Button stage1Button;
     [SerializeField] private UnityEngine.UI.Button stage2Button;
     [SerializeField] private UnityEngine.UI.Button stage3Button;
@@ -66,6 +67,9 @@ public class MainMenuManager : MonoBehaviour
     // ---> NEW: Variable to remember the player's progress <---
     private int highestUnlockedStage = 1; 
     private bool isLoadingStage;
+    private bool isLoadingProgress;
+    private string progressMessage = "Complete each stage to unlock the next.";
+    private int progressRequestVersion;
 
     private void Start()
     {
@@ -199,9 +203,12 @@ public class MainMenuManager : MonoBehaviour
         settingsMenuPanel.SetActive(false);
         SetStageSelectionVisible(true);
 
-        // Stage 1 is always available while the persisted value is loading.
+        // Keep topic buttons pending until this account's progress has arrived.
         highestUnlockedStage = StageSelectionState.FirstStage;
         isLoadingStage = false;
+        isLoadingProgress = true;
+        progressMessage = "Checking your progress...";
+        if (termStageSelection != null) termStageSelection.ShowTerms();
         RefreshStageSelectionUI();
         LoadUnlockedStage();
     }
@@ -212,24 +219,39 @@ public class MainMenuManager : MonoBehaviour
 
     public void SelectStage(int stageNumber)
     {
-        if (isLoadingStage || stageNumber < StageSelectionState.FirstStage ||
+        if (isLoadingStage || isLoadingProgress || stageNumber < StageSelectionState.FirstStage ||
             stageNumber > StageSelectionState.LastStage || stageNumber > highestUnlockedStage)
         {
+            return;
+        }
+
+        string targetScene = termStageSelection != null
+            ? termStageSelection.GetSceneName(stageNumber)
+            : stageNumber == 3 ? "RulesOfInference" : stageNumber <= 2 ? prelimSceneName : string.Empty;
+        if (string.IsNullOrWhiteSpace(targetScene) || !Application.CanStreamedLevelBeLoaded(targetScene))
+        {
+            progressMessage = "This stage is unavailable.";
+            RefreshStageSelectionUI();
             return;
         }
 
         isLoadingStage = true;
         RefreshStageSelectionUI();
         StageSelectionState.Select(stageNumber);
-        SceneManager.LoadScene(prelimSceneName);
+
+        SceneManager.LoadScene(targetScene);
     }
 
     private void LoadUnlockedStage()
     {
+        int requestVersion = ++progressRequestVersion;
         FirebaseAuth auth = FirebaseAuth.DefaultInstance;
         if (auth == null || auth.CurrentUser == null)
         {
             Debug.LogWarning("No signed-in Firebase user. Only Stage 1 is available.");
+            isLoadingProgress = false;
+            progressMessage = "Sign in to save your stage progress.";
+            RefreshStageSelectionUI();
             return;
         }
 
@@ -238,12 +260,17 @@ public class MainMenuManager : MonoBehaviour
             .Child("users").Child(userId).Child("unlockedStage")
             .GetValueAsync().ContinueWithOnMainThread(task =>
             {
-                // The player may choose Stage 1 before Firebase finishes and leave this scene.
-                if (this == null) return;
+                // Ignore replies for a closed menu or a different signed-in account.
+                if (this == null || requestVersion != progressRequestVersion ||
+                    auth.CurrentUser == null || auth.CurrentUser.UserId != userId) return;
+
+                isLoadingProgress = false;
 
                 if (task.IsFaulted || task.IsCanceled)
                 {
                     Debug.LogWarning("Could not load unlockedStage. Keeping Stage 1 available.");
+                    progressMessage = "Progress unavailable. Reopen this menu to retry.";
+                    RefreshStageSelectionUI();
                     return;
                 }
 
@@ -256,12 +283,15 @@ public class MainMenuManager : MonoBehaviour
                         StageSelectionState.LastStage);
                 }
 
+                progressMessage = "Complete each stage to unlock the next.";
                 RefreshStageSelectionUI();
             });
     }
 
     private void RefreshStageSelectionUI()
     {
+        if (termStageSelection != null)
+            termStageSelection.Refresh(highestUnlockedStage, isLoadingProgress, isLoadingStage, progressMessage);
         if (stage1Button != null) stage1Button.interactable = !isLoadingStage;
         if (stage2Button != null) stage2Button.interactable = !isLoadingStage && highestUnlockedStage >= 2;
         if (stage3Button != null) stage3Button.interactable = !isLoadingStage && highestUnlockedStage >= 3;
@@ -271,6 +301,7 @@ public class MainMenuManager : MonoBehaviour
 
     private void SetStageSelectionVisible(bool visible)
     {
+        if (!visible) progressRequestVersion++;
         if (stageSelectionPanel != null) stageSelectionPanel.SetActive(visible);
     }
 

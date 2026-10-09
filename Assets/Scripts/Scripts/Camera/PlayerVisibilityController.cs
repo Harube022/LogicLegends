@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
+// Run after the third-person camera and Cinemachine position the output camera.
+[DefaultExecutionOrder(10000)]
 public class PlayerVisibilityController : MonoBehaviour
 {
     [Header("References")]
@@ -8,114 +11,172 @@ public class PlayerVisibilityController : MonoBehaviour
     [SerializeField] private Transform cameraTransform;
 
     [Header("Proximity Settings")]
-    [Tooltip("Distance where the character becomes completely invisible.")]
+    [Tooltip("Camera distance from CameraTarget where the character is invisible.")]
     [SerializeField] private float fadeEndDistance = 1.0f;
-
-    [Tooltip("Distance where the character starts fading out.")]
+    [Tooltip("Camera distance from CameraTarget where fading starts.")]
     [SerializeField] private float fadeStartDistance = 2.0f;
 
-    private MaterialPropertyBlock propertyBlock;
-    private Dictionary<Renderer, Color> originalColors = new Dictionary<Renderer, Color>();
+    private sealed class RendererState
+    {
+        public Renderer renderer;
+        public Material[] originals;
+        public Material[] fading;
+        public Color[] colors;
+        public bool usingFade;
+    }
 
+    private readonly List<RendererState> states = new List<RendererState>();
+    private Transform cameraTarget;
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-    private static readonly int ColorId = Shader.PropertyToID("_Color");
 
-    private void Awake()
+    private void OnEnable()
     {
-        propertyBlock = new MaterialPropertyBlock();
-    }
-
-    private void Start()
-    {
+        cameraTarget = transform.Find("CameraTarget");
         RefreshRenderers();
-
-        if (cameraTransform == null && Camera.main != null)
-        {
-            cameraTransform = Camera.main.transform;
-        }
     }
 
-    /// <summary>
-    /// Call this if clothes/outfits are swapped dynamically at runtime.
-    /// </summary>
+    /// <summary>Called by PlayerEquipmentLoader after changing outfits.</summary>
     public void RefreshRenderers()
     {
-        playerRenderers = GetComponentsInChildren<Renderer>(true);
-        originalColors.Clear();
-
-        foreach (Renderer rend in playerRenderers)
+        ReleaseMaterials();
+        var renderers = new List<Renderer>();
+        foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
         {
-            if (rend == null || rend.sharedMaterial == null) continue;
-
-            // 1. Read original color from material ONCE on start
-            Color matColor = Color.white;
-            if (rend.sharedMaterial.HasProperty(BaseColorId))
+            // Exclude particles, UI and objects carried by the player.
+            if (!(renderer is SkinnedMeshRenderer) && !(renderer is MeshRenderer)) continue;
+            if (renderer.GetComponentInParent<GrabbableObject>() != null) continue;
+            renderers.Add(renderer);
+            Material[] originals = renderer.sharedMaterials;
+            states.Add(new RendererState
             {
-                matColor = rend.sharedMaterial.GetColor(BaseColorId);
-            }
-            else if (rend.sharedMaterial.HasProperty(ColorId))
-            {
-                matColor = rend.sharedMaterial.GetColor(ColorId);
-            }
-
-            // 2. Safety check: If material color returned dark/black, default to White so texture isn't multiplied by black
-            if (matColor.r <= 0.05f && matColor.g <= 0.05f && matColor.b <= 0.05f)
-            {
-                matColor = Color.white;
-            }
-
-            if (!originalColors.ContainsKey(rend))
-            {
-                originalColors.Add(rend, matColor);
-            }
+                renderer = renderer,
+                originals = originals,
+                colors = new Color[originals.Length]
+            });
         }
+        playerRenderers = renderers.ToArray();
     }
 
-    private void Update()
+    private void LateUpdate()
     {
+        // Menu models must stay visible in their dedicated preview cameras.
+        if (gameObject.scene.name == "Main Menu")
+        {
+            RestoreOpaqueMaterials();
+            return;
+        }
+        if (cameraTransform == null && Camera.main != null)
+            cameraTransform = Camera.main.transform;
         if (cameraTransform == null)
         {
-            if (Camera.main != null) cameraTransform = Camera.main.transform;
-            else return;
+            RestoreOpaqueMaterials();
+            return;
         }
+        Vector3 reference = cameraTarget != null
+            ? cameraTarget.position : transform.position + Vector3.up * 1.5f;
+        float distance = Vector3.Distance(reference, cameraTransform.position);
+        float start = Mathf.Max(fadeStartDistance, fadeEndDistance + 0.01f);
+        ApplyFade(Mathf.InverseLerp(fadeEndDistance, start, distance));
+    }
 
-        if (playerRenderers == null || playerRenderers.Length == 0) return;
-
-        float distance = Vector3.Distance(transform.position, cameraTransform.position);
-
-        foreach (Renderer rend in playerRenderers)
+    private void ApplyFade(float alpha)
+    {
+        foreach (RendererState state in states)
         {
-            if (rend == null || !rend.gameObject.activeInHierarchy) continue;
-
-            // Instantly hide character when camera gets closer than fadeEndDistance
-            if (distance <= fadeEndDistance)
+            if (state.renderer == null) continue;
+            if (alpha >= 1f)
             {
-                if (rend.enabled) rend.enabled = false;
+                Restore(state);
                 continue;
             }
-
-            // Re-enable renderer when camera moves away
-            if (!rend.enabled) rend.enabled = true;
-
-            // Calculate fade and apply cached original color safely
-            if (originalColors.TryGetValue(rend, out Color baseColor))
+            if (!state.renderer.gameObject.activeInHierarchy || !state.renderer.enabled) continue;
+            if (state.fading == null) CreateFadeMaterials(state);
+            if (!state.usingFade)
             {
-                float alpha = Mathf.InverseLerp(fadeEndDistance, fadeStartDistance, distance);
-                baseColor.a = alpha;
-
-                rend.GetPropertyBlock(propertyBlock);
-
-                if (rend.sharedMaterial.HasProperty(BaseColorId))
-                {
-                    propertyBlock.SetColor(BaseColorId, baseColor);
-                }
-                else if (rend.sharedMaterial.HasProperty(ColorId))
-                {
-                    propertyBlock.SetColor(ColorId, baseColor);
-                }
-
-                rend.SetPropertyBlock(propertyBlock);
+                state.renderer.sharedMaterials = state.fading;
+                state.usingFade = true;
+            }
+            for (int i = 0; i < state.fading.Length; i++)
+            {
+                Material material = state.fading[i];
+                if (material == null || material == state.originals[i]) continue;
+                Color color = state.colors[i];
+                color.a *= alpha;
+                material.SetColor(BaseColorId, color);
             }
         }
     }
+
+    private static void CreateFadeMaterials(RendererState state)
+    {
+        state.fading = new Material[state.originals.Length];
+        for (int i = 0; i < state.originals.Length; i++)
+        {
+            Material original = state.originals[i];
+            // Both character prefabs use URP Lit; leave other shaders unchanged.
+            if (original == null || original.shader.name != "Universal Render Pipeline/Lit")
+            {
+                state.fading[i] = original;
+                continue;
+            }
+            Material material = new Material(original)
+            {
+                name = original.name + " (Camera Fade)",
+                hideFlags = HideFlags.DontSave,
+                renderQueue = (int)RenderQueue.Transparent
+            };
+            state.colors[i] = original.GetColor(BaseColorId);
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 0f);
+            material.SetFloat("_AlphaClip", 0f);
+            material.SetFloat("_BlendModePreserveSpecular", 0f);
+            material.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            material.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_SrcBlendAlpha", (float)BlendMode.One);
+            material.SetFloat("_DstBlendAlpha", (float)BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_ZWrite", 0f);
+            material.SetFloat("_AlphaToMask", 0f);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.DisableKeyword("_ALPHATEST_ON");
+            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.DisableKeyword("_ALPHAMODULATE_ON");
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.SetShaderPassEnabled("ShadowCaster", false);
+            material.SetShaderPassEnabled("DepthOnly", false);
+            material.SetShaderPassEnabled("DepthNormals", false);
+            state.fading[i] = material;
+        }
+    }
+
+    private static void Restore(RendererState state)
+    {
+        if (state.usingFade && state.renderer != null)
+            state.renderer.sharedMaterials = state.originals;
+        state.usingFade = false;
+    }
+
+    private void RestoreOpaqueMaterials()
+    {
+        foreach (RendererState state in states) Restore(state);
+    }
+
+    private void ReleaseMaterials()
+    {
+        foreach (RendererState state in states)
+        {
+            Restore(state);
+            if (state.fading == null) continue;
+            for (int i = 0; i < state.fading.Length; i++)
+            {
+                Material material = state.fading[i];
+                if (material == null || material == state.originals[i]) continue;
+                if (Application.isPlaying) Destroy(material);
+                else DestroyImmediate(material);
+            }
+        }
+        states.Clear();
+    }
+
+    private void OnDisable() => ReleaseMaterials();
+    private void OnDestroy() => ReleaseMaterials();
 }

@@ -84,16 +84,19 @@ public class GrabbableObject : MonoBehaviourPun
         if (isStoredInInventory) return; // Ignore grabs if securely stored in inventory UI
 
         // --- FIX: Ensure current item is handled/stored before grabbing new one ---
-        if (Player.LocalInstance != null && Player.LocalInstance.GetHeldObject() != null)
+        if (Player.LocalInstance != null && Player.LocalInstance.GetHeldObject() != null && Player.LocalInstance.GetHeldObject() != this)
         {
             GrabbableObject currentHeld = Player.LocalInstance.GetHeldObject();
-            // Player assigns this object as held before calling Grab. Only a
-            // different Truth Table block belongs in that stage's inventory.
-            if (currentHeld != this &&
-                currentHeld.TryGetComponent(out TruthBlock heldBlock) &&
+            // Store a previous Truth Table block when inventory is available;
+            // otherwise release the previous object before holding this one.
+            if (currentHeld.TryGetComponent(out TruthBlock heldBlock) &&
                 InventoryManager.Instance != null)
             {
                 InventoryManager.Instance.TryPickupBlock(heldBlock.value, heldBlock);
+            }
+            else
+            {
+                currentHeld.Drop();
             }
         }
 
@@ -123,7 +126,7 @@ public class GrabbableObject : MonoBehaviourPun
         if (col != null) col.enabled = false;
 
         // --- UPDATED INVENTORY COUPLING ---
-        if (TryGetComponent(out TruthBlock truthBlock))
+        if (TryGetComponent(out TruthBlock truthBlock) && InventoryManager.Instance != null)
         {
            int slotIndex = InventoryManager.Instance.TryPickupBlock(truthBlock.value, truthBlock);
             if (slotIndex != -1)
@@ -160,7 +163,7 @@ public class GrabbableObject : MonoBehaviourPun
 
         // ---> NEW CLEANUP WORKFLOW <---
         // If it leaves your hand (dropped or placed into a puzzle element), remove it from UI data
-        if (TryGetComponent(out TruthBlock truthBlock))
+        if (TryGetComponent(out TruthBlock truthBlock) && InventoryManager.Instance != null)
         {
             InventoryManager.Instance.TryRemoveBlock(truthBlock);
             InventoryManager.Instance.ClearSelectionSilently();

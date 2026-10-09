@@ -86,7 +86,7 @@ namespace LogicLegends.Inference
         InferenceRule lastRule;
         public InferenceDeck(int seed) { random = new System.Random(seed); }
 
-        public InferenceQuestion Draw(InferenceRule[] rules)
+        public InferenceQuestion Draw(InferenceRule[] rules, bool recognitionPuzzle = false)
         {
             if (rules == null || rules.Length == 0) throw new InvalidOperationException("No inference rules configured.");
             if (bag.Count == 0)
@@ -103,7 +103,10 @@ namespace LogicLegends.Inference
             if (rule.examples.Length > 1 && lastExamples.TryGetValue(rule, out int last) && example == last)
                 example = (example + 1 + random.Next(rule.examples.Length - 1)) % rule.examples.Length;
             lastExamples[rule] = example; lastRule = rule;
-            return new InferenceQuestion(rule, random.Next(rule.forms.Length), example);
+            // With the conclusion hidden, p alone cannot distinguish ADD from introducing DN.
+            // Use DN elimination for recognition, leaving all legacy forms available in PRELIM.
+            int form = recognitionPuzzle && rule.abbreviation == "DN" ? 0 : random.Next(rule.forms.Length);
+            return new InferenceQuestion(rule, form, example);
         }
     }
 }

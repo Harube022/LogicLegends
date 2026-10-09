@@ -6,6 +6,7 @@ using Firebase.Database;
 using Firebase.Extensions;
 using Google; 
 using System.Threading.Tasks;
+using System.Collections;
 using UnityEngine.Video;           // ---> NEW: Required for VideoPlayer
 using UnityEngine.SceneManagement; // ---> NEW: Required to load LogicGarden
 
@@ -52,6 +53,105 @@ public class AuthManager : MonoBehaviour
     private FirebaseAuth auth;
     private GoogleSignInConfiguration configuration;
     private bool sendingPasswordReset;
+    [Header("Login Feedback")]
+    [SerializeField] private TMP_Text authenticationMessage;
+    private bool signingIn;
+    private int sessionVersion;
+    private string observedUserId;
+    private volatile bool authStateChanged;
+    private Coroutine feedbackTimer;
+
+    private void OnAuthStateChanged(object sender, System.EventArgs args)
+    {
+        // Process the SDK notification on Unity's main thread in Update.
+        authStateChanged = true;
+    }
+
+    private void Update()
+    {
+        if (!authStateChanged || signingIn || auth == null) return;
+        authStateChanged = false;
+        string currentId = auth.CurrentUser?.UserId;
+        if (currentId == observedUserId) return;
+        observedUserId = currentId;
+        sessionVersion++;
+        if (currentId != null) CheckLoginState();
+        else
+        {
+            ShowLoginScreen();
+            Feedback("Your session ended. Please log in again.");
+        }
+    }
+
+    private void Feedback(string message, float hideAfterSeconds = 0f)
+    {
+        if (feedbackTimer != null)
+        {
+            StopCoroutine(feedbackTimer);
+            feedbackTimer = null;
+        }
+        // Late Firebase responses must never cover the intro video.
+        if (cinematicPanel != null && cinematicPanel.activeSelf) message = "";
+        if (authenticationMessage != null)
+        {
+            authenticationMessage.text = message;
+            var group = authenticationMessage.GetComponentInParent<CanvasGroup>();
+            if (group != null) group.alpha = string.IsNullOrEmpty(message) ? 0f : 1f;
+        }
+        // Character selection should remain unobstructed even if a delayed request shows a message.
+        if (characterSelectMenu != null && characterSelectMenu.activeSelf)
+            hideAfterSeconds = 1f;
+        if (!string.IsNullOrEmpty(message) && hideAfterSeconds > 0f)
+            feedbackTimer = StartCoroutine(HideFeedbackAfter(hideAfterSeconds));
+    }
+
+    private IEnumerator HideFeedbackAfter(float seconds)
+    {
+        yield return new WaitForSecondsRealtime(seconds);
+        feedbackTimer = null;
+        ClearFeedback();
+    }
+
+    private void ClearFeedback() { Feedback(""); }
+
+    public void ShowInitializationError(string message)
+    {
+        ShowLoginScreen();
+        Feedback(message);
+    }
+
+    private static AuthError ErrorCode(System.AggregateException exception)
+    {
+        if (exception != null)
+            foreach (var error in exception.Flatten().InnerExceptions)
+            {
+                // Older Firebase SDKs report the enumeration-protected backend response as Failure.
+                string detail = error.ToString().ToUpperInvariant();
+                if (detail.Contains("INVALID_LOGIN_CREDENTIALS") || detail.Contains("INVALID_PASSWORD") ||
+                    detail.Contains("EMAIL_NOT_FOUND")) return AuthError.InvalidCredential;
+                if (error is Firebase.FirebaseException firebaseError)
+                    return (AuthError)firebaseError.ErrorCode;
+            }
+        return AuthError.Failure;
+    }
+
+    private bool IsCurrentSession(int version, string userId)
+    {
+        return this != null && version == sessionVersion && auth != null &&
+            auth.CurrentUser != null && auth.CurrentUser.UserId == userId;
+    }
+
+    private void OnDestroy()
+    {
+        if (auth != null) auth.StateChanged -= OnAuthStateChanged;
+        sessionVersion++;
+        CancelInvoke();
+        if (introVideoPlayer != null)
+        {
+            introVideoPlayer.loopPointReached -= OnCutsceneFinished;
+            introVideoPlayer.errorReceived -= OnCutsceneError;
+        }
+    }
 
     // ---> FIX 1: THE FLASHING LOGIN SCREEN <---
     private void Awake()
@@ -66,11 +166,16 @@ public class AuthManager : MonoBehaviour
         if (cinematicPanel != null) cinematicPanel.SetActive(false);
         if (introVideoPlayer != null) introVideoPlayer.Stop();
         if (skipButton != null) skipButton.SetActive(false);
+        Feedback("Connecting...");
     }
 
     public void CheckLoginState()
     {
+        if (!FirebaseManager.IsReady) return;
         auth = FirebaseAuth.DefaultInstance;
+        auth.StateChanged -= OnAuthStateChanged;
+        auth.StateChanged += OnAuthStateChanged;
+        observedUserId = auth.CurrentUser?.UserId;
 
         configuration = new GoogleSignInConfiguration
         {
@@ -81,19 +186,41 @@ public class AuthManager : MonoBehaviour
 
         if (auth.CurrentUser != null)
         {
+            var savedUser = auth.CurrentUser;
+            int version = sessionVersion;
+            string savedId = savedUser.UserId;
+            // Firebase persists credentials. A temporary network failure must not erase them.
+            ShowModeSelection();
+            Feedback("Welcome back! Loading your profile...");
+            CheckFirstTimeSetup();
             Debug.Log("Found saved session. Verifying with server...");
-            auth.CurrentUser.ReloadAsync().ContinueWithOnMainThread(task =>
+            savedUser.ReloadAsync().ContinueWithOnMainThread(task =>
             {
+                if (!IsCurrentSession(version, savedId)) return;
                 if (task.IsCanceled || task.IsFaulted)
                 {
-                    Debug.LogWarning("Account is invalid or was deleted. Forcing logout.");
-                    auth.SignOut(); 
-                    ShowLoginScreen();
+                    var error = ErrorCode(task.Exception);
+                    if (error == AuthError.UserDisabled || error == AuthError.UserNotFound ||
+                        error == AuthError.InvalidUserToken || error == AuthError.UserTokenExpired)
+                    {
+                        sessionVersion++;
+                        observedUserId = null;
+                        auth.SignOut();
+                        ShowLoginScreen();
+                        Feedback("Your session has expired. Please log in again.");
+                    }
+                    else Feedback("Still signed in. Check your connection if your profile does not load.");
                 }
                 else
                 {
-                    Debug.Log($"Welcome back, {auth.CurrentUser.DisplayName ?? auth.CurrentUser.Email}!");
-                    CheckFirstTimeSetup();
+                    if (!auth.CurrentUser.IsEmailVerified && HasPasswordProvider(auth.CurrentUser))
+                    {
+                        sessionVersion++;
+                        observedUserId = null;
+                        auth.SignOut();
+                        ShowLoginScreen();
+                        Feedback("Please verify your email before logging in.");
+                    }
                 }
             });
         }
@@ -101,6 +228,7 @@ public class AuthManager : MonoBehaviour
         {
             Debug.Log("No user found. Please log in.");
             ShowLoginScreen(); 
+            Feedback("");
         }
     }
 
@@ -108,17 +236,21 @@ public class AuthManager : MonoBehaviour
 
     private void CheckFirstTimeSetup()
     {
-        if (auth.CurrentUser == null) return;
+        if (this == null || auth == null || auth.CurrentUser == null) return;
         string userId = auth.CurrentUser.UserId;
+        observedUserId = userId;
+        int version = sessionVersion;
+        ShowModeSelection();
         DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
 
         Debug.Log("Checking if player has chosen a base character...");
 
         dbRef.Child("users").Child(userId).Child("base_character").GetValueAsync().ContinueWithOnMainThread(task =>
         {
+            if (!IsCurrentSession(version, userId)) return;
             if (task.IsFaulted || task.IsCanceled)
             {
-                ShowModeSelection(); // Fallback just in case
+                Feedback("Signed in. Couldn't load your profile; check your connection.");
                 return;
             }
 
@@ -126,12 +258,13 @@ public class AuthManager : MonoBehaviour
             if (snapshot.Exists && snapshot.Value != null && snapshot.Value.ToString() != "")
             {
                 // They already have a character saved! Send them to the game.
-                ShowModeSelection();
+                Feedback("Logged in successfully.", 1f);
             }
             else
             {
                 // First time playing! Show the selection screen.
                 ShowCharacterSelectScreen();
+                Feedback("Logged in successfully.", 1f);
             }
         });
     }
@@ -139,14 +272,19 @@ public class AuthManager : MonoBehaviour
     // Call this from your Male / Female UI Buttons
     public void SelectBaseCharacter(string characterID)
     {
-        if (auth.CurrentUser == null) return;
+        if (auth == null || auth.CurrentUser == null) return;
+        if (characterID != "Male_Character" && characterID != "Female_Character") return;
         string userId = auth.CurrentUser.UserId;
+        int version = sessionVersion;
         DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
 
         // Save their choice to Firebase
         dbRef.Child("users").Child(userId).Child("base_character").SetValueAsync(characterID).ContinueWithOnMainThread(task =>
         {
-            if (task.IsCompleted)
+            if (!IsCurrentSession(version, userId)) return;
+            if (task.IsFaulted || task.IsCanceled)
+                Feedback("Couldn't save your character. Check your connection and try again.");
+            else
             {
                 Debug.Log($"Successfully saved {characterID} as base character!");
                 // ShowModeSelection(); // Move them to the game now!
@@ -158,6 +296,7 @@ public class AuthManager : MonoBehaviour
     // ---> NEW: Methods to handle the video and scene loading <---
     private void PlayIntroCutscene()
     {
+        ClearFeedback();
         // 1. Hide all other UI menus
         if (loginMenu != null) loginMenu.SetActive(false);
         if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
@@ -204,6 +343,7 @@ public class AuthManager : MonoBehaviour
 
     private void FinishCutsceneAndShowMainMenu()
     {
+        ClearFeedback();
         // Clean up video player events and stop playback
         if (introVideoPlayer != null)
         {
@@ -238,30 +378,48 @@ public class AuthManager : MonoBehaviour
 
     public void OnClickGoogleSignIn()
     {
+        if (signingIn) return;
+        if (auth == null || !FirebaseManager.IsReady)
+        {
+            Feedback("Please wait while login services connect.");
+            return;
+        }
+        signingIn = true;
+        int version = ++sessionVersion;
+        Feedback("Opening Google sign-in...");
         GoogleSignIn.Configuration = configuration;
         GoogleSignIn.Configuration.UseGameSignIn = false;
         GoogleSignIn.Configuration.RequestIdToken = true;
 
         Debug.Log("Opening Google Sign-In Pop-up...");
         
-        GoogleSignIn.DefaultInstance.SignIn().ContinueWithOnMainThread(OnGoogleSignInFinished);
+        GoogleSignIn.DefaultInstance.SignIn().ContinueWithOnMainThread(task =>
+        {
+            if (this == null || version != sessionVersion) return;
+            OnGoogleSignInFinished(task);
+        });
     }
 
     private void OnGoogleSignInFinished(Task<GoogleSignInUser> task)
     {
         if (task.IsFaulted || task.IsCanceled)
         {
+            signingIn = false;
             Debug.LogError("Google Sign-In failed or was canceled.");
             ShowLoginScreen();
+            Feedback("Google sign-in was canceled or failed. Please try again.");
             return;
         }
 
         Debug.Log("Google Token received! Handing over to Firebase...");
         
         Credential credential = GoogleAuthProvider.GetCredential(task.Result.IdToken, null);
+        int version = sessionVersion;
 
         auth.SignInWithCredentialAsync(credential).ContinueWithOnMainThread(authTask =>
         {
+            if (this == null || version != sessionVersion) return;
+            signingIn = false;
             // if (authTask.IsCanceled || authTask.IsFaulted)
             // {
             //     Debug.LogError("Firebase Auth Failed: " + authTask.Exception);
@@ -276,12 +434,14 @@ public class AuthManager : MonoBehaviour
             {
                 Debug.LogError("Firebase failed to authenticate Google credential.");
                 ShowLoginScreen();
+                Feedback("Couldn't log in with Google. Check your connection and try again.");
                 return;
             }
 
             Debug.Log("Google Login Success! Waiting for Database Security Sync...");
             // ---> THE FIX: Wait 0.5 seconds for the database to recognize the new Google token!
-            Invoke(nameof(CheckFirstTimeSetup), 0.5f);
+            Feedback("Logged in successfully.", 1f);
+            CheckFirstTimeSetup();
         });
     }
 
@@ -289,11 +449,39 @@ public class AuthManager : MonoBehaviour
 
     public void OnClickLogin()
     {
-        auth.SignInWithEmailAndPasswordAsync(emailLoginInput.text, passwordLoginInput.text).ContinueWithOnMainThread(task =>
+        if (signingIn) return;
+        if (auth == null || !FirebaseManager.IsReady)
         {
+            Feedback("Please wait while login services connect.");
+            return;
+        }
+        string email = emailLoginInput.text.Trim();
+        string password = passwordLoginInput.text;
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrEmpty(password))
+        {
+            Feedback("Enter your email and password.");
+            return;
+        }
+        signingIn = true;
+        int version = ++sessionVersion;
+        Feedback("Logging in...");
+        auth.SignInWithEmailAndPasswordAsync(email, password).ContinueWithOnMainThread(task =>
+        {
+            if (this == null || version != sessionVersion) return;
+            signingIn = false;
             if (task.IsCanceled || task.IsFaulted)
             {
-                Debug.LogError("Login Failed!");
+                var error = ErrorCode(task.Exception);
+                if (error == AuthError.InvalidEmail || error == AuthError.WrongPassword ||
+                    error == AuthError.UserNotFound || error == AuthError.InvalidCredential)
+                    Feedback("Incorrect email or password. Please try again.");
+                else if (error == AuthError.Failure)
+                    Feedback("Couldn't log in. Check your email and password and try again.");
+                else if (error == AuthError.TooManyRequests)
+                    Feedback("Too many attempts. Please wait and try again.");
+                else if (error == AuthError.UserDisabled)
+                    Feedback("This account is disabled.");
+                else Feedback("Couldn't log in. Check your connection and try again.");
                 return;
             }
 
@@ -302,10 +490,12 @@ public class AuthManager : MonoBehaviour
             {
                 Debug.LogWarning("Access Denied: Please verify your email address first!");
                 auth.SignOut(); // Kick them out until they click the link!
+                Feedback("Please verify your email before logging in.");
                 return;
             }
             // ---> THE FIX: Add the same delay here for testing new accounts!
-            Invoke(nameof(CheckFirstTimeSetup), 0.5f);
+            Feedback("Logged in successfully.", 1f);
+            CheckFirstTimeSetup();
             // ShowModeSelection();
         });
     }
@@ -364,6 +554,10 @@ public class AuthManager : MonoBehaviour
 
     public void OnClickLogout()
     {
+        sessionVersion++;
+        observedUserId = null;
+        signingIn = false;
+        CancelInvoke();
         if (auth != null && auth.CurrentUser != null)
         {
             // 1. Log out of Firebase (This works perfectly in the Editor)
@@ -379,12 +573,16 @@ public class AuthManager : MonoBehaviour
 
             // 3. Return to the Login Screen
             ShowLoginScreen();
+            Feedback("Logged out successfully.", 6f);
         }
     }
 
     // --- UI ROUTING ---
     public void ShowLoginScreen() 
     { 
+        var menu = FindFirstObjectByType<MainMenuManager>();
+        if (menu != null) menu.ShowLoginMenu();
+        if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
         loginMenu.SetActive(true); 
         // signUpMenu.SetActive(false); 
         modeSelection.SetActive(false); 
@@ -425,5 +623,12 @@ public class AuthManager : MonoBehaviour
         if (emailSignUpInput != null) emailSignUpInput.text = "";
         if (usernameSignUpInput != null) usernameSignUpInput.text = "";
         if (passwordSignUpInput != null) passwordSignUpInput.text = "";
+    }
+
+    private static bool HasPasswordProvider(FirebaseUser user)
+    {
+        foreach (var provider in user.ProviderData)
+            if (provider.ProviderId == "password") return true;
+        return false;
     }
 }
