@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>Scene-authored term cards and topic lists, backed by unlockedStage.</summary>
+/// <summary>Scene-authored term cards and topic lists. Progress is informational; all topics are selectable.</summary>
 public class TermStageSelectionUI : MonoBehaviour
 {
     [Serializable]
@@ -87,7 +87,7 @@ public class TermStageSelectionUI : MonoBehaviour
         topicsView.SetActive(true);
         for (int i = 0; i < terms.Length; i++) terms[i].topics.SetActive(i == index);
         if (heading != null) heading.text = terms[index].title;
-        if (subtitle != null) subtitle.text = "Conquer each trial to unlock the next.";
+        if (subtitle != null) subtitle.text = "Choose any trial. More adventures are coming soon.";
     }
 
     public void Back()
@@ -115,34 +115,24 @@ public class TermStageSelectionUI : MonoBehaviour
         {
             term.button.interactable = !loading;
             if (term.status == null) continue;
-            if (checking) term.status.text = "Checking progress...";
-            else if (highestUnlockedStage < term.firstStage)
-                term.status.text = "Conquer Trial " + (term.firstStage - 1) + " to unlock";
-            else
-            {
-                int completed = Mathf.Clamp(highestUnlockedStage - term.firstStage,
-                    0, term.lastStage - term.firstStage + 1);
-                term.status.text = completed == term.lastStage - term.firstStage + 1
-                    ? "Conquered - revisit your trials"
-                    : completed + " / " + (term.lastStage - term.firstStage + 1) + " trials conquered";
-            }
-            term.status.color = highestUnlockedStage >= term.firstStage ? ReadyInk : MutedInk;
+            int playable = 0;
+            foreach (StageCard stage in stages)
+                if (stage.stageNumber >= term.firstStage && stage.stageNumber <= term.lastStage &&
+                    !string.IsNullOrWhiteSpace(stage.sceneName) && Application.CanStreamedLevelBeLoaded(stage.sceneName)) playable++;
+            term.status.text = playable > 0 ? playable + " / " + (term.lastStage - term.firstStage + 1) + " trials playable" : "COMING SOON";
+            term.status.color = playable > 0 ? ReadyInk : MutedInk;
         }
 
         foreach (StageCard stage in stages)
         {
-            bool unlockedStage = stage.stageNumber <= highestUnlockedStage;
             bool ready = !string.IsNullOrWhiteSpace(stage.sceneName) &&
                 Application.CanStreamedLevelBeLoaded(stage.sceneName);
-            stage.button.interactable = !checking && !loading && unlockedStage && ready;
+            stage.button.interactable = !loading;
             if (stage.status == null) continue;
-            if (checking) stage.status.text = "Checking progress...";
-            else if (!unlockedStage)
-                stage.status.text = "LOCKED - Conquer Trial " + (stage.stageNumber - 1) + " to unlock";
-            else if (!ready) stage.status.text = "LOCKED";
+            if (!ready) stage.status.text = "COMING SOON";
             else stage.status.text = stage.stageNumber < highestUnlockedStage
                 ? "COMPLETED - Replay" : "READY - Start trial";
-            stage.status.color = unlockedStage && ready ? ReadyInk : MutedInk;
+            stage.status.color = ready ? ReadyInk : MutedInk;
         }
     }
 }

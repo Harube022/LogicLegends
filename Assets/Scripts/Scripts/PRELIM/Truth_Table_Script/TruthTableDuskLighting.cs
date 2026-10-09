@@ -139,7 +139,10 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
             poolLight.spotAngle = poolOuterAngle;
             poolLight.innerSpotAngle = Mathf.Min(poolInnerAngle, poolOuterAngle);
             poolLight.shadows = LightShadows.None;
+#if UNITY_EDITOR
+            // Bake mode is editor-only; lights created at runtime are realtime.
             poolLight.lightmapBakeType = LightmapBakeType.Realtime;
+#endif
             poolLight.enabled = true;
 
             var state = new LampState

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>One-time, Propositional Logic-only practice after How to Play.</summary>
+[DefaultExecutionOrder(1100)]
 public sealed class PropositionalControlsOnboarding : MonoBehaviour
 {
     private enum Step { Movement, Jump, Interaction, Book, Timer, Question, HintBoard, Doors, Confirm }
@@ -34,6 +35,9 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
     private RectTransform handButton;
     private RectTransform highlight;
     private RectTransform arrow;
+    private RectTransform instructionTarget;
+    private bool instructionBottom;
+    private RectTransform[] instructionBlockers;
     private RectTransform instructions;
     private TextMeshProUGUI instructionText;
     private Button nextButton;
@@ -80,7 +84,6 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         timer = FindFirstObjectByType<LevelTimerManager>();
         quiz = FindFirstObjectByType<QuizManager>();
         player = Player.LocalInstance;
-        mobileControls = FindFirstObjectByType<MobileInputUI>();
         helpButton = existingHelpButton;
         if (input == null || player == null || !BuildUI())
         {
@@ -102,6 +105,10 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         Canvas canvas = GameObject.Find("Canvas 1")?.GetComponent<Canvas>();
         safeArea = canvas != null ? canvas.transform.Find("SafeArea") as RectTransform : null;
         if (safeArea == null) return false;
+        // The root MobileInputUI handles buttons but has no joystick RectTransform.
+        // Bind to the Canvas joystick rather than depending on object instance order.
+        Transform joystickHost = safeArea.Find("Gameplay_Interface/Joystick");
+        mobileControls = joystickHost != null ? joystickHost.GetComponentInChildren<MobileInputUI>(true) : null;
         joystick = mobileControls != null ? mobileControls.transform as RectTransform : null;
         jumpButton = safeArea.Find("Gameplay_Interface/JumpButton") as RectTransform;
         handButton = safeArea.Find("Gameplay_Interface/InteractButton") as RectTransform;
@@ -258,11 +265,9 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
 
     private void SetInstruction(string message, RectTransform target, bool bottom = false, bool showNext = false)
     {
+        instructionTarget = target; instructionBottom = bottom;
         instructionText.text = message;
-        instructions.anchorMin = instructions.anchorMax = new Vector2(0.5f, bottom ? 0f : 1f);
-        instructions.anchoredPosition = new Vector2(0f, bottom ? 200f : -108f);
         nextButton.gameObject.SetActive(showNext);
-        instructionText.rectTransform.offsetMax = new Vector2(showNext ? -290f : -24f, -24f);
         if (target != null)
         {
             highlight.SetParent(target, false);
@@ -274,7 +279,9 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         worldTargets.Clear();
         worldHighlight.gameObject.SetActive(false);
         instructions.gameObject.SetActive(true);
+        instructionBlockers = ControlTutorialLayout.FindBlockers();
         confirmation.SetActive(false);
+        LayoutInstruction();
     }
 
     private void Update()
@@ -301,6 +308,7 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (IsActive) LayoutInstruction();
         if (!IsActive || worldHighlight == null || worldTargets.Count == 0 ||
             Camera.main == null || safeArea == null) return;
         Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
@@ -330,6 +338,15 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         worldHighlight.anchoredPosition = (min + max) * 0.5f;
         worldHighlight.sizeDelta = max - min +
             (step == Step.Book ? new Vector2(130f, 28f) : new Vector2(28f, 28f));
+    }
+
+    private void LayoutInstruction()
+    {
+        RectTransform target = instructionTarget;
+        if (target == null && worldHighlight != null && worldHighlight.gameObject.activeSelf)
+            target = worldHighlight;
+        ControlTutorialLayout.Place(instructions, instructionText, (RectTransform)nextButton.transform, safeArea,
+            target, instructionBottom, instructionBlockers, instructionTarget != null ? arrow : null);
     }
 
     public void NoteJumpInput()
@@ -409,11 +426,12 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
             originalTimerVisible = timerText.gameObject.activeSelf;
             originalTimerText = timerText.text;
         }
-        quizPanel = canvas.Find("QuizPanel")?.gameObject;
+        Transform quizRoot = canvas.Find("SafeArea/QuizPanel") ?? canvas.Find("QuizPanel");
+        quizPanel = quizRoot != null ? quizRoot.gameObject : null;
         originalQuizPanelVisible = quizPanel != null && quizPanel.activeSelf;
-        quizOptions = canvas.Find("QuizPanel/Options")?.gameObject;
+        quizOptions = quizRoot != null ? quizRoot.Find("Options")?.gameObject : null;
         originalQuizOptionsVisible = quizOptions != null && quizOptions.activeSelf;
-        questionText = canvas.Find("QuizPanel/QuestionText")?.GetComponent<TextMeshProUGUI>();
+        questionText = quizRoot != null ? quizRoot.Find("QuestionText")?.GetComponent<TextMeshProUGUI>() : null;
         originalQuestionText = questionText != null ? questionText.text : null;
         originalDoorCanvasVisible = room.roomChoiceCanvas.gameObject.activeSelf;
         doorTexts = room.roomChoiceCanvas.GetComponentsInChildren<TextMeshProUGUI>(true);
@@ -434,7 +452,13 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         joystick.gameObject.SetActive(false);
         jumpButton.gameObject.SetActive(false);
         handButton.gameObject.SetActive(false);
-        if (timerText != null)
+        RectTransform currentTimer = ControlTutorialLayout.JourneyElement("StageCountdown");
+        if (currentTimer != null)
+        {
+            SetInstruction("This timer shows how much time you have left to complete the challenges.",
+                currentTimer, true, true);
+        }
+        else if (timerText != null)
         {
             int seconds = Mathf.CeilToInt(Mathf.Max(0f, timer != null ? timer.RemainingTime : 360f));
             timerText.text = (seconds / 60).ToString("00") + ":" + (seconds % 60).ToString("00");

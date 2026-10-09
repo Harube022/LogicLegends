@@ -432,7 +432,7 @@ public class Player : MonoBehaviourPun
         isGuidedMovementActive = true;
         jumpBufferTimer = 0f;
 
-        MobileInputUI mobileJoystick = FindFirstObjectByType<MobileInputUI>();
+        MobileInputUI mobileJoystick = MobileInputUI.FindJoystick();
         if (mobileJoystick != null)
         {
             mobileJoystick.ResetJoystick();
@@ -513,7 +513,7 @@ public class Player : MonoBehaviourPun
             isJumping = false;
             airborneSeconds = 0f;
 
-            MobileInputUI mobileJoystick = FindFirstObjectByType<MobileInputUI>();
+            MobileInputUI mobileJoystick = MobileInputUI.FindJoystick();
             if (mobileJoystick != null)
             {
                 mobileJoystick.ResetJoystick();

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>One-time control practice between Truth Table Help and its first book start.</summary>
+[DefaultExecutionOrder(1100)]
 public sealed class TruthTableControlsOnboarding : MonoBehaviour
 {
     private enum Step
@@ -48,6 +49,9 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     private readonly List<Renderer> worldTargets = new List<Renderer>();
     private readonly List<Transform> worldPoints = new List<Transform>();
     private readonly List<RectTransform> uiGroupTargets = new List<RectTransform>();
+    private RectTransform instructionTarget;
+    private bool instructionBottom;
+    private RectTransform[] instructionBlockers;
     private RectTransform instructions;
     private TextMeshProUGUI instructionText;
     private RectTransform nextButton;
@@ -104,7 +108,6 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         doors = GetComponent<TruthTableDoorInteraction>();
         input = GameInput.Instance != null ? GameInput.Instance : FindFirstObjectByType<GameInput>();
         player = Player.LocalInstance;
-        joystickInput = FindFirstObjectByType<MobileInputUI>();
         helpButton = existingHelpButton;
         if (clock == null || !clock.IsWaitingForBook || doors == null || input == null || player == null || !BuildUI())
         {
@@ -194,6 +197,9 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     {
         Canvas canvas = GameObject.Find("Canvas 1")?.GetComponent<Canvas>();
         safeArea = canvas != null ? canvas.transform.Find("SafeArea") as RectTransform : null;
+        // Bind the actual Canvas joystick; the root button handler has the same type.
+        Transform joystickHost = safeArea != null ? safeArea.Find("Gameplay_Interface/Joystick") : null;
+        joystickInput = joystickHost != null ? joystickHost.GetComponentInChildren<MobileInputUI>(true) : null;
         joystick = joystickInput != null ? joystickInput.transform as RectTransform : null;
         jumpButton = safeArea != null ? safeArea.Find("Gameplay_Interface/JumpButton") as RectTransform : null;
         handButton = safeArea != null ? safeArea.Find("Gameplay_Interface/InteractButton") as RectTransform : null;
@@ -371,14 +377,9 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
 
     private void SetInstruction(string message, RectTransform target, bool bottom = false, bool showNext = false)
     {
+        instructionTarget = target; instructionBottom = bottom;
         instructionText.text = message;
-        instructions.anchorMin = new Vector2(0.08f, bottom ? 0f : 1f);
-        instructions.anchorMax = new Vector2(0.92f, bottom ? 0f : 1f);
-        instructions.pivot = new Vector2(0.5f, bottom ? 0f : 1f);
-        instructions.anchoredPosition = new Vector2(0f, bottom ? 190f : -28f);
         nextButton.gameObject.SetActive(showNext);
-        instructionText.rectTransform.offsetMin = new Vector2(20f, showNext ? 90f : 20f);
-        instructionText.rectTransform.offsetMax = new Vector2(-20f, -20f);
         if (target != null)
         {
             highlight.SetParent(target, false);
@@ -397,7 +398,9 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         uiGroupTargets.Clear();
         worldHighlight.gameObject.SetActive(false);
         instructions.gameObject.SetActive(true);
+        instructionBlockers = ControlTutorialLayout.FindBlockers();
         confirmation.SetActive(false);
+        LayoutInstruction();
     }
 
     private void SetWorldInstruction(string message, bool showNext, Renderer[] targets,
@@ -491,9 +494,10 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         step = Step.Timer;
         handButton.gameObject.SetActive(false);
         timerLabel.text = "18:00";
-        timerLabel.gameObject.SetActive(true);
+        RectTransform currentTimer = ControlTutorialLayout.JourneyElement("StageCountdown");
+        timerLabel.gameObject.SetActive(currentTimer == null);
         SetInstruction("This is your challenge timer. Each challenge starts with 18 minutes. Complete it before time runs out.",
-            timerLabel.rectTransform, true, true);
+            currentTimer != null ? currentTimer : timerLabel.rectTransform, true, true);
     }
 
     private void BeginMinimapDemo()
@@ -508,12 +512,16 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         step = Step.Progress;
         challengeLabel.text = "Challenge 1 — Easy";
         columnLabel.text = "Column 1 of 3";
-        challengeLabel.gameObject.SetActive(true);
-        columnLabel.gameObject.SetActive(true);
+        RectTransform currentProgress = ControlTutorialLayout.JourneyElement("StageProgress");
+        challengeLabel.gameObject.SetActive(currentProgress == null);
+        columnLabel.gameObject.SetActive(currentProgress == null);
         SetInstruction("These labels show your current challenge and column progress.",
-            null, true, true);
-        uiGroupTargets.Add(challengeLabel.rectTransform);
-        uiGroupTargets.Add(columnLabel.rectTransform);
+            currentProgress, true, true);
+        if (currentProgress == null)
+        {
+            uiGroupTargets.Add(challengeLabel.rectTransform);
+            uiGroupTargets.Add(columnLabel.rectTransform);
+        }
     }
 
     private void BeginBoardSlotsDemo()
@@ -628,12 +636,6 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     private void LateUpdate()
     {
         if (!IsActive || safeArea == null || confirmationCard == null) return;
-        bool narrow = safeArea.rect.width < 900f;
-        float side = narrow ? 0.05f : 0.08f;
-        float right = narrow ? 0.95f : instructions.pivot.y < 0.5f ? 0.82f : 0.72f;
-        float verticalAnchor = instructions.pivot.y < 0.5f ? 0f : 1f;
-        instructions.anchorMin = new Vector2(side, verticalAnchor);
-        instructions.anchorMax = new Vector2(right, verticalAnchor);
         float width = Mathf.Min(660f, Mathf.Max(300f, safeArea.rect.width - 40f));
         confirmationCard.sizeDelta = new Vector2(width, 280f);
         if (confirmationQuestion != null)
@@ -669,10 +671,8 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
             noButton.sizeDelta = new Vector2(buttonWidth, 92f);
             noButton.anchoredPosition = new Vector2(width * 0.25f, -71f);
         }
-        instructions.sizeDelta = new Vector2(0f,
-            nextButton.gameObject.activeSelf ? 225f : safeArea.rect.width < 700f ? 200f : 150f);
-        nextButton.anchoredPosition = new Vector2(Mathf.Max(10f, instructions.rect.width - 230f), 12f);
         UpdateWorldHighlight();
+        LayoutInstruction();
     }
 
     private void UpdateWorldHighlight()
@@ -726,6 +726,15 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         min = Vector2.Min(min, local);
         max = Vector2.Max(max, local);
         found = true;
+    }
+
+    private void LayoutInstruction()
+    {
+        RectTransform target = instructionTarget;
+        if (target == null && worldHighlight != null && worldHighlight.gameObject.activeSelf)
+            target = worldHighlight;
+        ControlTutorialLayout.Place(instructions, instructionText, nextButton, safeArea,
+            target, instructionBottom, instructionBlockers, instructionTarget != null ? arrow : null);
     }
 
     public void NoteJumpInput()

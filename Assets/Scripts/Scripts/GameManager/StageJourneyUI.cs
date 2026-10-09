@@ -12,6 +12,9 @@ public sealed class StageJourneyUI : MonoBehaviour
     public static StageJourneyUI Instance { get; private set; }
     [SerializeField, Min(60)] private float inferenceTimeLimit = 18 * 60;
     private RectTransform safeArea, hud, modal, card;
+    private RectTransform propositionalHelp, truthHelp, settingsDock;
+    private const float HudWidth = 580f, HudHeight = 164f;
+    private readonly Vector3[] dockCorners = new Vector3[4];
     private TMP_Text stageLabel, clockLabel, progressLabel, resultTitle, resultBody, resultStage;
     private Button primaryButton, secondaryButton, extraButton, inferenceHelp;
     private GameObject inferenceTutorial;
@@ -91,11 +94,18 @@ public sealed class StageJourneyUI : MonoBehaviour
                 {
                     StageUITheme.SkinButton(t.GetComponent<Button>());
                     var rt = (RectTransform)t;
-                    rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1);
-                    rt.pivot = new Vector2(0.5f, 1); rt.anchoredPosition = new Vector2(0, -24);
+                    if (t.name == "PropositionalHelpButton") propositionalHelp = rt;
+                    else truthHelp = rt;
+                    PlaceHelp(rt);
                 }
             }
         }
+        var gameplayCanvas = GameObject.Find("Canvas 1");
+        if (gameplayCanvas != null)
+        {
+            settingsDock = gameplayCanvas.transform.Find("SafeArea/Gameplay_Interface/SettingsButton") as RectTransform;
+        }
+        LayoutHudDock();
         if (SceneManager.GetActiveScene().name == "RulesOfInference")
         {
             StageSelectionState.Select(3);
@@ -152,15 +162,54 @@ public sealed class StageJourneyUI : MonoBehaviour
     private void BuildHud()
     {
         hud = StageUITheme.Rect("CurrentStageHud", safeArea);
-        hud.anchorMin = hud.anchorMax = new Vector2(0, 1); hud.pivot = new Vector2(0, 1);
-        hud.anchoredPosition = new Vector2(180, -24); hud.sizeDelta = new Vector2(520, 148);
+        hud.anchorMin = hud.anchorMax = Vector2.one; hud.pivot = Vector2.one;
+        hud.anchoredPosition = new Vector2(-24, -24); hud.sizeDelta = new Vector2(HudWidth, HudHeight);
         StageUITheme.CompactSurface(hud.gameObject.AddComponent<Image>()); hud.GetComponent<Image>().raycastTarget = false;
-        stageLabel = StageUITheme.Text("CurrentStageLabel", hud, "", 25);
-        StageUITheme.Stretch(stageLabel.rectTransform, new Vector2(0.06f, 0.62f), new Vector2(0.94f, 0.84f));
-        clockLabel = StageUITheme.Text("StageCountdown", hud, "", 42);
+        stageLabel = StageUITheme.Text("CurrentStageLabel", hud, "", 30);
+        StageUITheme.Stretch(stageLabel.rectTransform, new Vector2(0.06f, 0.62f), new Vector2(0.94f, 0.86f));
+        stageLabel.enableAutoSizing = true;
+        stageLabel.fontSizeMin = 25f; stageLabel.fontSizeMax = 30f;
+        stageLabel.textWrappingMode = TextWrappingModes.NoWrap;
+        clockLabel = StageUITheme.Text("StageCountdown", hud, "", 48);
         StageUITheme.Stretch(clockLabel.rectTransform, new Vector2(0.06f, 0.18f), new Vector2(0.31f, 0.57f));
-        progressLabel = StageUITheme.Text("StageProgress", hud, "", 22, true);
-        StageUITheme.Stretch(progressLabel.rectTransform, new Vector2(0.32f, 0.18f), new Vector2(0.94f, 0.57f));
+        progressLabel = StageUITheme.Text("StageProgress", hud, "", 28, true);
+        StageUITheme.Stretch(progressLabel.rectTransform, new Vector2(0.32f, 0.08f), new Vector2(0.94f, 0.6f));
+        progressLabel.enableAutoSizing = true;
+        progressLabel.fontSizeMin = 23f; progressLabel.fontSizeMax = 28f;
+    }
+
+    private void LateUpdate() { LayoutHudDock(); }
+
+    private void LayoutHudDock()
+    {
+        if (safeArea == null || hud == null || safeArea.rect.height <= 0f) return;
+        int stage = SceneManager.GetActiveScene().name == "RulesOfInference" ? 3 : StageSelectionState.SelectedStage;
+        // Keep the larger HUD readable while reserving the left settings/help pair.
+        hud.anchorMin = hud.anchorMax = new Vector2(stage == 1 ? 1f : 0.5f, 1f);
+        hud.pivot = new Vector2(stage == 1 ? 1f : 0.5f, 1f);
+        hud.localScale = Vector3.one * Mathf.Min(1f, (safeArea.rect.width - 48f) / HudWidth);
+        hud.anchoredPosition = new Vector2(stage == 1 ? -24f : 0f, -24f);
+        PlaceHelp(propositionalHelp);
+        PlaceHelp(truthHelp);
+        if (inferenceHelp != null) PlaceHelp((RectTransform)inferenceHelp.transform);
+    }
+
+    private void PlaceHelp(RectTransform rect)
+    {
+        if (rect == null) return;
+        rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0f, 1f);
+        rect.sizeDelta = new Vector2(220f, 88f);
+        if (settingsDock == null)
+        {
+            rect.anchoredPosition = new Vector2(230f, -43f);
+            return;
+        }
+        float uiScale = settingsDock.parent.lossyScale.x;
+        rect.localScale = Vector3.one * uiScale / Mathf.Max(0.001f, rect.parent.lossyScale.x);
+        settingsDock.GetWorldCorners(dockCorners);
+        rect.position = new Vector3(dockCorners[2].x + 35f * uiScale,
+            (dockCorners[0].y + dockCorners[1].y) * 0.5f + 44f * uiScale, dockCorners[1].z);
     }
 
     private RectTransform MakeModal(string name, out RectTransform inner)
@@ -310,8 +359,8 @@ public sealed class StageJourneyUI : MonoBehaviour
         StageUITheme.SkinTutorial(inferenceTutorial);
         inferenceHelp = StageUITheme.Button("InferenceHelpButton", safeArea, "HELP", OpenInferenceTutorial);
         var rt = (RectTransform)inferenceHelp.transform;
-        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1); rt.pivot = new Vector2(0.5f, 1);
-        rt.anchoredPosition = new Vector2(0, -24); rt.sizeDelta = new Vector2(220, 80);
+        rt.sizeDelta = new Vector2(220, 88);
+        PlaceHelp(rt);
     }
 
     public void OpenInferenceTutorial()

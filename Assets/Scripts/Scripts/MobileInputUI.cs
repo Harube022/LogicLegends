@@ -11,6 +11,21 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
     public Vector2 CurrentInput => inputVector;
     private GameInput gameInput;
 
+    /// <summary>Find the configured joystick, excluding button-only MobileInputUI objects.</summary>
+    public static MobileInputUI FindJoystick()
+    {
+        MobileInputUI fallback = null;
+        foreach (MobileInputUI candidate in FindObjectsByType<MobileInputUI>(
+                     FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (candidate.joystickBackground == null || candidate.joystickHandle == null ||
+                !(candidate.transform is RectTransform)) continue;
+            if (candidate.isActiveAndEnabled) return candidate;
+            if (fallback == null) fallback = candidate;
+        }
+        return fallback;
+    }
+
     // ---> NEW: A lock to ignore touches during cutscenes <---
     // private bool isJoystickActive = true;
 

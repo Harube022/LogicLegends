@@ -68,7 +68,7 @@ public class MainMenuManager : MonoBehaviour
     private int highestUnlockedStage = 1; 
     private bool isLoadingStage;
     private bool isLoadingProgress;
-    private string progressMessage = "Conquer each trial to unlock the next.";
+    private string progressMessage = "Choose any trial. More adventures are coming soon.";
     private int progressRequestVersion;
 
     private void Start()
@@ -203,7 +203,7 @@ public class MainMenuManager : MonoBehaviour
         settingsMenuPanel.SetActive(false);
         SetStageSelectionVisible(true);
 
-        // Keep topic buttons pending until this account's progress has arrived.
+        // Progress loads for display only; every topic remains selectable.
         highestUnlockedStage = StageSelectionState.FirstStage;
         isLoadingStage = false;
         isLoadingProgress = true;
@@ -219,18 +219,18 @@ public class MainMenuManager : MonoBehaviour
 
     public void SelectStage(int stageNumber)
     {
-        if (isLoadingStage || isLoadingProgress || stageNumber < StageSelectionState.FirstStage ||
-            stageNumber > StageSelectionState.LastStage || stageNumber > highestUnlockedStage)
+        if (isLoadingStage || stageNumber < StageSelectionState.FirstStage ||
+            stageNumber > StageSelectionState.LastStage)
         {
             return;
         }
 
         string targetScene = termStageSelection != null
             ? termStageSelection.GetSceneName(stageNumber)
-            : stageNumber == 3 ? "RulesOfInference" : stageNumber <= 2 ? prelimSceneName : string.Empty;
+            : stageNumber == 4 ? "Setssss" : stageNumber == 3 ? "RulesOfInference" : stageNumber <= 2 ? prelimSceneName : string.Empty;
         if (string.IsNullOrWhiteSpace(targetScene) || !Application.CanStreamedLevelBeLoaded(targetScene))
         {
-            progressMessage = "This trial is unavailable.";
+            progressMessage = "This trial is coming soon. Choose Propositional Logic, Truth Table, Rules of Inference, or Sets.";
             RefreshStageSelectionUI();
             return;
         }
@@ -248,7 +248,7 @@ public class MainMenuManager : MonoBehaviour
         FirebaseAuth auth = FirebaseAuth.DefaultInstance;
         if (auth == null || auth.CurrentUser == null)
         {
-            Debug.LogWarning("No signed-in Firebase user. Only Stage 1 is available.");
+            Debug.LogWarning("No signed-in Firebase user. All trials remain selectable; progress is not saved.");
             isLoadingProgress = false;
             progressMessage = "Sign in to save your trial progress.";
             RefreshStageSelectionUI();
@@ -268,8 +268,8 @@ public class MainMenuManager : MonoBehaviour
 
                 if (task.IsFaulted || task.IsCanceled)
                 {
-                    Debug.LogWarning("Could not load unlockedStage. Keeping Stage 1 available.");
-                    progressMessage = "Progress unavailable. Reopen this menu to retry.";
+                    Debug.LogWarning("Could not load unlockedStage. All trials remain selectable.");
+                    progressMessage = "Progress unavailable. You can still choose any trial.";
                     RefreshStageSelectionUI();
                     return;
                 }
@@ -283,7 +283,7 @@ public class MainMenuManager : MonoBehaviour
                         StageSelectionState.LastStage);
                 }
 
-                progressMessage = "Conquer each trial to unlock the next.";
+                progressMessage = "Choose any trial. More adventures are coming soon.";
                 RefreshStageSelectionUI();
             });
     }
@@ -293,10 +293,10 @@ public class MainMenuManager : MonoBehaviour
         if (termStageSelection != null)
             termStageSelection.Refresh(highestUnlockedStage, isLoadingProgress, isLoadingStage, progressMessage);
         if (stage1Button != null) stage1Button.interactable = !isLoadingStage;
-        if (stage2Button != null) stage2Button.interactable = !isLoadingStage && highestUnlockedStage >= 2;
-        if (stage3Button != null) stage3Button.interactable = !isLoadingStage && highestUnlockedStage >= 3;
-        if (stage2LockedUI != null) stage2LockedUI.SetActive(highestUnlockedStage < 2);
-        if (stage3LockedUI != null) stage3LockedUI.SetActive(highestUnlockedStage < 3);
+        if (stage2Button != null) stage2Button.interactable = !isLoadingStage;
+        if (stage3Button != null) stage3Button.interactable = !isLoadingStage;
+        if (stage2LockedUI != null) stage2LockedUI.SetActive(false);
+        if (stage3LockedUI != null) stage3LockedUI.SetActive(false);
     }
 
     private void SetStageSelectionVisible(bool visible)
