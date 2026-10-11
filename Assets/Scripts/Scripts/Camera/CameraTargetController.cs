@@ -37,6 +37,14 @@ public class CameraTargetController : MonoBehaviour
         transform.rotation = Quaternion.Euler(cameraPitch, cameraYaw, 0f);
     }
 
+    public void SetViewAngles(float pitch, float yaw)
+    {
+        cameraPitch = Mathf.Clamp(pitch, bottomClamp, topClamp);
+        cameraYaw = yaw;
+        lookInitialized = true;
+        transform.rotation = Quaternion.Euler(cameraPitch, cameraYaw, 0f);
+    }
+
     private void LateUpdate()
     {
         // Only the authoritative local player's target may consume the shared look delta.
