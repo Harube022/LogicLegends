@@ -25,7 +25,10 @@ namespace LogicLegends.Inference
             if (Revealed) return;
             Revealed = true; revealedText = "Therefore,\n∴ " + conclusion;
             label.text = revealedText;
-            if (successAudio != null && successClip != null) successAudio.PlayOneShot(successClip);
+            // In the stage, InferenceChallenge plays the evaluated-answer sound
+            // once. Keep the old source only for standalone uses of this view.
+            if (!WorldStageAudio.HandlesActiveStage && successAudio != null && successClip != null)
+                successAudio.PlayOneShot(successClip);
             if (successParticles != null) successParticles.Play();
             StartCoroutine(Fade());
         }

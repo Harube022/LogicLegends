@@ -8,7 +8,10 @@ public static class ControlTutorialLayout
     private static readonly string[] blockerNames = { "SettingsButton", "PropositionalHelpButton",
         "TruthTableHelpButton", "InferenceHelpButton", "CurrentStageHud", "TruthTableMinimapPanel",
         "Joystick", "JumpButton", "InteractButton", "InventoryBar", "AdminButton", "ReadBook_BTN",
-        "TruthTableSubmitColumnButton", "QuestionText", "TruthTableHud" };
+        "TruthTableSubmitColumnButton", "QuestionText", "TruthTableHud",
+        "PRELIM Shared Skip Tutorial", "Inference Shared Skip", "InferenceViewBoardButton", "InferenceInteractBookButton",
+        "Setssss Practice Label", "SetssssHelpButton", "TimerText", "ViewBoardButton",
+        "SubmitConditionButton", "InteractWithBookButton" };
 
     public static RectTransform[] FindBlockers()
     {

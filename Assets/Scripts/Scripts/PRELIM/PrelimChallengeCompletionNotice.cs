@@ -21,6 +21,7 @@ public sealed class PrelimChallengeCompletionNotice : MonoBehaviour
 
     public void ShowWaiting(int completedChallenge, int nextChallenge)
     {
+        SetPresentation(false);
         Show(string.Format(
             "Challenge {0} completed! Interact with the book statue to start Challenge {1}.",
             completedChallenge, nextChallenge));
@@ -28,8 +29,16 @@ public sealed class PrelimChallengeCompletionNotice : MonoBehaviour
 
     public void ShowFinal()
     {
+        SetPresentation(false);
         Show("All challenges completed!");
         finalMessageRoutine = StartCoroutine(HideFinalAfterDelay());
+    }
+
+    public void ShowStart()
+    {
+        SetPresentation(true);
+        Show("Start!");
+        finalMessageRoutine = StartCoroutine(HideFinalAfterDelay(1.5f));
     }
 
     public void Hide()
@@ -48,11 +57,21 @@ public sealed class PrelimChallengeCompletionNotice : MonoBehaviour
         panel.SetAsLastSibling();
     }
 
-    private IEnumerator HideFinalAfterDelay()
+    private IEnumerator HideFinalAfterDelay(float seconds = 3f)
     {
-        yield return new WaitForSecondsRealtime(3f);
+        yield return new WaitForSecondsRealtime(seconds);
         finalMessageRoutine = null;
         if (panel != null) panel.gameObject.SetActive(false);
+    }
+
+    private void SetPresentation(bool compact)
+    {
+        if (panel == null || message == null) return;
+        panel.anchorMin = compact ? new Vector2(0.35f, 0.42f) : new Vector2(0.15f, 0.37f);
+        panel.anchorMax = compact ? new Vector2(0.65f, 0.58f) : new Vector2(0.85f, 0.63f);
+        message.fontSizeMax = compact ? 72f : 44f;
+        message.fontSizeMin = compact ? 38f : 24f;
+        message.color = compact ? new Color(1f, 0.9f, 0.55f) : Color.white;
     }
 
     private void BuildIfNeeded(RectTransform host, TMP_Text style)
@@ -62,9 +81,9 @@ public sealed class PrelimChallengeCompletionNotice : MonoBehaviour
             typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         panel = (RectTransform)background.transform;
         panel.SetParent(host, false);
-        // The minimap and timer occupy the upper-right corner; controls occupy the bottom.
-        panel.anchorMin = new Vector2(0.10f, 0.62f);
-        panel.anchorMax = new Vector2(0.70f, 0.82f);
+        // Center the message inside the safe area, clear of the minimap and edge controls.
+        panel.anchorMin = new Vector2(0.15f, 0.37f);
+        panel.anchorMax = new Vector2(0.85f, 0.63f);
         panel.offsetMin = Vector2.zero;
         panel.offsetMax = Vector2.zero;
         Image image = background.GetComponent<Image>();
@@ -78,13 +97,13 @@ public sealed class PrelimChallengeCompletionNotice : MonoBehaviour
         RectTransform labelRect = message.rectTransform;
         labelRect.anchorMin = Vector2.zero;
         labelRect.anchorMax = Vector2.one;
-        labelRect.offsetMin = new Vector2(18f, 8f);
-        labelRect.offsetMax = new Vector2(-18f, -8f);
+        labelRect.offsetMin = new Vector2(24f, 10f);
+        labelRect.offsetMax = new Vector2(-24f, -10f);
         if (style != null) message.font = style.font;
-        message.fontSize = 42f;
+        message.fontSize = 44f;
         message.enableAutoSizing = true;
-        message.fontSizeMin = 25f;
-        message.fontSizeMax = 42f;
+        message.fontSizeMin = 24f;
+        message.fontSizeMax = 44f;
         message.fontStyle = FontStyles.Bold;
         message.alignment = TextAlignmentOptions.Center;
         message.textWrappingMode = TextWrappingModes.Normal;

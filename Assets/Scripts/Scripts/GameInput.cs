@@ -45,6 +45,18 @@ public class GameInput : MonoBehaviour
     private void Jump_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        SetssssControlsOnboarding setsPractice = SetssssControlsOnboarding.Active;
+        if (setsPractice != null && setsPractice.IsActive)
+        {
+            if (!setsPractice.AllowsJump) return;
+            setsPractice.NoteJumpInput();
+        }
+        InferenceControlsOnboarding inferencePractice = InferenceControlsOnboarding.Active;
+        if (inferencePractice != null && inferencePractice.IsActive)
+        {
+            if (!inferencePractice.AllowsJump) return;
+            inferencePractice.NoteJumpInput();
+        }
         TruthTableControlsOnboarding truthPractice = TruthTableControlsOnboarding.Active;
         if (truthPractice != null && truthPractice.IsActive)
         {
@@ -63,6 +75,18 @@ public class GameInput : MonoBehaviour
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        SetssssControlsOnboarding setsPractice = SetssssControlsOnboarding.Active;
+        if (setsPractice != null && setsPractice.IsActive)
+        {
+            setsPractice.TryPracticeInteraction();
+            return;
+        }
+        InferenceControlsOnboarding inferencePractice = InferenceControlsOnboarding.Active;
+        if (inferencePractice != null && inferencePractice.IsActive)
+        {
+            inferencePractice.TryPracticeInteraction();
+            return;
+        }
         TruthTableControlsOnboarding truthPractice = TruthTableControlsOnboarding.Active;
         if (truthPractice != null && truthPractice.IsActive)
         {
@@ -86,6 +110,10 @@ public class GameInput : MonoBehaviour
     public Vector2 GetMovementVectorNormalized(float deadZone)
     {
         if (GameplayInputBlocked) return Vector2.zero;
+        if (SetssssControlsOnboarding.Active != null &&
+            SetssssControlsOnboarding.Active.SuppressMovement) return Vector2.zero;
+        if (InferenceControlsOnboarding.Active != null &&
+            InferenceControlsOnboarding.Active.SuppressMovement) return Vector2.zero;
         if (PropositionalControlsOnboarding.Active != null &&
             PropositionalControlsOnboarding.Active.SuppressMovement) return Vector2.zero;
         if (TruthTableControlsOnboarding.Active != null &&
@@ -111,6 +139,18 @@ public class GameInput : MonoBehaviour
     public void MobileJump()
     {
         if (GameplayInputBlocked) return;
+        SetssssControlsOnboarding setsPractice = SetssssControlsOnboarding.Active;
+        if (setsPractice != null && setsPractice.IsActive)
+        {
+            if (!setsPractice.AllowsJump) return;
+            setsPractice.NoteJumpInput();
+        }
+        InferenceControlsOnboarding inferencePractice = InferenceControlsOnboarding.Active;
+        if (inferencePractice != null && inferencePractice.IsActive)
+        {
+            if (!inferencePractice.AllowsJump) return;
+            inferencePractice.NoteJumpInput();
+        }
         TruthTableControlsOnboarding truthPractice = TruthTableControlsOnboarding.Active;
         if (truthPractice != null && truthPractice.IsActive)
         {
@@ -129,6 +169,18 @@ public class GameInput : MonoBehaviour
     public void MobileInteract()
     {
         if (GameplayInputBlocked) return;
+        SetssssControlsOnboarding setsPractice = SetssssControlsOnboarding.Active;
+        if (setsPractice != null && setsPractice.IsActive)
+        {
+            setsPractice.TryPracticeInteraction();
+            return;
+        }
+        InferenceControlsOnboarding inferencePractice = InferenceControlsOnboarding.Active;
+        if (inferencePractice != null && inferencePractice.IsActive)
+        {
+            inferencePractice.TryPracticeInteraction();
+            return;
+        }
         TruthTableControlsOnboarding truthPractice = TruthTableControlsOnboarding.Active;
         if (truthPractice != null && truthPractice.IsActive)
         {

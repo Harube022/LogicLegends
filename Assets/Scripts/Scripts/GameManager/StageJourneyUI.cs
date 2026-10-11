@@ -26,17 +26,20 @@ public sealed class StageJourneyUI : MonoBehaviour
     private TruthTableTutorial truthTutorial;
     private readonly System.Collections.Generic.List<Behaviour> pausedCameraInputs = new System.Collections.Generic.List<Behaviour>();
     private InferenceChallenge inference;
+    private InferenceControlsOnboarding inferenceOnboarding;
+    private PrelimChallengeCompletionNotice inferenceNotice;
+    private bool inferenceFirstGuidePending = true;
     private float inferenceRemaining;
-    private bool inferenceStarted, inferenceFinished, resultOpen, tutorialOpen, navigating;
+    private bool inferenceFinished, resultOpen, tutorialOpen, navigating;
     private float previousTimeScale;
     private bool previousInputBlocked, previousPlayerEnabled;
     private int tutorialIndex;
     private readonly string[] tutorialTitles = { "Build the argument", "Find the matching crystal", "Place and validate", "Finish the stage" };
     private readonly string[] tutorialBodies = {
-        "Approach the inference board and interact to open it. Read the premises. Drag words from the word bank into the blanks, then tap CHECK ARGUMENT. The timer starts when you first open the board and pauses while the board or this guide is open.",
+        "Interact with the Book Statue to start the challenge timer. Near the altar, tap VIEW BOARD to examine the board; before the book starts the game, it is read-only. Once started, fill the premise blanks and tap CHECK ARGUMENT. The timer pauses while the board or this guide is open.",
         "Once the premises are correct, explore the pillars. Collect a rule crystal using Interact. Read the rule names carefully: every crystal looks equally important, so choose from the argument rather than its appearance.",
         "Return to the board with your crystal. Tap PLACE RULE, then validate the argument. A wrong crystal is removed; explore again and find another. The conclusion is revealed only after a correct validation.",
-        "Solve the required rounds to finish Rules of Inference. The result screen stays open until you choose your next action. If the 18-minute exploration timer reaches zero, restart the stage or return to the Main Menu." };
+        "Complete each challenge, then interact with the book statue to start the next one. The result screen stays open when all challenges are complete. If the 18-minute exploration timer reaches zero, restart the stage or return to the Main Menu." };
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() { Instance = null; }
@@ -110,8 +113,16 @@ public sealed class StageJourneyUI : MonoBehaviour
         {
             StageSelectionState.Select(3);
             inference = FindFirstObjectByType<InferenceChallenge>(FindObjectsInactive.Include);
-            if (inference != null) inference.onChallengeCompleted.AddListener(OnInferenceComplete);
+            inferenceNotice = PrelimChallengeCompletionNotice.GetOrCreate(safeArea, progressLabel);
+            if (inference != null)
+            {
+                inference.onChallengeCompleted.AddListener(OnInferenceComplete);
+                inference.onRoundCompleted += OnInferenceRoundCompleted;
+                inference.onBookStarted += OnInferenceBookStarted;
+            }
             BuildInferenceTutorial();
+            inferenceOnboarding = FindFirstObjectByType<InferenceControlsOnboarding>(FindObjectsInactive.Include);
+            if (inferenceOnboarding == null) inferenceOnboarding = gameObject.AddComponent<InferenceControlsOnboarding>();
             yield return null;
             while (Player.LocalInstance == null) yield return null;
             yield return new WaitForSecondsRealtime(0.8f);
@@ -127,6 +138,7 @@ public sealed class StageJourneyUI : MonoBehaviour
         hud.gameObject.SetActive(!resultOpen && !tutorialOpen &&
             !(stage == 2 && truthClock != null && truthClock.IsPlayerAtBoard) &&
             !(inference != null && inference.IsBoardOpen) &&
+            !(inferenceOnboarding != null && inferenceOnboarding.IsPracticeBoardOpen) &&
             !(propositionalTutorial != null && propositionalTutorial.IsOpen) &&
             !(truthTutorial != null && truthTutorial.IsOpen));
         stageLabel.text = "STAGE " + stage + "  /  " + StageName(stage).ToUpperInvariant();
@@ -142,15 +154,18 @@ public sealed class StageJourneyUI : MonoBehaviour
         }
         else if (stage == 3)
         {
-            if (inference != null && inference.IsBoardOpen) inferenceStarted = true;
-            if (inference != null && inferenceStarted && !inferenceFinished && !resultOpen && !tutorialOpen && !inference.IsBoardOpen && Time.timeScale > 0)
+            if (inference != null && inference.HasStarted && !inferenceFinished && !resultOpen && !tutorialOpen &&
+                (inferenceOnboarding == null || !inferenceOnboarding.IsActive) &&
+                !inference.IsBoardOpen && Time.timeScale > 0)
             {
                 inferenceRemaining = Mathf.Max(0, inferenceRemaining - Time.deltaTime);
                 if (inferenceRemaining == 0) ShowFailure(3, "The exploration timer ran out.", RestartInference);
             }
             clockLabel.text = FormatTime(inferenceRemaining);
             progressLabel.text = inference == null ? "EXPLORE THE BOARD" : "RULES SOLVED  " + inference.SolvedRounds + " / " + inference.requiredRounds;
-            if (inferenceHelp != null) inferenceHelp.gameObject.SetActive(!resultOpen && !tutorialOpen && !(inference != null && inference.IsBoardOpen));
+            if (inferenceHelp != null) inferenceHelp.gameObject.SetActive(!resultOpen && !tutorialOpen &&
+                (inferenceOnboarding == null || !inferenceOnboarding.IsActive) &&
+                !(inference != null && inference.IsBoardOpen));
         }
         if (stage == 2 && truthClock != null && truthClock.TimeAdjustmentVisible)
             progressLabel.text += "\n" + truthClock.TimeAdjustmentText;
@@ -231,6 +246,10 @@ public sealed class StageJourneyUI : MonoBehaviour
         StageUITheme.Stretch(resultStage.rectTransform, new Vector2(0.08f, 0.77f), new Vector2(0.92f, 0.86f));
         resultTitle = StageUITheme.Text("ResultHeading", card, "", 72);
         StageUITheme.Stretch(resultTitle.rectTransform, new Vector2(0.08f, 0.57f), new Vector2(0.92f, 0.76f));
+        resultTitle.enableAutoSizing = true;
+        resultTitle.fontSizeMin = 30f;
+        resultTitle.fontSizeMax = 72f;
+        resultTitle.alignment = TextAlignmentOptions.Center;
         resultBody = StageUITheme.Text("ResultSummary", card, "", 31, true);
         StageUITheme.Stretch(resultBody.rectTransform, new Vector2(0.1f, 0.34f), new Vector2(0.9f, 0.56f));
         primaryButton = StageUITheme.Button("NextOrRetryButton", card, "NEXT STAGE", null);
@@ -245,6 +264,7 @@ public sealed class StageJourneyUI : MonoBehaviour
     {
         if (resultOpen) return;
         ShowResult(stage, "STAGE COMPLETE", summary, stage < 3 ? "NEXT STAGE" : "PLAY AGAIN", stage < 3 ? NextStage : RestartInference);
+        WorldStageAudio.PlayStageCompletion();
     }
 
     public void ShowFailure(int stage, string summary, UnityEngine.Events.UnityAction retry)
@@ -332,9 +352,25 @@ public sealed class StageJourneyUI : MonoBehaviour
 
     private void OnInferenceComplete()
     {
+        if (resultOpen) return;
         inferenceFinished = true;
         if (inference != null) inference.CloseBoard();
-        ShowCompletion(3, "Argument mastered!\nRules solved: " + inference.SolvedRounds + "\nTime remaining: " + FormatTime(inferenceRemaining));
+        inferenceNotice?.Hide();
+        ShowResult(3, "All challenges completed!", "Argument mastered!\nRules solved: " + inference.SolvedRounds +
+            "\nTime remaining: " + FormatTime(inferenceRemaining), "PLAY AGAIN", RestartInference);
+        WorldStageAudio.PlayStageCompletion();
+    }
+
+    private void OnInferenceRoundCompleted(int completedChallenge)
+    {
+        if (inference != null) inference.CloseBoard();
+        inferenceNotice?.ShowWaiting(completedChallenge, completedChallenge + 1);
+    }
+
+    private void OnInferenceBookStarted(int challengeNumber)
+    {
+        inferenceNotice?.Hide();
+        inferenceNotice?.ShowStart();
     }
 
     private void BuildInferenceTutorial()
@@ -354,7 +390,7 @@ public sealed class StageJourneyUI : MonoBehaviour
         tutorialNext = StageUITheme.Button("NextPage", inner, "NEXT", () => ChangePage(1));
         StageUITheme.Stretch((RectTransform)tutorialBack.transform, new Vector2(0.1f, 0.12f), new Vector2(0.32f, 0.25f));
         StageUITheme.Stretch((RectTransform)tutorialNext.transform, new Vector2(0.35f, 0.12f), new Vector2(0.57f, 0.25f));
-        var close = StageUITheme.Button("BeginStage", inner, "LET'S EXPLORE", CloseInferenceTutorial);
+        var close = StageUITheme.Button("BeginStage", inner, "LET'S BEGIN", CloseInferenceTutorial);
         StageUITheme.Stretch((RectTransform)close.transform, new Vector2(0.6f, 0.12f), new Vector2(0.9f, 0.25f));
         StageUITheme.SkinTutorial(inferenceTutorial);
         inferenceHelp = StageUITheme.Button("InferenceHelpButton", safeArea, "HELP", OpenInferenceTutorial);
@@ -366,7 +402,8 @@ public sealed class StageJourneyUI : MonoBehaviour
     public void OpenInferenceTutorial()
     {
         if (TeleportManager.Instance != null && TeleportManager.Instance.IsTransitioning) return;
-        if (tutorialOpen || resultOpen || inferenceTutorial == null) return;
+        if (tutorialOpen || resultOpen || inferenceTutorial == null ||
+            (inferenceOnboarding != null && inferenceOnboarding.IsActive)) return;
         Pause(); tutorialOpen = true; tutorialIndex = 0; ChangePage(0);
         inferenceTutorial.SetActive(true); inferenceTutorial.transform.SetAsLastSibling();
     }
@@ -375,6 +412,11 @@ public sealed class StageJourneyUI : MonoBehaviour
     {
         if (!tutorialOpen) return;
         tutorialOpen = false; inferenceTutorial.SetActive(false); Resume();
+        if (inferenceFirstGuidePending)
+        {
+            inferenceFirstGuidePending = false;
+            inferenceOnboarding?.Begin(inferenceHelp);
+        }
     }
 
     private void ChangePage(int direction)
@@ -387,7 +429,12 @@ public sealed class StageJourneyUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (inference != null) inference.onChallengeCompleted.RemoveListener(OnInferenceComplete);
+        if (inference != null)
+        {
+            inference.onChallengeCompleted.RemoveListener(OnInferenceComplete);
+            inference.onRoundCompleted -= OnInferenceRoundCompleted;
+            inference.onBookStarted -= OnInferenceBookStarted;
+        }
         if (Instance == this) Instance = null;
         if (resultOpen || tutorialOpen) Time.timeScale = 1;
     }

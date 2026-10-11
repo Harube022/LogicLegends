@@ -486,6 +486,7 @@ public class QuizManager : MonoBehaviour
             // Only the first book activation of THIS challenge resumes the shared
             // countdown. Wrong-answer reactivation only loads another question.
             if (timerManager != null) timerManager.StartLevelTimer();
+            completionNotice?.ShowStart();
         }
 
         LoadQuestion();

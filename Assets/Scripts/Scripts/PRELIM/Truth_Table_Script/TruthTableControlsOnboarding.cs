@@ -39,6 +39,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     private Player player;
     private MobileInputUI joystickInput;
     private Button helpButton;
+    private PrelimTutorialSkipControl skipControl;
     private RectTransform safeArea;
     private RectTransform joystick;
     private RectTransform jumpButton;
@@ -266,6 +267,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         confirmation.SetActive(false);
 
         BuildPracticeQuiz();
+        skipControl = PrelimTutorialSkipControl.Create(safeArea, SkipTutorial);
         return true;
     }
 
@@ -417,6 +419,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         joystickInput?.ResetJoystick();
         input.SetGameplayInputBlocked(false);
         step = Step.Movement;
+        skipControl?.Show(true);
         movementStart = player.transform.position;
         SetInstruction("Use this joystick to move.", joystick);
     }
@@ -597,8 +600,26 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         }
     }
 
+    public void SkipTutorial()
+    {
+        if (!IsActive || step == Step.Confirm) return;
+        // Change state first so interaction callbacks cannot advance the old step.
+        step = Step.Confirm;
+        StopAllCoroutines();
+        joystickInput?.ResetJoystick();
+        DestroyPracticeTarget();
+        PrelimTutorialSkipControl.CancelCamera(demonstrationCamera);
+        demonstrationCamera = null;
+        RestoreDemonstration();
+        if (skipControl != null) skipControl.Release();
+        skipControl = null;
+        RestoreHudAndBoard();
+        BeginConfirmation();
+    }
+
     private void BeginConfirmation()
     {
+        skipControl?.Show(false);
         step = Step.Confirm;
         input.SetGameplayInputBlocked(true);
         instructions.gameObject.SetActive(false);
@@ -621,8 +642,10 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
                  player.transform.position.y > jumpStartY + 0.1f)
             BeginInteraction();
 
-        if (practiceLabel != null && Camera.main != null)
-            practiceLabel.transform.rotation = Camera.main.transform.rotation;
+        if (practiceLabel != null && practiceTarget != null && Camera.main != null)
+            practiceLabel.transform.SetPositionAndRotation(
+                practiceTarget.transform.position + Vector3.up * 2.4f - Camera.main.transform.right * 1.3f,
+                Camera.main.transform.rotation);
         if (demonstrationCamera != null)
         {
             float blend = 1f - Mathf.Exp(-Time.unscaledDeltaTime * 4f / cameraTransitionSeconds);
@@ -891,23 +914,31 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     {
         practiceTarget = GameObject.CreatePrimitive(PrimitiveType.Cube);
         practiceTarget.name = "Truth Table Practice Interaction";
-        Vector3 position = player.transform.position + player.transform.forward * 1.5f;
-        position.y = jumpStartY + 0.8f;
+        Vector3 position = player.transform.position + player.transform.forward * 1.8f
+            - player.transform.right * 1.5f;
+        position.y = jumpStartY + 0.85f;
         practiceTarget.transform.position = position;
-        practiceTarget.transform.localScale = Vector3.one * 0.45f;
+        practiceTarget.transform.localScale = Vector3.one * 1.35f;
         Collider collider = practiceTarget.GetComponent<Collider>();
         if (collider != null) collider.isTrigger = true;
         Renderer renderer = practiceTarget.GetComponent<Renderer>();
         if (renderer != null) renderer.material.color = new Color(1f, 0.75f, 0.18f);
-        GameObject label = new GameObject("Practice Label", typeof(TextMeshPro));
+        GameObject label = new GameObject("Practice Interaction Label", typeof(TextMeshPro));
         label.transform.SetParent(practiceTarget.transform, false);
-        label.transform.localPosition = new Vector3(0f, 1.3f, 0f);
-        label.transform.localScale = Vector3.one * 0.7f;
+        label.transform.localPosition = new Vector3(-1f, 1.8f, 0f);
+        label.transform.localScale = Vector3.one * 1.2f;
         practiceLabel = label.GetComponent<TextMeshPro>();
-        practiceLabel.text = "PRACTICE";
-        practiceLabel.fontSize = 5f;
+        practiceLabel.text = "Interact with me.";
+        practiceLabel.fontSize = 3f;
+        practiceLabel.enableAutoSizing = true;
+        practiceLabel.fontSizeMin = 1.8f;
+        practiceLabel.fontSizeMax = 3f;
+        practiceLabel.enableWordWrapping = false;
+        practiceLabel.rectTransform.sizeDelta = new Vector2(16f, 3f);
         practiceLabel.alignment = TextAlignmentOptions.Center;
         practiceLabel.color = Color.white;
+        practiceLabel.outlineWidth = 0.22f;
+        practiceLabel.outlineColor = new Color32(22, 28, 30, 255);
     }
 
     private void DestroyPracticeTarget()
@@ -935,6 +966,8 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     private void Cleanup()
     {
         RestoreDemonstration();
+        if (skipControl != null) skipControl.Release();
+        skipControl = null;
         RestoreHudAndBoard();
         DestroyPracticeTarget();
         clock?.SetTutorialOpen(false);
