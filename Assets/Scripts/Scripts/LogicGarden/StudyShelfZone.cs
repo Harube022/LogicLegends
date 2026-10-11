@@ -276,9 +276,16 @@ public class StudyShelfZone : MonoBehaviour
             TMP_Text preview = StudyLibraryController.CreateText("Preview", card.transform, 29f, FontStyles.Normal, TextAlignmentOptions.Center);
             preview.text = StudyLibraryController.StandardizeTerminology(book.preview);
             preview.color = new Color(0.87f, 0.92f, 0.92f);
-            preview.rectTransform.anchorMin = new Vector2(0.06f, 0.08f);
+            preview.rectTransform.anchorMin = new Vector2(0.06f, 0.24f);
             preview.rectTransform.anchorMax = new Vector2(0.94f, 0.43f);
             preview.rectTransform.offsetMin = preview.rectTransform.offsetMax = Vector2.zero;
+
+            TMP_Text read = StudyLibraryController.CreateText("Read", card.transform, 33f, FontStyles.Bold, TextAlignmentOptions.Center);
+            read.text = "READ";
+            read.color = new Color(1f, .87f, .55f);
+            read.rectTransform.anchorMin = new Vector2(.26f, .03f);
+            read.rectTransform.anchorMax = new Vector2(.74f, .23f);
+            read.rectTransform.offsetMin = read.rectTransform.offsetMax = Vector2.zero;
         }
     }
 

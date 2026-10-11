@@ -13,7 +13,7 @@ public static class StageUITheme
     public static Sprite ButtonArt => buttonArt != null ? buttonArt : buttonArt = LoadSprite("StageUI/WoodButtonTeal");
     private static Sprite ContinueArt => continueArt != null ? continueArt : continueArt = LoadSprite("StageUI/WoodButtonGreen");
     private static Sprite ReturnArt => returnArt != null ? returnArt : returnArt = LoadSprite("StageUI/WoodButtonRed");
-    private static Sprite Paper => paper != null ? paper : paper = LoadSprite("StageUI/ReadingPaper");
+    public static Sprite Paper => paper != null ? paper : paper = LoadSprite("StageUI/ReadingPaper");
     private static Sprite LoadSprite(string path) { var sprites = Resources.LoadAll<Sprite>(path); return sprites.Length > 0 ? sprites[0] : null; }
     public static TMP_FontAsset HeadingFont => Resources.Load<TMP_FontAsset>("Fonts & Materials/IMPACT SDF");
     public static TMP_FontAsset ReadingFont => Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");

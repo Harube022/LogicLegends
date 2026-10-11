@@ -30,11 +30,18 @@ namespace LogicLegends.Inference
         public InferenceCrystal crystalPrefab;
         [Tooltip("Optional pillar crystal used only by the standalone crystal search.")]
         public InferenceCrystal pillarCrystalPrefab;
+        [Tooltip("How far below each pillar-top crystal its pickup volume reaches toward the player.")]
+        [Min(0f)] public float crystalPickupDrop = 3f;
+        [Tooltip("Pickup volume around a pillar. This is a trigger, so it does not block movement.")]
+        [Min(0.5f)] public float crystalPickupRadius = 3.5f;
         public Transform[] crystalSpawns;
         public Transform conclusionSocket;
         public GameObject completionMarker;
         public UnityEvent onChallengeCompleted = new UnityEvent();
+        public event Action<int> onRoundCompleted;
+        public event Action<int> onBookStarted;
         public bool PuzzleCompleted { get; private set; }
+        public bool HasStarted { get; private set; }
         public bool IsBoardOpen { get; private set; }
         public InferenceQuestion Question { get; private set; }
         public int SolvedRounds { get; private set; }
@@ -77,6 +84,7 @@ namespace LogicLegends.Inference
             board.SetActive(false); focusCamera.SetActive(false);
             if (diamondPlacementMarker != null) diamondPlacementMarker.SetActive(false);
             Question = null;
+            HasStarted = false;
         }
 
         void OnDisable()
@@ -85,21 +93,46 @@ namespace LogicLegends.Inference
             CloseBoard();
             ClearCrystals();
             Question = null;
+            HasStarted = false;
+        }
+
+        public bool StartFromBook()
+        {
+            if (!isActiveAndEnabled || HasStarted || PuzzleCompleted || IsBoardOpen ||
+                (InferenceControlsOnboarding.Active != null && InferenceControlsOnboarding.Active.IsActive)) return false;
+            HasStarted = true;
+            onBookStarted?.Invoke(SolvedRounds + 1);
+            return true;
         }
 
         public void OpenBoard(Player enteringPlayer)
         {
-            if (IsBoardOpen || enteringPlayer == null || !isActiveAndEnabled) return;
+            if (IsBoardOpen || enteringPlayer == null || !isActiveAndEnabled ||
+                (InferenceControlsOnboarding.Active != null && InferenceControlsOnboarding.Active.IsActive)) return;
             player = enteringPlayer;
             // TMP must initialize before measuring the first set of premise labels.
             if (dragPuzzle != null) board.SetActive(true);
-            if (Question == null) NewRound();
+            if (HasStarted)
+            {
+                premiseContainer.gameObject.SetActive(true);
+                conclusionLabel.gameObject.SetActive(true);
+                if (dragPuzzle != null)
+                {
+                    dragPuzzle.wordBank.transform.parent.parent.gameObject.SetActive(true);
+                    dragPuzzle.conclusion.label.transform.parent.gameObject.SetActive(true);
+                }
+                if (Question == null) NewRound();
+            }
+            else ShowReadOnlyBoard();
             restorePlayerControl = player.enabled;
             player.ToggleControl(false);
             previousCursorVisible = Cursor.visible; previousCursorLock = Cursor.lockState;
             Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
             hudWasActive = gameplayHud != null && gameplayHud.activeSelf;
             if (gameplayHud != null) gameplayHud.SetActive(false);
+            exploreButton.gameObject.SetActive(true);
+            var backLabel = exploreButton.GetComponentInChildren<TMP_Text>();
+            if (backLabel != null) backLabel.text = "Back";
             foreach (var input in FindObjectsByType<Unity.Cinemachine.CinemachineInputAxisController>(FindObjectsSortMode.None))
                 if (input.enabled) { pausedCameraInputs.Add(input); input.enabled = false; }
             foreach (var input in FindObjectsByType<CinemachinePinchZoom>(FindObjectsSortMode.None))
@@ -114,6 +147,25 @@ namespace LogicLegends.Inference
             boardInput.interactable = false; boardInput.blocksRaycasts = false;
             var brain = Camera.main == null ? null : Camera.main.GetComponent<Unity.Cinemachine.CinemachineBrain>();
             Invoke(nameof(EnableBoardInput), brain == null ? 0.1f : brain.DefaultBlend.Time + 0.1f);
+        }
+
+        void ShowReadOnlyBoard()
+        {
+            heading.text = "RULES OF INFERENCE";
+            legend.gameObject.SetActive(false);
+            wordBank.gameObject.SetActive(false);
+            premiseContainer.gameObject.SetActive(false);
+            conclusionLabel.gameObject.SetActive(false);
+            placeButton.gameObject.SetActive(false);
+            validateButton.gameObject.SetActive(false);
+            nextButton.gameObject.SetActive(false);
+            if (dragPuzzle != null)
+            {
+                dragPuzzle.wordBank.transform.parent.parent.gameObject.SetActive(false);
+                dragPuzzle.conclusion.label.transform.parent.gameObject.SetActive(false);
+            }
+            feedback.text = "Board preview. Interact with the Book Statue to start the game.";
+            feedback.color = new Color(0.8f, 0.88f, 0.88f);
         }
 
         void EnableBoardInput()
@@ -140,8 +192,9 @@ namespace LogicLegends.Inference
 
         public void NextChallenge()
         {
-            if (!IsBoardOpen || !roundSolved) return;
-            NewRound();
+            // Every new round must be started through the book statue.
+            if (!HasStarted || !IsBoardOpen || !roundSolved || PuzzleCompleted) return;
+            CloseBoard();
         }
 
         void NewRound()
@@ -211,6 +264,7 @@ namespace LogicLegends.Inference
                     }
                 }
                 crystal.name = "RuleDiamond_" + rule.abbreviation;
+                ConfigureCrystalPickup(crystal);
                 crystal.Configure(Question.Id, rule.ruleName + " (" + rule.abbreviation + ")", transform);
                 crystal.gameObject.AddComponent<RuleDiamond>().Configure(rule);
                 crystals.Add(crystal);
@@ -243,9 +297,18 @@ namespace LogicLegends.Inference
             {
                 var crystal = Instantiate(crystalPrefab, crystalSpawns[i].position, Quaternion.identity, transform);
                 crystal.name = "ConclusionCrystal_" + (i + 1);
+                ConfigureCrystalPickup(crystal);
                 crystal.Configure(Question.Id, answers[i], transform);
                 crystals.Add(crystal);
             }
+        }
+
+        void ConfigureCrystalPickup(InferenceCrystal crystal)
+        {
+            // The art is displayed on top of tall pillars, while the player stands at their base.
+            // The existing Player/GrabbableObject overlap pickup needs a reachable collider on
+            // the same GameObject. Keep the art in place and extend its pickup volume downward.
+            crystal.ConfigureReachablePickup(crystalPickupDrop, crystalPickupRadius);
         }
 
         void ClearCrystals()
@@ -263,7 +326,7 @@ namespace LogicLegends.Inference
 
         public void PlaceHeldCrystal()
         {
-            if (!IsBoardOpen || roundSolved || player == null) return;
+            if (!HasStarted || Question == null || !IsBoardOpen || roundSolved || player == null) return;
             if (dragPuzzle != null && Stage == InferencePuzzleStage.CompletingPremises) return;
             var held = player.GetHeldObject();
             var crystal = held == null ? null : held.GetComponent<InferenceCrystal>();
@@ -286,6 +349,7 @@ namespace LogicLegends.Inference
                     }
                     placed.ReturnToOrigin(); placed = null;
                     Stage = InferencePuzzleStage.FindingDiamond; RefreshStageButtons();
+                    WorldStageAudio.PlayAnswerFeedback(false);
                     Feedback("Incorrect Rule. Try another diamond.", false);
                     return;
                 }
@@ -303,12 +367,18 @@ namespace LogicLegends.Inference
 
         public void ValidateBoard()
         {
-            if (!IsBoardOpen || roundSolved) return;
+            if (!HasStarted || Question == null || !IsBoardOpen || roundSolved) return;
             if (dragPuzzle != null)
             {
                 if (Stage == InferencePuzzleStage.CompletingPremises)
                 {
-                    if (!dragPuzzle.CheckPremises()) { Feedback("Some blanks are incorrect.", false); return; }
+                    if (!dragPuzzle.CheckPremises())
+                    {
+                        WorldStageAudio.PlayAnswerFeedback(false);
+                        Feedback("Some blanks are incorrect.", false);
+                        return;
+                    }
+                    WorldStageAudio.PlayAnswerFeedback(true);
                     dragPuzzle.LockPremises(); wordBank.gameObject.SetActive(false);
                     SpawnRuleDiamonds(); Stage = InferencePuzzleStage.FindingDiamond; RefreshStageButtons();
                     Feedback("Premises complete. Explore, pick up a rule diamond, and bring it to the altar.", true);
@@ -323,10 +393,21 @@ namespace LogicLegends.Inference
                 fields[i].GetComponent<UnityEngine.UI.Image>().color = correct ? new Color(0.12f, 0.3f, 0.28f) : new Color(0.42f, 0.17f, 0.19f);
                 if (!correct) invalid++;
             }
-            if (invalid > 0) { Feedback("Check " + invalid + " highlighted blank(s). Use the word bank and proposition key.", false); return; }
-            if (placed == null) { Feedback("The premises are correct. Explore and bring back a conclusion crystal.", false); return; }
+            if (invalid > 0)
+            {
+                WorldStageAudio.PlayAnswerFeedback(false);
+                Feedback("Check " + invalid + " highlighted blank(s). Use the word bank and proposition key.", false);
+                return;
+            }
+            if (placed == null)
+            {
+                WorldStageAudio.PlayAnswerFeedback(false);
+                Feedback("The premises are correct. Explore and bring back a conclusion crystal.", false);
+                return;
+            }
             if (placed.QuestionId != Question.Id || placed.Answer != Question.Conclusion)
             {
+                WorldStageAudio.PlayAnswerFeedback(false);
                 placed.ReturnToOrigin(); placed = null;
                 conclusionLabel.text = "Therefore, __________________________";
                 Feedback("That crystal does not match this rule's conclusion. It has returned to its starting point.", false); return;
@@ -343,15 +424,17 @@ namespace LogicLegends.Inference
             Destroy(rejected.gameObject);
             Stage = InferencePuzzleStage.FindingDiamond;
             RefreshStageButtons();
+            WorldStageAudio.PlayAnswerFeedback(false);
             Feedback("Incorrect rule. The crystal is gone. Find another crystal at the pillars.", false);
         }
 
         void CompleteRound()
         {
+            WorldStageAudio.PlayAnswerFeedback(true);
             roundSolved = true; SolvedRounds++;
             foreach (var field in fields) field.readOnly = true;
             placeButton.interactable = validateButton.interactable = false;
-            nextButton.gameObject.SetActive(true);
+            nextButton.gameObject.SetActive(false);
             bool newlyCompleted = !PuzzleCompleted && SolvedRounds >= requiredRounds;
             if (newlyCompleted)
             {
@@ -359,8 +442,16 @@ namespace LogicLegends.Inference
                 StageCompleteManager.UnlockStage(4);
                 if (completionMarker != null) completionMarker.SetActive(!IsBoardOpen);
                 onChallengeCompleted.Invoke();
+                Feedback("All challenges completed!", true);
+                return;
             }
-            Feedback(PuzzleCompleted ? "Argument complete! You may continue, or try another rule." : "Correct! " + SolvedRounds + " / " + requiredRounds + " rules solved. Choose Next challenge.", true);
+            // Leave the solved board and wait for a fresh book interaction. The next
+            // question is drawn only when the player opens the board after that start.
+            HasStarted = false;
+            ClearCrystals();
+            Question = null;
+            roundSolved = false;
+            onRoundCompleted?.Invoke(SolvedRounds);
         }
 
         void Feedback(string message, bool good)

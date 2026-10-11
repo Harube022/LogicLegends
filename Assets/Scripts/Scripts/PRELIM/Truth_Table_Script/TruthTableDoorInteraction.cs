@@ -43,8 +43,6 @@ public class TruthTableDoorInteraction : MonoBehaviour
     [SerializeField] private TruthTableMinimap minimap;
 
     [Header("Truth Table Audio")]
-    [SerializeField] private AudioClip backgroundMusic;
-    [SerializeField, Range(0f, 1f)] private float musicVolume = 0.35f;
     [SerializeField] private AudioClip correctAnswerSound;
     [SerializeField, Range(0f, 1f)] private float correctAnswerVolume = 0.7f;
     [SerializeField] private AudioClip incorrectAnswerSound;
@@ -111,28 +109,16 @@ public class TruthTableDoorInteraction : MonoBehaviour
 
     private void ConfigureAudio()
     {
-        if (musicSource == null) musicSource = gameObject.AddComponent<AudioSource>();
+        // WorldStageAudio owns the stage playlist from player spawn onward.
+        // Stop any older scene music source so the two systems cannot overlap.
+        if (musicSource != null) musicSource.Stop();
         if (feedbackSource == null || feedbackSource == musicSource)
             feedbackSource = gameObject.AddComponent<AudioSource>();
-        musicSource.playOnAwake = false;
-        musicSource.loop = true;
-        musicSource.spatialBlend = 0f;
-        musicSource.clip = backgroundMusic;
-        musicSource.volume = musicVolume;
         feedbackSource.playOnAwake = false;
         feedbackSource.loop = false;
         feedbackSource.spatialBlend = 0f;
         feedbackSource.volume = 1f;
-        AudioVolumeSettings.Route(musicSource, GameAudioChannel.Music);
         AudioVolumeSettings.Route(feedbackSource, GameAudioChannel.SoundFX);
-    }
-
-    private void StartMusic()
-    {
-        if (musicSource == null || backgroundMusic == null || musicSource.isPlaying) return;
-        musicSource.clip = backgroundMusic;
-        musicSource.volume = musicVolume;
-        musicSource.Play();
     }
 
     private void StopMusic()
@@ -142,6 +128,7 @@ public class TruthTableDoorInteraction : MonoBehaviour
 
     public void PlayAnswerFeedback(bool correct)
     {
+        if (WorldStageAudio.PlayAnswerFeedback(correct)) return;
         AudioClip clip = correct ? correctAnswerSound : incorrectAnswerSound;
         if (feedbackSource != null && clip != null)
             feedbackSource.PlayOneShot(clip, correct ? correctAnswerVolume : incorrectAnswerVolume);
@@ -478,7 +465,6 @@ public class TruthTableDoorInteraction : MonoBehaviour
         {
             if (!IsPlayerNearBook()) return;
             if (!stageClock.StartFromBook()) return;
-            StartMusic();
             UpdateBookIndicator();
             foreach (TruthBlockSpawner spawner in transform.root.GetComponentsInChildren<TruthBlockSpawner>(true))
                 if (spawner.gameObject.activeInHierarchy) spawner.RerollActiveBlocks();

@@ -215,8 +215,9 @@ public sealed class TruthTableStageClock : MonoBehaviour
     {
         if (startLabel == null) return;
         HideStartMessage();
-        startLabel.text = "Start!!";
+        startLabel.text = "Start!";
         startLabel.gameObject.SetActive(true);
+        startLabel.transform.SetAsLastSibling();
         startMessageRoutine = StartCoroutine(HideStartMessageAfterDelay());
     }
 
@@ -273,7 +274,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
 
         startLabel = CreateText("TruthTableStartMessage", host, style, 86f);
         Place(startLabel.rectTransform, new Vector2(0.5f, 0.5f),
-            new Vector2(0f, 145f), new Vector2(620f, 120f));
+            Vector2.zero, new Vector2(620f, 120f));
         startLabel.color = new Color(1f, 0.9f, 0.55f);
         startLabel.outlineColor = new Color32(0, 0, 0, 240);
         startLabel.outlineWidth = 0.2f;

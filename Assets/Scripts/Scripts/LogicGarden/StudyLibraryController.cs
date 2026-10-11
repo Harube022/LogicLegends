@@ -34,6 +34,11 @@ public class StudyLibraryController : MonoBehaviour
     private RectTransform bookRect;
 
     public bool IsViewing(StudyShelfZone shelf) => activeShelf == shelf;
+    public void ExitActiveShelf()
+    {
+        if (activeShelf != null) ExitShelf(activeShelf);
+        else CloseBook();
+    }
     public int CurrentSpreadStartPage => spreadStartPage;
 
     private void Awake()

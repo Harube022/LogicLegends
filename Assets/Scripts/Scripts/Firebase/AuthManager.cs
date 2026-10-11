@@ -297,6 +297,7 @@ public class AuthManager : MonoBehaviour
             else
             {
                 Debug.Log($"Successfully saved {characterID} as base character!");
+                LogicGardenProgress.ResetForNewGame();
                 // ShowModeSelection(); // Move them to the game now!
                 PlayIntroCutscene();
             }
