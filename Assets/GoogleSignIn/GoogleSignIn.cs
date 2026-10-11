@@ -141,7 +141,8 @@ namespace Google {
     /// account to use when signing in.
     /// </remarks>
     public void SignOut() {
-      theConfiguration = null;
+      // The native instance remains alive after sign-out. Keep its configuration
+      // so a later sign-in does not use an unconfigured native instance.
       impl.SignOut();
     }
 

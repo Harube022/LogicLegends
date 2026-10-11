@@ -20,7 +20,8 @@ public class TeleportManager : MonoBehaviourPun
     [SerializeField, Min(0f)] private float blackHoldDuration = 0.15f;
     private PrelimTeleportTransition prelimTransition;
     public static bool UsesCoveredTransitions =>
-        SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "RulesOfInference";
+        SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "RulesOfInference" ||
+        SceneManager.GetActiveScene().name == "Graph" || SceneManager.GetActiveScene().name == "Trees";
     public bool IsTeleporting => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTeleporting : isTeleporting;
     public bool IsTransitioning => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTransitioning : isTeleporting;
     public float FadeAlpha => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.FadeAlpha :

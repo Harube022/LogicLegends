@@ -1,0 +1,228 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e282757ad34eeb49ab1f519d4e7d3cb, type: 3}
+  m_Name: TreeChallenges
+  m_EditorClassIdentifier: Assembly-CSharp::LogicLegends.Trees.TreeChallengeCatalog
+  challenges:
+  - title: Tree terminology
+    objective: Identify the root node.
+    lesson: 'The root has no parent. A parent points to its children. A leaf has
+      no children.
+
+
+      Tap one node, then confirm at the Book Statue.'
+    root: A
+    target: 
+    type: 0
+    identification: 0
+    nodes:
+    - id: A
+      position: {x: 0, y: 1}
+    - id: B
+      position: {x: -0.5, y: 0.5}
+    - id: C
+      position: {x: 0.5, y: 0.5}
+    - id: D
+      position: {x: -0.8, y: 0}
+    - id: E
+      position: {x: -0.3, y: 0}
+    - id: F
+      position: {x: 0.3, y: 0}
+    - id: G
+      position: {x: 0.8, y: 0}
+    initial:
+    - source: A
+      destination: B
+      removable: 1
+    - source: A
+      destination: C
+      removable: 1
+    - source: B
+      destination: D
+      removable: 1
+    - source: B
+      destination: E
+      removable: 1
+    - source: C
+      destination: F
+      removable: 1
+    - source: C
+      destination: G
+      removable: 1
+    required: []
+  - title: Build a tree
+    objective: Root A. Connect A to B and C; connect B to D and E.
+    lesson: 'Select the parent first, then the child. Tap CONNECT. Each non-root
+      node needs exactly one parent.
+
+
+      Use REMOVE to correct a connection.
+      Confirm the complete structure at the book.'
+    root: A
+    target: 
+    type: 1
+    identification: 0
+    nodes:
+    - id: A
+      position: {x: 0, y: 1}
+    - id: B
+      position: {x: -0.5, y: 0.5}
+    - id: C
+      position: {x: 0.5, y: 0.5}
+    - id: D
+      position: {x: -0.8, y: 0}
+    - id: E
+      position: {x: -0.2, y: 0}
+    initial: []
+    required:
+    - source: A
+      destination: B
+      removable: 1
+    - source: A
+      destination: C
+      removable: 1
+    - source: B
+      destination: D
+      removable: 1
+    - source: B
+      destination: E
+      removable: 1
+  - title: Repair the broken tree
+    objective: Repair the tree so E is a child of B. Keep the other parent links.
+    lesson: 'Select the endpoints of an incorrect branch and tap REMOVE. Select the
+      new parent and child, then CONNECT.
+
+
+      A correction must remove the old
+      parent link before adding the new one.'
+    root: A
+    target: 
+    type: 2
+    identification: 0
+    nodes:
+    - id: A
+      position: {x: 0, y: 1}
+    - id: B
+      position: {x: -0.5, y: 0.5}
+    - id: C
+      position: {x: 0.5, y: 0.5}
+    - id: D
+      position: {x: -0.8, y: 0}
+    - id: E
+      position: {x: -0.2, y: 0}
+    initial:
+    - source: A
+      destination: B
+      removable: 1
+    - source: A
+      destination: C
+      removable: 1
+    - source: B
+      destination: D
+      removable: 1
+    - source: C
+      destination: E
+      removable: 1
+    required:
+    - source: A
+      destination: B
+      removable: 1
+    - source: A
+      destination: C
+      removable: 1
+    - source: B
+      destination: D
+      removable: 1
+    - source: B
+      destination: E
+      removable: 1
+  - title: Tree depth
+    objective: What is the depth of node F?
+    lesson: 'Root depth and level are 0. Depth counts edges from the root to a node.
+      Height is the longest root-to-leaf path, also counted in edges.
+
+
+      Choose
+      a number, then confirm.'
+    root: A
+    target: F
+    type: 3
+    identification: 0
+    nodes:
+    - id: A
+      position: {x: 0, y: 1}
+    - id: B
+      position: {x: -0.5, y: 0.67}
+    - id: C
+      position: {x: 0.5, y: 0.67}
+    - id: D
+      position: {x: -0.7, y: 0.33}
+    - id: E
+      position: {x: -0.1, y: 0.33}
+    - id: F
+      position: {x: -0.8, y: 0}
+    initial:
+    - source: A
+      destination: B
+      removable: 1
+    - source: A
+      destination: C
+      removable: 1
+    - source: B
+      destination: D
+      removable: 1
+    - source: B
+      destination: E
+      removable: 1
+    - source: D
+      destination: F
+      removable: 1
+    required: []
+  - title: Spanning tree
+    objective: Remove edges to connect all four vertices without a cycle. Keep exactly
+      3 edges.
+    lesson: 'A spanning tree includes every original vertex, stays connected, and
+      has no cycle. With V vertices it has V - 1 edges.
+
+
+      Several answers are
+      valid. Select branch endpoints and REMOVE until your tree is ready.'
+    root: A
+    target: 
+    type: 5
+    identification: 0
+    nodes:
+    - id: A
+      position: {x: 0, y: 1}
+    - id: B
+      position: {x: -0.8, y: 0.5}
+    - id: C
+      position: {x: 0.8, y: 0.5}
+    - id: D
+      position: {x: 0, y: 0}
+    initial:
+    - source: A
+      destination: B
+      removable: 1
+    - source: A
+      destination: C
+      removable: 1
+    - source: B
+      destination: C
+      removable: 1
+    - source: B
+      destination: D
+      removable: 1
+    - source: C
+      destination: D
+      removable: 1
+    required: []

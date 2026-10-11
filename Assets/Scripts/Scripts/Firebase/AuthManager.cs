@@ -394,20 +394,51 @@ public class AuthManager : MonoBehaviour
             Feedback("Please wait while login services connect.", loginFeedbackDuration);
             return;
         }
+        if (string.IsNullOrWhiteSpace(webClientId))
+        {
+            Feedback("Google sign-in is not configured. Please contact support.", loginFeedbackDuration);
+            Debug.LogError("Google sign-in: Web Client ID is missing from AuthManager.");
+            return;
+        }
         signingIn = true;
         int version = ++sessionVersion;
         ClearFeedback();
         StartCoroutine(DelayedSignInFeedback(version, "Opening Google sign-in..."));
-        GoogleSignIn.Configuration = configuration;
-        GoogleSignIn.Configuration.UseGameSignIn = false;
-        GoogleSignIn.Configuration.RequestIdToken = true;
+        StartCoroutine(BeginGoogleSignIn(version));
+    }
 
-        Debug.Log("Opening Google Sign-In Pop-up...");
-        GoogleSignIn.DefaultInstance.SignIn().ContinueWithOnMainThread(task =>
+    private IEnumerator BeginGoogleSignIn(int version)
+    {
+        // Let the button event finish before the Android plugin starts another Activity.
+        yield return null;
+        if (this == null || version != sessionVersion || !signingIn) yield break;
+
+        try
         {
-            if (this == null || version != sessionVersion) return;
-            OnGoogleSignInFinished(task);
-        });
+            var currentConfiguration = GoogleSignIn.Configuration;
+            if (currentConfiguration == null)
+                GoogleSignIn.Configuration = configuration;
+            else if (currentConfiguration.WebClientId != webClientId || !currentConfiguration.RequestIdToken)
+                throw new System.InvalidOperationException("Google sign-in configuration changed after initialization.");
+
+            Debug.Log("Google sign-in: creating native client.");
+            var googleSignIn = GoogleSignIn.DefaultInstance;
+            Debug.Log("Google sign-in: starting account picker.");
+            var signInTask = googleSignIn.SignIn();
+            signInTask.ContinueWithOnMainThread(task =>
+            {
+                if (this == null || version != sessionVersion) return;
+                OnGoogleSignInFinished(task);
+            });
+        }
+        catch (System.Exception exception)
+        {
+            signingIn = false;
+            Debug.LogError("Google sign-in could not start.");
+            Debug.LogException(exception);
+            ShowLoginScreen();
+            Feedback("Couldn't open Google sign-in. Please try again.", loginFeedbackDuration);
+        }
     }
 
     private void OnGoogleSignInFinished(Task<GoogleSignInUser> task)
@@ -418,6 +449,14 @@ public class AuthManager : MonoBehaviour
             Debug.LogError("Google Sign-In failed or was canceled.");
             ShowLoginScreen();
             Feedback("Google sign-in was canceled or failed. Please try again.", loginFeedbackDuration);
+            return;
+        }
+
+        if (task.Result == null || string.IsNullOrEmpty(task.Result.IdToken))
+        {
+            signingIn = false;
+            ShowLoginScreen();
+            Feedback("Google did not return a sign-in token. Please try again.", loginFeedbackDuration);
             return;
         }
 
@@ -556,11 +595,19 @@ public class AuthManager : MonoBehaviour
         CancelInvoke();
         if (auth != null && auth.CurrentUser != null)
         {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            bool wasGoogleUser = false;
+            foreach (var provider in auth.CurrentUser.ProviderData)
+                if (provider.ProviderId == "google.com") wasGoogleUser = true;
+#endif
             auth.SignOut();
 #if UNITY_ANDROID && !UNITY_EDITOR
-            if (GoogleSignIn.DefaultInstance != null)
+            // Accessing DefaultInstance creates the native client. Do not do that
+            // when an email account signs out or Google sign-in was never started.
+            if (wasGoogleUser && GoogleSignIn.Configuration != null)
             {
-                GoogleSignIn.DefaultInstance.SignOut();
+                try { GoogleSignIn.DefaultInstance.SignOut(); }
+                catch (System.Exception exception) { Debug.LogException(exception); }
             }
 #endif
             ShowLoginScreen();

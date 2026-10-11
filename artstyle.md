@@ -1,6 +1,6 @@
 # Logic Legends — UI art style and implementation guide
 
-Original audit: 2026-10-06. Strict visual-matching revision: 2026-10-07. This file is the reusable design reference for new gameplay, UI, button variants, and UI reskins in Logic Legends. Read it before designing or implementing a screen. All asset paths are relative to the LogicLegends project root, even when this document is supplied from another folder.
+Original audit: 2026-10-06. Strict visual-matching revision: 2026-10-07. Graph HUD and current shared-artwork update: 2026-10-11. This file is the reusable design reference for new gameplay, UI, button variants, and UI reskins in Logic Legends. Read it before designing or implementing a screen. All asset paths are relative to the LogicLegends project root, even when this document is supplied from another folder.
 
 ## 1. Design identity
 
@@ -10,12 +10,15 @@ The **original illustrated assets are the visual authority**. Gameplay colors an
 
 1. **Illustrated menus and exploration UI:** warm wood and parchment, thick beveled frames, colorful inset buttons, cream/white lettering, and pictorial icons. Use for menus, settings, inventory/shop, achievements, objectives, and book-like information.
 2. **Gameplay puzzle content:** deep teal/blue-green surfaces, subdued teal controls, warm gold headings and dividers, pale text, and clear rectangular work areas. These define a content palette and functional layout. When adding artwork to them, use the original illustrated frame, bevel, shading, and texture treatment described below.
+3. **Graph-local HUD:** slim matte wooden frames with clipped corners and cream paper interiors for the graph map, objective, timer, route, and feedback. Use the three existing GraphHUD sprites for Graph-owned surfaces. This is a documented local extension of the original wood/paper style; it does not replace other scenes' palettes or panel designs.
 
 These treatments share the original project's illustrated visual language. Choose wood, parchment, a colored button face, or a calm puzzle interior according to function. Match appearance to a named original reference asset; a generic fantasy description or a matching palette alone is insufficient.
 
 **For a new gameplay mode:** retain its appropriate readable content palette, derive decorated panels and actions from the original reference assets, and reuse established exploration controls. Use the book-reader treatment for extended lessons. A teal button may have a teal face; its brown frame must still match the source button.
 
 **Strict matching rule:** for color/text variants, change only the requested face color, label, or icon. Preserve source shape, frame material and hue, edge thickness, bevel profile, highlight width/direction, shadow, texture density, and visual simplicity. A new panel may require different dimensions and content organization, but its frame and surface rendering must remain consistent with the source. Preserve original assets and create separate derivatives as needed.
+
+New component geometry can be designed when explicitly requested, as with the Graph HUD's clipped-corner frames. In that case, retain the original material, rendering and lighting while documenting the new silhouette and its local scope. This permission to design a new panel does not allow an ordinary recolor/relabel task to change its source geometry.
 
 ### Reference priority and style boundaries
 
@@ -27,12 +30,13 @@ These treatments share the original project's illustrated visual language. Choos
 | Reading/objectives panel | `Assets/Interface_Sprites/customizationsh_shop_interface/customization_scroll.png` or `shop_scroll.png` | Cream paper, brown edges, rolled ends and soft painted shading. |
 | Small navigation action | `Assets/Interface_Sprites/back_btn/btn_back.png` or `btn_settings.png` | Chunky square wooden surround, illustrated icon and existing depth treatment. |
 | Gameplay touch control | `Assets/Assets/Interface_Sprites/gameplay_interface/` | Existing white symbols and circular silhouettes; retain their intentionally simple treatment. |
+| Graph map/objective/status surfaces | `Assets/Art/GraphHUD/GraphMapFrame.png`, `GraphObjectiveFrame.png`, `GraphStatusFrame.png` | Graph-local clipped-corner brown frames, cream paper, subdued matte bevels; follow section 4's Graph HUD rules. Original settings wood and Play button remain the material/rendering references. |
 
 Use the exact original sprite wherever it already satisfies the task. When a blank or recolored derivative is needed, supply the actual original as its reference. Match unchanged regions directly; adapting the surface color must not transform wood into stone or brown trim into reflective gold.
 
 Do not introduce cracked marble/slate, hammered metal, polished gold rims, jewel-like surfaces, extra ornamental corners, bloom, or stronger specular shine unless the selected original already contains that treatment or the user explicitly requests a redesign. Existing gold artwork, such as branding and achievement icons, remains valid in its original role; it is not a reason to add gold frames everywhere.
 
-The newer `Assets/Resources/StageUI/TealPanel.png` and `TealButton.png` fit the gameplay palette but introduce stronger stone texture and metallic gold than the original panel/button references. Their presence in the project, and claims in `StageUI/ARTWORK.md`, do not make that rendering treatment the matching target. For strict consistency work, compare against the original sprites above. Revising this document alone does not reskin those assets or their screens.
+The historical `Assets/Resources/StageUI/TealPanel.png` and `TealButton.png` introduce stronger stone texture and metallic gold than the original panel/button references. The current `StageUITheme` loads `WoodPanel`, `ReadingPaper`, and brown-rimmed `WoodButtonTeal/Green/Red` assets instead. Reuse those current variants for the matching shared gameplay treatment; do not reintroduce the historical stone/gold sprites. Graph's new frames are a separate local design with original wood/paper materials.
 
 ## 2. Audit scope and confidence
 
@@ -42,7 +46,9 @@ This was a source-and-asset audit, not a Play Mode visual test of every screen. 
 
 The 2026-10-07 review additionally inspected the newer StageUI sprites, their theme code, and saved screenshots under `Temp/StageUIQA/`. Those screenshots are supporting evidence, not a fresh runtime test. Palette/font compatibility was observed, while stone and shiny gold material choices differed from the original illustrations. Original audit measurements and scene descriptions below are historical references; verify current assignments before implementation.
 
-Use the root Unity project (`Assets/`, `Packages/`, `ProjectSettings/`). The nested `My project (1)/`, vendor demo scenes, generated caches, and `Library/` are not the design authority. The current build settings enable `Main Menu`, PRELIM, RulesOfInference, older stages, and LogicGarden; `Sets.unity` exists but is not currently listed there. Do not infer production status from a scene filename alone.
+The 2026-10-11 update visually inspected all three GraphHUD PNGs, their `.meta` slicing records, `GraphUIController`, `GraphHUDArtSetup`, the local artwork/prompt records, and the saved `Temp/GraphQA/graph-generated-surfaces-fixed.png` screenshot. It also checked the current shared `StageUITheme` assignments and artwork notes. This update did not run fresh Play Mode or device checks; validation claims in Graph's README belong to that implementation's earlier checks.
+
+Use the root Unity project (`Assets/`, `Packages/`, `ProjectSettings/`). The nested `My project (1)/`, vendor demo scenes, generated caches, and `Library/` are not the design authority. Check current build settings before inferring a scene's production status. Sets was present in the original audit but `Sets.unity` is absent from the current checkout; its controller remains a historical UI reference.
 
 ## 3. Screen families and reference locations
 
@@ -59,7 +65,8 @@ Use the root Unity project (`Assets/`, `Packages/`, `ProjectSettings/`). The nes
 | Propositional logic and truth tables | `Assets/Scenes/PRELIM.unity`; dark teal tutorial card/overlays, gold divider/primary tutorial action, muted teal choices, white/cream question text, outlined HUD labels and teal-framed minimap. |
 | Rules of Inference | `Assets/Scenes/RulesOfInference.unity`, `InferenceBoardUI.cs`, `InferenceChallenge.cs`, `RulesOfInferenceBoard.cs`; deep teal board, gold heading, pale text, teal word tiles, distinct blanks and a staged conclusion reveal. |
 | Logic Garden study reader | `Assets/Scripts/Scripts/LogicGarden/StudyLibraryController.cs`; brown book cover, two cream pages, dark ink, central spine, gold title, bottom navigation, dark backdrop. Lesson PNGs are content, not examples of the game's UI chrome. |
-| Sets | `Assets/Scenes/Sets.unity`, `Assets/Scripts/Scripts/Sets/SetsUIController.cs`; runtime overlay with challenge/set information, top-right timer, bottom prompt, Place action and result panels. Its simpler navy/teal/red/green panels are an existing variation, not a new global theme. |
+| Sets (historical scene) | `Assets/Scripts/Scripts/Sets/SetsUIController.cs`; runtime overlay with challenge/set information, top-right timer, bottom prompt, Place action and result panels. The previously audited Sets scene is absent from this checkout. Its controller's simpler navy/teal/red/green panels are a historical variation, not a new global theme. |
+| Graph | `Assets/Scenes/Graph.unity`, `Assets/Scripts/Scripts/Graph/GraphUIController.cs`, and `Assets/Art/GraphHUD/`; cream map/objective/status surfaces in slim brown frames, dark ink, editable diagrams/routes, original touch controls, existing wood-rimmed actions, and book-style field guide. |
 | Multiplayer | `Stage 1 Multiplayer.unity`, `Stage 2 Multiplayer.unity`; retain the same visual family as solo and preserve network-aware manager behavior. |
 | Cinematics | `CINEMATICS.unity` uses a separate background asset; it is not the reference for interactive puzzle layouts. |
 
@@ -81,6 +88,27 @@ Use the root Unity project (`Assets/`, `Packages/`, `ProjectSettings/`). The nes
 - Keep questions, premises, truth-table cells, answer choices, and feedback visually separate. Match the board next to the new screen before choosing dimensions.
 - World labels and puzzle symbols must remain readable against the 3D scene. Existing HUD labels use outlines; the truth-table clock uses black alpha 230/255 and outline width `0.16`.
 - Keep the central gameplay view open. Ornamental artwork should not compete with draggable words, diagrams, carried objects, or placement targets.
+
+### Graph HUD: new local artwork (2026-10-11)
+
+Graph uses newly designed picture-frame/plaque silhouettes, rather than copying the old settings panel or scroll directly. Their material references were `settings_background.png` for brown wood and `btn_play.png` for understated painted rendering. Reuse the existing Graph sprites rather than generating a different frame for each HUD element.
+
+| Sprite under `Assets/Art/GraphHUD/` | Role in current Graph UI | Recorded sprite region `(x, y, width, height)` | Nine-slice borders, all sides |
+| --- | --- | --- | --- |
+| `GraphMapFrame.png` | Square map; also selected for other large Graph panels by the local builder | `(75, 73, 1116, 1095)` | `262.8 px` |
+| `GraphObjectiveFrame.png` | Compact objective plaque | `(58, 106, 1892, 569)` | `136.56 px` |
+| `GraphStatusFrame.png` | Timer, recorded route and feedback plaques | `(87, 143, 1809, 508)` | `121.92 px` |
+
+- **Material and shape:** warm painted brown wood, dark nested rim, simple clipped corners, broad subdued highlights, modest close shadow, and low texture density. The paper is cream with soft shading and an unmarked center. Preserve these qualities on any Graph-local additions. Avoid metal, reflective gold, stone, cracks, ornate corner blocks, glows and rolled scroll ends in these HUD frames.
+- **Content stays editable:** PNGs contain only frame/paper artwork. Labels, countdowns, route arrows, graph nodes/edges, player marker, objectives and feedback are Unity UI elements layered inside. Do not bake them into derivatives or use the paper center to reveal answers.
+- **Paper and ink:** generation targeted paper `#EFE0BB`; the PNG includes painted shading, so this is a reference color rather than a uniform runtime tint. `GraphUIController` uses ink `#291A0F`, brown map-node fill `#503322`, and cream node labels `#FFF2D4`. Keep white Image tint on the full-color artwork. Use dark ink on paper, rather than carrying pale-on-teal text into this family.
+- **Graph meanings:** available edges are orange `(1, 0.35, 0.035)`; walked edges are blue `(0.04, 0.42, 1)`, matching world lighting. The player pointer is green `#16784C`. Keep these functional states in editable overlays. Do not recolor routes merely to match decorative brown trim.
+- **Typography:** IMPACT for short headings, timers and actions; Liberation Sans for objectives, route strings and feedback. Route text uses a local reading-font copy with `LogicFallback_SDF` for arrow glyphs. Preserve shared font assets and verify arrows in the rendered result.
+- **Current layout reference:** map 270 × 270 at upper-right; timer 270 × 100 below it; left-column objective 360 × 145, route 360 × 60 and feedback 360 × 100. These are reference-canvas units, not device pixels. Field Guide sits beside Settings, and the center remains open for gameplay. Adapt only Graph-owned controls on narrower layouts; preserve the connected exploration canvas and original touch-control transforms.
+- **Slicing:** the visual wood rim is slimmer than the numerical slice margins; the latter also protect shaded paper/corners. `GraphHUDArtSetup` records one cropped sub-sprite per PNG and sets each border to 24% of the cropped short side. Do not substitute the generation prompt's approximate 6% visual-border target for these import values. `GraphUIController.Panel()` uses Image Type Sliced and `pixelsPerUnitMultiplier = min(sprite.rect.width, sprite.rect.height) * 0.01`. Keep corresponding crop, borders and sizing together; verify corners at final display size.
+- **Other Graph UI:** Confirm, Retry and Field Guide retain shared wood-rimmed button artwork with editable labels; their local pixels-per-unit multiplier is `6`. Degree-choice buttons use Simple with aspect preservation. The field guide keeps its book/reading-paper composition. These panels do not replace every existing button or book surface.
+
+Source records: `Assets/Art/GraphHUD/ARTWORK.md` and `generation-prompts.json`. Those records describe creation; actual PNGs, current metadata and runtime assignments determine the delivered result. Prompt aspect-ratio targets are not a substitute for measuring the saved sprite region. Changes to Graph art should preserve its local visual family without silently propagating it across the project.
 
 ## 5. Color reference
 
@@ -105,6 +133,10 @@ The following values were captured from code or serialized scene fields during t
 | Reader ink | `(0.16, 0.10, 0.06, 1)` | `#291A0F` | Same |
 | Reader title | `(1, 0.90, 0.62, 1)` | `#FFE69E` | Same |
 | Reader diagram accent | `(0.18, 0.36, 0.34, 1)` | `#2E5C57` | Same |
+| Graph chart ink | `(41/255, 26/255, 15/255, 1)` | `#291A0F` | `GraphUIController.cs` |
+| Graph map-node fill | `(80/255, 51/255, 34/255, 1)` | `#503322` | Same |
+| Graph map-node label | `(1, 242/255, 212/255, 1)` | `#FFF2D4` | Same |
+| Graph player pointer | `(22/255, 120/255, 76/255, 1)` | `#16784C` | Same |
 
 Menu color meanings are encoded in painted sprites, including gradients and borders. Reuse the sprites instead of replacing them with guessed flat hex fills:
 
@@ -183,6 +215,8 @@ Paths and even misspellings below are the actual repository names. Preserve them
 | Branding/background | `Assets/Assets/Interface_Sprites/background/` — `LL_banner(2).png`, `banner_v2.png`, `background(2).png`, `LL_logo_transparent.png` |
 | HUD controls and health | `Assets/Assets/Interface_Sprites/gameplay_interface/` — `interact_btn.png`, `jump_btn.png`, joystick variants, `heart.png`, `hearts.png` |
 | Objective/tutorial cues | `Assets/Assets/Interface_Sprites/Tutorial/` — `objectives_ongoing.png`, `task_toggle_on_btn.png`, `task_toggle_off_btn.png`, `Pointer.png`, `hand_pinch.png` |
+| Current shared gameplay artwork | `Assets/Resources/StageUI/` — `WoodPanel.png`, `ReadingPaper.png`, `WoodButtonTeal.png`, `WoodButtonGreen.png`, `WoodButtonRed.png`; see that folder's `ARTWORK.md` for current crop and slicing records. |
+| Graph-local HUD surfaces | `Assets/Art/GraphHUD/` — `GraphMapFrame.png`, `GraphObjectiveFrame.png`, `GraphStatusFrame.png`; see section 4 for roles, colors and slicing. |
 
 ### Import and composition rules
 
@@ -239,7 +273,8 @@ Appearance is distributed across the following layers. Newer code adds `StageUIT
 - **Scene-authored UI:** serialized canvases, image sprites, font references, anchors, colors, and button callbacks in `Assets/Scenes/*.unity`.
 - **Prefab-authored UI:** reusable objects under `Assets/Prefabs/`, including `PREFABS/WORLD_UI/`. Inspect before reuse: `Canvas.prefab` contains older legacy controls, and `MobileInputUI.prefab` is a controller object with unassigned joystick references, not a complete ready-styled HUD.
 - **Runtime UI builders:** `SetsUIController.BuildHudIfNeeded()`, `StudyLibraryController`, and `TruthTableStageClock` create or extend UI in C#. Changes must be made where these elements are created or they can be overwritten on startup.
-- **New shared gameplay presentation:** `Assets/Scripts/Scripts/GameManager/StageUITheme.cs` assigns sprites, fonts and states; `StageJourneyUI.cs` creates HUD, tutorial and result components. These currently use the generated assets under `Assets/Resources/StageUI/`. Inspect their assignments when reskinning those screens; do not assume updating a scene Image alone will survive runtime setup. Preserve useful font/layout/behavior choices while evaluating artwork against the original references.
+- **Shared gameplay presentation:** `Assets/Scripts/Scripts/GameManager/StageUITheme.cs` assigns the current `WoodPanel`, `ReadingPaper`, and `WoodButtonTeal/Green/Red` resources, fonts and states; `StageJourneyUI.cs` creates HUD, tutorial and result components. Inspect these assignments when reskinning those screens; do not assume updating a scene Image alone will survive runtime setup. Historical TealPanel/TealButton resources are not the loaded style baseline.
+- **Graph-local presentation:** `GraphUIController` builds Graph-owned surfaces and editable chart content using `hudMap`, `hudObjective`, and `hudStatus` sprite fields saved in `Graph.unity`. `Assets/Editor/GraphHUDArtSetup.cs` imports these sprites and assigns them only in the Graph scene. Its Apply command saves the scene; do not run it merely to read this guide. Graph's panel builder selects the correct sprite and applies local slicing/multiplier rules. Preserve the connected exploration canvas and callbacks when changing these surfaces.
 - **Editor authoring helpers:** `Assets/Editor/InferenceSetup.cs`, `InferenceDragSetup.cs`, and `ConfigureSetsStage.cs` build/configure scene content. Read their scope before running them. They are not interchangeable theme installers.
 - **Behavior managers:** dialogue, objectives, game-over, stage-completion, menu navigation, input, and puzzle managers handle visibility and progression. Connect the new UI to those flows rather than reproducing them as unrelated buttons.
 
@@ -258,12 +293,12 @@ For new gameplay:
 - Some prefabs and scene objects contain legacy/default gray controls, placeholder text, or generic object names. Their existence does not make them the desired look for a new screen.
 - Sets creates its own flat-color HUD and assigns the TMP default. Although the fields are headed "Optional Scene UI Overrides", `BuildHudIfNeeded()` currently creates and assigns new elements; do not assume assigning those fields preserves a custom scene HUD.
 - There are duplicate sprite variants in two interface folders, mixed canvas scale settings, and different fonts for display versus reading. Check actual references rather than selecting the first matching filename.
-- Gameplay palettes and original illustrated artwork serve different purposes: the palette can vary, while frame materials and rendering must stay consistent with the selected original reference. A newer generated screen is not automatically an approved style reference.
-- The current ornate StageUI sprites should not be copied as the baseline for strict matching. Check their brown-frame alternatives or create faithful derivatives when a styling task includes them. This document does not authorize an unrelated full-project reskin.
+- Gameplay palettes and original illustrated artwork serve different purposes: the palette can vary, while frame materials and rendering must stay consistent with the selected original reference. GraphHUD is a documented local extension with new silhouettes and matching original materials, not a reason to redesign unrelated screens.
+- Historical ornate TealPanel/TealButton sprites remain in Resources but are not loaded by the current shared theme. Use current brown-frame variants instead. This document does not authorize an unrelated full-project reskin.
 
 ## 11. Acceptance checklist for new gameplay UI
 
-- [ ] Names the original source asset for every new or reskinned component; style is judged against that original, not a generated derivative.
+- [ ] Names the original material/style reference for every new or reskinned component. For existing Graph surfaces, reuses the documented GraphHUD sprites and preserves their local design.
 - [ ] Preserves source silhouette, frame material/hue, border thickness, bevel profile, highlight intensity/direction, shadow and texture density.
 - [ ] A requested color/text variant changes only its permitted face, label or icon; no added stone, reflective gold or ornament absent from the source.
 - [ ] Compared beside the original at the same visible size; differences beyond the intended edits have been corrected or explicitly reported.
@@ -279,6 +314,7 @@ For new gameplay:
 - [ ] Decorative graphics do not block clicks, taps, or dragging.
 - [ ] Modal UI, dialogue, retry, return, and completion work with existing managers.
 - [ ] No visual cue reveals an answer before the gameplay permits it.
+- [ ] Graph HUD additions preserve cream paper/dark ink, clipped matte wood frames, correct sub-sprite slicing, editable diagram/route content and functional orange/blue edge meanings; local styling stays within its intended scope.
 - [ ] Compared in Play Mode with the reference at 1920 × 1080 and relevant phone/tablet aspect ratios; report any checks that could not be run.
 
 ## 12. Reusable Codex prompt
@@ -289,6 +325,8 @@ Copy the following prompt and replace the bracketed gameplay description. Attach
 Implement [describe the new gameplay, scene, rules, and required UI] in Logic Legends.
 
 Before making changes, read the supplied artstyle.md or the copy in the project root. Treat the original project sprites listed in its reference-priority table as the visual authority. Inspect those images and the host scene's UI code/prefabs. Use the original wood/parchment illustration style, the appropriate gameplay content palette, and the existing book treatment for lessons.
+
+For Graph gameplay, reuse the documented GraphMapFrame, GraphObjectiveFrame and GraphStatusFrame sprites with their matte brown clipped frames, cream paper and dark editable content. Follow the Graph-local slicing, font, diagram-color and layout rules. Keep the current shared wood-rimmed buttons, book field guide and original touch controls. Do not apply the Graph HUD design to unrelated scenes without a request. For explicitly requested new panel geometry, preserve the original material/rendering and document its scope; ordinary recolor/relabel variants must preserve the source silhouette.
 
 Reuse the project's sprites, fonts, controls, layout conventions, and managers. Follow artstyle.md for exact asset paths and colors. Assign fonts explicitly, verify mathematical glyphs, preserve sprite proportions, avoid duplicate baked labels, and keep movement controls, minimap, timer, and gameplay visible. Include the interaction, feedback, and result states this gameplay needs. Distinguish intentional design guidance from legacy/default UI and existing inconsistencies documented in the guide.
 

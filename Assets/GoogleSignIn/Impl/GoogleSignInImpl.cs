@@ -63,6 +63,10 @@ namespace Google.Impl {
     /// </remarks>
     public Future<GoogleSignInUser> SignIn() {
       IntPtr nativeFuture = GoogleSignIn_SignIn(SelfPtr());
+      if (nativeFuture == IntPtr.Zero) {
+        throw new InvalidOperationException(
+            "Google Sign-In could not start: the Android plugin returned no request handle.");
+      }
       return new Future<GoogleSignInUser>(new NativeFuture(nativeFuture));
     }
 
@@ -76,6 +80,10 @@ namespace Google.Impl {
     /// </remarks>
     public Future<GoogleSignInUser> SignInSilently() {
       IntPtr nativeFuture = GoogleSignIn_SignInSilently(SelfPtr());
+      if (nativeFuture == IntPtr.Zero) {
+        throw new InvalidOperationException(
+            "Google Sign-In could not start silently: the Android plugin returned no request handle.");
+      }
       return new Future<GoogleSignInUser>(new NativeFuture(nativeFuture));
     }
 
