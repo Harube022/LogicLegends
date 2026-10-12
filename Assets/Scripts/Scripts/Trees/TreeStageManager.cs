@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using LogicLegends.Graph;
 using UnityEngine;
-using UnityEngine.InputSystem;
 namespace LogicLegends.Trees
 {
     public enum TreeStageState { WAITING_FOR_ACTIVATION, ACTIVE, VALIDATING, CHALLENGE_COMPLETE, STAGE_COMPLETE, GAME_OVER }
@@ -12,8 +11,8 @@ namespace LogicLegends.Trees
         public TreeBoardController board;
         public TreeUIController ui;
         public GraphStageClock timer;
-        public GraphCompletion completion;
         public GameOverManager gameOver;
+        public TreeBoardFocus boardFocus;
         public Transform bookStatue, spawnPoint;
         public AudioClip correctSound, wrongSound;
         public float countdownSeconds=300, feedbackSeconds=1.1f;
@@ -28,16 +27,19 @@ namespace LogicLegends.Trees
         public bool Ready {get;private set;}
         public bool LessonOpen {get;private set;}
         public bool Moving {get;private set;}
+        public bool BoardOpen {get;private set;}
+        bool inputBeforeBoard, playerBeforeBoard;
         public bool NearBook=>LocalPlayer!=null&&Vector3.Distance(LocalPlayer.transform.position,bookStatue.position)<4.5f;
-        public bool CanAct=>Ready&&!Moving&&!LessonOpen&&Time.timeScale>0&&(GameInput.Instance==null||!GameInput.Instance.GameplayInputBlocked)&&(TeleportManager.Instance==null||!TeleportManager.Instance.IsTransitioning);
+        public bool CanAct=>Ready&&!Moving&&!LessonOpen&&Time.timeScale>0&&(boardFocus==null||!boardFocus.Transitioning)&&(BoardOpen||GameInput.Instance==null||!GameInput.Instance.GameplayInputBlocked)&&(TeleportManager.Instance==null||!TeleportManager.Instance.IsTransitioning);
+        public bool CanSolve=>CanAct&&BoardOpen&&State==TreeStageState.ACTIVE;
         AudioSource audioSource;
         GameInput input;
-        Vector2 pointerStart;
-        bool pointerDown;
         void Awake()=>StageSelectionState.Select(10);
         IEnumerator Start()
         {
             audioSource=gameObject.AddComponent<AudioSource>();audioSource.playOnAwake=false;audioSource.spatialBlend=0;AudioVolumeSettings.Route(audioSource,GameAudioChannel.SoundFX);
+            if(boardFocus==null)boardFocus=gameObject.AddComponent<TreeBoardFocus>();
+            boardFocus.board=board.transform;
             board.Build(Challenge);timer.Initialize(countdownSeconds,HandleGameOver);ui.Build(this);
             while(Player.LocalInstance==null)yield return null;
             LocalPlayer=Player.LocalInstance;input=GameInput.Instance;input.SetGameplayInputBlocked(false);input.OnInteractAction+=OnInteract;
@@ -45,48 +47,46 @@ namespace LogicLegends.Trees
             var look=LocalPlayer.GetComponentInChildren<CameraTargetController>();if(look!=null)look.SetViewAngles(18,0);
             Ready=true;
         }
-        void OnDestroy(){if(input!=null)input.OnInteractAction-=OnInteract;}
+        void OnDestroy(){if(input!=null){input.OnInteractAction-=OnInteract;if(BoardOpen)input.SetGameplayInputBlocked(inputBeforeBoard);}if(boardFocus!=null)boardFocus.Exit();}
         void OnInteract(object sender,EventArgs args){InteractBook();}
         void Update()
         {
             if(!Ready)return;
             ui.Refresh();
-            if(!CanAct||State!=TreeStageState.ACTIVE)return;
-            var pointer=Pointer.current;
-            if(pointer==null)return;
-            if(pointer.press.wasPressedThisFrame){pointerStart=pointer.position.ReadValue();pointerDown=true;}
-            if(pointer.press.wasReleasedThisFrame&&pointerDown)
-            {
-                pointerDown=false;var pos=pointer.position.ReadValue();
-                if(Vector2.Distance(pos,pointerStart)>25)return;
-                var events=UnityEngine.EventSystems.EventSystem.current;
-                if(events!=null)
-                {
-                    var hits=new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
-                    events.RaycastAll(new UnityEngine.EventSystems.PointerEventData(events){position=pos},hits);
-                    if(hits.Exists(h=>h.gameObject.GetComponentInParent<UnityEngine.UI.Button>()!=null||h.gameObject.GetComponentInParent<MobileInputUI>()!=null))return;
-                }
-                var camera=Camera.main;if(camera!=null&&Physics.Raycast(camera.ScreenPointToRay(pos),out var hit,80))
-                {var node=hit.collider.GetComponentInParent<TreeNode>();if(node!=null)SelectNode(node.id);}
-            }
         }
         public void InteractBook()
         {
-            if(!CanAct||!NearBook)return;
-            if(State==TreeStageState.WAITING_FOR_ACTIVATION){State=TreeStageState.ACTIVE;timer.Resume();Feedback=Challenge.objective;}
-            else Confirm();
+            if(!CanAct||BoardOpen||!NearBook||(State!=TreeStageState.WAITING_FOR_ACTIVATION&&State!=TreeStageState.ACTIVE))return;
+            if(!boardFocus.Enter(LocalPlayer))return;
+            inputBeforeBoard=input.GameplayInputBlocked;playerBeforeBoard=LocalPlayer.enabled;
+            BoardOpen=true;input.SetGameplayInputBlocked(true);LocalPlayer.ToggleControl(false);
+            if(State==TreeStageState.WAITING_FOR_ACTIVATION){State=TreeStageState.ACTIVE;timer.Resume();Feedback="Work on the tree, then tap CONFIRM. EXIT BOARD keeps your work.";}
+            ui.Refresh();
+        }
+        public void ExitBoard()
+        {
+            if(!BoardOpen||LessonOpen||Moving||Time.timeScale<=0||(State!=TreeStageState.ACTIVE&&State!=TreeStageState.VALIDATING))return;
+            CloseBoard(true);
+            Feedback="Your work is kept. Interact with the Book Statue to reopen the board.";
+            ui.Refresh();
+        }
+        void CloseBoard(bool restorePlayer)
+        {
+            if(!BoardOpen)return;
+            BoardOpen=false;boardFocus.Exit();input?.SetGameplayInputBlocked(inputBeforeBoard);
+            if(restorePlayer&&State==TreeStageState.ACTIVE)LocalPlayer.ToggleControl(playerBeforeBoard);
         }
         public void SelectNode(string id)
         {
-            if(!CanAct||State!=TreeStageState.ACTIVE)return;
-            board.Select(id);Feedback=board.Second==null?"Selected "+board.First+(Challenge.Editable?". Select the second endpoint.":". Confirm at the Book Statue."):"Selected "+board.First+" to "+board.Second+". Tap CONNECT or REMOVE.";ui.RefreshDiagram();
+            if(!CanSolve)return;
+            board.Select(id);Feedback=board.Second==null?"Selected "+board.First+(Challenge.Editable?". Select the second endpoint.":". Tap CONFIRM."):"Selected "+board.First+" to "+board.Second+". Tap CONNECT or REMOVE.";ui.RefreshDiagram();
         }
-        public void SelectAnswer(int number){if(!CanAct||State!=TreeStageState.ACTIVE||(Challenge.type!=TreeChallengeType.Depth&&Challenge.type!=TreeChallengeType.Height))return;Answer=number;Feedback="Selected "+number+". Confirm at the Book Statue.";}
-        public void Edit(bool remove){if(!CanAct||State!=TreeStageState.ACTIVE)return;board.Edit(remove,out var reason);Feedback=reason;ui.RefreshDiagram();}
-        public void ClearSelection(){if(!CanAct||State!=TreeStageState.ACTIVE)return;board.ClearSelection();Answer=null;Feedback="Selection cleared. Connections are kept.";ui.RefreshDiagram();}
+        public void SelectAnswer(int number){if(!CanSolve||(Challenge.type!=TreeChallengeType.Depth&&Challenge.type!=TreeChallengeType.Height))return;Answer=number;Feedback="Selected "+number+". Tap CONFIRM.";}
+        public void Edit(bool remove){if(!CanSolve)return;board.Edit(remove,out var reason);Feedback=reason;ui.RefreshDiagram();}
+        public void ClearSelection(){if(!CanSolve)return;board.ClearSelection();Answer=null;Feedback="Selection cleared. Connections are kept.";ui.RefreshDiagram();}
         public void Confirm()
         {
-            if(!CanAct||State!=TreeStageState.ACTIVE||!NearBook)return;
+            if(!CanSolve)return;
             State=TreeStageState.VALIDATING;
             bool valid=TreeAnswerValidator.Validate(Challenge,board.Edges,board.First,Answer,out var reason);
             foreach(var node in board.Nodes)node.ShowFeedback(valid);
@@ -101,15 +101,16 @@ namespace LogicLegends.Trees
         IEnumerator Wrong()
         {
             LocalPlayer.ToggleControl(false);yield return new WaitForSeconds(feedbackSeconds);
-            if(State!=TreeStageState.VALIDATING)yield break;board.RefreshSelection();LocalPlayer.ToggleControl(true);State=TreeStageState.ACTIVE;
+            if(State!=TreeStageState.VALIDATING)yield break;board.RefreshSelection();LocalPlayer.ToggleControl(!BoardOpen&&playerBeforeBoard);State=TreeStageState.ACTIVE;
         }
         IEnumerator Advance()
         {
             LocalPlayer.ToggleControl(false);yield return new WaitForSeconds(feedbackSeconds);
             if(State!=TreeStageState.CHALLENGE_COMPLETE)yield break;
             if(Correct==catalog.challenges.Count)
-            {State=TreeStageState.STAGE_COMPLETE;input.SetGameplayInputBlocked(true);completion.Complete(Mistakes);ui.ShowResult(true);yield break;}
+            {CloseBoard(false);State=TreeStageState.STAGE_COMPLETE;input.SetGameplayInputBlocked(true);ui.ShowResult(true);yield break;}
             Moving=true;
+            CloseBoard(false);
             yield return TeleportManager.Instance.TeleportAndWait(LocalPlayer.gameObject,spawnPoint,()=>{ChallengeIndex++;Answer=null;board.Build(Challenge);ui.RebuildDiagram();});
             if(State==TreeStageState.GAME_OVER)yield break;
             Moving=false;LocalPlayer.ToggleControl(true);State=TreeStageState.WAITING_FOR_ACTIVATION;Feedback="Next challenge ready. Interact with the Book Statue to begin.";
@@ -117,16 +118,16 @@ namespace LogicLegends.Trees
         public void HandleGameOver()
         {
             if(State==TreeStageState.STAGE_COMPLETE||State==TreeStageState.GAME_OVER)return;
-            State=TreeStageState.GAME_OVER;timer.Pause();LocalPlayer?.ToggleControl(false);input?.SetGameplayInputBlocked(true);gameOver.ShowGameOver();ui.ShowResult(false);
+            CloseBoard(false);LessonOpen=false;State=TreeStageState.GAME_OVER;timer.Pause();LocalPlayer?.ToggleControl(false);input?.SetGameplayInputBlocked(true);gameOver.ShowGameOver();ui.ShowResult(false);
         }
         public void SetLesson(bool open)
         {
-            if(!Ready||Moving||(State!=TreeStageState.ACTIVE&&State!=TreeStageState.WAITING_FOR_ACTIVATION))return;
-            LessonOpen=open;LocalPlayer.ToggleControl(!open);input.SetGameplayInputBlocked(open);
+            if(!Ready||Moving||Time.timeScale<=0||(boardFocus!=null&&boardFocus.Transitioning)||(State!=TreeStageState.ACTIVE&&State!=TreeStageState.WAITING_FOR_ACTIVATION))return;
+            LessonOpen=open;LocalPlayer.ToggleControl(!open&&!BoardOpen);input.SetGameplayInputBlocked(open||BoardOpen);
             if(State==TreeStageState.ACTIVE){if(open)timer.Pause();else timer.Resume();}ui.ShowLesson(open);
         }
         public void Restart()=>Navigate("Trees");
         public void Return()=>Navigate("Main Menu");
-        void Navigate(string scene){Time.timeScale=1;input?.SetGameplayInputBlocked(false);TeleportManager.Instance.LoadSceneWithFade(scene);}
+        void Navigate(string scene){CloseBoard(false);Time.timeScale=1;input?.SetGameplayInputBlocked(false);TeleportManager.Instance.LoadSceneWithFade(scene);}
     }
 }

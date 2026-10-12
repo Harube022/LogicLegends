@@ -55,10 +55,12 @@ public static class TreesStageSetup
         RenderSettings.ambientMode=UnityEngine.Rendering.AmbientMode.Flat;RenderSettings.ambientLight=new Color(.65f,.69f,.65f);
         EnsureFolder(Folder);
         var stage=new GameObject("Trees Stage").AddComponent<TreeStageManager>();
-        stage.ui=stage.gameObject.AddComponent<TreeUIController>();stage.ui.host=(RectTransform)safe;stage.ui.gameplayControls=gameplay.gameObject;
+        stage.boardFocus=stage.gameObject.AddComponent<TreeBoardFocus>();stage.boardFocus.outputCamera=camera;
+        stage.ui=stage.gameObject.AddComponent<TreeUIController>();stage.ui.host=(RectTransform)canvas.transform;stage.ui.gameplayControls=gameplay.gameObject;
+        ConfigureUIArtwork(stage.ui);
         stage.ui.parchment=Sprite("Assets/Interface_Sprites/customizationsh_shop_interface/customization_scroll.png");
         stage.ui.nodeCircle=Sprite("Assets/Assets/Interface_Sprites/gameplay_interface/joystick_circle_handle.png");
-        stage.timer=stage.gameObject.AddComponent<GraphStageClock>();stage.completion=stage.gameObject.AddComponent<GraphCompletion>();stage.completion.stageNumber=10;
+        stage.timer=stage.gameObject.AddComponent<GraphStageClock>();
         stage.gameOver=stage.gameObject.AddComponent<GameOverManager>();
         stage.correctSound=AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/Graph/Correct.wav");stage.wrongSound=AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Assets/Sounds Effects/WORLDBGM/DAMAGETAKEN1.mp3");
         Set(stage.gameOver,"gameOverSound",AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Assets/Sounds Effects/WORLDBGM/GAMEOVER1.mp3"));
@@ -79,15 +81,46 @@ public static class TreesStageSetup
         var mat=new Material(Shader.Find("Universal Render Pipeline/Lit"));mat.name="Trees calm teal";mat.color=new Color(.035f,.085f,.11f);AssetDatabase.CreateAsset(mat,Folder+"/TreeBoard.mat");
         var inset=GameObject.CreatePrimitive(PrimitiveType.Cube);inset.name="Tree content surface";inset.transform.SetParent(room);inset.transform.position=new Vector3(0,4.6f,10.1f);inset.transform.localScale=new Vector3(9.8f,7,.15f);inset.GetComponent<Renderer>().sharedMaterial=mat;
         stage.board=new GameObject("Tree Board").AddComponent<TreeBoardController>();stage.board.transform.position=new Vector3(0,0,9.85f);
+        stage.boardFocus.board=stage.board.transform;
+        ConfigureBoardCamera(stage,camera);
         stage.board.nodePrefab=MakeNode(mat);stage.board.edgePrefab=MakeEdge();
         foreach(var n in catalog.challenges[0].nodes){var node=(TreeNode)PrefabUtility.InstantiatePrefab(stage.board.nodePrefab,stage.board.transform);node.id=n.id;node.label.text=n.id;node.transform.localPosition=TreeBoardController.Position(n);}
         foreach(var edge in catalog.challenges[0].initial)
         {var line=(LineRenderer)PrefabUtility.InstantiatePrefab(stage.board.edgePrefab,stage.board.transform);line.SetPosition(0,TreeBoardController.Position(catalog.challenges[0].nodes.First(n=>n.id==edge.source))+Vector3.back*.08f);line.SetPosition(1,TreeBoardController.Position(catalog.challenges[0].nodes.First(n=>n.id==edge.destination))+Vector3.back*.08f);}
-        foreach(float x in new[]{-11f,11f})
-        {var model=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/CHEATCODE/SimpleNaturePack/Prefabs/Tree_01.prefab");if(model!=null){var tree=(GameObject)PrefabUtility.InstantiatePrefab(model,room);tree.transform.position=new Vector3(x,0,8);}}
         var list=EditorBuildSettings.scenes.ToList();if(!list.Any(s=>s.path==scene.path))list.Add(new EditorBuildSettingsScene(scene.path,true));EditorBuildSettings.scenes=list.ToArray();
         EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);AssetDatabase.SaveAssets();
         Debug.Log("Trees configured: five challenges, connected PRELIM prefabs, original UI artwork, shared clock and covered teleport transitions.");
+    }
+    public static void ConfigureUIArtwork(TreeUIController ui)
+    {
+        ui.host=(RectTransform)ui.host.GetComponentInParent<Canvas>().transform;
+        ui.hudObjective=Sprite("Assets/Art/GraphHUD/GraphObjectiveFrame.png");
+        ui.hudStatus=Sprite("Assets/Art/GraphHUD/GraphStatusFrame.png");
+        ui.hudMap=Sprite("Assets/Art/GraphHUD/GraphMapFrame.png");
+        EditorUtility.SetDirty(ui);
+    }
+    public static void ConfigureBoardCamera(TreeStageManager stage,Camera output)
+    {
+        var focus=stage.boardFocus;
+        focus.outputCamera=output;focus.board=stage.board.transform;
+        if(focus.focusCamera==null)
+        {
+            var go=new GameObject("CM_TreesBoardCam");SceneManager.MoveGameObjectToScene(go,stage.gameObject.scene);
+            focus.focusCamera=go.AddComponent<Unity.Cinemachine.CinemachineCamera>();
+        }
+        var camera=focus.focusCamera;
+        camera.transform.SetPositionAndRotation(stage.board.transform.TransformPoint(new Vector3(0,4.25f,-3)),stage.board.transform.rotation);
+        camera.Priority=new Unity.Cinemachine.PrioritySettings{Enabled=true,Value=100};
+        var lens=Unity.Cinemachine.LensSettings.Default;
+        lens.ModeOverride=Unity.Cinemachine.LensSettings.OverrideModes.Orthographic;
+        lens.OrthographicSize=6.2f*Mathf.Abs(stage.board.transform.lossyScale.y);
+        lens.NearClipPlane=.05f;lens.FarClipPlane=1000;camera.Lens=lens;
+        camera.gameObject.SetActive(false);
+        var brain=output.GetComponent<Unity.Cinemachine.CinemachineBrain>();
+        brain.LensModeOverride.Enabled=true;
+        brain.LensModeOverride.DefaultMode=Unity.Cinemachine.LensSettings.OverrideModes.Perspective;
+        PrefabUtility.RecordPrefabInstancePropertyModifications(brain);
+        EditorUtility.SetDirty(focus);EditorUtility.SetDirty(camera);EditorUtility.SetDirty(brain);
     }
     static TreeNode MakeNode(Material material)
     {
