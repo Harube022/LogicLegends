@@ -54,8 +54,11 @@ public sealed class SetssssBoardView : MonoBehaviour
         if (player == null) player = Player.LocalInstance;
         if (gameInput == null) gameInput = GameInput.Instance;
 
-        bool available = player != null && gameInput != null &&
+        bool practice = SetssssControlsOnboarding.Active != null &&
+                        SetssssControlsOnboarding.Active.WantsPracticeBoardButton;
+        bool available = practice || player != null && gameInput != null &&
                          !gameInput.GameplayInputBlocked && Time.timeScale > 0f &&
+                          (SetssssControlsOnboarding.Active == null || !SetssssControlsOnboarding.Active.IsActive) &&
                          IsPlayerNearSpawner();
         if (viewBoardButton != null && viewBoardButton.gameObject.activeSelf != available)
             viewBoardButton.gameObject.SetActive(available);
@@ -72,8 +75,15 @@ public sealed class SetssssBoardView : MonoBehaviour
 
     public void ViewBoard()
     {
+        if (SetssssControlsOnboarding.Active != null &&
+            SetssssControlsOnboarding.Active.WantsPracticeBoardButton)
+        {
+            SetssssControlsOnboarding.Active.OnPracticeViewBoardPressed();
+            return;
+        }
         if (viewingBoard || playerCamera == null || boardCamera == null ||
             gameInput == null || gameInput.GameplayInputBlocked ||
+            SetssssControlsOnboarding.Active != null && SetssssControlsOnboarding.Active.IsActive ||
             Time.timeScale <= 0f || !IsPlayerNearSpawner()) return;
 
         viewingBoard = true;

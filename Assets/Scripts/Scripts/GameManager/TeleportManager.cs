@@ -22,7 +22,10 @@ public class TeleportManager : MonoBehaviourPun
     private bool startSequenceStarted;
     public static bool UsesCoveredTransitions =>
         SceneManager.GetSceneByName("PRELIM").isLoaded ||
-        SceneManager.GetSceneByName("RulesOfInference").isLoaded;
+        SceneManager.GetSceneByName("RulesOfInference").isLoaded ||
+        SceneManager.GetActiveScene().name == "Graph" ||
+        SceneManager.GetActiveScene().name == "Trees" ||
+        SceneManager.GetActiveScene().name == "MultiplayerStage";
     public bool IsTeleporting => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTeleporting : isTeleporting;
     public bool IsTransitioning => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTransitioning : isTeleporting;
     public float FadeAlpha => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.FadeAlpha :

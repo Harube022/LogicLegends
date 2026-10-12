@@ -732,6 +732,8 @@ public sealed class SetssssChallengeOne : MonoBehaviour
     // follows the same target selection and pickup/drop path in Setssss.
     public bool TryHandleInteraction()
     {
+        if (SetssssControlsOnboarding.Active != null &&
+            SetssssControlsOnboarding.Active.IsActive) return true;
         if (complete || gameOverTriggered || advancing) return true;
         if (input == null || input.GameplayInputBlocked ||
             boardView != null && boardView.IsViewingBoard) return false;
@@ -901,6 +903,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
 
         bool nearDiagram = started && !complete && !gameOverTriggered && !advancing && IsNearPlacementArea(player.transform.position);
         bool controlsAvailable = !gameOverTriggered && input != null && !input.GameplayInputBlocked &&
+                                 (SetssssControlsOnboarding.Active == null || !SetssssControlsOnboarding.Active.IsActive) &&
                                  (boardView == null || !boardView.IsViewingBoard);
         if (submitButton != null)
         {
@@ -910,7 +913,9 @@ public sealed class SetssssChallengeOne : MonoBehaviour
 
         GrabbableObject currentHeld = player.GetHeldObject();
         bool holdingNumber = GetBlockNumber(currentHeld) > 0;
-        SetVisible(interactWithBookButton, controlsAvailable && !started && !complete && IsBookTargeted());
+        bool tutorialBook = SetssssControlsOnboarding.Active != null &&
+                            SetssssControlsOnboarding.Active.IsBookPractice;
+        SetVisible(interactWithBookButton, tutorialBook || controlsAvailable && !started && !complete && IsBookTargeted());
         SetVisible(pickUpBlockButton, controlsAvailable && started && !complete && !advancing &&
                                       !holdingNumber && FindTargetedBlock() != null);
         SetVisible(returnBlockButton, controlsAvailable && started && !complete && !advancing && holdingNumber);
@@ -1403,6 +1408,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         bool correct = challengeNumber == 5 ? ValidateComplementArrangement() :
             challengeNumber == 4 ? ValidateFiveRegionPlacements() :
             SetsStageManager.ValidateConditionPlacements(activeCondition, entries);
+        WorldStageAudio.PlayAnswerFeedback(correct);
         if (!correct)
         {
             PlacementReview review = ReviewIncorrectPlacement();
@@ -1459,6 +1465,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
             RefreshBoard();
             if (feedbackText != null) { feedbackText.text = "Challenge 5 Complete!"; feedbackText.color = Color.green; }
             onChallengeCompleted?.Invoke();
+            SetssssStageResultUI.Show();
             yield break;
         }
         if (feedbackText != null) { feedbackText.text = "Correct!"; feedbackText.color = Color.green; }

@@ -13,6 +13,35 @@ namespace LogicLegends.Inference
         Vector3 origin;
         Transform owner;
         GrabbableObject grabbable;
+        SphereCollider pickupCollider;
+        Rigidbody body;
+        Vector3 originalColliderCenter;
+        float originalColliderRadius;
+        float pillarPickupDrop, pillarPickupRadius;
+        bool hasPillarPickup;
+
+        public void ConfigureReachablePickup(float drop, float radius)
+        {
+            pickupCollider = GetComponent<SphereCollider>();
+            if (pickupCollider == null) return;
+            if (!hasPillarPickup)
+            {
+                originalColliderCenter = pickupCollider.center;
+                originalColliderRadius = pickupCollider.radius;
+            }
+            pillarPickupDrop = drop;
+            pillarPickupRadius = radius;
+            hasPillarPickup = true;
+            SetPillarPickupCollider();
+        }
+
+        void SetPillarPickupCollider()
+        {
+            if (!hasPillarPickup || pickupCollider == null) return;
+            pickupCollider.center = Vector3.down * pillarPickupDrop;
+            pickupCollider.radius = pillarPickupRadius;
+            pickupCollider.isTrigger = true;
+        }
 
         public void Configure(string questionId, string answer, Transform parent)
         {
@@ -36,14 +65,27 @@ namespace LogicLegends.Inference
             IsPlaced = false;
             label.gameObject.SetActive(true);
             grabbable.ConfigureInventoryState(false, null, false);
-            var rb = GetComponent<Rigidbody>();
-            rb.isKinematic = true; rb.useGravity = false;
+            body = GetComponent<Rigidbody>();
+            body.isKinematic = true; body.useGravity = false;
+            SetPillarPickupCollider();
             transform.SetParent(owner, true);
             transform.position = origin;
         }
 
         void LateUpdate()
         {
+            // A released crystal needs its original solid collider to land on the ground.
+            // Returning it to a pillar restores the extended, nonblocking pickup trigger.
+            if (hasPillarPickup && !IsPlaced && pickupCollider != null)
+            {
+                if (body == null) body = GetComponent<Rigidbody>();
+                if (body != null && !body.isKinematic && pickupCollider.isTrigger)
+                {
+                    pickupCollider.center = originalColliderCenter;
+                    pickupCollider.radius = originalColliderRadius;
+                    pickupCollider.isTrigger = false;
+                }
+            }
             if (label != null && Camera.main != null)
                 label.transform.rotation = Camera.main.transform.rotation;
             // A dropped answer must remain recoverable, including if it falls off the island.

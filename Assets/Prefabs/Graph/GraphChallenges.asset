@@ -1,0 +1,418 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bd6bed137ed0cc40a6d70c2971d6165, type: 3}
+  m_Name: GraphChallenges
+  m_EditorClassIdentifier: Assembly-CSharp::LogicLegends.Graph.GraphChallengeCatalog
+  challenges:
+  - title: Vertices and edges
+    type: 0
+    objective: Travel from Vertex A to Vertex B using the connecting edge.
+    lesson: 'A vertex is a point in a graph. An edge connects two vertices.
+
+
+      Cross
+      the bridge from A to B. A visit is recorded only after a complete crossing.'
+    start: A
+    destination: B
+    degreeVertex: C
+    vertices:
+    - id: A
+      label: A
+      position: {x: 0, y: 0, z: 0}
+    - id: B
+      label: B
+      position: {x: 0, y: 0, z: 12}
+    edges:
+    - source: A
+      destination: B
+      directed: 0
+      traversalEnabled: 1
+  - title: Vertex degree
+    type: 1
+    objective: What is the degree of Vertex C?
+    lesson: 'The degree of an undirected vertex counts its incident edges.
+
+
+      Look
+      at the bridges meeting C. Select a number and confirm. A self-loop would count
+      twice.'
+    start: A
+    destination: C
+    degreeVertex: C
+    vertices:
+    - id: A
+      label: A
+      position: {x: 0, y: 0, z: 0}
+    - id: B
+      label: B
+      position: {x: -10, y: 0, z: 12}
+    - id: C
+      label: C
+      position: {x: 0, y: 0, z: 12}
+    - id: D
+      label: D
+      position: {x: 10, y: 0, z: 12}
+    - id: E
+      label: E
+      position: {x: 0, y: 0, z: 24}
+    edges:
+    - source: B
+      destination: C
+      directed: 0
+      traversalEnabled: 1
+    - source: A
+      destination: C
+      directed: 0
+      traversalEnabled: 1
+    - source: C
+      destination: D
+      directed: 0
+      traversalEnabled: 1
+    - source: C
+      destination: E
+      directed: 0
+      traversalEnabled: 1
+  - title: Find a path
+    type: 2
+    objective: Find a valid path from A to F.
+    lesson: 'A path follows edges from one vertex to another.
+
+
+      A simple path
+      does not repeat a vertex. More than one route may reach the destination. Choose
+      your own route.'
+    start: A
+    destination: F
+    degreeVertex: C
+    vertices:
+    - id: A
+      label: A
+      position: {x: 0, y: 0, z: 0}
+    - id: B
+      label: B
+      position: {x: -10, y: 0, z: 8}
+    - id: C
+      label: C
+      position: {x: 10, y: 0, z: 8}
+    - id: D
+      label: D
+      position: {x: -10, y: 0, z: 18}
+    - id: E
+      label: E
+      position: {x: 10, y: 0, z: 18}
+    - id: F
+      label: F
+      position: {x: 0, y: 0, z: 26}
+    edges:
+    - source: A
+      destination: B
+      directed: 0
+      traversalEnabled: 1
+    - source: B
+      destination: D
+      directed: 0
+      traversalEnabled: 1
+    - source: D
+      destination: F
+      directed: 0
+      traversalEnabled: 1
+    - source: A
+      destination: C
+      directed: 0
+      traversalEnabled: 1
+    - source: C
+      destination: E
+      directed: 0
+      traversalEnabled: 1
+    - source: E
+      destination: F
+      directed: 0
+      traversalEnabled: 1
+  - title: Directed graph
+    type: 3
+    objective: Reach D from A while following the arrows.
+    lesson: 'A directed edge has a direction.
+
+
+      Follow the arrow from its source
+      to its destination. A one-way bridge blocks entry from the wrong end. Choose
+      any valid path to D.'
+    start: A
+    destination: D
+    degreeVertex: C
+    vertices:
+    - id: A
+      label: A
+      position: {x: 0, y: 0, z: 0}
+    - id: B
+      label: B
+      position: {x: -10, y: 0, z: 12}
+    - id: C
+      label: C
+      position: {x: 10, y: 0, z: 12}
+    - id: D
+      label: D
+      position: {x: 0, y: 0, z: 24}
+    edges:
+    - source: A
+      destination: B
+      directed: 1
+      traversalEnabled: 1
+    - source: B
+      destination: D
+      directed: 1
+      traversalEnabled: 1
+    - source: A
+      destination: C
+      directed: 1
+      traversalEnabled: 1
+    - source: C
+      destination: D
+      directed: 1
+      traversalEnabled: 1
+  - title: Complete a cycle
+    type: 4
+    objective: Start at A, travel through a cycle, and return to A without repeating
+      another vertex.
+    lesson: 'A cycle closes a route by returning to its starting vertex.
+
+
+      Visit
+      at least three distinct vertices. Only the starting vertex may appear twice:
+      at the beginning and end. Either direction is allowed.'
+    start: A
+    destination: A
+    degreeVertex: C
+    vertices:
+    - id: A
+      label: A
+      position: {x: 0, y: 0, z: 0}
+    - id: B
+      label: B
+      position: {x: -10, y: 0, z: 12}
+    - id: C
+      label: C
+      position: {x: 0, y: 0, z: 24}
+    - id: D
+      label: D
+      position: {x: 10, y: 0, z: 12}
+    edges:
+    - source: A
+      destination: B
+      directed: 0
+      traversalEnabled: 1
+    - source: B
+      destination: C
+      directed: 0
+      traversalEnabled: 1
+    - source: C
+      destination: D
+      directed: 0
+      traversalEnabled: 1
+    - source: D
+      destination: A
+      directed: 0
+      traversalEnabled: 1
+  - title: Numbered vertices
+    type: 0
+    objective: Travel from Vertex 1 to Vertex 2 using the connecting edge.
+    lesson: 'Vertices can use numbers as well as letters.
+
+
+      The labels identify
+      vertices; the bridge is their edge. Cross from 1 to 2, then confirm.'
+    start: 1
+    destination: 2
+    degreeVertex: C
+    vertices:
+    - id: 1
+      label: 1
+      position: {x: 0, y: 0, z: 0}
+    - id: 2
+      label: 2
+      position: {x: 0, y: 0, z: 12}
+    edges:
+    - source: 1
+      destination: 2
+      directed: 0
+      traversalEnabled: 1
+  - title: Numbered degree
+    type: 1
+    objective: What is the degree of Vertex 3?
+    lesson: 'Count the edges meeting Vertex 3.
+
+
+      Numeric labels do not change
+      the degree rule: count incident edges, not the number written on the platform.'
+    start: 1
+    destination: 3
+    degreeVertex: 3
+    vertices:
+    - id: 1
+      label: 1
+      position: {x: 0, y: 0, z: 0}
+    - id: 2
+      label: 2
+      position: {x: -10, y: 0, z: 12}
+    - id: 3
+      label: 3
+      position: {x: 0, y: 0, z: 12}
+    - id: 4
+      label: 4
+      position: {x: 10, y: 0, z: 12}
+    edges:
+    - source: 1
+      destination: 3
+      directed: 0
+      traversalEnabled: 1
+    - source: 2
+      destination: 3
+      directed: 0
+      traversalEnabled: 1
+    - source: 3
+      destination: 4
+      directed: 0
+      traversalEnabled: 1
+  - title: Numbered path
+    type: 2
+    objective: Find a valid simple path from 1 to 5.
+    lesson: 'A simple path follows connected edges without repeating a vertex.
+
+
+      This
+      graph has routes of different lengths. Either branch can reach 5; a shortest
+      path is not required.'
+    start: 1
+    destination: 5
+    degreeVertex: C
+    vertices:
+    - id: 1
+      label: 1
+      position: {x: 0, y: 0, z: 0}
+    - id: 2
+      label: 2
+      position: {x: -10, y: 0, z: 8}
+    - id: 3
+      label: 3
+      position: {x: -10, y: 0, z: 18}
+    - id: 4
+      label: 4
+      position: {x: 10, y: 0, z: 12}
+    - id: 5
+      label: 5
+      position: {x: 0, y: 0, z: 26}
+    edges:
+    - source: 1
+      destination: 2
+      directed: 0
+      traversalEnabled: 1
+    - source: 2
+      destination: 3
+      directed: 0
+      traversalEnabled: 1
+    - source: 3
+      destination: 5
+      directed: 0
+      traversalEnabled: 1
+    - source: 1
+      destination: 4
+      directed: 0
+      traversalEnabled: 1
+    - source: 4
+      destination: 5
+      directed: 0
+      traversalEnabled: 1
+  - title: Numbered directions
+    type: 3
+    objective: Reach 5 from 1 while following the arrows.
+    lesson: 'A directed bridge can be crossed only in the arrow''s direction.
+
+
+      Follow
+      a connected route from 1 to 5. Branches can contain different numbers of edges;
+      either valid route is accepted.'
+    start: 1
+    destination: 5
+    degreeVertex: C
+    vertices:
+    - id: 1
+      label: 1
+      position: {x: 0, y: 0, z: 0}
+    - id: 2
+      label: 2
+      position: {x: -10, y: 0, z: 8}
+    - id: 3
+      label: 3
+      position: {x: 10, y: 0, z: 12}
+    - id: 4
+      label: 4
+      position: {x: -10, y: 0, z: 18}
+    - id: 5
+      label: 5
+      position: {x: 0, y: 0, z: 26}
+    edges:
+    - source: 1
+      destination: 2
+      directed: 1
+      traversalEnabled: 1
+    - source: 2
+      destination: 4
+      directed: 1
+      traversalEnabled: 1
+    - source: 4
+      destination: 5
+      directed: 1
+      traversalEnabled: 1
+    - source: 1
+      destination: 3
+      directed: 1
+      traversalEnabled: 1
+    - source: 3
+      destination: 5
+      directed: 1
+      traversalEnabled: 1
+  - title: Numbered cycle
+    type: 4
+    objective: Start at 1, complete a cycle, and return to 1 without repeating another
+      vertex.
+    lesson: 'A triangle forms a cycle with three distinct vertices.
+
+
+      Start
+      at 1, visit the other platforms, and return to 1. Either direction works. Only
+      the starting vertex may repeat.'
+    start: 1
+    destination: 1
+    degreeVertex: C
+    vertices:
+    - id: 1
+      label: 1
+      position: {x: 0, y: 0, z: 0}
+    - id: 2
+      label: 2
+      position: {x: -10, y: 0, z: 16}
+    - id: 3
+      label: 3
+      position: {x: 10, y: 0, z: 16}
+    edges:
+    - source: 1
+      destination: 2
+      directed: 0
+      traversalEnabled: 1
+    - source: 2
+      destination: 3
+      directed: 0
+      traversalEnabled: 1
+    - source: 3
+      destination: 1
+      directed: 0
+      traversalEnabled: 1

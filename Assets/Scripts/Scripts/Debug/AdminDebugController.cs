@@ -78,6 +78,12 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private void Update()
     {
+        if (adminButton != null && SceneManager.GetActiveScene().name == "Setssss")
+        {
+            bool visible = adminButtonEnabled && (SetssssControlsOnboarding.Active == null ||
+                           !SetssssControlsOnboarding.Active.IsActive);
+            if (adminButton.gameObject.activeSelf != visible) adminButton.gameObject.SetActive(visible);
+        }
         if (panelOpen) UpdateLayout();
     }
 
@@ -99,6 +105,8 @@ public sealed class AdminDebugController : MonoBehaviour
         if (input == null || input.GameplayInputBlocked || Time.timeScale == 0f) return true;
         if (SceneManager.GetActiveScene().name == "Setssss")
         {
+            if (SetssssControlsOnboarding.Active != null &&
+                SetssssControlsOnboarding.Active.IsActive) return true;
             SetssssBoardView board = FindFirstObjectByType<SetssssBoardView>();
             return board != null && board.IsViewingBoard;
         }

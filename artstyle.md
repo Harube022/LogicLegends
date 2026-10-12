@@ -1,6 +1,8 @@
 # Logic Legends — UI art style and implementation guide
 
-Original audit: 2026-10-06. Strict visual-matching revision: 2026-10-07. This file is the reusable design reference for new gameplay, UI, button variants, and UI reskins in Logic Legends. Read it before designing or implementing a screen. All asset paths are relative to the LogicLegends project root, even when this document is supplied from another folder.
+Original audit: 2026-10-06. Strict visual-matching revision: 2026-10-07. Graph HUD and current shared-artwork update: 2026-10-11. This file is the reusable design reference for new gameplay, UI, button variants, and UI reskins in Logic Legends. Read it before designing or implementing a screen. All asset paths are relative to the LogicLegends project root, even when this document is supplied from another folder.
+
+**Current design policy (2026-10-12):** reuse GraphHUD artwork across the project for objectives, the current stage/challenge, timers, and other suitable UI. Do not default every panel to the settings background or a rolled parchment scroll. Use the button dimensions in section 7 and always set a button background Image's Pixels Per Unit Multiplier to **4.5**. These rules supersede older local-only Graph guidance and earlier button multipliers. This update changes documentation only; existing scenes, prefabs, and builders may still need these rules applied during an authorized UI task.
 
 ## 1. Design identity
 
@@ -8,14 +10,17 @@ Logic Legends is a friendly fantasy learning adventure. Its interface combines i
 
 The **original illustrated assets are the visual authority**. Gameplay colors and layouts may vary by activity, but their variation does not authorize a different material, rendering style, or ornamental treatment.
 
-1. **Illustrated menus and exploration UI:** warm wood and parchment, thick beveled frames, colorful inset buttons, cream/white lettering, and pictorial icons. Use for menus, settings, inventory/shop, achievements, objectives, and book-like information.
+1. **Illustrated menus and exploration UI:** warm wood and parchment, thick beveled frames, colorful inset buttons, cream/white lettering, and pictorial icons. Keep established menus, settings, inventory/shop, achievements, and books in this family. For new objective and status UI, prefer the shared GraphHUD frames below.
 2. **Gameplay puzzle content:** deep teal/blue-green surfaces, subdued teal controls, warm gold headings and dividers, pale text, and clear rectangular work areas. These define a content palette and functional layout. When adding artwork to them, use the original illustrated frame, bevel, shading, and texture treatment described below.
+3. **Shared GraphHUD frame family:** slim matte wooden frames with clipped corners and cream interiors. Use `GraphObjectiveFrame` for objectives and current challenges, `GraphStatusFrame` for timers and compact stage/status displays, and `GraphMapFrame` for maps and suitable larger cards. These assets are available to any gameplay mode or suitable menu, dialog, feedback, result, or chat UI. Their folder name does not restrict reuse to Graph. Preserve each screen's functional colors and interaction behavior.
 
 These treatments share the original project's illustrated visual language. Choose wood, parchment, a colored button face, or a calm puzzle interior according to function. Match appearance to a named original reference asset; a generic fantasy description or a matching palette alone is insufficient.
 
-**For a new gameplay mode:** retain its appropriate readable content palette, derive decorated panels and actions from the original reference assets, and reuse established exploration controls. Use the book-reader treatment for extended lessons. A teal button may have a teal face; its brown frame must still match the source button.
+**For a new gameplay mode:** start objectives/current challenges with `GraphObjectiveFrame` and timers/stage status with `GraphStatusFrame`; use `GraphMapFrame` where a larger framed surface fits. Retain an appropriate readable content palette inside puzzle workspaces, original brown-rimmed actions, and established exploration controls. Use the book-reader treatment for extended lessons. A teal button may have a teal face; its brown frame must still match the source button.
 
 **Strict matching rule:** for color/text variants, change only the requested face color, label, or icon. Preserve source shape, frame material and hue, edge thickness, bevel profile, highlight width/direction, shadow, texture density, and visual simplicity. A new panel may require different dimensions and content organization, but its frame and surface rendering must remain consistent with the source. Preserve original assets and create separate derivatives as needed.
+
+New component geometry can be designed when explicitly requested, as with the GraphHUD clipped-corner frames. Retain the original material, rendering and lighting while documenting the new silhouette and intended reuse. The existing GraphHUD family is now approved for shared use. This permission does not allow an ordinary recolor/relabel task to change its source geometry.
 
 ### Reference priority and style boundaries
 
@@ -23,16 +28,17 @@ These treatments share the original project's illustrated visual language. Choos
 | --- | --- | --- |
 | Capsule action | `Assets/Interface_Sprites/main_menu_interface/btn_play.png` | Brown illustrated rim, restrained layered bevel, smooth colored inset, broad upper highlight, darker lower edge. |
 | Rectangular action | `Assets/Interface_Sprites/play_interface/btn_solo.png` | Existing rectangular silhouette and layered brown border; use the source's proportions and lighting. |
-| Framed panel | `Assets/Interface_Sprites/settings_interface/settings_background.png` | Warm brown wood, broad painted grain, carved edge shapes and modest corner details. |
-| Reading/objectives panel | `Assets/Interface_Sprites/customizationsh_shop_interface/customization_scroll.png` or `shop_scroll.png` | Cream paper, brown edges, rolled ends and soft painted shading. |
+| Settings or established wood-panel screen | `Assets/Interface_Sprites/settings_interface/settings_background.png` | Warm brown wood, broad painted grain, carved edge shapes and modest corner details. Keep its specific role; do not use it as the automatic background for every new UI. |
+| Extended reading, shop scroll, or book content | `Assets/Interface_Sprites/customizationsh_shop_interface/customization_scroll.png` or `shop_scroll.png`; existing study-reader artwork | Cream paper, brown edges, rolled ends or book pages, and soft painted shading. Use when the reading/scroll metaphor fits, rather than as the default objective/timer panel. |
 | Small navigation action | `Assets/Interface_Sprites/back_btn/btn_back.png` or `btn_settings.png` | Chunky square wooden surround, illustrated icon and existing depth treatment. |
 | Gameplay touch control | `Assets/Assets/Interface_Sprites/gameplay_interface/` | Existing white symbols and circular silhouettes; retain their intentionally simple treatment. |
+| Shared objective, current challenge, timer, status, map, and suitable other panels | `Assets/Art/GraphHUD/GraphObjectiveFrame.png`, `GraphStatusFrame.png`, `GraphMapFrame.png` | Clipped-corner brown frames, cream interiors, subdued matte bevels and dark editable text; follow section 4. Original settings wood and Play button remain material/rendering references. |
 
 Use the exact original sprite wherever it already satisfies the task. When a blank or recolored derivative is needed, supply the actual original as its reference. Match unchanged regions directly; adapting the surface color must not transform wood into stone or brown trim into reflective gold.
 
 Do not introduce cracked marble/slate, hammered metal, polished gold rims, jewel-like surfaces, extra ornamental corners, bloom, or stronger specular shine unless the selected original already contains that treatment or the user explicitly requests a redesign. Existing gold artwork, such as branding and achievement icons, remains valid in its original role; it is not a reason to add gold frames everywhere.
 
-The newer `Assets/Resources/StageUI/TealPanel.png` and `TealButton.png` fit the gameplay palette but introduce stronger stone texture and metallic gold than the original panel/button references. Their presence in the project, and claims in `StageUI/ARTWORK.md`, do not make that rendering treatment the matching target. For strict consistency work, compare against the original sprites above. Revising this document alone does not reskin those assets or their screens.
+The historical `Assets/Resources/StageUI/TealPanel.png` and `TealButton.png` introduce stronger stone texture and metallic gold than the original panel/button references. The current `StageUITheme` loads `WoodPanel`, `ReadingPaper`, and brown-rimmed `WoodButtonTeal/Green/Red` assets instead. Reuse those button variants and use the wood/book surfaces where their role fits; do not reintroduce the historical stone/gold sprites. Prefer the shared GraphHUD frames for new objectives, current challenges, timers, and suitable compact panels, even where a builder currently defaults to `WoodPanel` or `ReadingPaper`.
 
 ## 2. Audit scope and confidence
 
@@ -42,7 +48,11 @@ This was a source-and-asset audit, not a Play Mode visual test of every screen. 
 
 The 2026-10-07 review additionally inspected the newer StageUI sprites, their theme code, and saved screenshots under `Temp/StageUIQA/`. Those screenshots are supporting evidence, not a fresh runtime test. Palette/font compatibility was observed, while stone and shiny gold material choices differed from the original illustrations. Original audit measurements and scene descriptions below are historical references; verify current assignments before implementation.
 
-Use the root Unity project (`Assets/`, `Packages/`, `ProjectSettings/`). The nested `My project (1)/`, vendor demo scenes, generated caches, and `Library/` are not the design authority. The current build settings enable `Main Menu`, PRELIM, RulesOfInference, older stages, and LogicGarden; `Sets.unity` exists but is not currently listed there. Do not infer production status from a scene filename alone.
+The 2026-10-11 update visually inspected all three GraphHUD PNGs, their `.meta` slicing records, `GraphUIController`, `GraphHUDArtSetup`, the local artwork/prompt records, and the saved `Temp/GraphQA/graph-generated-surfaces-fixed.png` screenshot. It also checked the current shared `StageUITheme` assignments and artwork notes. This update did not run fresh Play Mode or device checks; validation claims in Graph's README belong to that implementation's earlier checks.
+
+The 2026-10-12 policy update checked the current guide, GraphHUD asset records, shared theme and HUD builders, Graph controls, and multiplayer UI helpers against the requested shared-frame and button standards. It establishes future implementation requirements; it does not claim existing buttons already have consistent sizes or multiplier `4.5`, and it includes no new Play Mode validation.
+
+Use the root Unity project (`Assets/`, `Packages/`, `ProjectSettings/`). The nested `My project (1)/`, vendor demo scenes, generated caches, and `Library/` are not the design authority. Check current build settings before inferring a scene's production status. Sets was present in the original audit but `Sets.unity` is absent from the current checkout; its controller remains a historical UI reference.
 
 ## 3. Screen families and reference locations
 
@@ -54,13 +64,15 @@ Use the root Unity project (`Assets/`, `Packages/`, `ProjectSettings/`). The nes
 | Shop/customization | Cream parchment scrolls or wood scroll panel, light item cards, coin/gem counters, green Buy/Select controls and gray purchased/selected variants; purple Clothes and green Pets tabs. |
 | Achievements | Parchment body inside a wooden frame and header; pale horizontal entries and green Claim buttons. |
 | Settings/back navigation | Wooden panel and banner, brown slider trough, amber fill, wooden handle, gold speaker; square wooden back/settings icons. Exit/return actions use red buttons. |
-| Exploration HUD/tutorial/objectives | `TUTORIAL.unity`, `MAP1_LEVEL1.unity`, `Stage 1.unity`, `LogicGarden.unity`, and gameplay canvases; red hearts, white circular touch controls, parchment objectives, gold exclamation marker and eye toggles. |
+| Exploration HUD/tutorial/objectives | `TUTORIAL.unity`, `MAP1_LEVEL1.unity`, `Stage 1.unity`, `LogicGarden.unity`, and gameplay canvases; existing red hearts, white circular touch controls, parchment objectives, gold exclamation marker and eye toggles. For new or requested restyled objective/challenge/timer UI, use the shared GraphHUD mapping in section 4. |
 | Dialogue and stage results | Existing scene panels and `DialogueManager`, `GameOverManager`, `StageCompleteManager`. Reuse the host screen's treatment and manager flow. Dialogue can hide gameplay controls; result screens restore/hide controls through existing managers. |
 | Propositional logic and truth tables | `Assets/Scenes/PRELIM.unity`; dark teal tutorial card/overlays, gold divider/primary tutorial action, muted teal choices, white/cream question text, outlined HUD labels and teal-framed minimap. |
 | Rules of Inference | `Assets/Scenes/RulesOfInference.unity`, `InferenceBoardUI.cs`, `InferenceChallenge.cs`, `RulesOfInferenceBoard.cs`; deep teal board, gold heading, pale text, teal word tiles, distinct blanks and a staged conclusion reveal. |
 | Logic Garden study reader | `Assets/Scripts/Scripts/LogicGarden/StudyLibraryController.cs`; brown book cover, two cream pages, dark ink, central spine, gold title, bottom navigation, dark backdrop. Lesson PNGs are content, not examples of the game's UI chrome. |
-| Sets | `Assets/Scenes/Sets.unity`, `Assets/Scripts/Scripts/Sets/SetsUIController.cs`; runtime overlay with challenge/set information, top-right timer, bottom prompt, Place action and result panels. Its simpler navy/teal/red/green panels are an existing variation, not a new global theme. |
+| Sets (historical scene) | `Assets/Scripts/Scripts/Sets/SetsUIController.cs`; runtime overlay with challenge/set information, top-right timer, bottom prompt, Place action and result panels. The previously audited Sets scene is absent from this checkout. Its controller's simpler navy/teal/red/green panels are a historical variation, not a new global theme. |
+| Graph | `Assets/Scenes/Graph.unity`, `Assets/Scripts/Scripts/Graph/GraphUIController.cs`, and `Assets/Art/GraphHUD/`; cream map/objective/status surfaces in slim brown frames, dark ink, editable diagrams/routes, original touch controls, existing wood-rimmed actions, and book-style field guide. |
 | Multiplayer | `Stage 1 Multiplayer.unity`, `Stage 2 Multiplayer.unity`; retain the same visual family as solo and preserve network-aware manager behavior. |
+| Private multiplayer UI (2026-10-12) | `Main Menu.unity` lobby uses `GraphMapFrame` for Host/Join choices, the invite-code form, party list and chat, with `GraphStatusFrame` input fields: clipped wooden trim, cream interiors and dark editable text. Brown-rimmed lobby actions follow section 7, with matching Host/Join geometry and multiplier 4.5. The waiting party list and chat are taller, using the former back-button/footer space. The `MultiplayerStage`-only chat HUD uses the same frame family; CHAT is below Settings on the left and opens a dismissible conversation panel while locally blocking movement/look. |
 | Cinematics | `CINEMATICS.unity` uses a separate background asset; it is not the reference for interactive puzzle layouts. |
 
 ## 4. Shapes, materials, and artwork
@@ -81,6 +93,36 @@ Use the root Unity project (`Assets/`, `Packages/`, `ProjectSettings/`). The nes
 - Keep questions, premises, truth-table cells, answer choices, and feedback visually separate. Match the board next to the new screen before choosing dimensions.
 - World labels and puzzle symbols must remain readable against the 3D scene. Existing HUD labels use outlines; the truth-table clock uses black alpha 230/255 and outline width `0.16`.
 - Keep the central gameplay view open. Ornamental artwork should not compete with draggable words, diagrams, carried objects, or placement targets.
+
+### Shared GraphHUD artwork (created 2026-10-11; shared-use policy 2026-10-12)
+
+These picture-frame/plaque silhouettes originated in Graph. Their material references were `settings_background.png` for brown wood and `btn_play.png` for understated painted rendering. They are now shared UI assets: reuse them across gameplay and other suitable screens instead of generating another frame or defaulting every surface to the settings background or a parchment scroll. The cream center is part of the approved artwork; it does not require an additional scroll/paper layer.
+
+| UI purpose in any mode | Preferred existing sprite | Composition |
+| --- | --- | --- |
+| Objective, task list, current challenge of a stage | `GraphObjectiveFrame.png` | Short heading plus readable dark instruction text; wrap within the clear center. |
+| Timer/countdown, current stage, progress/counter, short status or feedback | `GraphStatusFrame.png` | Compact plaque with a concise label/value; timer and stage may use separate matching plaques. |
+| Minimap, diagram, larger card, dialog, result, lobby, chat, or another suitable content panel | `GraphMapFrame.png` | Larger framed content area; use its existing slicing and check the frame at the intended aspect ratio. A wide compact card may suit Objective/Status better. |
+| Settings, inventory/shop, extended lessons | Existing role-specific wood, scroll, or book artwork; GraphHUD where appropriate | Preserve the established metaphor where useful. Avoid forcing every screen into one large settings panel or scroll. |
+
+Use this mapping for new UI and explicitly requested reskins. It permits reuse in other screens without a separate art exception; it does not request changes to every existing screen whenever a new UI is added. Preserve gameplay palettes in editable diagrams/workspaces, but keep dark ink readable on the GraphHUD cream center.
+
+| Sprite under `Assets/Art/GraphHUD/` | Role in current Graph UI | Recorded sprite region `(x, y, width, height)` | Nine-slice borders, all sides |
+| --- | --- | --- | --- |
+| `GraphMapFrame.png` | Square map; also selected for other large Graph panels by the local builder | `(75, 73, 1116, 1095)` | `262.8 px` |
+| `GraphObjectiveFrame.png` | Compact objective plaque | `(58, 106, 1892, 569)` | `136.56 px` |
+| `GraphStatusFrame.png` | Timer, recorded route and feedback plaques | `(87, 143, 1809, 508)` | `121.92 px` |
+
+- **Material and shape:** warm painted brown wood, dark nested rim, simple clipped corners, broad subdued highlights, modest close shadow, and low texture density. The paper is cream with soft shading and an unmarked center. Preserve these qualities wherever these frames are reused. Avoid metal, reflective gold, stone, cracks, ornate corner blocks, glows and rolled scroll ends in these HUD frames.
+- **Content stays editable:** PNGs contain only frame/paper artwork. Labels, countdowns, route arrows, graph nodes/edges, player marker, objectives and feedback are Unity UI elements layered inside. Do not bake them into derivatives or use the paper center to reveal answers.
+- **Paper and ink:** generation targeted paper `#EFE0BB`; the PNG includes painted shading, so this is a reference color rather than a uniform runtime tint. `GraphUIController` uses ink `#291A0F`, brown map-node fill `#503322`, and cream node labels `#FFF2D4`. Keep white Image tint on the full-color artwork. Use dark ink on paper, rather than carrying pale-on-teal text into this family.
+- **Graph meanings:** available edges are orange `(1, 0.35, 0.035)`; walked edges are blue `(0.04, 0.42, 1)`, matching world lighting. The player pointer is green `#16784C`. Keep these functional states in editable overlays. Do not recolor routes merely to match decorative brown trim.
+- **Typography:** IMPACT for short headings, timers and actions; Liberation Sans for objectives, route strings and feedback. Route text uses a local reading-font copy with `LogicFallback_SDF` for arrow glyphs. Preserve shared font assets and verify arrows in the rendered result.
+- **Current Graph layout reference:** map 270 × 270 at upper-right; timer 270 × 100 below it; left-column objective 360 × 145, route 360 × 60 and feedback 360 × 100. These describe Graph's implementation, not mandatory dimensions for all modes. Field Guide sits beside Settings, and the center remains open. Reuse the artwork with role-appropriate sizes in other screens, preserving safe areas and original touch controls. Button sizes follow section 7.
+- **Slicing:** the visual wood rim is slimmer than the numerical slice margins; the latter also protect shaded paper/corners. `GraphHUDArtSetup` records one cropped sub-sprite per PNG and sets each border to 24% of the cropped short side. Do not substitute the generation prompt's approximate 6% visual-border target for these import values. `GraphUIController.Panel()` uses Image Type Sliced and `pixelsPerUnitMultiplier = min(sprite.rect.width, sprite.rect.height) * 0.01`. Keep corresponding crop, borders and sizing together; verify corners at final display size.
+- **Buttons and books:** retain shared wood-rimmed button artwork with editable labels and the field guide's book composition. The inspected Graph action code used multiplier `6`; this is a legacy implementation value, superseded by the mandatory button multiplier **4.5** and sizing rules in section 7. Degree choices may keep Simple/aspect-preserved rendering, with the background Image multiplier still set to `4.5`.
+
+Source records: `Assets/Art/GraphHUD/ARTWORK.md` and `generation-prompts.json`. Those records describe creation; actual PNGs, current metadata and runtime assignments determine the delivered result. Prompt aspect-ratio targets are not a substitute for measuring the saved sprite region. Preserve this frame family's appearance across all reuse. Shared use is approved here; changes to shared source artwork still require checking every dependent UI.
 
 ## 5. Color reference
 
@@ -105,6 +147,10 @@ The following values were captured from code or serialized scene fields during t
 | Reader ink | `(0.16, 0.10, 0.06, 1)` | `#291A0F` | Same |
 | Reader title | `(1, 0.90, 0.62, 1)` | `#FFE69E` | Same |
 | Reader diagram accent | `(0.18, 0.36, 0.34, 1)` | `#2E5C57` | Same |
+| Graph chart ink | `(41/255, 26/255, 15/255, 1)` | `#291A0F` | `GraphUIController.cs` |
+| Graph map-node fill | `(80/255, 51/255, 34/255, 1)` | `#503322` | Same |
+| Graph map-node label | `(1, 242/255, 212/255, 1)` | `#FFF2D4` | Same |
+| Graph player pointer | `(22/255, 120/255, 76/255, 1)` | `#16784C` | Same |
 
 Menu color meanings are encoded in painted sprites, including gradients and borders. Reuse the sprites instead of replacing them with guessed flat hex fills:
 
@@ -166,6 +212,28 @@ Show relevant states: idle, hover/focus where applicable, pressed, selected, loc
 
 Use concise action labels and friendly instruction sentences. Never reveal the answer through decoration: Rules of Inference deliberately keeps physical rule choices visually equivalent and conceals the conclusion until validation. Apply the same principle to new puzzles.
 
+### Consistent button dimensions and mandatory multiplier
+
+Use the following **new design standards** for text actions across menus, gameplay, dialogs, and results. Dimensions are visible reference-canvas units at **1920 × 1080**, after accounting for parent scale; they are not device pixels or a claim about existing prefabs. On a different host canvas, convert to the equivalent visible size rather than copying unscaled numbers blindly.
+
+| Button role | Width × height | Use |
+| --- | --- | --- |
+| Standard text action | **280 × 88** | Default for Confirm, Retry, Continue, Host Game, Join Game, and similar actions. |
+| Compact text action | **220 × 88** | Short supporting actions such as Back, Help, or Send when space calls for a smaller width. |
+| Longer text action | **340 × 88 maximum** | A label that cannot fit the standard width with readable text and padding. Shorten wording or adapt the layout before exceeding this width. |
+| Icon-only navigation | **80 × 80** | Back, Settings, close, or similar square icons; preserve the source silhouette. |
+| Single-number/symbol puzzle choice | **96 × 72** | Repeated compact answer choices. Keep every choice in that group identical. |
+
+- Use one text-action size per peer group: Host/Join, Retry/Continue, Yes/No, or sibling menu actions must have matching visible dimensions. Use `280 × 88` by default; if one label requires the longer size, use that size for its peers. Color and label changes must not change geometry.
+- Keep text actions at height `88`. Do not stretch a button across most of a large card, scale its transform to fit a label, or make every action a different width. Use a centered fixed-size RectTransform or a LayoutElement with explicit preferred size; prevent layout groups or stretch anchors from expanding it to the full card width. The label can stretch inside the fixed button.
+- Start with at least `24` horizontal and `10` vertical units of label inset, increasing it where the painted rim requires more room. Use cream/white IMPACT text, normally `22–30` font-size units at this reference scale. Keep short labels on one line; do not compensate for a tiny button by shrinking its text below the readable range.
+- At narrower aspect ratios, reflow or stack buttons and preserve safe areas instead of squeezing them into thin strips. Existing movement, joystick, jump, and interaction controls keep their functional shapes and placement; do not convert them into text-action capsules.
+- **Always set `UnityEngine.UI.Image.pixelsPerUnitMultiplier = 4.5f` on each button's background Image**, including icon and puzzle-choice buttons. In the Inspector, Pixels Per Unit Multiplier must read **4.5**. Apply the same value to button frame/background Image layers if the component uses separate layers. Keep it through normal, pressed, selected, and disabled artwork swaps, prefab overrides, scene setup, and runtime rebuilds. Do not retain older button values such as `4` or `6`.
+- Use Image Type Sliced for a resizable button only when its sprite has valid borders. A Simple/aspect-preserved icon or choice still stores multiplier `4.5`; Simple rendering does not use the multiplier for nine-slicing. Do not invent slice borders or distort a baked-label sprite just to meet dimensions.
+- **The multiplier is not the button's width/height, the sprite import Pixels Per Unit, or the CanvasScaler setting.** Preserve the source import PPU (GraphHUD currently uses `100`) and valid borders. Panel Images that are not buttons retain their appropriate slicing multiplier; do not apply the button value to all GraphHUD panels.
+
+The existing shared theme and some local builders still set older multipliers or stretch action buttons. When implementing an authorized UI change, set `4.5` after any helper that would overwrite it, or update the owning shared helper within scope. Inspect the final rendered size and the value after rebuilding the UI. This documentation update alone does not modify those implementations.
+
 ## 8. Asset reuse map
 
 Paths and even misspellings below are the actual repository names. Preserve them when referencing existing assets.
@@ -183,6 +251,8 @@ Paths and even misspellings below are the actual repository names. Preserve them
 | Branding/background | `Assets/Assets/Interface_Sprites/background/` — `LL_banner(2).png`, `banner_v2.png`, `background(2).png`, `LL_logo_transparent.png` |
 | HUD controls and health | `Assets/Assets/Interface_Sprites/gameplay_interface/` — `interact_btn.png`, `jump_btn.png`, joystick variants, `heart.png`, `hearts.png` |
 | Objective/tutorial cues | `Assets/Assets/Interface_Sprites/Tutorial/` — `objectives_ongoing.png`, `task_toggle_on_btn.png`, `task_toggle_off_btn.png`, `Pointer.png`, `hand_pinch.png` |
+| Current shared gameplay artwork | `Assets/Resources/StageUI/` — `WoodPanel.png`, `ReadingPaper.png`, `WoodButtonTeal.png`, `WoodButtonGreen.png`, `WoodButtonRed.png`; see that folder's `ARTWORK.md` for current crop and slicing records. |
+| Shared objective/challenge, timer/status, map and suitable other surfaces | `Assets/Art/GraphHUD/` — `GraphObjectiveFrame.png`, `GraphStatusFrame.png`, `GraphMapFrame.png`; approved across the project, with roles, colors and slicing in section 4. |
 
 ### Import and composition rules
 
@@ -209,7 +279,7 @@ The goal is a faithful variant of the original component. Preserve the reference
 
 - Example: green `CONTINUE` and teal `CHECK ANSWER` variants of the Play button retain the original brown rim, broad highlight, smooth face, and shadow while changing the inset color and using separate cream IMPACT labels. Neither variant acquires a gold rim or stone texture.
 - Use color roles in section 5 unless the user explicitly specifies another color. Retain readable label contrast in normal, pressed, focused, selected, and disabled states.
-- Keep normal/pressed/disabled variants aligned to identical bounds and pivots so they do not jump during interaction. Allow long labels by resizing a properly sliced blank background or adapting layout, not distorting the frame or shrinking text excessively.
+- Keep normal/pressed/disabled variants aligned to identical bounds and pivots so they do not jump during interaction. Use section 7's standard dimensions and multiplier `4.5`. For long labels, use the bounded longer size or adapt wording/layout rather than creating an excessively wide action or shrinking text excessively.
 - Use the available image-generation/editing tool for new illustrated raster artwork or edits, supplying the actual project sprite as a reference. Inspect local references first. Request transparent surroundings and no baked text for reusable backgrounds. If image editing is unavailable, reuse suitable existing artwork and identify any unfinished asset work rather than claiming a generated replacement exists.
 - Record each new reusable asset's source reference, dimensions, intended size range, border/slicing settings, supported states, and prefab usage after creating it. Add its actual path to this guide only once it exists.
 
@@ -221,12 +291,13 @@ When asked to style a screen, complete its visual treatment within the requested
 
 | Plain element | Matching treatment |
 | --- | --- |
-| Menu/objectives/settings panel | Existing wood frame or parchment treatment, appropriate header, inset content area, and consistent padding. |
+| Objective/current challenge panel | `GraphObjectiveFrame`, editable dark heading/body text, and clear padding inside the cream center. |
+| Menu/settings/other content panel | Choose a suitable GraphHUD frame or the established role-specific wood/scroll artwork. Keep headers and padding consistent; avoid automatically reusing the settings background or parchment for every panel. |
 | Puzzle/question panel | Existing illustrated wood frame or a faithful derivative around a calm deep teal content inset, gold heading/divider, and readable pale text. Preserve the original frame material and painted detail; keep the content inset smooth and quiet. |
-| Action rectangle | Blank themed button with a beveled face, consistent frame, editable label, and interaction states. |
-| Timer/challenge counter | Compact framed plaque that respects the minimap and gameplay view. Match the host HUD's typography. |
-| Correct/incorrect message | Small themed inset or plaque with readable feedback text and a status cue; preserve the existing green/red meanings. |
-| Result modal | Host-family frame, clear result heading, readable summary, and matching Retry/Continue/Return buttons. |
+| Action rectangle | Blank brown-rimmed themed button, section 7 dimensions, background Image multiplier `4.5`, editable label, and interaction states. |
+| Timer/current stage/challenge counter | `GraphStatusFrame`, dark readable value/text, and placement that respects the minimap and gameplay view. Longer challenge instructions belong in `GraphObjectiveFrame`. |
+| Correct/incorrect message | `GraphStatusFrame` or a suitable themed inset with readable feedback text and a status cue; preserve existing green/red meanings without tinting the entire illustrated frame. |
+| Result modal | Suitable `GraphMapFrame` or host-family frame, clear result heading, readable summary, and matching standard-size Retry/Continue/Return buttons. |
 
 Treat this as a visual reskin unless behavior changes are requested. Preserve Button callbacks, object/script references, input fields, drag/drop targets, scroll/mask behavior, navigation, timer/progression rules, and modal visibility. Update runtime builders as well as scene components where needed so the styling survives entering Play Mode. Adding decorative borders may require more content padding; verify that the usable area and touch targets remain adequate.
 
@@ -239,17 +310,20 @@ Appearance is distributed across the following layers. Newer code adds `StageUIT
 - **Scene-authored UI:** serialized canvases, image sprites, font references, anchors, colors, and button callbacks in `Assets/Scenes/*.unity`.
 - **Prefab-authored UI:** reusable objects under `Assets/Prefabs/`, including `PREFABS/WORLD_UI/`. Inspect before reuse: `Canvas.prefab` contains older legacy controls, and `MobileInputUI.prefab` is a controller object with unassigned joystick references, not a complete ready-styled HUD.
 - **Runtime UI builders:** `SetsUIController.BuildHudIfNeeded()`, `StudyLibraryController`, and `TruthTableStageClock` create or extend UI in C#. Changes must be made where these elements are created or they can be overwritten on startup.
-- **New shared gameplay presentation:** `Assets/Scripts/Scripts/GameManager/StageUITheme.cs` assigns sprites, fonts and states; `StageJourneyUI.cs` creates HUD, tutorial and result components. These currently use the generated assets under `Assets/Resources/StageUI/`. Inspect their assignments when reskinning those screens; do not assume updating a scene Image alone will survive runtime setup. Preserve useful font/layout/behavior choices while evaluating artwork against the original references.
+- **Shared gameplay presentation:** `Assets/Scripts/Scripts/GameManager/StageUITheme.cs` assigns the current `WoodPanel`, `ReadingPaper`, and `WoodButtonTeal/Green/Red` resources, fonts and states; `StageJourneyUI.cs` creates HUD, tutorial and result components. Inspect these assignments when reskinning those screens; do not assume updating a scene Image alone will survive runtime setup. Historical TealPanel/TealButton resources are not the loaded style baseline.
+- **Graph-local presentation:** `GraphUIController` builds Graph-owned surfaces and editable chart content using `hudMap`, `hudObjective`, and `hudStatus` sprite fields saved in `Graph.unity`. `Assets/Editor/GraphHUDArtSetup.cs` imports these sprites and assigns them only in the Graph scene. Its Apply command saves the scene; do not run it merely to read this guide. Graph's panel builder selects the correct sprite and applies local slicing/multiplier rules. Preserve the connected exploration canvas and callbacks when changing these surfaces.
 - **Editor authoring helpers:** `Assets/Editor/InferenceSetup.cs`, `InferenceDragSetup.cs`, and `ConfigureSetsStage.cs` build/configure scene content. Read their scope before running them. They are not interchangeable theme installers.
 - **Behavior managers:** dialogue, objectives, game-over, stage-completion, menu navigation, input, and puzzle managers handle visibility and progression. Connect the new UI to those flows rather than reproducing them as unrelated buttons.
+
+**Applying the shared policy in future work:** GraphHUD art may be reused outside Graph, but the current Graph editor command is not a project-wide installer. Supply the sprites through serialized references or an appropriate shared configuration in the UI's owning layer. Assets under `Assets/Art/GraphHUD/` are not automatically loadable with `Resources.Load`; do not assume the folder name is a Resources path or use editor-only asset loading in a runtime build. Reuse existing cropped sub-sprites and metadata. Select the Objective/Status/Map frame deliberately instead of accepting a helper's generic `WoodPanel`/`ReadingPaper` default. Likewise, ensure shared theme calls and local action builders leave every button background at multiplier `4.5` and the section 7 size. Panel slicing remains independent of the button rule.
 
 For new gameplay:
 
 1. Read this guide, inspect the original reference asset for each component, and inspect the host scene plus its prefab/runtime builder.
-2. Choose the content palette and list the original art/font assets to reuse. Record which features may change and which source features must be preserved.
+2. Choose the content palette and list the art/font assets to reuse. Start objectives/current challenges with `GraphObjectiveFrame`, timers/stage/status with `GraphStatusFrame`, and suitable larger cards with `GraphMapFrame`. Keep role-specific books/settings artwork where appropriate. Record which source features must be preserved.
 3. Identify which layer owns the UI: scene, prefab, runtime builder, or editor setup. Implement in that layer.
 4. Build the challenge layout, instruction, progress/timer if required, interaction affordance, feedback, and completion/retry/return states appropriate to the requested gameplay.
-5. Assign fonts and colors explicitly; preserve the host canvas/input conventions. Prefer small reusable components or local style constants when useful, without silently redesigning existing screens.
+5. Assign fonts and colors explicitly; preserve the host canvas/input conventions. Use section 7's consistent button dimensions and always set background Image multiplier `4.5`, including after theme/helper calls. Prefer reusable components or style constants where useful, without silently redesigning existing screens.
 6. Verify the result in Play Mode and at target resolutions. Update this guide only for intentional reusable design decisions, labeling new conventions clearly.
 
 ## 10. Known inconsistencies to avoid propagating
@@ -258,18 +332,21 @@ For new gameplay:
 - Some prefabs and scene objects contain legacy/default gray controls, placeholder text, or generic object names. Their existence does not make them the desired look for a new screen.
 - Sets creates its own flat-color HUD and assigns the TMP default. Although the fields are headed "Optional Scene UI Overrides", `BuildHudIfNeeded()` currently creates and assigns new elements; do not assume assigning those fields preserves a custom scene HUD.
 - There are duplicate sprite variants in two interface folders, mixed canvas scale settings, and different fonts for display versus reading. Check actual references rather than selecting the first matching filename.
-- Gameplay palettes and original illustrated artwork serve different purposes: the palette can vary, while frame materials and rendering must stay consistent with the selected original reference. A newer generated screen is not automatically an approved style reference.
-- The current ornate StageUI sprites should not be copied as the baseline for strict matching. Check their brown-frame alternatives or create faithful derivatives when a styling task includes them. This document does not authorize an unrelated full-project reskin.
+- Gameplay palettes and original illustrated artwork serve different purposes: the palette can vary, while frame materials and rendering must stay consistent with the selected reference. GraphHUD is an approved shared frame family for new UI and requested reskins; reuse its actual artwork rather than inventing a different silhouette for every mode.
+- Existing button builders and serialized controls may still use different dimensions and multipliers such as `4` or `6`. Those are implementation inconsistencies, not alternate standards. Section 7's sizes and mandatory `4.5` apply to new or requested restyled buttons. A panel's independent slicing multiplier is not a button exception.
+- Historical ornate TealPanel/TealButton sprites remain in Resources but are not loaded by the current shared theme. Use current brown-frame variants instead. This document does not authorize an unrelated full-project reskin.
 
 ## 11. Acceptance checklist for new gameplay UI
 
-- [ ] Names the original source asset for every new or reskinned component; style is judged against that original, not a generated derivative.
+- [ ] Names the material/style reference for every new or reskinned component. Objectives/current challenges use `GraphObjectiveFrame`, timers/stage/status use `GraphStatusFrame`, and suitable larger surfaces reuse `GraphMapFrame` across modes.
 - [ ] Preserves source silhouette, frame material/hue, border thickness, bevel profile, highlight intensity/direction, shadow and texture density.
 - [ ] A requested color/text variant changes only its permitted face, label or icon; no added stone, reflective gold or ornament absent from the source.
 - [ ] Compared beside the original at the same visible size; differences beyond the intended edits have been corrected or explicitly reported.
 - [ ] Reuses existing artwork and appropriate fonts; no duplicate baked labels.
 - [ ] Correct sprite/sub-sprite references; artwork and frames are not distorted.
 - [ ] New button variants preserve the reference frame/shading and use independently editable labels; recoloring does not muddy the frame or icons.
+- [ ] Buttons use section 7's bounded sizes; peer actions match, labels remain readable, and stretch anchors/layout groups do not create excessively long or tiny buttons.
+- [ ] Every button background/frame Image has Pixels Per Unit Multiplier **4.5**, including after theme calls, runtime rebuilding, prefab overrides, and state changes. Sprite import PPU and non-button panel multipliers are preserved separately.
 - [ ] Requested placeholder replacements have a complete themed treatment, with restrained decoration around readable content.
 - [ ] Reskinned components preserve callbacks, references, hit areas, and runtime-generated styling; before/after appearance and interaction have been compared where available.
 - [ ] Logical/mathematical glyphs render correctly and long text remains readable.
@@ -279,6 +356,7 @@ For new gameplay:
 - [ ] Decorative graphics do not block clicks, taps, or dragging.
 - [ ] Modal UI, dialogue, retry, return, and completion work with existing managers.
 - [ ] No visual cue reveals an answer before the gameplay permits it.
+- [ ] Shared GraphHUD use preserves cream interiors/dark ink, clipped matte wood frames, correct sub-sprite slicing, and editable content. Graph diagrams retain their functional orange/blue edge meanings; other screens retain their own gameplay semantics.
 - [ ] Compared in Play Mode with the reference at 1920 × 1080 and relevant phone/tablet aspect ratios; report any checks that could not be run.
 
 ## 12. Reusable Codex prompt
@@ -290,9 +368,13 @@ Implement [describe the new gameplay, scene, rules, and required UI] in Logic Le
 
 Before making changes, read the supplied artstyle.md or the copy in the project root. Treat the original project sprites listed in its reference-priority table as the visual authority. Inspect those images and the host scene's UI code/prefabs. Use the original wood/parchment illustration style, the appropriate gameplay content palette, and the existing book treatment for lessons.
 
+For every gameplay mode, use Assets/Art/GraphHUD/GraphObjectiveFrame.png for objectives/current challenges and GraphStatusFrame.png for timers/current stage/compact status. Reuse GraphMapFrame.png for maps and suitable larger panels. These sprites may also be used for other suitable UI across the project; they are not Graph-only. Preserve matte brown clipped frames, cream interiors, dark editable content, and actual sub-sprite slicing. Do not default every surface to the settings background or a rolled parchment scroll. Keep role-specific books/settings artwork where appropriate, shared wood-rimmed actions, and original touch controls. Preserve Graph's diagram colors when working on Graph. Limit changes to the requested screen/features. For explicitly requested new panel geometry, preserve original material/rendering; ordinary recolor/relabel variants preserve source silhouette.
+
 Reuse the project's sprites, fonts, controls, layout conventions, and managers. Follow artstyle.md for exact asset paths and colors. Assign fonts explicitly, verify mathematical glyphs, preserve sprite proportions, avoid duplicate baked labels, and keep movement controls, minimap, timer, and gameplay visible. Include the interaction, feedback, and result states this gameplay needs. Distinguish intentional design guidance from legacy/default UI and existing inconsistencies documented in the guide.
 
 For new buttons, preserve the original frame material and hue, silhouette, border thickness, bevel, highlight width/direction/intensity, shadow and texture density. Change only the requested face color, label or icon. Prefer the exact existing artwork or a clean blank derivative with separate editable TMP text. A teal face must retain the original brown rim and smooth painted surface. Do not add stone cracks, hammered metal, reflective gold, ornament or stronger shine absent from the original. Existing ornate StageUI derivatives are not the matching baseline.
+
+Use consistent button sizes from section 7: standard text actions 280 x 88 at a 1920 x 1080 reference, compact 220 x 88, longer labels at most 340 x 88; peer actions match. Icon actions and symbol choices use their documented role sizes. Do not stretch actions across large cards or shrink them into tiny controls. Always set each button background/frame Image's pixelsPerUnitMultiplier to 4.5f, including after theme calls, runtime construction, prefab setup, and state changes. This is an Image setting, not sprite import PPU or CanvasScaler. Preserve non-button panel slicing settings.
 
 Within the requested scope, replace unfinished panels/buttons with artwork reused or faithfully derived from the original assets. Keep puzzle content uncluttered and preserve intentional simple controls. When new raster artwork is needed, provide the actual original asset to the image-editing tool, request only the required changes, and compare the candidate beside the original at the same visible size. Revise material/shading/texture drift before accepting it. Matching colors alone is insufficient. Preserve all gameplay callbacks and input behavior.
 
