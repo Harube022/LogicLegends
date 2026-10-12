@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-/// <summary>Optional mobile Admin button and modal shared by PRELIM and Setssss.</summary>
+/// <summary>Optional mobile Admin button and modal shared by the learning stages.</summary>
 [DisallowMultipleComponent]
 public sealed class AdminDebugController : MonoBehaviour
 {
@@ -43,7 +43,8 @@ public sealed class AdminDebugController : MonoBehaviour
             return;
         }
         if (SceneManager.GetActiveScene().name != "PRELIM" &&
-            SceneManager.GetActiveScene().name != "Setssss")
+            SceneManager.GetActiveScene().name != "Setssss" &&
+            SceneManager.GetActiveScene().name != "Formal vs. Informal Proofs")
             enabled = false;
     }
 
@@ -101,6 +102,11 @@ public sealed class AdminDebugController : MonoBehaviour
             SetssssBoardView board = FindFirstObjectByType<SetssssBoardView>();
             return board != null && board.IsViewingBoard;
         }
+        if (SceneManager.GetActiveScene().name == "Formal vs. Informal Proofs")
+        {
+            ProofsLibraryStageController proofs = FindFirstObjectByType<ProofsLibraryStageController>();
+            return proofs == null || proofs.Finished;
+        }
         if (SceneManager.GetActiveScene().name != "PRELIM") return true;
         if (StageSelectionState.SelectedStage == 1)
         {
@@ -124,6 +130,11 @@ public sealed class AdminDebugController : MonoBehaviour
         {
             SetssssChallengeOne sets = FindFirstObjectByType<SetssssChallengeOne>();
             return sets != null && sets.CanDebugClearChallenge;
+        }
+        if (SceneManager.GetActiveScene().name == "Formal vs. Informal Proofs")
+        {
+            ProofsLibraryStageController proofs = FindFirstObjectByType<ProofsLibraryStageController>();
+            return proofs != null && proofs.CanDebugClearChallenge;
         }
         if (StageSelectionState.SelectedStage == 1)
         {
@@ -213,6 +224,11 @@ public sealed class AdminDebugController : MonoBehaviour
             SetssssChallengeOne sets = FindFirstObjectByType<SetssssChallengeOne>();
             return sets == null || sets.Complete || sets.IsGameOver;
         }
+        if (SceneManager.GetActiveScene().name == "Formal vs. Informal Proofs")
+        {
+            ProofsLibraryStageController proofs = FindFirstObjectByType<ProofsLibraryStageController>();
+            return proofs == null || proofs.Finished;
+        }
         if (StageSelectionState.SelectedStage == 1)
         {
             QuizManager quiz = FindFirstObjectByType<QuizManager>();
@@ -239,6 +255,11 @@ public sealed class AdminDebugController : MonoBehaviour
         {
             SetssssChallengeOne sets = FindFirstObjectByType<SetssssChallengeOne>();
             if (sets != null) sets.DebugClearCurrentChallenge();
+        }
+        else if (SceneManager.GetActiveScene().name == "Formal vs. Informal Proofs")
+        {
+            ProofsLibraryStageController proofs = FindFirstObjectByType<ProofsLibraryStageController>();
+            if (proofs != null) proofs.DebugClearCurrentChallenge();
         }
         else if (StageSelectionState.SelectedStage == 1)
         {

@@ -1,0 +1,160 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 435b2235387a90c44bc3af542329a813, type: 3}
+  m_Name: ProofChallenges
+  m_EditorClassIdentifier: Assembly-CSharp::ProofChallengeCatalog
+  challenges:
+  - kind: 0
+    title: Identify Proof Styles
+    instructions: Place each proof on the correct altar.
+    context: "Premises: P; P \u2192 Q. Conclusion: Q."
+    scrolls:
+    - id: A
+      title: Formal Scroll
+      content: "Premises: P and P \u2192 Q. Conclusion: Q.\n\n1. P \u2014 Premise\n2.
+        P \u2192 Q \u2014 Premise\n3. Q \u2014 Modus Ponens, steps 1 and 2"
+      isFormal: 1
+    - id: B
+      title: Informal Scroll
+      content: "Premises: P and P \u2192 Q. Conclusion: Q.\n\nWe know P is true.
+        We are also given that P implies Q. Therefore, Q must be true."
+      isFormal: 0
+    steps: []
+    acceptableOrders: []
+    ruleOptions: []
+    expectedRule: 
+  - kind: 0
+    title: Classify Multiple Proofs
+    instructions: Classify all four valid proofs by how their reasoning is presented.
+    context: 
+    scrolls:
+    - id: A
+      title: Even Square
+      content: "Claim: The square of an even integer is even.\n1. n = 2k for some
+        integer k. (Definition of even.)\n2. n\xB2 = 4k\xB2 = 2(2k\xB2). (Algebra.)\n3.
+        2k\xB2 is an integer, so n\xB2 is even. (Definition of even.)"
+      isFormal: 1
+    - id: B
+      title: Odd Sum
+      content: The sum of two odd integers is even. Each odd group has one item left
+        over after pairing. The two leftovers make a pair, so their combined group
+        has no unpaired item.
+      isFormal: 0
+    - id: C
+      title: Divisibility
+      content: 'Claim: If a divides b and b divides c, then a divides c.
+
+        1.
+        b = ak and c = bm for integers k,m. (Definition of divides.)
+
+        2.
+        c = (ak)m = a(km). (Substitution.)
+
+        3. km is an integer, so a divides
+        c. (Definition of divides.)'
+      isFormal: 1
+    - id: D
+      title: Multiple of Four
+      content: Every multiple of four is even. Four is two pairs; any whole number
+        of groups of four can be split into pairs without leaving anything over.
+      isFormal: 0
+    steps: []
+    acceptableOrders: []
+    ruleOptions: []
+    expectedRule: 
+  - kind: 1
+    title: Arrange Formal Proof Steps
+    instructions: Select a statement tablet, then place it on a numbered STEP pedestal.
+      Interact with a filled slot to remove it.
+    context: "Premises: P, P \u2192 Q, Q \u2192 R. Conclusion: R."
+    scrolls: []
+    steps:
+    - id: premise-p
+      statement: P
+      justification: Premise
+      prerequisiteIds: 
+    - id: premise-pq
+      statement: "P \u2192 Q"
+      justification: Premise
+      prerequisiteIds: 
+    - id: premise-qr
+      statement: "Q \u2192 R"
+      justification: Premise
+      prerequisiteIds: 
+    - id: derive-q
+      statement: Q
+      justification: "Modus Ponens from P and P \u2192 Q"
+      prerequisiteIds: 0000000001000000
+    - id: derive-r
+      statement: R
+      justification: "Modus Ponens from Q and Q \u2192 R"
+      prerequisiteIds: 0200000003000000
+    acceptableOrders:
+    - stepIds: 0000000001000000020000000300000004000000
+    - stepIds: 0000000002000000010000000300000004000000
+    - stepIds: 0100000000000000020000000300000004000000
+    - stepIds: 0100000002000000000000000300000004000000
+    - stepIds: 0200000000000000010000000300000004000000
+    - stepIds: 0200000001000000000000000300000004000000
+    ruleOptions: []
+    expectedRule: 
+  - kind: 2
+    title: Missing Justification
+    instructions: Select a RULE tablet and place it on RULE SLOT 1.
+    context: "1. P \u2014 Premise    2. P \u2192 Q \u2014 Premise    3. Q \u2014
+      [MISSING JUSTIFICATION]"
+    scrolls: []
+    steps: []
+    acceptableOrders: []
+    ruleOptions:
+    - Modus Ponens
+    - Modus Tollens
+    - Simplification
+    - Addition
+    expectedRule: Modus Ponens
+  - kind: 3
+    title: Formalize an Informal Explanation
+    instructions: Place statements and matching rules on the numbered STEP and RULE
+      pedestals.
+    context: "Suppose P is true. Since P implies Q, Q follows. Since Q implies R,
+      R follows.\nPremises: P, P \u2192 Q, Q \u2192 R. Conclusion: R."
+    scrolls: []
+    steps:
+    - id: premise-p
+      statement: P
+      justification: Premise
+      prerequisiteIds: 
+    - id: premise-pq
+      statement: "P \u2192 Q"
+      justification: Premise
+      prerequisiteIds: 
+    - id: premise-qr
+      statement: "Q \u2192 R"
+      justification: Premise
+      prerequisiteIds: 
+    - id: derive-q
+      statement: Q
+      justification: "Modus Ponens from P and P \u2192 Q"
+      prerequisiteIds: 0000000001000000
+    - id: derive-r
+      statement: R
+      justification: "Modus Ponens from Q and Q \u2192 R"
+      prerequisiteIds: 0200000003000000
+    acceptableOrders:
+    - stepIds: 0000000001000000020000000300000004000000
+    - stepIds: 0000000002000000010000000300000004000000
+    - stepIds: 0100000000000000020000000300000004000000
+    - stepIds: 0100000002000000000000000300000004000000
+    - stepIds: 0200000000000000010000000300000004000000
+    - stepIds: 0200000001000000000000000300000004000000
+    ruleOptions: []
+    expectedRule: 

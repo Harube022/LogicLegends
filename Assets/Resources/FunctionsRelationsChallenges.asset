@@ -1,0 +1,1635 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2582fba1dbb5f7944a669ec01696752c, type: 3}
+  m_Name: FunctionsRelationsChallenges
+  m_EditorClassIdentifier: Assembly-CSharp::MappingChallengeCatalog
+  challengeGroups:
+  - stageName: Build the relation
+    variants:
+    - title: Build the relation
+      instruction: "Connect 1 \u2192 A, 2 \u2192 B, 3 \u2192 C, 4 \u2192 D. The range
+        contains the outputs you use."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: B
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: D
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Build the relation
+      instruction: "Connect 1 \u2192 A, 2 \u2192 B, 3 \u2192 D, 4 \u2192 C. The range
+        contains the outputs you use."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: B
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: C
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Build the relation
+      instruction: "Connect 1 \u2192 A, 2 \u2192 C, 3 \u2192 B, 4 \u2192 D. The range
+        contains the outputs you use."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: D
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Build the relation
+      instruction: "Connect 1 \u2192 A, 2 \u2192 C, 3 \u2192 D, 4 \u2192 B. The range
+        contains the outputs you use."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: B
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Build the relation
+      instruction: "Connect 1 \u2192 A, 2 \u2192 D, 3 \u2192 B, 4 \u2192 C. The range
+        contains the outputs you use."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: C
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Build the relation
+      instruction: "Connect 1 \u2192 A, 2 \u2192 D, 3 \u2192 C, 4 \u2192 B. The range
+        contains the outputs you use."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: B
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Build the relation
+      instruction: "Connect 1 \u2192 B, 2 \u2192 A, 3 \u2192 C, 4 \u2192 D. The range
+        contains the outputs you use."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: A
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: D
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Build the relation
+      instruction: "Connect 1 \u2192 B, 2 \u2192 C, 3 \u2192 D, 4 \u2192 A. The range
+        contains the outputs you use."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: A
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Build the relation
+      instruction: "Connect 1 \u2192 C, 2 \u2192 D, 3 \u2192 A, 4 \u2192 B. The range
+        contains the outputs you use."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: C
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: A
+      - domain: 4
+        codomain: B
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Build the relation
+      instruction: "Connect 1 \u2192 D, 2 \u2192 C, 3 \u2192 B, 4 \u2192 A. The range
+        contains the outputs you use."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: D
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: A
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+  - stageName: Connect the ordered pairs
+    variants:
+    - title: Connect the ordered pairs
+      instruction: Build R = {(1,A), (1,B), (2,B), (3,C), (4,D)}. An input may have
+        two lasers.
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: B
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: D
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Connect the ordered pairs
+      instruction: Build R = {(1,A), (2,B), (2,D), (3,D), (4,C)}. An input may have
+        two lasers.
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: B
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: C
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Connect the ordered pairs
+      instruction: Build R = {(1,A), (2,C), (3,B), (3,D), (4,D)}. An input may have
+        two lasers.
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: B
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: D
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Connect the ordered pairs
+      instruction: Build R = {(1,A), (2,C), (3,D), (4,A), (4,B)}. An input may have
+        two lasers.
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: A
+      - domain: 4
+        codomain: B
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Connect the ordered pairs
+      instruction: Build R = {(1,A), (1,B), (2,D), (3,B), (4,C)}. An input may have
+        two lasers.
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: C
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Connect the ordered pairs
+      instruction: Build R = {(1,A), (2,B), (2,D), (3,C), (4,B)}. An input may have
+        two lasers.
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: B
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: B
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Connect the ordered pairs
+      instruction: Build R = {(1,B), (2,A), (3,B), (3,C), (4,D)}. An input may have
+        two lasers.
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: A
+      - domain: 3
+        codomain: B
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: D
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Connect the ordered pairs
+      instruction: Build R = {(1,B), (2,C), (3,D), (4,A), (4,C)}. An input may have
+        two lasers.
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: A
+      - domain: 4
+        codomain: C
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Connect the ordered pairs
+      instruction: Build R = {(1,C), (1,D), (2,D), (3,A), (4,B)}. An input may have
+        two lasers.
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: C
+      - domain: 1
+        codomain: D
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: A
+      - domain: 4
+        codomain: B
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Connect the ordered pairs
+      instruction: Build R = {(1,D), (2,B), (2,C), (3,B), (4,A)}. An input may have
+        two lasers.
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs: []
+      requiredPairs:
+      - domain: 1
+        codomain: D
+      - domain: 2
+        codomain: B
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: A
+      initialPairsLocked: 0
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+  - stageName: Complete the function
+    variants:
+    - title: Complete the function
+      instruction: "1 \u2192 C is fixed. Make a bijection (one-to-one and onto).
+        The other output letters increase for inputs 2, 4, 3, in that order."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: C
+      requiredPairs:
+      - domain: 1
+        codomain: C
+      - domain: 2
+        codomain: A
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: B
+      initialPairsLocked: 1
+      requireFunction: 1
+      requireInjective: 1
+      requireSurjective: 1
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Complete the function
+      instruction: "2 \u2192 D is fixed. Make a bijection (one-to-one and onto).
+        The other output letters increase for inputs 3, 1, 4, in that order."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 2
+        codomain: D
+      requiredPairs:
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: A
+      - domain: 4
+        codomain: C
+      initialPairsLocked: 1
+      requireFunction: 1
+      requireInjective: 1
+      requireSurjective: 1
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Complete the function
+      instruction: "3 \u2192 A is fixed. Make a bijection (one-to-one and onto).
+        The other output letters increase for inputs 2, 4, 1, in that order."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 3
+        codomain: A
+      requiredPairs:
+      - domain: 1
+        codomain: D
+      - domain: 2
+        codomain: B
+      - domain: 3
+        codomain: A
+      - domain: 4
+        codomain: C
+      initialPairsLocked: 1
+      requireFunction: 1
+      requireInjective: 1
+      requireSurjective: 1
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Complete the function
+      instruction: "4 \u2192 A is fixed. Make a bijection (one-to-one and onto).
+        The other output letters increase for inputs 3, 1, 2, in that order."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 4
+        codomain: A
+      requiredPairs:
+      - domain: 1
+        codomain: C
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: A
+      initialPairsLocked: 1
+      requireFunction: 1
+      requireInjective: 1
+      requireSurjective: 1
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Complete the function
+      instruction: "1 \u2192 B is fixed. Make a bijection (one-to-one and onto).
+        The other output letters increase for inputs 4, 2, 3, in that order."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: B
+      requiredPairs:
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: A
+      initialPairsLocked: 1
+      requireFunction: 1
+      requireInjective: 1
+      requireSurjective: 1
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Complete the function
+      instruction: "2 \u2192 A is fixed. Make a bijection (one-to-one and onto).
+        The other output letters increase for inputs 4, 3, 1, in that order."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 2
+        codomain: A
+      requiredPairs:
+      - domain: 1
+        codomain: D
+      - domain: 2
+        codomain: A
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: B
+      initialPairsLocked: 1
+      requireFunction: 1
+      requireInjective: 1
+      requireSurjective: 1
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Complete the function
+      instruction: "3 \u2192 D is fixed. Make a bijection (one-to-one and onto).
+        The other output letters increase for inputs 4, 2, 1, in that order."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 3
+        codomain: D
+      requiredPairs:
+      - domain: 1
+        codomain: C
+      - domain: 2
+        codomain: B
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: A
+      initialPairsLocked: 1
+      requireFunction: 1
+      requireInjective: 1
+      requireSurjective: 1
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Complete the function
+      instruction: "4 \u2192 A is fixed. Make a bijection (one-to-one and onto).
+        The other output letters increase for inputs 1, 3, 2, in that order."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 4
+        codomain: A
+      requiredPairs:
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: A
+      initialPairsLocked: 1
+      requireFunction: 1
+      requireInjective: 1
+      requireSurjective: 1
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Complete the function
+      instruction: "1 \u2192 D is fixed. Make a bijection (one-to-one and onto).
+        The other output letters increase for inputs 3, 4, 2, in that order."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: D
+      requiredPairs:
+      - domain: 1
+        codomain: D
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: A
+      - domain: 4
+        codomain: B
+      initialPairsLocked: 1
+      requireFunction: 1
+      requireInjective: 1
+      requireSurjective: 1
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+    - title: Complete the function
+      instruction: "2 \u2192 D is fixed. Make a bijection (one-to-one and onto).
+        The other output letters increase for inputs 1, 3, 4, in that order."
+      questionKind: 0
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 2
+        codomain: D
+      requiredPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: C
+      initialPairsLocked: 1
+      requireFunction: 1
+      requireInjective: 1
+      requireSurjective: 1
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 0
+  - stageName: Function or not?
+    variants:
+    - title: Function or not?
+      instruction: Four lasers are preset. Every valid diagram is a relation. Trace
+        each input; choose Function Only if each has one output, otherwise Relation
+        Only.
+      questionKind: 1
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: B
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: D
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 0
+      correctProperties: 0
+    - title: Function or not?
+      instruction: Four lasers are preset. Every valid diagram is a relation. Trace
+        each input; choose Function Only if each has one output, otherwise Relation
+        Only.
+      questionKind: 1
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: A
+      - domain: 3
+        codomain: B
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: C
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 2
+      correctProperties: 0
+    - title: Function or not?
+      instruction: Four lasers are preset. Every valid diagram is a relation. Trace
+        each input; choose Function Only if each has one output, otherwise Relation
+        Only.
+      questionKind: 1
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: D
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 0
+      correctProperties: 0
+    - title: Function or not?
+      instruction: Four lasers are preset. Every valid diagram is a relation. Trace
+        each input; choose Function Only if each has one output, otherwise Relation
+        Only.
+      questionKind: 1
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: A
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: B
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 2
+      correctProperties: 0
+    - title: Function or not?
+      instruction: Four lasers are preset. Every valid diagram is a relation. Trace
+        each input; choose Function Only if each has one output, otherwise Relation
+        Only.
+      questionKind: 1
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: C
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 0
+      correctProperties: 0
+    - title: Function or not?
+      instruction: Four lasers are preset. Every valid diagram is a relation. Trace
+        each input; choose Function Only if each has one output, otherwise Relation
+        Only.
+      questionKind: 1
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: A
+      - domain: 1
+        codomain: C
+      - domain: 2
+        codomain: D
+      - domain: 4
+        codomain: B
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 2
+      correctProperties: 0
+    - title: Function or not?
+      instruction: Four lasers are preset. Every valid diagram is a relation. Trace
+        each input; choose Function Only if each has one output, otherwise Relation
+        Only.
+      questionKind: 1
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: A
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: D
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 0
+      correctProperties: 0
+    - title: Function or not?
+      instruction: Four lasers are preset. Every valid diagram is a relation. Trace
+        each input; choose Function Only if each has one output, otherwise Relation
+        Only.
+      questionKind: 1
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: B
+      - domain: 1
+        codomain: C
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: A
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 2
+      correctProperties: 0
+    - title: Function or not?
+      instruction: Four lasers are preset. Every valid diagram is a relation. Trace
+        each input; choose Function Only if each has one output, otherwise Relation
+        Only.
+      questionKind: 1
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: C
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: A
+      - domain: 4
+        codomain: B
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 0
+      correctProperties: 0
+    - title: Function or not?
+      instruction: Four lasers are preset. Every valid diagram is a relation. Trace
+        each input; choose Function Only if each has one output, otherwise Relation
+        Only.
+      questionKind: 1
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 2
+        codomain: C
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: A
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 2
+      correctProperties: 0
+  - stageName: Name every property
+    variants:
+    - title: Name every property
+      instruction: 'Inspect the preset lasers. Toggle every applicable property:
+        Injective, Surjective, Bijective.'
+      questionKind: 2
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: B
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: D
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 14
+    - title: Name every property
+      instruction: 'Inspect the preset lasers. Toggle every applicable property:
+        Injective, Surjective, Bijective.'
+      questionKind: 2
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: B
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: C
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 4
+    - title: Name every property
+      instruction: 'Inspect the preset lasers. Toggle every applicable property:
+        Injective, Surjective, Bijective.'
+      questionKind: 2
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: D
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 14
+    - title: Name every property
+      instruction: 'Inspect the preset lasers. Toggle every applicable property:
+        Injective, Surjective, Bijective.'
+      questionKind: 2
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: A
+      - domain: 4
+        codomain: B
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 4
+    - title: Name every property
+      instruction: 'Inspect the preset lasers. Toggle every applicable property:
+        Injective, Surjective, Bijective.'
+      questionKind: 2
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: C
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 14
+    - title: Name every property
+      instruction: 'Inspect the preset lasers. Toggle every applicable property:
+        Injective, Surjective, Bijective.'
+      questionKind: 2
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: A
+      - domain: 2
+        codomain: B
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: B
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 4
+    - title: Name every property
+      instruction: 'Inspect the preset lasers. Toggle every applicable property:
+        Injective, Surjective, Bijective.'
+      questionKind: 2
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: A
+      - domain: 3
+        codomain: C
+      - domain: 4
+        codomain: D
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 14
+    - title: Name every property
+      instruction: 'Inspect the preset lasers. Toggle every applicable property:
+        Injective, Surjective, Bijective.'
+      questionKind: 2
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: B
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: D
+      - domain: 4
+        codomain: A
+      - domain: 4
+        codomain: C
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 4
+    - title: Name every property
+      instruction: 'Inspect the preset lasers. Toggle every applicable property:
+        Injective, Surjective, Bijective.'
+      questionKind: 2
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: C
+      - domain: 2
+        codomain: D
+      - domain: 3
+        codomain: A
+      - domain: 4
+        codomain: B
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 14
+    - title: Name every property
+      instruction: 'Inspect the preset lasers. Toggle every applicable property:
+        Injective, Surjective, Bijective.'
+      questionKind: 2
+      domain:
+      - 1
+      - 2
+      - 3
+      - 4
+      codomain:
+      - A
+      - B
+      - C
+      - D
+      initialPairs:
+      - domain: 1
+        codomain: D
+      - domain: 2
+        codomain: B
+      - domain: 2
+        codomain: C
+      - domain: 3
+        codomain: B
+      - domain: 4
+        codomain: A
+      requiredPairs: []
+      initialPairsLocked: 1
+      requireFunction: 0
+      requireInjective: 0
+      requireSurjective: 0
+      correctFunctionAnswer: 0
+      correctClassificationIndex: 1
+      correctProperties: 4
