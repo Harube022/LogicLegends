@@ -21,7 +21,8 @@ public class TeleportManager : MonoBehaviourPun
     private PrelimTeleportTransition prelimTransition;
     public static bool UsesCoveredTransitions =>
         SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "RulesOfInference" ||
-        SceneManager.GetActiveScene().name == "Graph" || SceneManager.GetActiveScene().name == "Trees";
+        SceneManager.GetActiveScene().name == "Graph" || SceneManager.GetActiveScene().name == "Trees" ||
+        SceneManager.GetActiveScene().name == "MultiplayerStage";
     public bool IsTeleporting => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTeleporting : isTeleporting;
     public bool IsTransitioning => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTransitioning : isTeleporting;
     public float FadeAlpha => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.FadeAlpha :

@@ -1,100 +1,73 @@
-using UnityEngine;
-using Photon.Pun;
 using System.Collections;
+using System.Linq;
 using Firebase.Auth;
 using Firebase.Database;
-using Firebase.Extensions;
+using Photon.Pun;
+using UnityEngine;
 
+/// <summary>Spawns exactly one owned avatar, with a bounded profile lookup and grounded room slots.</summary>
 public class PlayerSpawner : MonoBehaviour
 {
     [Header("Resources Prefab Names")]
-    [Tooltip("Type the exact name of the Male prefab in your Resources folder")]
-    [SerializeField] private string malePrefabName = "Multiplayer_Male"; 
-
-    [Tooltip("Type the exact name of the Female prefab in your Resources folder")]
+    [SerializeField] private string malePrefabName = "Multiplayer_Male";
     [SerializeField] private string femalePrefabName = "Multiplayer_Female";
-
     [Header("Spawn Settings")]
     [SerializeField] private Transform spawnPoint;
+    [SerializeField, Min(2f)] private float slotSpacing = 6f;
+    [SerializeField, Range(-30f, 60f)] private float initialCameraPitch = 18f;
+    public GameObject SpawnedPlayer { get; private set; }
+    public string Status { get; private set; } = "Waiting for the multiplayer room.";
 
-    private void Start()
+    private IEnumerator Start()
     {
-        // 1. Check Firebase to see who is logged in BEFORE spawning
-        if (FirebaseAuth.DefaultInstance != null && FirebaseAuth.DefaultInstance.CurrentUser != null)
+        float until = Time.realtimeSinceStartup + 10f;
+        while (!PhotonNetwork.InRoom && Time.realtimeSinceStartup < until) yield return null;
+        if (!PhotonNetwork.InRoom) { Status = "Open this stage through Play > Multiplayer."; Debug.LogWarning(Status, this); yield break; }
+        if (Player.LocalInstance != null) { SpawnedPlayer = Player.LocalInstance.gameObject; yield break; }
+
+        string prefabName = malePrefabName;
+        // Never access Firebase before dependency initialization or wait indefinitely for a profile.
+        if (FirebaseManager.IsReady && FirebaseAuth.DefaultInstance.CurrentUser != null)
         {
-            DetermineCharacterAndSpawn();
+            string uid = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
+            var task = FirebaseDatabase.DefaultInstance.RootReference.Child("users").Child(uid).Child("base_character").GetValueAsync();
+            until = Time.realtimeSinceStartup + 3f;
+            while (!task.IsCompleted && Time.realtimeSinceStartup < until) yield return null;
+            if (task.IsCompleted && !task.IsFaulted && !task.IsCanceled &&
+                FirebaseAuth.DefaultInstance.CurrentUser?.UserId == uid &&
+                (task.Result.Value?.ToString() ?? "").ToLowerInvariant().Contains("female")) prefabName = femalePrefabName;
         }
-        else
+        if (!PhotonNetwork.InRoom || Player.LocalInstance != null) yield break;
+        var prefab = Resources.Load<GameObject>(prefabName);
+        if (prefab == null || prefab.GetComponent<PhotonView>() == null)
         {
-            Debug.LogWarning("No user logged in. Defaulting to Male.");
-            StartCoroutine(SpawnWhenReady(malePrefabName));
-        }
-    }
-
-    private void DetermineCharacterAndSpawn()
-    {
-        string userId = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
-        DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
-
-        Debug.Log("Checking Firebase for multiplayer base character...");
-
-        dbRef.Child("users").Child(userId).Child("base_character").GetValueAsync().ContinueWithOnMainThread(task =>
-        {
-            if (task.IsFaulted || task.IsCanceled)
-            {
-                // Fallback to male if the database fails
-                StartCoroutine(SpawnWhenReady(malePrefabName));
-                return;
-            }
-
-            DataSnapshot snapshot = task.Result;
-            string selectedCharacter = "";
-
-            if (snapshot.Exists && snapshot.Value != null)
-            {
-                selectedCharacter = snapshot.Value.ToString();
-            }
-
-            // Route the correct string name to the Photon Spawner!
-            if (selectedCharacter == "Female_Character")
-            {
-                StartCoroutine(SpawnWhenReady(femalePrefabName));
-            }
-            else 
-            {
-                StartCoroutine(SpawnWhenReady(malePrefabName));
-            }
-        });
-    }
-    private IEnumerator SpawnWhenReady(string prefabToSpawn)
-    {
-        // This loop pauses the script and waits until InRoom becomes true
-        while (!PhotonNetwork.InRoom)
-        {
-            yield return null; 
+            Status = "The multiplayer character prefab is unavailable.";
+            Debug.LogError(Status + " Resources/" + prefabName, this); yield break;
         }
 
-        // Once we are officially in the room, execute the spawn logic!
-        Vector3 basePosition = spawnPoint != null ? spawnPoint.position : Vector3.zero;
-        Vector2 randomCircle = Random.insideUnitCircle * 2f; 
-        
-        Vector3 finalSpawnPosition = basePosition + new Vector3(randomCircle.x, 3f, randomCircle.y);
-        
-        Debug.Log($"Spawning {prefabToSpawn} over the network...");
-        
-        // Actually spawn the character!
-        GameObject spawnedPlayer = PhotonNetwork.Instantiate(prefabToSpawn, finalSpawnPosition, Quaternion.identity);
-
-        // --- NEW: Snap the camera to YOUR character! ---
-        // We check "IsMine" so your camera doesn't accidentally follow someone else who joins the room!
-        if (spawnedPlayer.GetComponent<PhotonView>().IsMine)
+        int[] actors = PhotonNetwork.PlayerList.Select(p => p.ActorNumber).OrderBy(n => n).ToArray();
+        int slot = Mathf.Max(0, System.Array.IndexOf(actors, PhotonNetwork.LocalPlayer.ActorNumber)) % 4;
+        Vector3 origin = spawnPoint != null ? spawnPoint.position : transform.position;
+        var offset = new Vector3(slot % 2 == 0 ? -0.5f : 0.5f, 0f, slot < 2 ? -0.5f : 0.5f) * slotSpacing;
+        Quaternion facing = spawnPoint != null ? spawnPoint.rotation : transform.rotation;
+        Vector3 position = origin + facing * offset;
+        if (Physics.Raycast(position + Vector3.up * 30f, Vector3.down, out var ground, 60f, ~(1 << 7), QueryTriggerInteraction.Ignore))
         {
-            ThirdPersonCameraController camController = Object.FindFirstObjectByType<ThirdPersonCameraController>();
-            if (camController != null)
-            {
-                camController.SetPlayerTarget(spawnedPlayer.transform);
-                camController.WarpCamera(spawnedPlayer.transform); 
-            }
+            var controller = prefab.GetComponent<CharacterController>();
+            float clearance = controller == null ? 0.2f : Mathf.Max(0.2f,
+                (controller.height * 0.5f - controller.center.y + controller.skinWidth) * prefab.transform.localScale.y);
+            position.y = ground.point.y + clearance;
+        }
+        Status = "Spawning " + prefabName + ".";
+        SpawnedPlayer = PhotonNetwork.Instantiate(prefabName, position, facing);
+        // Let Player.Start bind the inherited CameraTarget before snapping Cinemachine.
+        yield return null;
+        if (SpawnedPlayer != null && SpawnedPlayer.GetComponent<PhotonView>().IsMine)
+        {
+            var look = SpawnedPlayer.GetComponentInChildren<CameraTargetController>();
+            if (look != null) look.SetViewAngles(initialCameraPitch, facing.eulerAngles.y);
+            TeleportCameraSync.ResetAfterMove(SpawnedPlayer.transform, Vector3.zero);
+            Status = "Your player is ready.";
         }
     }
 }

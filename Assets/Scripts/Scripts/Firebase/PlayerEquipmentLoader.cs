@@ -2,8 +2,9 @@ using UnityEngine;
 using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Extensions;
+using Photon.Pun;
 
-public class PlayerEquipmentLoader : MonoBehaviour
+public class PlayerEquipmentLoader : MonoBehaviourPun
 {
     [System.Serializable]
     public class EquippableModel
@@ -20,16 +21,20 @@ public class PlayerEquipmentLoader : MonoBehaviour
     [Header("Default Settings")]
     [Tooltip("If the player's database is empty, what should they wear?")]
     [SerializeField] private string defaultClothesID = "male_default";
+    private bool receivedNetworkEquipment;
+    private bool IsNetworkAvatar => PhotonNetwork.InRoom && GetComponent<PhotonView>() != null;
 
     private void Start()
     {
         // Character models are stored inactive in the prefab. Show the configured
         // fallback immediately so the player is visible while Firebase loads (and
         // also during offline/editor play).
-        ApplyEquipment(defaultClothesID, clothesModels);
+        if (!receivedNetworkEquipment) ApplyEquipment(defaultClothesID, clothesModels);
+        if (IsNetworkAvatar && !photonView.IsMine) return;
+        PublishEquipment();
 
         // 1. Double check that we are actually logged in
-        if (FirebaseAuth.DefaultInstance != null && FirebaseAuth.DefaultInstance.CurrentUser != null)
+        if (FirebaseManager.IsReady && FirebaseAuth.DefaultInstance.CurrentUser != null)
         {
             // 2. Fetch the outfit from the cloud!
             LoadEquippedItemsFromCloud();
@@ -59,6 +64,9 @@ public class PlayerEquipmentLoader : MonoBehaviour
         // Fetch the user node to inspect both equipped clothes and base_character
         dbRef.Child("users").Child(userId).GetValueAsync().ContinueWithOnMainThread(task =>
         {
+            if (this == null || !isActiveAndEnabled || !FirebaseManager.IsReady ||
+                FirebaseAuth.DefaultInstance.CurrentUser?.UserId != userId ||
+                (IsNetworkAvatar && !photonView.IsMine)) return;
             if (task.IsFaulted || task.IsCanceled)
             {
                 Debug.LogError("Failed to load user data. Applying default fallback.");
@@ -127,6 +135,7 @@ public class PlayerEquipmentLoader : MonoBehaviour
                 // Send them to the dressing function
                 ApplyEquipment(equippedClothes, clothesModels);
                 ApplyEquipment(equippedPet, petModels);
+                PublishEquipment();
 
         });
     }
@@ -145,6 +154,27 @@ public class PlayerEquipmentLoader : MonoBehaviour
     {
         ApplyEquipment(defaultClothesID, clothesModels);
         ApplyEquipment("", petModels);
+        PublishEquipment();
+    }
+
+    private static string SelectedID(EquippableModel[] models)
+    {
+        if (models != null) foreach (var entry in models)
+            if (entry != null && entry.model != null && entry.model.activeSelf) return entry.itemID;
+        return "";
+    }
+    private void PublishEquipment()
+    {
+        if (IsNetworkAvatar && photonView.IsMine)
+            photonView.RPC(nameof(SyncEquipmentRPC), RpcTarget.OthersBuffered, SelectedID(clothesModels), SelectedID(petModels));
+    }
+    [PunRPC]
+    private void SyncEquipmentRPC(string clothesID, string petID, PhotonMessageInfo info)
+    {
+        if (!IsNetworkAvatar || info.Sender != photonView.Owner) return;
+        receivedNetworkEquipment = true;
+        ApplyEquipment(clothesID, clothesModels);
+        ApplyEquipment(petID, petModels);
     }
 
     private void ApplyEquipment(string equippedID, EquippableModel[] models)

@@ -15,6 +15,7 @@ public class LevelMenu : MonoBehaviourPunCallbacks
     public void OpenPause()
     {
         if (pauseOpen || pausePanel == null) return;
+        FindFirstObjectByType<MultiplayerGameChat>()?.Close();
         pauseOpen = true;
         previousTimeScale = Time.timeScale;
         previousInputBlocked = GameInput.Instance != null && GameInput.Instance.GameplayInputBlocked;
@@ -65,7 +66,9 @@ public class LevelMenu : MonoBehaviourPunCallbacks
         // 3. If we are in a multiplayer room, tell the server we are leaving
         if (PhotonNetwork.InRoom)
         {
-            PhotonNetwork.LeaveRoom();
+            if (MultiplayerLobbyService.Instance != null && MultiplayerLobbyService.Instance.InLobby)
+                MultiplayerLobbyService.Instance.LeaveLobby();
+            else PhotonNetwork.LeaveRoom();
         }
         else
         {
@@ -78,6 +81,8 @@ public class LevelMenu : MonoBehaviourPunCallbacks
     // the server confirms we have successfully left the room.
     public override void OnLeftRoom()
     {
+        // The persistent online session already owns returning to the menu.
+        if (MultiplayerLobbyService.Instance != null && !PhotonNetwork.OfflineMode) return;
         SceneManager.LoadScene("Main Menu");
     }
 
