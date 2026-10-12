@@ -17,6 +17,24 @@ namespace LogicLegends.Graph
         public const float LayoutScale = ((12f - 5.8f) * 4f + 2f * (VertexRadius - PlatformOverlap)) / 12f;
         public static readonly Vector3 BookOffset = new Vector3(-1.7f, 0, -.7f) * VertexScale;
 
+        /// <summary>Fit static compound collision to the imported statue, without blocking its animated page.</summary>
+        public static void EnsureBookCollision(Transform book)
+        {
+            if (book == null) return;
+            string[] solidParts = { "Square foundation", "Lower octagonal step", "Middle octagonal step",
+                "Upper octagonal step", "Pedestal foot", "Tapered square pillar", "Lectern capital",
+                "Central book spine", "Left thick cover", "Right thick cover" };
+            foreach (var mesh in book.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (System.Array.IndexOf(solidParts, mesh.name) < 0 || mesh.sharedMesh == null) continue;
+                var collider = mesh.GetComponent<BoxCollider>();
+                if (collider == null) collider = mesh.gameObject.AddComponent<BoxCollider>();
+                collider.center = mesh.sharedMesh.bounds.center;
+                collider.size = mesh.sharedMesh.bounds.size;
+                collider.isTrigger = false; collider.enabled = true;
+            }
+        }
+
         public static bool TryGetSurfaceHeight(Transform artwork, Vector3 position, out float height)
         {
             height = float.NegativeInfinity;

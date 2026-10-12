@@ -1,0 +1,44 @@
+PASS: texture Stone_BaseColor, sRGB color
+PASS: texture Stone_Roughness, linear data
+PASS: texture Stone_MetallicSmoothness, linear data
+PASS: texture Stone_Normal, tangent normal
+PASS: texture Parchment_BaseColor, sRGB color
+PASS: texture Parchment_Roughness, linear data
+PASS: texture Parchment_MetallicSmoothness, linear data
+PASS: texture Parchment_Normal, tangent normal
+PASS: texture Metal_BaseColor, sRGB color
+PASS: texture Metal_Roughness, linear data
+PASS: texture Metal_MetallicSmoothness, linear data
+PASS: texture Metal_Normal, tangent normal
+PASS: texture Crystal_BaseColor, sRGB color
+PASS: texture Crystal_Roughness, linear data
+PASS: texture Crystal_MetallicSmoothness, linear data
+PASS: texture Crystal_Normal, tangent normal
+PASS: editable TMP ChallengeTitleAnchor, CHALLENGE 1
+PASS: editable TMP ChallengeFormulaAnchor, 1 + 2 + ... + n / = n(n + 1) / 2
+PASS: editable TMP ChallengeInstructionsAnchor, Use mathematical induction / to prove the statement. /  / Base Case: prove P(1). / Assume P(k), then prove P(k + 1).
+PASS: InformationBoard / Info_CrystalAccents / Chamber_Crystal -> color, normal, metallic-smoothness textures
+PASS: InformationBoard / Info_GoldFrame / Chamber_Metal -> color, normal, metallic-smoothness textures
+PASS: InformationBoard / Info_ParchmentSurface / Chamber_Parchment -> color, normal, metallic-smoothness textures
+PASS: InformationBoard / Info_StoneBase / Chamber_Stone -> color, normal, metallic-smoothness textures
+PASS: InformationBoard / Info_StoneFrame / Chamber_Stone -> color, normal, metallic-smoothness textures
+PASS: InformationBoard bottom center pivot (including depth); bounds Center: (0.00, 1.65, 0.00), Extents: (1.09, 1.65, 0.46)
+PASS: editable TMP ScrollLabelAnchor_01, Algebra Rules
+PASS: editable TMP ScrollLabelAnchor_02, Summation Formulas
+PASS: editable TMP ScrollLabelAnchor_03, Induction Templates
+PASS: editable TMP ScrollLabelAnchor_04, Useful Identities
+PASS: FormulaScrollsStand / Rack_CrystalAccents / Chamber_Crystal -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand / Rack_MetalFrame / Chamber_Metal -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand / Rack_StoneBase / Chamber_Stone -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand / Rack_StoneFrame / Chamber_Stone -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand / Scroll_01_ReusableParchment / Chamber_Parchment -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand / Scroll_01_ReusableParchment / Chamber_Metal -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand / Scroll_02_ReusableParchment / Chamber_Parchment -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand / Scroll_02_ReusableParchment / Chamber_Metal -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand / Scroll_03_ReusableParchment / Chamber_Parchment -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand / Scroll_03_ReusableParchment / Chamber_Metal -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand / Scroll_04_ReusableParchment / Chamber_Parchment -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand / Scroll_04_ReusableParchment / Chamber_Metal -> color, normal, metallic-smoothness textures
+PASS: FormulaScrollsStand bottom center pivot (including depth); bounds Center: (0.00, 1.14, 0.00), Extents: (0.76, 1.14, 0.48)
+PASS: four separate scroll objects use one shared imported mesh.
+PASS: Unity URP render; magenta error pixels 0 / 1600000

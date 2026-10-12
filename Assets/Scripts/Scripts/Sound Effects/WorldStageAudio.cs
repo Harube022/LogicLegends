@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// One music player for PRELIM, Setssss, and Rules of Inference. Stage selection
+/// One music player for PRELIM, Setssss, Rules of Inference, and Graph. Stage selection
 /// can change inside PRELIM without a scene load, so the player follows both.
 /// </summary>
 public sealed class WorldStageAudio : MonoBehaviour
@@ -58,6 +58,8 @@ public sealed class WorldStageAudio : MonoBehaviour
                 ? StageSelectionState.SelectedStage : -1;
         if (scene.name == "RulesOfInference") return 3;
         if (scene.name == "Setssss") return 4;
+        if (scene.name == "Graph") return 9;
+        if (scene.name == "Induction") return 6;
         return -1;
     }
 

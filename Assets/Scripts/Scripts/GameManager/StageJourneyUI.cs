@@ -241,23 +241,10 @@ public sealed class StageJourneyUI : MonoBehaviour
 
     private void BuildResults()
     {
-        modal = MakeModal("StageResultPanel", out card);
-        resultStage = StageUITheme.Text("ResultStage", card, "", 27);
-        StageUITheme.Stretch(resultStage.rectTransform, new Vector2(0.08f, 0.77f), new Vector2(0.92f, 0.86f));
-        resultTitle = StageUITheme.Text("ResultHeading", card, "", 72);
-        StageUITheme.Stretch(resultTitle.rectTransform, new Vector2(0.08f, 0.57f), new Vector2(0.92f, 0.76f));
-        resultTitle.enableAutoSizing = true;
-        resultTitle.fontSizeMin = 30f;
-        resultTitle.fontSizeMax = 72f;
-        resultTitle.alignment = TextAlignmentOptions.Center;
-        resultBody = StageUITheme.Text("ResultSummary", card, "", 31, true);
-        StageUITheme.Stretch(resultBody.rectTransform, new Vector2(0.1f, 0.34f), new Vector2(0.9f, 0.56f));
-        primaryButton = StageUITheme.Button("NextOrRetryButton", card, "NEXT STAGE", null);
-        secondaryButton = StageUITheme.Button("MainMenuButton", card, "MAIN MENU", ReturnToMenu);
-        extraButton = StageUITheme.Button("CheckpointRetryButton", card, "TRY AGAIN", null);
-        StageUITheme.Stretch((RectTransform)primaryButton.transform, new Vector2(0.12f, 0.17f), new Vector2(0.48f, 0.29f));
-        StageUITheme.Stretch((RectTransform)secondaryButton.transform, new Vector2(0.52f, 0.17f), new Vector2(0.88f, 0.29f));
-        StageUITheme.Stretch((RectTransform)extraButton.transform, new Vector2(0.25f, 0.04f), new Vector2(0.75f, 0.15f));
+        var result = StageResultCard.Build(safeArea, ReturnToMenu);
+        modal = result.Root; card = result.Card;
+        resultStage = result.Stage; resultTitle = result.Heading; resultBody = result.Summary;
+        primaryButton = result.Primary; secondaryButton = result.Menu; extraButton = result.Extra;
     }
 
     public void ShowCompletion(int stage, string summary)

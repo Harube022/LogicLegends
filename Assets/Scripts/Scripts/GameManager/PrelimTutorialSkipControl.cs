@@ -11,6 +11,14 @@ public sealed class PrelimTutorialSkipControl : MonoBehaviour
     private RectTransform rect;
     private Vector2 lastHostSize;
     private Button button;
+    private RectTransform[] reservedTargets = new RectTransform[0];
+
+    // A stage can reserve HUD space even when that HUD is hidden in early steps.
+    public void Reserve(params RectTransform[] targets)
+    {
+        reservedTargets = targets ?? new RectTransform[0];
+        Position();
+    }
 
     public static PrelimTutorialSkipControl Create(RectTransform safeArea, UnityAction skip)
     {
@@ -46,7 +54,8 @@ public sealed class PrelimTutorialSkipControl : MonoBehaviour
         rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
         rect.pivot = new Vector2(0f, 1f);
         rect.sizeDelta = new Vector2(Mathf.Min(250f, host.rect.width - 40f), 80f);
-        RectTransform[] blockers = ControlTutorialLayout.FindBlockers();
+        var blockers = new System.Collections.Generic.List<RectTransform>(ControlTutorialLayout.FindBlockers());
+        blockers.AddRange(reservedTargets);
         Rect area = host.rect;
         Vector2 best = new Vector2(20f, -20f);
         float bestScore = float.MaxValue;
@@ -59,7 +68,7 @@ public sealed class PrelimTutorialSkipControl : MonoBehaviour
             float overlap = 0f;
             foreach (var obstacle in blockers)
             {
-                if (obstacle == null || obstacle == rect || !obstacle.gameObject.activeInHierarchy) continue;
+                if (obstacle == null || obstacle == rect || (!obstacle.gameObject.activeInHierarchy && System.Array.IndexOf(reservedTargets, obstacle) < 0)) continue;
                 var corners = new Vector3[4];
                 obstacle.GetWorldCorners(corners);
                 Vector2 min = host.InverseTransformPoint(corners[0]);
