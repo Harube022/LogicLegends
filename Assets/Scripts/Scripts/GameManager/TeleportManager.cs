@@ -19,9 +19,12 @@ public class TeleportManager : MonoBehaviourPun
     private bool isTeleporting = false;
     [SerializeField, Min(0f)] private float blackHoldDuration = 0.15f;
     private PrelimTeleportTransition prelimTransition;
+    private bool startSequenceStarted;
     public static bool UsesCoveredTransitions =>
-        SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "RulesOfInference" ||
-        SceneManager.GetActiveScene().name == "Graph" || SceneManager.GetActiveScene().name == "Trees" ||
+        SceneManager.GetSceneByName("PRELIM").isLoaded ||
+        SceneManager.GetSceneByName("RulesOfInference").isLoaded ||
+        SceneManager.GetActiveScene().name == "Graph" ||
+        SceneManager.GetActiveScene().name == "Trees" ||
         SceneManager.GetActiveScene().name == "MultiplayerStage";
     public bool IsTeleporting => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTeleporting : isTeleporting;
     public bool IsTransitioning => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTransitioning : isTeleporting;
@@ -40,7 +43,8 @@ public class TeleportManager : MonoBehaviourPun
 
     private static void EnsurePrelimManager(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "PRELIM" || scene.name == "RulesOfInference") EnsureExists();
+        if (scene.name != "PRELIM" && scene.name != "RulesOfInference") return;
+        EnsureExists().EnsureCoveredTransition();
     }
 
     public static TeleportManager EnsureExists()
@@ -54,17 +58,19 @@ public class TeleportManager : MonoBehaviourPun
     {
         if (Instance == null)
             Instance = this;
-        else
-            Destroy(gameObject);
-        if (Instance == this && UsesCoveredTransitions)
+        else if (Instance != this)
         {
-            prelimTransition = gameObject.AddComponent<PrelimTeleportTransition>();
-            prelimTransition.Initialize(fadeCanvasGroup, fadeDuration, blackHoldDuration, cameraScript);
+            Destroy(gameObject);
+            return;
         }
+
+        EnsureCoveredTransition();
     }
 
     private void Start()
     {
+        startSequenceStarted = true;
+        EnsureCoveredTransition();
         if (prelimTransition != null) { prelimTransition.RevealInitialSpawn(); return; }
         if (fadeCanvasGroup != null)
         {
@@ -73,13 +79,27 @@ public class TeleportManager : MonoBehaviourPun
         }
     }
 
+    private void EnsureCoveredTransition()
+    {
+        bool belongsToCoveredScene = gameObject.scene.name == "PRELIM" ||
+            gameObject.scene.name == "RulesOfInference";
+        if (prelimTransition != null || (!UsesCoveredTransitions && !belongsToCoveredScene)) return;
+
+        prelimTransition = GetComponent<PrelimTeleportTransition>();
+        if (prelimTransition == null) prelimTransition = gameObject.AddComponent<PrelimTeleportTransition>();
+        prelimTransition.Initialize(fadeCanvasGroup, fadeDuration, blackHoldDuration, cameraScript);
+        if (startSequenceStarted) prelimTransition.RevealInitialSpawn();
+    }
+
     private IEnumerator FadeInAtStart()
     {
         fadeCanvasGroup.blocksRaycasts = true;
         float elapsedTime = 0f;
         while (elapsedTime < fadeDuration)
         {
-            elapsedTime += Time.deltaTime;
+            // A tutorial can pause scaled time while this startup fade is running.
+            // Keep the fade moving so its full-screen raycast blocker is always released.
+            elapsedTime += Time.unscaledDeltaTime;
             fadeCanvasGroup.alpha = Mathf.Clamp01(1f - (elapsedTime / fadeDuration));
             yield return null;
         }

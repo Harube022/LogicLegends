@@ -82,7 +82,8 @@ public sealed class PrelimTeleportTransition : MonoBehaviour
 
     public void RevealInitialSpawn()
     {
-        if (!isTeleporting) startupFade = StartCoroutine(FadeInWhenReady());
+        if (!isTeleporting && startupFading && startupFade == null)
+            startupFade = StartCoroutine(FadeInWhenReady());
     }
 
     private IEnumerator FadeInWhenReady()
