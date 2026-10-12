@@ -18,6 +18,9 @@ namespace LogicLegends.Graph
         public GraphStageClock timer;
         public GameOverManager gameOver;
         public GraphCompletion completion;
+        public GraphControlsOnboarding controlsTutorial;
+        private bool onboardingPending = true;
+        public bool TutorialActive => controlsTutorial != null && controlsTutorial.IsActive;
         public AudioClip correctSound, wrongSound;
         [Min(30)] public float countdownSeconds = 300;
         [Min(.1f)] public float feedbackSeconds = 1.2f;
@@ -42,9 +45,18 @@ namespace LogicLegends.Graph
         private GameInput input;
         private AudioSource audioSource;
         private bool lessonOpen;
+        public bool HelpOpen => lessonOpen;
+        private bool lessonTimerWasRunning, lessonPlayerWasEnabled, lessonInputWasBlocked, lessonCursorWasVisible;
+        private bool lessonSettingsWereEnabled;
+        private float lessonTimeScale;
+        private CursorLockMode lessonCursorLock;
+        private UnityEngine.UI.Button lessonSettings;
+        private readonly List<Behaviour> lessonCameraInputs = new List<Behaviour>();
         private float playerFootprint = .78f;
+        private bool navigating;
+        public const string NextStageScene = "Trees";
         private void Awake() => StageSelectionState.Select(9);
-        public bool CanAct => Ready && !Moving && !lessonOpen && Time.timeScale > 0 &&
+        public bool CanAct => Ready && !Moving && !lessonOpen && !TutorialActive && Time.timeScale > 0 &&
             (input == null || !input.GameplayInputBlocked) &&
             (TeleportManager.Instance == null || !TeleportManager.Instance.IsTransitioning);
         public bool NearBook => LocalPlayer != null && Vector3.Distance(LocalPlayer.transform.position, bookStatue.position) < 5f * GraphGeometry.VertexScale;
@@ -58,6 +70,7 @@ namespace LogicLegends.Graph
             AudioVolumeSettings.Route(audioSource, GameAudioChannel.SoundFX);
             if (correctSound != null) correctSound.LoadAudioData();
             if (wrongSound != null) wrongSound.LoadAudioData();
+            GraphGeometry.EnsureBookCollision(bookStatue);
             ui.Build(this);
             timer.Initialize(countdownSeconds, HandleGameOver);
             // Database character selection is asynchronous in a signed-in session.
@@ -75,11 +88,17 @@ namespace LogicLegends.Graph
             PrelimTeleportTransition.MovePlayerImmediately(LocalPlayer.gameObject, spawnPoint.position, spawnPoint.rotation);
             ResetTracker(arena.InverseTransformPoint(LocalPlayer.transform.position));
             Ready = true;
+            // Wait for the shared spawn fade and any existing pause to finish.
+            // Opening Help is separate from book activation and never resumes the clock.
+            while (!CanAct) yield return null;
+            SetLesson(true);
         }
         private void OnDestroy()
         {
+            SetLesson(false);
             if (input != null) input.OnInteractAction -= OnInteract;
         }
+        private void OnDisable() => SetLesson(false);
         private void LateUpdate()
         {
             if (!Ready) return;
@@ -94,7 +113,7 @@ namespace LogicLegends.Graph
                 edge.UpdateGate(Tracker.Current, LocalPlayer.transform.position, playerFootprint);
                 edge.RefreshTraversal(Tracker);
             }
-            if (!Moving && LocalPlayer.transform.position.y < arena.position.y - 2.5f &&
+            if (CanAct && LocalPlayer.transform.position.y < arena.position.y - 2.5f &&
                 (State == GraphStageState.ACTIVE || State == GraphStageState.WAITING_FOR_ACTIVATION))
                 StartCoroutine(ResetPosition(true));
             ui.Refresh();
@@ -116,11 +135,13 @@ namespace LogicLegends.Graph
         private IEnumerator Activate()
         {
             Moving = true; // consumes repeated activation taps immediately
+            ui.HideAnnouncement();
             yield return ResetPosition(false);
             if (State != GraphStageState.WAITING_FOR_ACTIVATION) yield break;
             State = GraphStageState.ACTIVE;
             Feedback = Challenge.objective;
             timer.Resume();
+            ui.ShowStartAnnouncement();
         }
         public void SelectAnswer(int number)
         {
@@ -224,7 +245,9 @@ namespace LogicLegends.Graph
             Correct++;
             timer.Pause();
             State = GraphStageState.CHALLENGE_COMPLETE;
-            Feedback = "CHALLENGE " + (ChallengeIndex + 1) + " COMPLETE!";
+            Feedback = "";
+            if (Correct < ChallengeCount) ui.ShowCompletionAnnouncement(ChallengeIndex + 1, ChallengeIndex + 2);
+            else ui.HideAnnouncement();
             StartCoroutine(Advance());
         }
         private IEnumerator WrongFeedback()
@@ -250,7 +273,7 @@ namespace LogicLegends.Graph
             yield return ResetPosition(false, true);
             LocalPlayer.ToggleControl(true);
             State = GraphStageState.WAITING_FOR_ACTIVATION;
-            Feedback = "Challenge complete. Interact with the Book Statue to start the next challenge.";
+            Feedback = "Approach the Book Statue when you are ready.";
         }
         public void HandleGameOver()
         {
@@ -264,24 +287,88 @@ namespace LogicLegends.Graph
         }
         public void SetLesson(bool open)
         {
-            if (!Ready || Moving || (State != GraphStageState.WAITING_FOR_ACTIVATION && State != GraphStageState.ACTIVE)) return;
-            lessonOpen = open;
-            LocalPlayer.ToggleControl(!open);
-            input.SetGameplayInputBlocked(open);
-            // Lesson reading is outside active gameplay duration.
-            if (State == GraphStageState.ACTIVE)
-            { if (open) timer.Pause(); else timer.Resume(); }
-            ui.ShowLesson(open);
+            if (open)
+            {
+                if (!CanAct || (State != GraphStageState.WAITING_FOR_ACTIVATION && State != GraphStageState.ACTIVE)) return;
+                lessonTimerWasRunning = timer.Running;
+                lessonPlayerWasEnabled = LocalPlayer.enabled;
+                lessonInputWasBlocked = input.GameplayInputBlocked;
+                lessonTimeScale = Time.timeScale;
+                lessonCursorLock = Cursor.lockState;
+                lessonCursorWasVisible = Cursor.visible;
+                lessonSettings = ui.settingsButton == null ? null : ui.settingsButton.GetComponent<UnityEngine.UI.Button>();
+                if (lessonSettings != null)
+                { lessonSettingsWereEnabled = lessonSettings.interactable; lessonSettings.interactable = false; }
+                lessonCameraInputs.Clear();
+                foreach (var cameraInput in FindObjectsByType<CameraTargetController>(FindObjectsSortMode.None)) PauseLessonCamera(cameraInput);
+                foreach (var cameraInput in FindObjectsByType<Unity.Cinemachine.CinemachineInputAxisController>(FindObjectsSortMode.None)) PauseLessonCamera(cameraInput);
+                foreach (var cameraInput in FindObjectsByType<CinemachinePinchZoom>(FindObjectsSortMode.None)) PauseLessonCamera(cameraInput);
+                foreach (var cameraInput in FindObjectsByType<ThirdPersonCameraController>(FindObjectsSortMode.None)) PauseLessonCamera(cameraInput);
+                lessonOpen = true;
+                timer.Pause();
+                input.SetGameplayInputBlocked(true);
+                LocalPlayer.ToggleControl(false);
+                MobileLookInput.ResetDelta();
+                Time.timeScale = 0;
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+                ui.ShowLesson(true);
+                return;
+            }
+            if (!lessonOpen) return;
+            lessonOpen = false;
+            if (ui != null) ui.ShowLesson(false);
+            Time.timeScale = lessonTimeScale;
+            bool playable = State == GraphStageState.ACTIVE || State == GraphStageState.WAITING_FOR_ACTIVATION;
+            if (input != null) input.SetGameplayInputBlocked(playable ? lessonInputWasBlocked : true);
+            if (LocalPlayer != null) LocalPlayer.ToggleControl(playable && lessonPlayerWasEnabled);
+            foreach (var cameraInput in lessonCameraInputs) if (cameraInput != null) cameraInput.enabled = true;
+            lessonCameraInputs.Clear();
+            MobileLookInput.ResetDelta();
+            if (lessonSettings != null) lessonSettings.interactable = lessonSettingsWereEnabled;
+            Cursor.lockState = lessonCursorLock;
+            Cursor.visible = lessonCursorWasVisible;
+            if (lessonTimerWasRunning && State == GraphStageState.ACTIVE && timer != null) timer.Resume();
+        }
+        public void BeginFromHelp()
+        {
+            if (!lessonOpen) return;
+            SetLesson(false);
+            if (!onboardingPending || State != GraphStageState.WAITING_FOR_ACTIVATION || ChallengeIndex != 0) return;
+            if (controlsTutorial == null) controlsTutorial = GetComponent<GraphControlsOnboarding>();
+            if (controlsTutorial == null) controlsTutorial = gameObject.AddComponent<GraphControlsOnboarding>();
+            if (controlsTutorial.Begin(this)) onboardingPending = false;
+        }
+        private void PauseLessonCamera(Behaviour cameraInput)
+        {
+            if (!cameraInput.enabled) return;
+            lessonCameraInputs.Add(cameraInput);
+            cameraInput.enabled = false;
         }
         public void RestartStage()
         {
-            Time.timeScale = 1; input?.SetGameplayInputBlocked(false);
-            TeleportManager.Instance.LoadSceneWithFade("Graph");
+            Navigate("Graph", 9);
         }
         public void ReturnToMenu()
         {
+            Navigate("Main Menu", 0);
+        }
+        public void PlayNextStage()
+        {
+            if (State != GraphStageState.STAGE_COMPLETE) return;
+            Navigate(NextStageScene, 10);
+        }
+        private void Navigate(string scene, int destinationStage)
+        {
+            if (navigating || (TeleportManager.Instance != null && TeleportManager.Instance.IsTransitioning)) return;
+            if (!Application.CanStreamedLevelBeLoaded(scene))
+            { Debug.LogError("Graph destination is missing from Build Settings: " + scene, this); return; }
+            navigating = true;
+            ui.PrepareResultNavigation();
             Time.timeScale = 1; input?.SetGameplayInputBlocked(false);
-            TeleportManager.Instance.LoadSceneWithFade("Main Menu");
+            if (destinationStage > 0) StageSelectionState.Select(destinationStage);
+            if (TeleportManager.Instance != null) TeleportManager.Instance.LoadSceneWithFade(scene);
+            else SceneManager.LoadScene(scene);
         }
     }
 }

@@ -45,6 +45,12 @@ public class GameInput : MonoBehaviour
     private void Jump_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        if (LogicLegends.Induction.InductionControlsOnboarding.Active != null &&
+            LogicLegends.Induction.InductionControlsOnboarding.Active.IsActive &&
+            !LogicLegends.Induction.InductionControlsOnboarding.Active.AllowsJump) return;
+        if (LogicLegends.Graph.GraphControlsOnboarding.Active != null &&
+            LogicLegends.Graph.GraphControlsOnboarding.Active.IsActive &&
+            !LogicLegends.Graph.GraphControlsOnboarding.Active.AllowsJump) return;
         SetssssControlsOnboarding setsPractice = SetssssControlsOnboarding.Active;
         if (setsPractice != null && setsPractice.IsActive)
         {
@@ -75,6 +81,10 @@ public class GameInput : MonoBehaviour
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        if (LogicLegends.Induction.InductionControlsOnboarding.Active != null && LogicLegends.Induction.InductionControlsOnboarding.Active.IsActive)
+        { LogicLegends.Induction.InductionControlsOnboarding.Active.TryPracticeInteraction(); return; }
+        if (LogicLegends.Graph.GraphControlsOnboarding.Active != null && LogicLegends.Graph.GraphControlsOnboarding.Active.IsActive)
+        { LogicLegends.Graph.GraphControlsOnboarding.Active.TryPracticeInteraction(); return; }
         SetssssControlsOnboarding setsPractice = SetssssControlsOnboarding.Active;
         if (setsPractice != null && setsPractice.IsActive)
         {
@@ -110,6 +120,10 @@ public class GameInput : MonoBehaviour
     public Vector2 GetMovementVectorNormalized(float deadZone)
     {
         if (GameplayInputBlocked) return Vector2.zero;
+        if (LogicLegends.Induction.InductionControlsOnboarding.Active != null &&
+            LogicLegends.Induction.InductionControlsOnboarding.Active.TryGetMovementOverride(out Vector2 inductionMovement)) return inductionMovement;
+        if (LogicLegends.Graph.GraphControlsOnboarding.Active != null &&
+            LogicLegends.Graph.GraphControlsOnboarding.Active.TryGetMovementOverride(out Vector2 practiceMovement)) return practiceMovement;
         if (SetssssControlsOnboarding.Active != null &&
             SetssssControlsOnboarding.Active.SuppressMovement) return Vector2.zero;
         if (InferenceControlsOnboarding.Active != null &&
@@ -139,6 +153,12 @@ public class GameInput : MonoBehaviour
     public void MobileJump()
     {
         if (GameplayInputBlocked) return;
+        if (LogicLegends.Induction.InductionControlsOnboarding.Active != null &&
+            LogicLegends.Induction.InductionControlsOnboarding.Active.IsActive &&
+            !LogicLegends.Induction.InductionControlsOnboarding.Active.AllowsJump) return;
+        if (LogicLegends.Graph.GraphControlsOnboarding.Active != null &&
+            LogicLegends.Graph.GraphControlsOnboarding.Active.IsActive &&
+            !LogicLegends.Graph.GraphControlsOnboarding.Active.AllowsJump) return;
         SetssssControlsOnboarding setsPractice = SetssssControlsOnboarding.Active;
         if (setsPractice != null && setsPractice.IsActive)
         {
@@ -169,6 +189,10 @@ public class GameInput : MonoBehaviour
     public void MobileInteract()
     {
         if (GameplayInputBlocked) return;
+        if (LogicLegends.Induction.InductionControlsOnboarding.Active != null && LogicLegends.Induction.InductionControlsOnboarding.Active.IsActive)
+        { LogicLegends.Induction.InductionControlsOnboarding.Active.TryPracticeInteraction(); return; }
+        if (LogicLegends.Graph.GraphControlsOnboarding.Active != null && LogicLegends.Graph.GraphControlsOnboarding.Active.IsActive)
+        { LogicLegends.Graph.GraphControlsOnboarding.Active.TryPracticeInteraction(); return; }
         SetssssControlsOnboarding setsPractice = SetssssControlsOnboarding.Active;
         if (setsPractice != null && setsPractice.IsActive)
         {

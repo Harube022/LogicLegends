@@ -16,7 +16,17 @@ namespace LogicLegends.Graph
         public RectTransform host;
         public GameObject gameplayControls;
         private GraphStageManager stage;
-        private TMP_Text objective, route, feedback, clock, penalty, resultText, lessonBody, fieldNotes;
+        private TMP_Text objective, route, feedback, clock, penalty, resultText, lessonBody, lessonTitle, lessonPage, lessonScrollHint, fieldNotes;
+        private RectTransform lessonCard, lessonViewport;
+        private ScrollRect lessonScroll;
+        private Button previousPage, nextPage, beginHelp;
+        private int helpPage;
+        private struct HelpPage
+        {
+            public string title, body;
+            public HelpPage(string title, string body) { this.title = title; this.body = body; }
+        }
+        private readonly List<HelpPage> helpPages = new List<HelpPage>();
         private float penaltyUntil;
         private RectTransform root, map;
         private GameObject result, lesson, choices;
@@ -29,7 +39,16 @@ namespace LogicLegends.Graph
         private static readonly Color MapNodeFill = new Color32(80, 51, 34, 255);
         private static readonly Color MapNodeText = new Color32(255, 242, 212, 255);
         private TMP_FontAsset routeFont;
+        private RectTransform announcement;
+        private TMP_Text announcementText;
+        private float announcementUntil = -1;
+        private bool startAnnouncement;
+        private StageResultCard resultCard;
+        private bool completionShown;
+        private readonly List<Behaviour> resultCameraInputs = new List<Behaviour>();
         public GameObject ResultPanel => result;
+        public bool AnnouncementVisible => announcement != null && announcement.gameObject.activeInHierarchy;
+        public string AnnouncementText => announcementText != null ? announcementText.text : "";
 
         public void Build(GraphStageManager manager)
         {
@@ -83,9 +102,9 @@ namespace LogicLegends.Graph
             route = Text(routePanel, "Route", stage.Challenge.start, 23, true); route.font = routeFont; Inset(route.rectTransform, 20, 10);
             var feedbackPanel = Panel("Feedback", root, new Vector2(0, 1), new Vector2(30, -400), new Vector2(360, 100), new Vector2(0, 1));
             feedback = Text(feedbackPanel, "Feedback text", "", 22, true); Inset(feedback.rectTransform, 20, 10);
-            confirm = Action("Confirm", root, "INTERACT", () => { if (stage.State == GraphStageState.WAITING_FOR_ACTIVATION) stage.InteractBook(); else stage.Confirm(); }, new Vector2(0, 160));
-            retry = Action("Retry", root, "RETRY ROUTE", () => { if (stage.Challenge.type == GraphChallengeType.Degree) stage.ClearSelection(); else stage.RetryRoute(); }, new Vector2(0, 65));
-            lessonButton = Action("Lesson", root, "FIELD GUIDE", () => stage.SetLesson(true), new Vector2(0, 70));
+            confirm = Action("Confirm", root, "INTERACT", () => { if (stage.TutorialActive) stage.controlsTutorial.PracticeConfirm(); else if (stage.State == GraphStageState.WAITING_FOR_ACTIVATION) stage.InteractBook(); else stage.Confirm(); }, new Vector2(0, 160));
+            retry = Action("Retry", root, "RETRY ROUTE", () => { if (stage.TutorialActive) stage.controlsTutorial.PracticeRetry(); else if (stage.Challenge.type == GraphChallengeType.Degree) stage.ClearSelection(); else stage.RetryRoute(); }, new Vector2(0, 65));
+            lessonButton = Action("Lesson", root, "HELP", () => stage.SetLesson(true), new Vector2(0, 70));
             Place((RectTransform)lessonButton.transform,new Vector2(0,1),new Vector2(210,-91),new Vector2(140,72),new Vector2(0,.5f));
             var guideLabel = lessonButton.GetComponentInChildren<TMP_Text>();
             guideLabel.fontSizeMin = 18; guideLabel.fontSizeMax = 24;
@@ -96,7 +115,7 @@ namespace LogicLegends.Graph
             for (int i = 0; i <= 6; i++)
             {
                 int number = i;
-                var b = StageUITheme.Button("Answer " + i, choices.transform, i.ToString(), () => stage.SelectAnswer(number));
+                var b = StageUITheme.Button("Answer " + i, choices.transform, i.ToString(), () => { if (stage.TutorialActive) stage.controlsTutorial.PracticeSelect(number); else stage.SelectAnswer(number); });
                 Place((RectTransform)b.transform, new Vector2(0, 1), new Vector2(55 + (i%4)*120, -32-(i/4)*68), new Vector2(110, 64), new Vector2(.5f, .5f));
                 b.GetComponent<Image>().type = Image.Type.Simple;
                 b.GetComponent<Image>().preserveAspect = true;
@@ -105,39 +124,121 @@ namespace LogicLegends.Graph
                 answerLabel.rectTransform.offsetMin=new Vector2(6,2);answerLabel.rectTransform.offsetMax=new Vector2(-6,-2);
                 answerButtons.Add(b);
             }
-            result = Modal("Graph result");
-            var resultPanel = Panel("Result frame", result.transform, new Vector2(.5f, .5f), Vector2.zero, new Vector2(900, 740), new Vector2(.5f, .5f), true);
-            resultText = Text(resultPanel, "Summary", "", 42, false);
-            StageUITheme.Stretch(resultText.rectTransform, new Vector2(.08f, .35f), new Vector2(.92f, .9f));
-            Action("Restart", resultPanel, "PLAY AGAIN", stage.RestartStage, new Vector2(-170, 160));
-            Action("MainMenuButton", resultPanel, "MAIN MENU", stage.ReturnToMenu, new Vector2(170, 160));
-            result.SetActive(false);
+            resultCard = StageResultCard.Build(root, stage.ReturnToMenu);
+            result = resultCard.Root.gameObject;
+            resultText = resultCard.Summary;
+            resultText.enableAutoSizing = true; resultText.fontSizeMin = 23; resultText.fontSizeMax = 31;
+            resultCard.Extra.gameObject.SetActive(false);
 
-            lesson = Modal("Graph field guide");
-            // Use the Study Library's brown cover and twin parchment pages for lessons.
-            var cover = StageUITheme.Rect("Book cover", lesson.transform);
-            Place(cover, new Vector2(.5f, .5f), Vector2.zero, new Vector2(1320, 800), new Vector2(.5f, .5f));
-            cover.gameObject.AddComponent<Image>().color = new Color(.23f, .105f, .045f);
-            var coverOutline = cover.gameObject.AddComponent<Outline>();
-            coverOutline.effectColor = new Color(.08f, .035f, .015f);
-            coverOutline.effectDistance = new Vector2(8, -8);
-            for (int i = 0; i < 2; i++)
-            {
-                var paper = StageUITheme.Rect("Reading page " + i, cover);
-                StageUITheme.Stretch(paper, new Vector2(i == 0 ? .045f : .51f, .19f), new Vector2(i == 0 ? .49f : .955f, .92f));
-                var image = paper.gameObject.AddComponent<Image>(); image.sprite = parchment; image.preserveAspect = true; image.raycastTarget = false;
-            }
-            var spine = StageUITheme.Rect("Spine", cover); StageUITheme.Stretch(spine, new Vector2(.494f, .19f), new Vector2(.506f, .92f));
-            spine.gameObject.AddComponent<Image>().color = new Color(.23f, .105f, .045f);
-            lessonBody = Text(cover, "Lesson", "", 30, true); lessonBody.color = StageUITheme.ReadingInk;
-            StageUITheme.Stretch(lessonBody.rectTransform, new Vector2(.11f, .26f), new Vector2(.43f, .82f));
-            fieldNotes = Text(cover, "Field notes", "", 28, true);
-            fieldNotes.color = StageUITheme.ReadingInk; StageUITheme.Stretch(fieldNotes.rectTransform, new Vector2(.58f, .25f), new Vector2(.89f, .82f));
-            Action("Close book", cover, "CLOSE BOOK", () => stage.SetLesson(false), new Vector2(0, 87));
+            BuildHelp();
+            BuildAnnouncement();
+        }
+
+        private void BuildHelp()
+        {
+            helpPages.Add(new HelpPage("Your graph journey", "Complete " + stage.ChallengeCount + " challenges selected at random from a bank of " + stage.catalog.challenges.Count + ". Graphs use letters or numbers for their vertices. Read the objective for your current graph: your run may include travel, degree, path, directed-path, or cycle tasks. Your selection stays the same through retries and Help."));
+            helpPages.Add(new HelpPage("Start at the book", "Approach the Book Statue and tap the hand button, the keyboard interaction key, or INTERACT. Each challenge begins at its starting vertex. Closing Help only restores your controls; it does not activate the book or start the timer. After each correct challenge, interact with the book again to start the next one."));
+            helpPages.Add(new HelpPage("Move and read the map", "Move with the joystick or WASD, and use the jump button or keyboard jump control. Platforms are vertices; bridges are edges. The minimap shows the graph, arrows, and your position. Cross a connecting bridge completely to record a move. Available bridges glow orange; crossed bridges turn blue. The ROUTE label lists your recorded vertices."));
+            helpPages.Add(new HelpPage("Vertices and edges", "A vertex is a point in a graph. An edge joins two vertices. For a travel task, start at the vertex named in the objective, cross its connecting bridge, and reach the required destination. Stop on the destination platform and tap CONFIRM. Follow the visible bridges rather than jumping between unconnected platforms."));
+            helpPages.Add(new HelpPage("Vertex degree", "The degree of a vertex counts the edges meeting it. Find the vertex named in the objective, inspect its incident edges, then select a number from the on-screen choices and tap CONFIRM. Movement alone does not answer a degree question. CLEAR SELECTION removes your selected number so you can choose again."));
+            helpPages.Add(new HelpPage("Find a path", "Follow connecting edges from the starting vertex to the destination named in the objective. A simple path must not repeat a vertex. Your full recorded route is checked, so tap CONFIRM at the destination rather than backtracking to the book. If you need a fresh route, use RETRY ROUTE to return to the start."));
+            helpPages.Add(new HelpPage("Directed paths", "Arrows show the permitted direction of a directed edge. Travel from the stated start to the destination using the arrows. Reverse travel is blocked, and a valid simple path cannot repeat a vertex. Read the map before choosing a bridge, then tap CONFIRM while standing on the destination platform."));
+            helpPages.Add(new HelpPage("Complete a cycle", "A cycle returns to its starting vertex. Visit at least three distinct vertices along connecting edges, then return to the start without repeating any intermediate vertex. The starting vertex may appear again only to close the cycle. Tap CONFIRM after arriving back at the starting platform."));
+            helpPages.Add(new HelpPage("Confirm and try again", "CONFIRM checks your selected degree or entire recorded route. Interacting with the book during an active challenge also checks your answer. Correct answers show green platform feedback and advance. Incorrect answers show red feedback with a reason, cost 10 seconds, and briefly stop movement. Your route or selection stays intact so you can review it."));
+            helpPages.Add(new HelpPage("Retry safely", "If your route leaves a connecting bridge, is interrupted, or repeats a vertex, tap RETRY ROUTE. It returns you to the start and clears that route, preserving the remaining countdown and mistake count. Falling also returns you to the start. Retries and Help never reshuffle your challenges. For degree questions, choose a different number or use CLEAR SELECTION."));
+            helpPages.Add(new HelpPage("Watch the countdown", "The stage starts with " + StageJourneyUI.FormatTime(stage.countdownSeconds) + " on one shared countdown. Time runs only after book activation, pauses between challenges and while Help is open, and carries over to the next challenge. Every incorrect confirmation subtracts 10 seconds. At zero, Game Over ends the run."));
+            helpPages.Add(new HelpPage("Complete the stage", "A correct answer pauses the clock and prepares the next graph. Activate the book again when you are ready. Finish all " + stage.ChallengeCount + " selected challenges to complete the stage and see your time played, correct answers, and mistakes. PLAY NEXT STAGE opens Trees; GO TO MENU returns to Main Menu. If time runs out, PLAY AGAIN starts a new random run."));
+
+            lesson = Modal("Graph How To Play Overlay");
+            lessonCard = StageUITheme.Rect("TutorialCard", lesson.transform);
+            lessonCard.gameObject.AddComponent<Image>();
+            StageUITheme.Text("SectionLabel", lessonCard, "GRAPH / HOW TO PLAY", 28);
+            lessonTitle = StageUITheme.Text("PageTitle", lessonCard, "", 44);
+            lessonPage = StageUITheme.Text("PageIndicator", lessonCard, "", 28);
+            // Use the same book artwork, fonts, and button treatment as PRELIM.
+            previousPage = StageUITheme.Button("PreviousPage", lessonCard, "PREVIOUS", PreviousHelpPage);
+            nextPage = StageUITheme.Button("NextPage", lessonCard, "NEXT", NextHelpPage);
+            beginHelp = StageUITheme.Button("BeginButton", lessonCard, "LET'S BEGIN", stage.BeginFromHelp);
+            StageUITheme.SkinTutorial(lesson);
+            fieldNotes = lessonCard.Find("FieldNotesBody").GetComponent<TMP_Text>();
+            fieldNotes.text = "CHECK YOUR OBJECTIVE\n\nLabels may be letters or numbers.\n\nUse bridges to record your route.\n\nCONFIRM checks your answer.\n\nHELP pauses play without changing your route or selection.";
+
+            lessonViewport = StageUITheme.Rect("PageViewport", lessonCard);
+            var hitArea = lessonViewport.gameObject.AddComponent<Image>();
+            hitArea.color = Color.clear;
+            lessonViewport.gameObject.AddComponent<RectMask2D>();
+            lessonScroll = lessonViewport.gameObject.AddComponent<ScrollRect>();
+            lessonScroll.viewport = lessonViewport;
+            lessonScroll.horizontal = false;
+            lessonScroll.movementType = ScrollRect.MovementType.Clamped;
+            var content = StageUITheme.Rect("PageBody", lessonViewport);
+            content.anchorMin = new Vector2(0, 1); content.anchorMax = Vector2.one;
+            content.pivot = new Vector2(.5f, 1); content.offsetMin = content.offsetMax = Vector2.zero;
+            // The text is the scroll content itself so its preferred height grows naturally.
+            lessonBody = content.gameObject.AddComponent<TextMeshProUGUI>();
+            lessonBody.font = StageUITheme.ReadingFont;
+            lessonBody.fontSize = 32;
+            lessonBody.color = StageUITheme.ReadingInk;
+            lessonBody.alignment = TextAlignmentOptions.TopLeft;
+            lessonBody.textWrappingMode = TextWrappingModes.Normal;
+            lessonBody.raycastTarget = false;
+            lessonBody.margin = new Vector4(0, 0, 8, 8);
+            content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            lessonScroll.content = content;
+            lessonScrollHint = StageUITheme.Text("ScrollHint", lessonCard, "", 20, true);
+            lessonScrollHint.color = StageUITheme.ReadingInk;
+            LayoutHelp();
             lesson.SetActive(false);
+        }
+
+        private void LayoutHelp()
+        {
+            bool portrait = host.rect.width < host.rect.height * 1.2f;
+            StageUITheme.Stretch(lessonCard, portrait ? new Vector2(.025f,.035f) : new Vector2(.05f,.055f), portrait ? new Vector2(.975f,.965f) : new Vector2(.95f,.945f));
+            StageUITheme.Stretch(lessonTitle.rectTransform, new Vector2(.08f,.67f), new Vector2(portrait ? .92f : .46f,.78f));
+            StageUITheme.Stretch(lessonViewport, new Vector2(portrait ? .12f : .08f,.30f), new Vector2(portrait ? .88f : .46f,.65f));
+            lessonBody.fontSize = portrait ? 28 : 32;
+            StageUITheme.Stretch(lessonScrollHint.rectTransform, new Vector2(.08f,.255f), new Vector2(portrait ? .92f : .46f,.285f));
+            lessonScrollHint.text = lessonBody.preferredHeight > lessonViewport.rect.height + 2 ? "Swipe text to read more" : "";
+            var leftPaper = (RectTransform)lessonCard.Find("LeftReadingPage");
+            StageUITheme.Stretch(leftPaper, new Vector2(.045f,.25f), new Vector2(portrait ? .955f : .49f,.85f));
+            foreach (string name in new[] { "RightReadingPage", "BookSpine", "FieldNotesHeading", "FieldNotesBody" })
+                lessonCard.Find(name).gameObject.SetActive(!portrait);
+            StageUITheme.Stretch((RectTransform)previousPage.transform, new Vector2(portrait ? .07f : .09f,.10f), new Vector2(portrait ? .34f : .28f,.21f));
+            StageUITheme.Stretch((RectTransform)nextPage.transform, new Vector2(portrait ? .36f : .30f,.10f), new Vector2(portrait ? .53f : .49f,.21f));
+            StageUITheme.Stretch(lessonPage.rectTransform, new Vector2(portrait ? .535f : .50f,.10f), new Vector2(portrait ? .645f : .62f,.21f));
+            StageUITheme.Stretch((RectTransform)beginHelp.transform, new Vector2(portrait ? .665f : .64f,.10f), new Vector2(portrait ? .93f : .91f,.21f));
+            foreach (var button in new[] { previousPage, nextPage, beginHelp })
+            {
+                var label = button.GetComponentInChildren<TMP_Text>();
+                label.fontSizeMin = portrait ? 18 : 22;
+                label.fontSizeMax = portrait ? 24 : 30;
+                label.rectTransform.offsetMin = new Vector2(portrait ? 8 : 28, 10);
+                label.rectTransform.offsetMax = -label.rectTransform.offsetMin;
+            }
+        }
+
+        public void PreviousHelpPage() { if (helpPage > 0) { helpPage--; ShowHelpPage(); } }
+        public void NextHelpPage() { if (helpPage < helpPages.Count - 1) { helpPage++; ShowHelpPage(); } }
+        private void ShowHelpPage()
+        {
+            lessonTitle.text = helpPages[helpPage].title;
+            lessonBody.text = helpPages[helpPage].body;
+            lessonPage.text = (helpPage + 1) + " / " + helpPages.Count;
+            previousPage.interactable = helpPage > 0;
+            nextPage.interactable = helpPage < helpPages.Count - 1;
+            foreach (var button in new[] { previousPage, nextPage })
+            {
+                var group = button.GetComponent<CanvasGroup>();
+                if (group == null) group = button.gameObject.AddComponent<CanvasGroup>();
+                group.alpha = button.interactable ? 1 : .55f;
+            }
+            Canvas.ForceUpdateCanvases();
+            lessonScroll.verticalNormalizedPosition = 1;
         }
         public void Refresh()
         {
+            if (lesson.activeSelf) LayoutHelp();
             // On tablet ratios the original joystick and hand occupy the lower center.
             // Move only Graph-owned actions into the free left column.
             bool compact = host.rect.width < 1700;
@@ -157,6 +258,8 @@ namespace LogicLegends.Graph
             for(int i=0;i<answerButtons.Count;i++)
                 Place((RectTransform)answerButtons[i].transform,new Vector2(0,1),
                     compact?new Vector2(55+(i%2)*120,-32-(i/2)*68):new Vector2(55+(i%4)*120,-32-(i/4)*68),new Vector2(110,64),new Vector2(.5f,.5f));
+            if (stage.TutorialActive && stage.controlsTutorial.ShowingGameplayPreview)
+            { RefreshPractice(); return; }
             bool active = stage.State == GraphStageState.ACTIVE;
             objective.text = "<color=#291A0F><b>GRAPH  " + (stage.ChallengeIndex + 1) + "/" + stage.ChallengeCount + "  /  " + stage.Challenge.title.ToUpperInvariant() + "</b></color>\n" + stage.Challenge.objective;
             route.text = stage.Challenge.type == GraphChallengeType.Degree ? "SELECTED DEGREE: " + (stage.Answer.HasValue ? stage.Answer.Value.ToString() : "—") : "ROUTE   " + string.Join(" → ", stage.Tracker.Route);
@@ -167,7 +270,11 @@ namespace LogicLegends.Graph
             retry.interactable = stage.CanAct && active;
             retry.GetComponentInChildren<TMP_Text>().text = stage.Challenge.type == GraphChallengeType.Degree ? "CLEAR SELECTION" : "RETRY ROUTE";
             lessonButton.interactable = stage.CanAct && (active || stage.State == GraphStageState.WAITING_FOR_ACTIVATION);
-            choices.SetActive(stage.Challenge.type == GraphChallengeType.Degree && active);
+            if (announcementUntil >= 0 && Time.unscaledTime >= announcementUntil) HideAnnouncement();
+            // The brief centered Start message reserves the middle of the HUD.
+            // Degree buttons reappear afterward without changing their selection or callbacks.
+            choices.SetActive(stage.Challenge.type == GraphChallengeType.Degree && active && !AnnouncementVisible);
+            if (AnnouncementVisible) LayoutAnnouncement();
             for (int i = 0; i < answerButtons.Count; i++)
             {
                 answerButtons[i].interactable = stage.CanAct && active;
@@ -194,17 +301,18 @@ namespace LogicLegends.Graph
                 playerMarker.localRotation = Quaternion.Euler(0,0,180-stage.LocalPlayer.transform.eulerAngles.y+stage.arena.eulerAngles.y);
             }
         }
-        public void RebuildMap()
+        public void RebuildMap(GraphChallengeData preview = null)
         {
+            var graph = preview ?? stage.Challenge;
             foreach (Transform child in map) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
             mapVertices.Clear();
             mapEdges.Clear();
             Vector2 mapCenter = Vector2.zero;
-            foreach (var vertex in stage.Challenge.vertices) mapCenter += MapPoint(vertex.position);
-            mapCenter /= Mathf.Max(1, stage.Challenge.vertices.Count);
-            foreach (var edge in stage.Challenge.edges)
+            foreach (var vertex in graph.vertices) mapCenter += MapPoint(vertex.position);
+            mapCenter /= Mathf.Max(1, graph.vertices.Count);
+            foreach (var edge in graph.edges)
             {
-                Vector2 a = MapPoint(stage.Challenge.Vertex(edge.source).position), b = MapPoint(stage.Challenge.Vertex(edge.destination).position);
+                Vector2 a = MapPoint(graph.Vertex(edge.source).position), b = MapPoint(graph.Vertex(edge.destination).position);
                 var line = StageUITheme.Rect("Edge", map); Place(line, new Vector2(.5f, .5f), (a + b) / 2, new Vector2((b-a).magnitude, 3), new Vector2(.5f, .5f));
                 line.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(b.y-a.y, b.x-a.x)*Mathf.Rad2Deg);
                 var image = line.gameObject.AddComponent<Image>(); image.color = GraphEdge.AvailableColor; image.raycastTarget = false; mapEdges[edge] = image;
@@ -219,7 +327,7 @@ namespace LogicLegends.Graph
                     arrow.rectTransform.localRotation = Quaternion.Euler(0,0,Mathf.Atan2(b.y-a.y,b.x-a.x)*Mathf.Rad2Deg);
                 }
             }
-            foreach (var vertex in stage.Challenge.vertices)
+            foreach (var vertex in graph.vertices)
             {
                 var rect = StageUITheme.Rect(vertex.id, map); Place(rect, new Vector2(.5f,.5f), MapPoint(vertex.position), new Vector2(28,28), new Vector2(.5f,.5f));
                 var image = rect.gameObject.AddComponent<Image>(); image.raycastTarget=false; mapVertices[vertex.id]=image;
@@ -236,19 +344,152 @@ namespace LogicLegends.Graph
         public void ShowPenalty() { penaltyUntil = Time.unscaledTime + 2.5f; penalty.gameObject.SetActive(true); }
         public void ShowResult(bool success)
         {
+            if (success && completionShown) return;
+            if (success) completionShown = true;
+            HideAnnouncement();
             lesson.SetActive(false); result.SetActive(true); result.transform.SetAsLastSibling();
             if (gameplayControls != null) gameplayControls.SetActive(false);
-            resultText.text = (success ? "GRAPH STAGE COMPLETE!" : "TIME'S UP") + "\n\nTime Played: " + StageJourneyUI.FormatTime(stage.timer.ActiveSeconds) + "\nCorrect: " + stage.Correct + "\nMistakes: " + stage.Mistakes;
+            resultCard.Stage.text = "STAGE 9  /  GRAPHS";
+            resultCard.Heading.text = success ? "STAGE COMPLETE" : "TIME'S UP";
+            resultText.text = "Time Played: " + StageJourneyUI.FormatTime(stage.timer.ActiveSeconds) + "\nCorrect: " + stage.Correct + "\nMistakes: " + stage.Mistakes;
+            resultCard.Primary.GetComponentInChildren<TMP_Text>().text = success ? "Play Next Stage" : "Play Again";
+            resultCard.Menu.GetComponentInChildren<TMP_Text>().text = "Go to Menu";
+            resultCard.Primary.onClick.RemoveAllListeners();
+            if (success) resultCard.Primary.onClick.AddListener(stage.PlayNextStage);
+            else resultCard.Primary.onClick.AddListener(stage.RestartStage);
+            stage.timer.Pause();
+            GameInput.Instance?.SetGameplayInputBlocked(true); stage.LocalPlayer?.ToggleControl(false);
+            foreach (var camera in FindObjectsByType<CameraTargetController>(FindObjectsSortMode.None)) PauseResultCamera(camera);
+            foreach (var camera in FindObjectsByType<Unity.Cinemachine.CinemachineInputAxisController>(FindObjectsSortMode.None)) PauseResultCamera(camera);
+            foreach (var camera in FindObjectsByType<CinemachinePinchZoom>(FindObjectsSortMode.None)) PauseResultCamera(camera);
+            foreach (var camera in FindObjectsByType<ThirdPersonCameraController>(FindObjectsSortMode.None)) PauseResultCamera(camera);
+            MobileLookInput.ResetDelta();
+            Cursor.lockState = CursorLockMode.None; Cursor.visible = true; Time.timeScale = 0;
+            if (success) WorldStageAudio.PlayStageCompletion();
+        }
+        private void PauseResultCamera(Behaviour input)
+        { if (input.enabled) { resultCameraInputs.Add(input); input.enabled = false; } }
+        public void PrepareResultNavigation()
+        {
+            resultCard.Primary.interactable = false; resultCard.Menu.interactable = false;
+            foreach (var input in resultCameraInputs) if (input != null) input.enabled = true;
+            resultCameraInputs.Clear(); MobileLookInput.ResetDelta();
         }
         public void ShowLesson(bool open)
         {
+            if (lesson == null) return; // The canvas may be destroyed before the stage during scene exit.
             lesson.SetActive(open);
             if (open)
             {
-                lessonBody.text = stage.Challenge.title.ToUpperInvariant() + "\n\n" + stage.Challenge.lesson;
-                fieldNotes.text = "ON YOUR JOURNEY\n\nMove with WASD or the joystick.\n\nCross a bridge completely to record a move.\n\nConfirm remotely at your destination.\n\nRETRY ROUTE returns you to " + stage.Challenge.start + ". Your countdown and mistakes stay the same.\n\nWrong confirmations cost 10 seconds.";
+                helpPage = 0;
+                LayoutHelp();
+                ShowHelpPage();
+                root.SetAsLastSibling();
                 lesson.transform.SetAsLastSibling();
             }
+        }
+        public void SetControlsTutorialVisible(bool visible)
+        {
+            if (root != null) root.gameObject.SetActive(!visible);
+        }
+        private void BuildAnnouncement()
+        {
+            announcement = StageUITheme.Rect("Graph Challenge Announcement", root);
+            var background = announcement.gameObject.AddComponent<Image>();
+            background.color = new Color(.025f,.11f,.16f,.92f); background.raycastTarget = false;
+            announcementText = StageUITheme.Text("Announcement message", announcement, "", 44, true);
+            announcementText.fontStyle = FontStyles.Bold;
+            announcementText.alignment = TextAlignmentOptions.Center;
+            announcementText.enableAutoSizing = true;
+            announcementText.outlineColor = new Color32(0,0,0,255); announcementText.outlineWidth = .2f;
+            Inset(announcementText.rectTransform,24,14);
+            announcement.gameObject.SetActive(false);
+        }
+        public void ShowStartAnnouncement()
+        {
+            if (stage.TutorialActive || stage.State != GraphStageState.ACTIVE) return;
+            ShowAnnouncement("Start!", true);
+            announcementUntil = Time.unscaledTime + 1.5f;
+        }
+        public void ShowCompletionAnnouncement(int completed, int next)
+        {
+            if (stage.TutorialActive || stage.State != GraphStageState.CHALLENGE_COMPLETE || next > stage.ChallengeCount) return;
+            ShowAnnouncement("Challenge " + completed + " completed! Interact with the book statue to start Challenge " + next + ".", false);
+        }
+        private void ShowAnnouncement(string message, bool compact)
+        {
+            HideAnnouncement();
+            startAnnouncement = compact; announcementText.text = message;
+            announcementText.color = compact ? new Color(1f,.9f,.55f) : Color.white;
+            announcement.gameObject.SetActive(true); announcement.SetAsLastSibling();
+            LayoutAnnouncement();
+        }
+        private void LayoutAnnouncement()
+        {
+            // Keep the banner between the left objective/route column and right map/clock column.
+            float width = startAnnouncement ? Mathf.Min(360,host.rect.width - 40)
+                : Mathf.Min(920,Mathf.Max(360,host.rect.width - 840));
+            announcementText.fontSize = announcementText.fontSizeMax = startAnnouncement ? 76 : 44;
+            announcementText.fontSizeMin = startAnnouncement ? 38 : 28;
+            float height = announcementText.GetPreferredValues(announcementText.text,width-48,0).y + 44;
+            Place(announcement,new Vector2(.5f,.5f),Vector2.zero,
+                new Vector2(width,Mathf.Clamp(height,96,host.rect.height*.36f)),new Vector2(.5f,.5f));
+        }
+        public void HideAnnouncement()
+        {
+            announcementUntil = -1;
+            if (announcement != null) announcement.gameObject.SetActive(false);
+        }
+        private readonly Dictionary<GameObject, bool> practiceVisibility = new Dictionary<GameObject, bool>();
+        public RectTransform TutorialTarget(string name) => root.Find(name) as RectTransform;
+        public void ShowPracticeElements(params string[] names)
+        {
+            root.gameObject.SetActive(true);
+            foreach (Transform child in root)
+            {
+                if (!practiceVisibility.ContainsKey(child.gameObject)) practiceVisibility.Add(child.gameObject, child.gameObject.activeSelf);
+                child.gameObject.SetActive(System.Array.IndexOf(names, child.name) >= 0);
+            }
+            RefreshPractice();
+        }
+        private void RefreshPractice()
+        {
+            var tutorial = stage.controlsTutorial;
+            objective.text = "<b>PRACTICE / " + tutorial.PracticeTitle + "</b>\n" + tutorial.PracticeObjective;
+            route.text = tutorial.PracticeGraph != null && tutorial.PracticeGraph.type == GraphChallengeType.Degree
+                ? "PRACTICE DEGREE: " + (tutorial.PracticeAnswer.HasValue ? tutorial.PracticeAnswer.Value.ToString() : "—")
+                : "PRACTICE ROUTE: " + string.Join(" → ", tutorial.PracticeRoute);
+            feedback.text = tutorial.PracticeFeedback;
+            clock.text = StageJourneyUI.FormatTime(stage.countdownSeconds) + "  PAUSED";
+            confirm.GetComponentInChildren<TMP_Text>().text = tutorial.CurrentStep == GraphTutorialStep.Book ? "INTERACT" : "CONFIRM";
+            confirm.interactable = tutorial.CanPracticeConfirm;
+            retry.GetComponentInChildren<TMP_Text>().text = tutorial.CurrentStep == GraphTutorialStep.Degree ? "CLEAR SELECTION" : "RETRY ROUTE";
+            retry.interactable = tutorial.CurrentStep == GraphTutorialStep.Degree || tutorial.CurrentStep == GraphTutorialStep.Retry;
+            lessonButton.interactable = false;
+            for (int i = 0; i < answerButtons.Count; i++)
+            {
+                answerButtons[i].interactable = tutorial.CurrentStep == GraphTutorialStep.Degree;
+                answerButtons[i].GetComponentInChildren<TMP_Text>().text = tutorial.PracticeAnswer == i ? "[" + i + "]" : i.ToString();
+            }
+            if (playerMarker != null) playerMarker.gameObject.SetActive(false);
+            foreach (var vertex in mapVertices)
+            {
+                vertex.Value.color = MapNodeFill;
+                vertex.Value.GetComponentInChildren<TMP_Text>().color = MapNodeText;
+            }
+            foreach (var edge in mapEdges)
+            {
+                bool walked = false;
+                for (int i = 1; i < tutorial.PracticeRoute.Count; i++)
+                    walked |= tutorial.PracticeRoute[i - 1] == edge.Key.source && tutorial.PracticeRoute[i] == edge.Key.destination;
+                edge.Value.color = walked ? GraphEdge.WalkedColor : GraphEdge.AvailableColor;
+            }
+        }
+        public void RestorePracticeElements()
+        {
+            foreach (var item in practiceVisibility) if (item.Key != null) item.Key.SetActive(item.Value);
+            practiceVisibility.Clear();
+            if (map != null) RebuildMap();
         }
         private GameObject Modal(string name)
         {

@@ -115,6 +115,8 @@ public class Player : MonoBehaviourPun
     private void GameInput_OnInteractAction(object sender, System.EventArgs e)
     {
         if (!enabled || isGuidedMovementActive) return; // Event subscriptions still fire on disabled behaviours.
+        if (LogicLegends.Induction.InductionStageManager.Instance != null &&
+            LogicLegends.Induction.InductionStageManager.Instance.TryHandleInteraction()) return;
         // Setssss uses these same hand/E inputs for its book and numbered blocks.
         // Consume a handled interaction so the generic overlap pickup cannot
         // select a different nearby block or drop it a second time.

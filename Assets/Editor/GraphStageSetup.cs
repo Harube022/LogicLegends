@@ -70,6 +70,7 @@ public static class GraphStageSetup
         var bounds=new Bounds(manager.bookStatue.position,Vector3.zero);
         foreach(var r in manager.bookStatue.GetComponentsInChildren<Renderer>())bounds.Encapsulate(r.bounds);
         manager.bookStatue.localScale*=1.9f/Mathf.Max(.1f,bounds.size.y);
+        GraphGeometry.EnsureBookCollision(manager.bookStatue);
         manager.correctSound=AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/Graph/Correct.wav");
         manager.wrongSound=AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Assets/Sounds Effects/WORLDBGM/DAMAGETAKEN1.mp3");
         Set(manager.gameOver,"gameOverSound",AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Assets/Sounds Effects/WORLDBGM/GAMEOVER1.mp3"));
