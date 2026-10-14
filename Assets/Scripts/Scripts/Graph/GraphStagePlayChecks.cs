@@ -322,9 +322,9 @@ public sealed class GraphStagePlayChecks : MonoBehaviour
         Check(distance > .8f && Vector3.Distance(m.LocalPlayer.transform.position,original) > .5f, "real player moves toward statue and is physically blocked");
         Check(m.NearBook && m.State == GraphStageState.WAITING_FOR_ACTIVATION && !m.timer.Running, "collision preserves interaction range without starting");
         PrelimTeleportTransition.MovePlayerImmediately(m.LocalPlayer.gameObject,original,rotation);
-        // Editor-only five-transition fixture; production keeps its distinct random selection.
+        // Editor-only fixed variants keep the five notification transitions reproducible.
         typeof(GraphStageManager).GetField("runChallengeIndices",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)
-            .SetValue(m,new System.Collections.Generic.List<int>{1,6,1,6,1});
+            .SetValue(m,new System.Collections.Generic.List<int>{0,0,0,0,0});
         typeof(GraphStageManager).GetMethod("BuildChallenge",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Invoke(m,null);
         for (int round=0; round<5; round++)
         {
@@ -339,9 +339,19 @@ public sealed class GraphStagePlayChecks : MonoBehaviour
             Check(m.ui.AnnouncementVisible && !m.ui.TutorialTarget("Degree choices").gameObject.activeSelf, "Start occupies center without degree-choice overlap");
             if(round==0) ScreenCapture.CaptureScreenshot("Temp/GraphQA/graph-start-notification.png");
             yield return new WaitForSecondsRealtime(1.65f);
-            Check(!m.ui.AnnouncementVisible && m.ui.TutorialTarget("Degree choices").gameObject.activeSelf, "Start expires and degree controls restore");
-            int degree=m.Challenge.Degree(m.Challenge.degreeVertex);
-            m.ui.TutorialTarget("Degree choices").Find("Answer "+degree).GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            bool degreeRound=m.Challenge.type==GraphChallengeType.Degree;
+            Check(!m.ui.AnnouncementVisible && m.ui.TutorialTarget("Degree choices").gameObject.activeSelf==degreeRound, "Start expires and relevant controls restore");
+            if(degreeRound)
+            {
+                int degree=m.Challenge.Degree(m.Challenge.degreeVertex);
+                m.ui.TutorialTarget("Degree choices").Find("Answer "+degree).GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            }
+            else
+            {
+                var route=Solve(m.Challenge);
+                Check(route!=null,"notification fixture has a solution");
+                for(int step=1;step<route.Count;step++)yield return Walk(route[step]);
+            }
             m.ui.TutorialTarget("Confirm").GetComponent<UnityEngine.UI.Button>().onClick.Invoke(); m.Confirm();
             Check(m.Correct==round+1 && !m.timer.Running, "correct UI confirmation completes exactly once");
             if(round<4) Check(m.ui.AnnouncementText=="Challenge "+(round+1)+" completed! Interact with the book statue to start Challenge "+(round+2)+".", "completion uses actual current/next numbers");
@@ -420,16 +430,24 @@ public sealed class GraphStagePlayChecks : MonoBehaviour
         foreach(var edge in m.arena.GetComponentsInChildren<GraphEdge>())
             Check(edge.bridge.GetComponent<Collider>()==null && edge.reverseGate!=null,"model floor with one-way gate retained");
         var marker=m.ui.host.GetComponentsInChildren<RectTransform>().First(t=>t.name=="Player marker");
-        var points=m.Challenge.vertices.Select(v=>v.position).Concat(m.Challenge.edges.Select(e=>
-            (m.Challenge.Vertex(e.source).position+m.Challenge.Vertex(e.destination).position)*.5f));
+        var map=m.ui.host.GetComponentsInChildren<RectTransform>().First(t=>t.name=="Map");
+        var points=new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Vector3,Vector2>>();
+        foreach(var vertex in m.Challenge.vertices)
+            points.Add(new System.Collections.Generic.KeyValuePair<Vector3,Vector2>(vertex.position,
+                ((RectTransform)map.Find(vertex.id)).anchoredPosition));
+        foreach(var edge in m.Challenge.edges)
+            points.Add(new System.Collections.Generic.KeyValuePair<Vector3,Vector2>(
+                (m.Challenge.Vertex(edge.source).position+m.Challenge.Vertex(edge.destination).position)*.5f,
+                (((RectTransform)map.Find(edge.source)).anchoredPosition+((RectTransform)map.Find(edge.destination)).anchoredPosition)*.5f));
         var original=m.LocalPlayer.transform.position; var rotation=m.LocalPlayer.transform.rotation;
         m.LocalPlayer.ToggleControl(false);
-        foreach(var point in points)
+        foreach(var sample in points)
         foreach(float heading in new[]{0f,90f,180f,270f})
         {
+            var point=sample.Key;
             m.LocalPlayer.transform.SetPositionAndRotation(m.arena.TransformPoint(point)+Vector3.up*2,Quaternion.Euler(0,heading,0));
             m.ui.Refresh();
-            var expected=new Vector2(point.x/GraphGeometry.LayoutScale*6.2f,(point.z/GraphGeometry.LayoutScale-12)*6.2f);
+            var expected=sample.Value;
             Check(Vector2.Distance(marker.anchoredPosition,expected)<.001f && marker.pivot==new Vector2(.5f,0),"pointer tip at exact map coordinate");
             var forward=m.arena.InverseTransformDirection(m.LocalPlayer.transform.forward);
             var screenForward=(Vector2)(marker.localRotation*Vector3.down);
@@ -472,14 +490,14 @@ public sealed class GraphStagePlayChecks : MonoBehaviour
     {
         yield return WaitReady();Check(m.ChallengeIndex==0,"start a fresh Graph play session");
         typeof(GraphStageManager).GetField("runChallengeIndices",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)
-            .SetValue(m,new System.Collections.Generic.List<int>{1,0,2,3,4});
+            .SetValue(m,new System.Collections.Generic.List<int>{0,0,0,0,0});
         typeof(GraphStageManager).GetMethod("BuildChallenge",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Invoke(m,null);
         yield return null; CheckCircles(false,false); yield return Activate();
         m.Confirm(); CheckCircles(true,false); Check(m.Mistakes==1,"wrong answer counted once");
         yield return new WaitForSeconds(.7f); ScreenCapture.CaptureScreenshot("Temp/GraphQA/vertex-feedback-red.png");
         yield return new WaitForSeconds(m.feedbackSeconds-.6f); CheckCircles(false,false);
         Check(m.State==GraphStageState.ACTIVE,"wrong feedback restores challenge");
-        m.SelectAnswer(m.Challenge.Degree(m.Challenge.degreeVertex));m.Confirm();CheckCircles(true,true);
+        yield return Walk(m.Challenge.destination);m.Confirm();CheckCircles(true,true);
         Check(m.correctSound.loadState==AudioDataLoadState.Loaded && m.GetComponent<AudioSource>().isPlaying,"correct sound starts in the confirmation frame");
         var onset=new float[(m.correctSound.frequency/50)*m.correctSound.channels];
         Check(m.correctSound.GetData(onset,0) && onset.Any(sample=>Mathf.Abs(sample)>.001f),"correct sound is audible within its first 20 milliseconds");
@@ -534,7 +552,8 @@ public sealed class GraphStagePlayChecks : MonoBehaviour
     {
         yield return WaitReady();Check(m.ChallengeIndex==0,"start a fresh Graph play session");
         typeof(GraphStageManager).GetField("runChallengeIndices",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)
-            .SetValue(m,new System.Collections.Generic.List<int>{3,0,1,2,4});
+            .SetValue(m,new System.Collections.Generic.List<int>{0,0,0,0,0});
+        typeof(GraphStageManager).GetProperty("ChallengeIndex").SetValue(m,3);
         typeof(GraphStageManager).GetMethod("BuildChallenge",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Invoke(m,null);
         yield return null;yield return Activate();
         // Imported rails/posts now collide; stay within their usable lane.
@@ -601,7 +620,7 @@ public sealed class GraphStagePlayChecks : MonoBehaviour
             yield return null;
         }
         var selection=m.RunChallengeIndices.ToArray();
-        Check(m.ChallengeCount==5 && selection.Distinct().Count()==5,"five unique selected challenges");
+        Check(m.ChallengeCount==5 && selection.All(i=>i>=0&&i<10),"one variant selected for each of five challenges");
         Check(FindObjectsByType<LevelManager>(FindObjectsSortMode.None).Length==0,"no legacy LevelManager");
         Check(FindObjectsByType<StageCompleteManager>(FindObjectsInactive.Include,FindObjectsSortMode.None).Length==0,"no StageCompleteManager in Graph");
         Check(m.ui.pointer!=null && m.ui.pointer.name=="Pointer_0","original pointer sprite assigned");

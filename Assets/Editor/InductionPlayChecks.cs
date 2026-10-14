@@ -70,7 +70,7 @@ public static class InductionPlayChecks
         Face(m.stations[1].position);yield return null;paused=m.timer.Remaining;m.ui.ViewBoardButton.onClick.Invoke();
         yield return new WaitForSecondsRealtime(1);Check(m.timer.Running&&m.timer.Remaining==paused&&m.State==InductionState.Active,"active board preserves countdown state");
         m.ui.BoardBackButton.onClick.Invoke();yield return new WaitForSecondsRealtime(1);
-        var wrong = m.Tablets.First(t => t.Data.id == "base-wrong-zero");
+        var wrong = m.Tablets.First(t => t.Data.id != m.Challenge.answers["Base:1"]);
         yield return Collect(m,hand,wrong);
         Check(m.Held == wrong, "hand pickup");
         Face(m.scrollStand.position);yield return null;hand.onClick.Invoke();m.ui.SelectScroll(m.Tablets.First(t=>t.AtStand));
@@ -88,7 +88,7 @@ public static class InductionPlayChecks
         m.ui.SubmitButton.onClick.Invoke(); Check(m.Mistakes == 1, "duplicate submission suppressed");
         yield return null;before=m.timer.Remaining;m.ui.SubmitButton.onClick.Invoke();
         Check(m.Mistakes==2&&before-m.timer.Remaining>=9.99f&&before-m.timer.Remaining<10.1f&&baseSlot.Tablet==wrong,"retry costs one penalty and preserves placement");
-        var correctBase = m.Tablets.First(t => t.Data.id == "base");
+        var correctBase = m.Tablets.First(t => t.Data.id == m.Challenge.answers["Base:1"]);
         yield return Collect(m,hand,correctBase);
         Face(baseSlot.transform.position); yield return null; Check(m.Place(baseSlot), "replace occupied slot");
         Check(baseSlot.Tablet == correctBase && m.Held == wrong && !baseSlot.HasError && !wrong.HasError, "swap clears only moved scroll error");
@@ -133,7 +133,7 @@ public static class InductionPlayChecks
                 Face(first.transform.position); yield return null; Check(m.Place(first), "finish swapped proof");
                 yield return null; m.ui.SubmitButton.onClick.Invoke();
                 Check(m.State == InductionState.Active && m.Correct == 3 && first.HasError && second.HasError, "wrong order rejected");
-                Check(!m.slots.Single(s => s.key == "Step:3").HasError && m.slots.Single(s => s.key == "Step:3").Tablet.Data.id == "step-3", "correct lines preserved");
+                Check(!m.slots.Single(s => s.key == "Step:3").HasError && m.slots.Single(s => s.key == "Step:3").Tablet.Data.id == m.Challenge.answers["Step:3"], "correct lines preserved");
                 Face(first.Tablet.transform.position); yield return null; Check(m.PickUp(first.Tablet), "remove swapped line");
                 Face(second.transform.position); yield return null; Check(m.Place(second), "restore second line");
                 Face(first.transform.position); yield return null; Check(m.Place(first), "restore first line");
@@ -144,7 +144,7 @@ public static class InductionPlayChecks
                 Face(slot.Tablet.transform.position); yield return null; Check(m.PickUp(slot.Tablet), "remove hypothesis"); m.ReturnHeld();
                 yield return null; m.ui.SubmitButton.onClick.Invoke();
                 Check(m.Correct == 4 && slot.HasError && m.Feedback.Contains("missing"), "full proof missing section rejected");
-                var tablet = m.Tablets.Single(t => t.Data.id == "odd-hyp");
+                var tablet = m.Tablets.Single(t => t.Data.id == m.Challenge.answers["Hypothesis:1"]);
                 yield return Collect(m,hand,tablet);
                 Face(slot.transform.position); yield return null; Check(m.Place(slot), "repair missing section");
             }
@@ -173,7 +173,7 @@ public static class InductionPlayChecks
         if (penalty)
         {
             var hand=GameObject.Find("Canvas 1").GetComponentsInChildren<Button>(true).Single(b=>b.name=="InteractButton");
-            m.timer.Initialize(1080,m.HandleGameOver);m.timer.Resume();yield return Collect(m,hand,m.Tablets.Single(t=>t.Data.id=="base-wrong-zero"));
+            m.timer.Initialize(m.startingSeconds,m.HandleGameOver);m.timer.Resume();yield return Collect(m,hand,m.Tablets.First(t=>t.Data.id!=m.Challenge.answers["Base:1"]));
             var slot=m.slots.Single(s=>s.key=="Base:1");Face(slot.transform.position);yield return null;Check(m.Place(slot),"timeout scroll placed");
             m.timer.Initialize(2,m.HandleGameOver);m.timer.Resume();yield return null;m.ui.SubmitButton.onClick.Invoke();
         }

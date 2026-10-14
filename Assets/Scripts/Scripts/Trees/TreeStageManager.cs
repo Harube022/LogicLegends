@@ -15,14 +15,16 @@ namespace LogicLegends.Trees
         public TreeBoardFocus boardFocus;
         public Transform bookStatue, spawnPoint;
         public AudioClip correctSound, wrongSound;
-        public float countdownSeconds=300, feedbackSeconds=1.1f;
+        public float countdownSeconds=600, feedbackSeconds=1.1f;
         public TreeStageState State {get;private set;}=TreeStageState.WAITING_FOR_ACTIVATION;
         public int ChallengeIndex {get;private set;}
         public int Correct {get;private set;}
         public int Mistakes {get;private set;}
         public int? Answer {get;private set;}
         public string Feedback {get;private set;}="Approach the Book Statue and tap INTERACT to begin.";
-        public TreeChallengeData Challenge=>catalog.challenges[ChallengeIndex];
+        TreeChallengeData activeChallenge;
+        public int ActiveVariantIndex {get;private set;}=-1;
+        public TreeChallengeData Challenge=>activeChallenge??catalog.challenges[ChallengeIndex];
         public Player LocalPlayer {get;private set;}
         public bool Ready {get;private set;}
         public bool LessonOpen {get;private set;}
@@ -40,7 +42,7 @@ namespace LogicLegends.Trees
             audioSource=gameObject.AddComponent<AudioSource>();audioSource.playOnAwake=false;audioSource.spatialBlend=0;AudioVolumeSettings.Route(audioSource,GameAudioChannel.SoundFX);
             if(boardFocus==null)boardFocus=gameObject.AddComponent<TreeBoardFocus>();
             boardFocus.board=board.transform;
-            board.Build(Challenge);timer.Initialize(countdownSeconds,HandleGameOver);ui.Build(this);
+            ChooseVariant();board.Build(Challenge);timer.Initialize(countdownSeconds,HandleGameOver);ui.Build(this);
             while(Player.LocalInstance==null)yield return null;
             LocalPlayer=Player.LocalInstance;input=GameInput.Instance;input.SetGameplayInputBlocked(false);input.OnInteractAction+=OnInteract;
             PrelimTeleportTransition.MovePlayerImmediately(LocalPlayer.gameObject,spawnPoint.position,spawnPoint.rotation);
@@ -111,7 +113,7 @@ namespace LogicLegends.Trees
             {CloseBoard(false);State=TreeStageState.STAGE_COMPLETE;input.SetGameplayInputBlocked(true);ui.ShowResult(true);yield break;}
             Moving=true;
             CloseBoard(false);
-            yield return TeleportManager.Instance.TeleportAndWait(LocalPlayer.gameObject,spawnPoint,()=>{ChallengeIndex++;Answer=null;board.Build(Challenge);ui.RebuildDiagram();});
+            yield return TeleportManager.Instance.TeleportAndWait(LocalPlayer.gameObject,spawnPoint,()=>{ChallengeIndex++;Answer=null;ChooseVariant();board.Build(Challenge);ui.RebuildDiagram();});
             if(State==TreeStageState.GAME_OVER)yield break;
             Moving=false;LocalPlayer.ToggleControl(true);State=TreeStageState.WAITING_FOR_ACTIVATION;Feedback="Next challenge ready. Interact with the Book Statue to begin.";
         }
@@ -129,5 +131,23 @@ namespace LogicLegends.Trees
         public void Restart()=>Navigate("Trees");
         public void Return()=>Navigate("Main Menu");
         void Navigate(string scene){CloseBoard(false);Time.timeScale=1;input?.SetGameplayInputBlocked(false);TeleportManager.Instance.LoadSceneWithFade(scene);}
+        void ChooseVariant()
+        {
+            if(catalog==null||catalog.variantSets==null||ChallengeIndex>=catalog.variantSets.Count||
+               catalog.variantSets[ChallengeIndex]==null||catalog.variantSets[ChallengeIndex].variants.Count!=10)
+                throw new InvalidOperationException("Trees catalog needs ten variants for every challenge.");
+            var variants=catalog.variantSets[ChallengeIndex].variants;
+            const string keyPrefix="LogicLegends.Trees.LastVariant.";
+            string key=keyPrefix+ChallengeIndex;
+            int previous=PlayerPrefs.GetInt(key,-1);
+            if(previous<0||previous>=variants.Count)previous=-1;
+            int pick=UnityEngine.Random.Range(0,variants.Count-(previous>=0?1:0));
+            if(previous>=0&&pick>=previous)pick++;
+            if(variants[pick]==null)throw new InvalidOperationException("Trees catalog contains a missing challenge variant.");
+            ActiveVariantIndex=pick;
+            activeChallenge=variants[pick];
+            PlayerPrefs.SetInt(key,pick);
+            PlayerPrefs.Save();
+        }
     }
 }

@@ -59,11 +59,15 @@ public sealed class ProofWorldBoardController : MonoBehaviour
         SetActive(statementSlots, showStatements ? count : 0);
         SetActive(ruleSlots, showRules ? count : 0);
         ArrangeStations(data.kind);
+        ShuffleOptions(optionToStep, stepCount);
+        if (data.kind == ProofChallengeKind.Formalize)
+            ShuffleOptions(optionToRule, ruleCount);
+        else
+            for (int i = 0; i < ruleCount; i++) optionToRule[i] = i;
 
         for (int display = 0; display < stepCount; display++)
         {
-            int id = data.steps.Length == 5 ? new[] { 2, 4, 0, 3, 1 }[display] : display;
-            optionToStep[display] = id;
+            int id = optionToStep[display];
             ProofStepData step = data.steps[id];
             string body = data.kind == ProofChallengeKind.OrderSteps ?
                 step.statement + "\n" + step.justification : step.statement;
@@ -71,14 +75,24 @@ public sealed class ProofWorldBoardController : MonoBehaviour
         }
         for (int display = 0; display < ruleCount; display++)
         {
-            int id = data.kind == ProofChallengeKind.Formalize && ruleCount == 5 ?
-                new[] { 3, 1, 4, 0, 2 }[display] : display;
-            optionToRule[display] = id;
+            int id = optionToRule[display];
             string body = data.kind == ProofChallengeKind.MissingRule ?
                 data.ruleOptions[id] : data.steps[id].justification + "\nfor " + data.steps[id].statement;
             ruleTablets[display].SetContent("RULE " + (char)('A' + display), body);
         }
         Refresh();
+    }
+
+    private static void ShuffleOptions(int[] mapping, int count)
+    {
+        for (int i = 0; i < count; i++) mapping[i] = i;
+        for (int i = count - 1; i > 0; i--)
+        {
+            int swap = UnityEngine.Random.Range(0, i + 1);
+            int temporary = mapping[i];
+            mapping[i] = mapping[swap];
+            mapping[swap] = temporary;
+        }
     }
 
     private static void SetActive(ProofWorldPedestal[] stations, int count)
@@ -130,19 +144,20 @@ public sealed class ProofWorldBoardController : MonoBehaviour
     {
         ProofWorldPedestal nearest = null;
         distanceSquared = rangeSquared;
-        FindNearest(statementTablets, position, ref nearest, ref distanceSquared);
-        FindNearest(ruleTablets, position, ref nearest, ref distanceSquared);
-        FindNearest(statementSlots, position, ref nearest, ref distanceSquared);
-        FindNearest(ruleSlots, position, ref nearest, ref distanceSquared);
+        FindNearest(statementTablets, position, ref nearest, ref distanceSquared, true);
+        FindNearest(ruleTablets, position, ref nearest, ref distanceSquared, true);
+        FindNearest(statementSlots, position, ref nearest, ref distanceSquared, false);
+        FindNearest(ruleSlots, position, ref nearest, ref distanceSquared, false);
         return nearest;
     }
 
     private static void FindNearest(ProofWorldPedestal[] stations, Vector3 position,
-        ref ProofWorldPedestal nearest, ref float best)
+        ref ProofWorldPedestal nearest, ref float best, bool requireTablet)
     {
         foreach (ProofWorldPedestal station in stations)
         {
-            if (station == null || !station.gameObject.activeInHierarchy) continue;
+            if (station == null || !station.gameObject.activeInHierarchy ||
+                requireTablet && !station.TabletVisible) continue;
             Vector3 d = station.transform.position - position;
             float distance = d.x * d.x + d.z * d.z;
             if (distance < best) { best = distance; nearest = station; }
@@ -171,9 +186,9 @@ public sealed class ProofWorldBoardController : MonoBehaviour
     {
         if (challenge == null || station == null || !station.gameObject.activeInHierarchy || feedback != 0) return;
         int index = IndexOf(statementTablets, station);
-        if (index >= 0) { selected = optionToStep[index]; selectedRule = false; Refresh(); return; }
+        if (index >= 0) { if (!station.TabletVisible) return; selected = optionToStep[index]; selectedRule = false; Refresh(); return; }
         index = IndexOf(ruleTablets, station);
-        if (index >= 0) { selected = optionToRule[index]; selectedRule = true; Refresh(); return; }
+        if (index >= 0) { if (!station.TabletVisible) return; selected = optionToRule[index]; selectedRule = true; Refresh(); return; }
         index = IndexOf(statementSlots, station);
         if (index >= 0) { Assign(index, false); return; }
         index = IndexOf(ruleSlots, station);
@@ -252,6 +267,7 @@ public sealed class ProofWorldBoardController : MonoBehaviour
             if (station == null || !station.gameObject.activeSelf) continue;
             int id = optionToStep[i];
             bool assigned = Contains(assignedSteps, id);
+            station.SetTabletVisible(!assigned && !(selected == id && !selectedRule));
             station.SetState(State(selected == id && !selectedRule || assigned));
         }
         for (int i = 0; i < ruleTablets.Length; i++)
@@ -260,6 +276,7 @@ public sealed class ProofWorldBoardController : MonoBehaviour
             if (station == null || !station.gameObject.activeSelf) continue;
             int id = optionToRule[i];
             bool assigned = Contains(assignedRules, id);
+            station.SetTabletVisible(!assigned && !(selected == id && selectedRule));
             station.SetState(State(selected == id && selectedRule || assigned));
         }
         for (int i = 0; i < statementSlots.Length; i++)

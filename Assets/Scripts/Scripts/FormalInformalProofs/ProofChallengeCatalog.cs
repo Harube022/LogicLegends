@@ -41,8 +41,15 @@ public sealed class ProofChallengeData
     public string expectedRule;
 }
 
+[Serializable]
+public sealed class ProofChallengeVariantSet
+{
+    public ProofChallengeData[] variants = new ProofChallengeData[0];
+}
+
 [CreateAssetMenu(fileName = "ProofChallenges", menuName = "Logic Legends/Proof Challenge Catalog")]
 public sealed class ProofChallengeCatalog : ScriptableObject
 {
     public ProofChallengeData[] challenges = new ProofChallengeData[0];
+    public ProofChallengeVariantSet[] variantSets = new ProofChallengeVariantSet[0];
 }

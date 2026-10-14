@@ -45,7 +45,7 @@ The scene's `Trees Stage` object already references:
 - Existing `GraphStageClock` and `GameOverManager` components. Trees has no `GraphCompletion` component or completion persistence call.
 - Existing correct, incorrect and game-over audio clips.
 
-Change countdown duration (default 300 seconds) or feedback/stun duration (1.1 seconds) on TreeStageManager. Change challenge data in `Assets/Prefabs/Trees/TreeChallenges.asset`; each entry exposes type, objective, lesson, node positions, initial/required edges, root, target and identification rule. Node positions are normalized board coordinates. Root depth and level are 0. Depth/height answers are calculated, not serialized constants. The default number choices cover 0–5.
+Change countdown duration (default 600 seconds) or feedback/stun duration (1.1 seconds) on TreeStageManager. Change challenge data in `Assets/Prefabs/Trees/TreeChallenges.asset`; each entry exposes type, objective, lesson, node positions, initial/required edges, root, target and identification rule. Node positions are normalized board coordinates. Root depth and level are 0. Depth/height answers are calculated, not serialized constants. The default number choices cover 0–5.
 
 The garden currently reuses existing Wood3, Book_Statue, original settings-panel wood and existing shared UI assets. The two decorative SimpleNaturePack trees beside the board were removed at the user's request. Floor boundaries keep the player within the temporary platform. The new assets in progress are not required.
 

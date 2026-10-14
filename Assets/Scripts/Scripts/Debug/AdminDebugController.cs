@@ -44,7 +44,8 @@ public sealed class AdminDebugController : MonoBehaviour
         }
         if (SceneManager.GetActiveScene().name != "PRELIM" &&
             SceneManager.GetActiveScene().name != "Setssss" &&
-            SceneManager.GetActiveScene().name != "Formal vs. Informal Proofs")
+            SceneManager.GetActiveScene().name != "Formal vs. Informal Proofs" &&
+            SceneManager.GetActiveScene().name != "Direct&Indirect")
             enabled = false;
     }
 
@@ -115,6 +116,14 @@ public sealed class AdminDebugController : MonoBehaviour
             ProofsLibraryStageController proofs = FindFirstObjectByType<ProofsLibraryStageController>();
             return proofs == null || proofs.Finished;
         }
+        if (SceneManager.GetActiveScene().name == "Direct&Indirect")
+        {
+            DirectIndirectProofStageController proofs = FindFirstObjectByType<DirectIndirectProofStageController>();
+            return proofs == null || proofs.IsReaderOpen ||
+                proofs.State == DirectIndirectProofStageController.TrialState.Validating ||
+                proofs.State == DirectIndirectProofStageController.TrialState.StageComplete ||
+                proofs.State == DirectIndirectProofStageController.TrialState.GameOver;
+        }
         if (SceneManager.GetActiveScene().name != "PRELIM") return true;
         if (StageSelectionState.SelectedStage == 1)
         {
@@ -142,6 +151,11 @@ public sealed class AdminDebugController : MonoBehaviour
         if (SceneManager.GetActiveScene().name == "Formal vs. Informal Proofs")
         {
             ProofsLibraryStageController proofs = FindFirstObjectByType<ProofsLibraryStageController>();
+            return proofs != null && proofs.CanDebugClearChallenge;
+        }
+        if (SceneManager.GetActiveScene().name == "Direct&Indirect")
+        {
+            DirectIndirectProofStageController proofs = FindFirstObjectByType<DirectIndirectProofStageController>();
             return proofs != null && proofs.CanDebugClearChallenge;
         }
         if (StageSelectionState.SelectedStage == 1)
@@ -237,6 +251,12 @@ public sealed class AdminDebugController : MonoBehaviour
             ProofsLibraryStageController proofs = FindFirstObjectByType<ProofsLibraryStageController>();
             return proofs == null || proofs.Finished;
         }
+        if (SceneManager.GetActiveScene().name == "Direct&Indirect")
+        {
+            DirectIndirectProofStageController proofs = FindFirstObjectByType<DirectIndirectProofStageController>();
+            return proofs == null || proofs.State == DirectIndirectProofStageController.TrialState.StageComplete ||
+                proofs.State == DirectIndirectProofStageController.TrialState.GameOver;
+        }
         if (StageSelectionState.SelectedStage == 1)
         {
             QuizManager quiz = FindFirstObjectByType<QuizManager>();
@@ -267,6 +287,11 @@ public sealed class AdminDebugController : MonoBehaviour
         else if (SceneManager.GetActiveScene().name == "Formal vs. Informal Proofs")
         {
             ProofsLibraryStageController proofs = FindFirstObjectByType<ProofsLibraryStageController>();
+            if (proofs != null) proofs.DebugClearCurrentChallenge();
+        }
+        else if (SceneManager.GetActiveScene().name == "Direct&Indirect")
+        {
+            DirectIndirectProofStageController proofs = FindFirstObjectByType<DirectIndirectProofStageController>();
             if (proofs != null) proofs.DebugClearCurrentChallenge();
         }
         else if (StageSelectionState.SelectedStage == 1)
@@ -342,6 +367,14 @@ public sealed class AdminDebugController : MonoBehaviour
         rect.pivot = new Vector2(1f, 0f);
         rect.anchoredPosition = new Vector2(-40f, 40f);
         rect.sizeDelta = new Vector2(200f, 90f);
+        if (SceneManager.GetActiveScene().name == "Direct&Indirect")
+        {
+            // Above the mobile action controls and below this stage's timer.
+            rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-40f, -150f);
+            rect.sizeDelta = new Vector2(170f, 72f);
+        }
         Image image = go.GetComponent<Image>();
         image.color = new Color(0.08f, 0.23f, 0.21f, 0.95f);
         adminButton = go.GetComponent<Button>();

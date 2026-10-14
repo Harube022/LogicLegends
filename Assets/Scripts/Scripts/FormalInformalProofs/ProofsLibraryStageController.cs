@@ -65,6 +65,8 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
     private int mistakeCount;
     private float activeGameplaySeconds;
     private ProofWorldPedestal nearestWorldPedestal;
+    private ProofChallengeData activeChallenge;
+    private static readonly int[] LastVariant = { -1, -1, -1, -1, -1 };
 
     public bool Started => started;
     public bool Finished => finished;
@@ -81,7 +83,7 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     private void Awake()
     {
-        if (catalog == null || catalog.challenges.Length != 5 ||
+        if (catalog == null || catalog.challenges.Length != 5 || catalog.variantSets.Length != 5 ||
             scrolls.Length != 4 || scrollSources.Length != 4 || scrollStatus.Length != 4 || carriedVisuals.Length != 4 ||
             pedestals.Length != 2 || pedestalEmblems.Length != 2 || pedestalCounts.Length != 2 ||
             bookStatue == null || boardText == null || timerText == null || promptText == null ||
@@ -212,7 +214,24 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     private static string Letter(int index) { return ((char)('A' + index)).ToString(); }
 
-    private ProofChallengeData Current => catalog.challenges[challengeIndex];
+    private ProofChallengeData Current => activeChallenge ?? catalog.challenges[challengeIndex];
+
+    private void ChooseVariant()
+    {
+        ProofChallengeData[] variants = catalog.variantSets[challengeIndex].variants;
+        if (variants == null || variants.Length != 10)
+            throw new InvalidOperationException("Each Proofs Library challenge needs ten variants.");
+        string historyKey = "LogicLegends.ProofsLibrary.LastVariant." + challengeIndex;
+        int previous = LastVariant[challengeIndex] >= 0 ? LastVariant[challengeIndex] :
+            PlayerPrefs.GetInt(historyKey, -1);
+        if (previous >= variants.Length) previous = -1;
+        int choice = UnityEngine.Random.Range(0, variants.Length - (previous >= 0 ? 1 : 0));
+        if (previous >= 0 && choice >= previous) choice++;
+        activeChallenge = variants[choice];
+        LastVariant[challengeIndex] = choice;
+        PlayerPrefs.SetInt(historyKey, choice);
+        PlayerPrefs.Save();
+    }
 
     private void OnInteract(object sender, EventArgs args)
     {
@@ -235,6 +254,7 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
     public void Activate()
     {
         if (started || finished || transitioning) return;
+        ChooseVariant();
         started = true;
         if (Current.kind == ProofChallengeKind.SortScrolls)
         {
@@ -247,6 +267,7 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
                 if (visible)
                 {
                     PositionScrollSource(i, Current.scrolls.Length);
+                    scrollSources[i].SetTabletVisible(true);
                     scrollSources[i].SetContent("SCROLL " + Letter(i), Preview(Current.scrolls[i].content, 42));
                     scrollSources[i].SetState(ProofWorldPedestal.VisualState.Normal);
                 }
@@ -323,6 +344,7 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
         carriedScroll = index;
         placements[index] = -1;
         scrolls[index].gameObject.SetActive(false);
+        scrollSources[index].SetTabletVisible(false);
         placedScrollLabels[index].gameObject.SetActive(false);
         Transform visual = carriedVisuals[index].transform;
         visual.SetParent(player.transform, false);
@@ -615,6 +637,7 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
         worldBoard.Hide();
         editBoardButton.gameObject.SetActive(false);
         challengeIndex++;
+        activeChallenge = null;
         transitioning = false;
         RestorePedestals();
         RefreshVisuals();

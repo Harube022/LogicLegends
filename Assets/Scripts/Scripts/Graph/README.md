@@ -2,11 +2,11 @@
 
 The configured scene is `Assets/Scenes/Graph.unity`. It is registered in Build Settings and the Main Menu's Graphs entry (stage 9). Open the scene and press Play; no setup command is needed.
 
-The catalog contains ten challenges: five with letter labels and five with numbered labels. Every new run shuffles the entire pool and selects exactly five distinct entries in random order. The selected order stays fixed through wrong answers, retries, lessons, and challenge transitions. PLAY AGAIN creates a fresh selection. The HUD counts rounds 1–5, and victory occurs after completing the fifth selected challenge.
+The catalog contains five ordered challenge sets with ten saved variants each. Every run plays one variant from each set in this order: cross an edge, count vertex degree, find a simple path, follow a directed path, then complete a cycle. The number of vertices, route choices, directional traps, and required traversal increase across the stage. Variants 1–5 in each set use letter labels; variants 6–10 use number labels. The five picks stay fixed through wrong answers, retries, lessons, and challenge transitions. PLAY AGAIN makes fresh picks and avoids immediately repeating the previous variant in each challenge.
 
 ## Play
 
-1. Approach the existing Book Statue at the starting vertex (A or 1) and use the unchanged hand button (or keyboard interaction) to activate a challenge. The Graph INTERACT button calls the same method and also requires book proximity.
+1. Approach the existing Book Statue at the labeled starting vertex and use the unchanged hand button (or keyboard interaction) to activate a challenge. The Graph INTERACT button calls the same method and also requires book proximity.
 2. Walk across the bridges with the existing joystick or keyboard controls. The route and player position appear in the HUD/minimap.
 3. At the destination, use CONFIRM without backtracking. The Book Statue also calls the same validator. For degree, choose a number before confirming.
 4. A wrong confirmation costs exactly 10 seconds, counts one mistake, briefly disables the existing player controller, and preserves the answer/route. RETRY ROUTE returns to the configured start through the shared covered teleport. CLEAR SELECTION resets only the selected number.
@@ -20,7 +20,7 @@ HELP opens the paged How to Play book using PRELIM's tutorial artwork and contro
 
 The guide covers each task type, route tracking, validation, retries, penalties, and completion. Narrow layouts use a single reading page; longer text can be swiped to scroll. Practice never changes the selected graphs, route, degree answer, correct/mistake totals, or gameplay time. Graph Stage's controls-tutorial component exposes the joystick dead zone, movement distance, interaction range, camera transition time, book view distance and graph view height in the Inspector. The temporary high-priority camera owns its lens and pose; enabled camera input scripts, player renderer states, and existing arena visibility are restored on completion, Skip, replay and scene exit. Shared prefab assets are untouched.
 
-Help pauses the Graph clock, gameplay input, and camera input, and restores their prior state when closed. A previously paused clock stays paused. The original pause/settings panel remains wired. Countdown starts at 300 seconds (configurable), and actual active play time is tracked separately from penalties.
+Help pauses the Graph clock, gameplay input, and camera input, and restores their prior state when closed. A previously paused clock stays paused. The original pause/settings panel remains wired. Countdown starts at 600 seconds (configurable), and actual active play time is tracked separately from penalties.
 
 ## Configuration and scene ownership
 
@@ -44,7 +44,7 @@ The original Gameplay_Interface, LookArea, JumpButton, InteractButton, SettingsB
 
 ## Graph data
 
-All coordinates are local to Graph Arena, with Y = 0. IDs and display labels are separate editable fields. Vertex labels and bridge arrows are separate from temporary geometry so finished artwork can replace the meshes later.
+All coordinates are local to Graph Arena, with Y = 0. IDs and display labels are separate editable fields. Vertex labels and bridge arrows are separate from temporary geometry so finished artwork can replace the meshes later. The table below documents the older ten-entry source pool, retained for compatibility and regression checks; gameplay uses the 50 saved entries in `variantSets` on the same catalog asset.
 
 | Challenge | Vertices: ID (X, Z) | Edges |
 | --- | --- | --- |
@@ -61,7 +61,7 @@ All coordinates are local to Graph Arena, with Y = 0. IDs and display labels are
 
 Degree is calculated from enabled incident edges; a self-loop counts twice. Navigation accepts any valid simple path, not a fixed answer. A cycle must close at its configured start, contain at least three distinct vertices, and repeat no intermediate vertex. Directed bridges have visible arrows and a gate that blocks reverse entry without charging an automatic penalty.
 
-The five new answers are: 1->2; degree(3) = 3; path 1->2->3->5 or 1->4->5; directed path 1->2->4->5 or 1->3->5; cycle 1->2->3->1 or 1->3->2->1. Catalog positions are not the displayed round numbers, because the run is randomized.
+Each saved variant carries its own start, target, vertices, and edges. The validator calculates the degree from that graph and accepts any valid simple route or cycle. The minimap fits the selected graph's bounds so the larger late-stage layouts remain visible.
 
 The traversal tracker samples horizontal player movement, requires a continuous connecting bridge crossing through its middle, and records arrival once. Its bounds match the 7.98-unit platform radius and 5.5-unit bridge half-width, with an additional support margin from the actual CharacterController radius and skin width. Standing on the rim or walking with the capsule partly over a bridge edge preserves continuity. The platform support margin alone cannot record arrival or allow route confirmation: the player centre must enter the actual platform disk. Continuous samples crossing the midpoint also count when a slower frame skips the middle. Trigger jitter, teleport jumps, off-graph movement and nonexistent connections cannot create a valid route. Directed gates wait for capsule clearance before closing behind an arriving player, remain closed against reverse travel, and cannot record a reverse edge. Invalid routes require explicit retry. Confirmation freezes recording during validation and transitions.
 
@@ -69,7 +69,7 @@ The traversal tracker samples horizontal player movement, requires a continuous 
 
 New runtime scripts in this folder: `GraphChallengeData` (including validator), `GraphChallengeCatalog`, `GraphVertex`, `GraphEdge`, `GraphTraversalTracker`, `GraphStageClock`, `GraphStageManager`, `GraphUIController`, and `GraphCompletion`. `GraphStagePlayChecks` is Editor-only validation and is not attached to the saved scene.
 
-New Editor utilities: `GraphStageSetup`, `GraphChamberSetup`, `GraphStageChecks`, and `GraphVisualSetup` under `Assets/Editor`.
+New Editor utilities: `GraphStageSetup`, `GraphChamberSetup`, `GraphStageChecks`, `GraphVisualSetup`, and `BuildGraphChallengeVariants` under `Assets/Editor`.
 
 Scoped existing-script changes:
 
@@ -87,20 +87,20 @@ HUD frames reuse the original settings wood with local runtime slicing; buttons 
 
 ## Editing and validation
 
-1. Open Graph and edit its catalog for objectives, labels, positions, enabled edges, and directions.
+1. Open Graph and edit `GraphChallenges.asset` > `variantSets` for objectives, labels, positions, enabled edges, and directions. **Build Graph Ten Variants Per Challenge** regenerates all 50 entries and overwrites manual variant edits.
 2. Replace the vertex/edge prefab artwork while retaining its collider, label, bridge, arrow and gate references. Keep the current walkable widths and label visibility when fitting new models.
 3. Assign replacements on Graph Stage's Inspector if using different prefabs. Keep the original mobile controls and their parent transforms intact.
-4. Run **Tools > Logic Legends > Validate Graph Rules** for deterministic graph/traversal/clock checks. In a fresh Play session, **Test Graph Help (Play Mode)** checks automatic Help, page navigation, blocked activation and submissions, clock/control restoration, preserved run state, and compatibility with Settings pause.
-5. In a fresh Graph Play session, run **Tools > Logic Legends > Test Graph Flow (Play Mode)**. It drives the actual player through the five randomly selected graphs, exercises mobile interaction callbacks, and suppresses account writes. **Test Numbered Graph Flow (Play Mode)** uses an Editor-only selection of the five new numbered graphs for complete new-content coverage. Exit Play Mode afterward; both tests finish by checking Game Over.
-6. **Test Graph Book and Notifications (Play Mode)** walks the real player into the statue to check blocking and interaction range, then uses an Editor-only five-round degree fixture to exercise every numbered completion message, persistent paused waiting, hand/UI book activation, Start expiry, and the shared PRELIM result UI. It checks spawn-time playback, forced track-end rollover, no immediate repeats, singleton rejection, mixer routing, music through Help, and one SOFTWIN only for final completion. Account writes are suppressed; the production random selection is unchanged.
-6. The one-time **Build Graph Stage** utility refuses to overwrite an already configured Graph scene. **Add Existing-Asset Graph Chamber** is also guarded against duplicate scenery. Neither is needed for normal use.
-7. **Expand Graph Challenge Pool** adds any missing numbered default entries without replacing existing challenge data, scenery, or prefabs. The saved catalog is already expanded; rerunning the command does not add duplicates.
+4. Run **Tools > Logic Legends > Validate Graph Rules** for all 50 saved variants plus deterministic graph/traversal/clock checks. In a fresh Play session, **Test Graph Help (Play Mode)** checks automatic Help, page navigation, blocked activation and submissions, clock/control restoration, preserved run state, and compatibility with Settings pause.
+5. In a fresh Graph Play session, run **Tools > Logic Legends > Test Graph Flow (Play Mode)**. It drives the actual player through one random variant of each ordered challenge, exercises mobile interaction callbacks, and suppresses account writes. **Test Numbered Graph Flow (Play Mode)** forces the five numbered variant slots for movement coverage. Exit Play Mode afterward; both tests finish by checking Game Over.
+6. **Test Graph Book and Notifications (Play Mode)** checks statue collision, book activation, completion notices, persistent paused waiting, Start expiry, audio, and the shared result UI using one fixed variant of each challenge type. Account writes are suppressed.
+7. The one-time **Build Graph Stage** utility refuses to overwrite an already configured Graph scene. **Add Existing-Asset Graph Chamber** is also guarded against duplicate scenery. Neither is needed for normal use.
+8. **Expand Graph Challenge Pool** maintains the older source entries without replacing the 50 saved variants or the scene. The saved catalog already contains both.
 
 Validation performed in Unity 6000.3.6f1:
 
 - Compilation: no errors.
-- Rule checks: passed the ten letter/number challenges, alternate paths and cycles, invalid/repeated routes, both computed degrees, self-loop degree, jitter/teleport/off-graph protection, and clock semantics. Across 200 seeded selections, every run had five unique entries, all ten entries were eligible, order varied, and the shared catalog stayed unchanged.
-- Play flow: passed all five newly numbered challenges. After changing lighting to require destination arrival, a production random run passed Find a path, Directed graph, Numbered directions, Vertices and edges, and Numbered vertices. Checks also require orange lighting before arrival and blue lighting afterward. Checks used the real player/colliders and covered duplicate activation/confirmation, exact penalty, stun recovery, retry, selection clearing, preserved sampled order, paused transitions, five-correct victory, and zero-time Game Over. Account writes were suppressed.
+- Rule checks: passed all 50 saved variants, verified the fixed difficulty order, solution and rejection cases, bridge spacing, and 200 seeded selections with no immediate variant repeat. Existing traversal, direction, self-loop, and clock checks also passed.
+- Play flow: one randomized run and one forced-numbered run each completed all five challenges with the real player and colliders. Checks covered mobile interaction, orange/blue bridge lighting, penalties, stun recovery, retry, preserved selection, victory, and zero-time Game Over. A separate spawn/map check confirmed the map pointer aligns with the resized map. Account writes were suppressed.
 - Saved-scene comparison: original control transforms and CanvasScaler match PRELIM; no LevelManager component in Graph.
 - Visual review: 1920x1080, 2400x1080 landscape and 1440x1080 tablet Game Views; lesson margins, world labels, timer, minimap, feedback, and result panel inspected. Arrow glyphs checked against the assigned font.
 - Screenshots are under `Temp/GraphQA` (local, ignored by Git).

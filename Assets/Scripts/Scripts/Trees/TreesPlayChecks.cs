@@ -27,7 +27,11 @@ namespace LogicLegends.Trees
             Check(stage.BoardOpen&&!stage.ui.gameplayControls.activeInHierarchy,"board hides original controls");
             Check(!stage.LocalPlayer.enabled&&GameInput.Instance.GameplayInputBlocked,"board locks movement");
             Check(camera.orthographic&&Quaternion.Angle(camera.transform.rotation,stage.board.transform.rotation)<.1f,"camera faces board in orthographic view");
-            var node=stage.board.Nodes.First(n=>n.id=="B");var pick=Button("Board Node B");
+            var firstProblem=stage.Challenge;
+            string reason;
+            string wrongNode=firstProblem.nodes.First(n=>!TreeAnswerValidator.Validate(firstProblem,firstProblem.initial,n.id,null,out reason)).id;
+            string rightNode=firstProblem.nodes.First(n=>TreeAnswerValidator.Validate(firstProblem,firstProblem.initial,n.id,null,out reason)).id;
+            var node=stage.board.Nodes.First(n=>n.id==wrongNode);var pick=Button("Board Node "+wrongNode);
             var projected=camera.WorldToScreenPoint(node.transform.position);
             Check(Vector2.Distance(pick.transform.position,projected)<1,"2D tap target follows world node");
             var hits=new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
@@ -40,34 +44,51 @@ namespace LogicLegends.Trees
             yield return WaitForExploration();
             Check(camera.orthographic==previousProjection&&camera.rect==previousViewport,"exit restores camera settings");
             Check(!stage.boardFocus.focusCamera.gameObject.activeSelf&&brain.ActiveVirtualCamera!=stage.boardFocus.focusCamera,"exit returns to exploration camera");
-            Check(stage.board.First=="B"&&stage.board.Edges.Count==6,"exit keeps work");
+            Check(stage.board.First==wrongNode&&stage.board.Edges.Count==6,"exit keeps work");
             stage.timer.Tick(.25f);Check(stage.timer.Remaining<exitTime&&stage.timer.Running,"timer continues outside board");
-            stage.SelectNode("A");stage.Confirm();Check(stage.board.First=="B"&&stage.Mistakes==0,"exploration cannot edit or confirm");
-            yield return OpenBoard();Check(stage.board.First=="B","reopen keeps selected node");
-            stage.SelectNode("B");float before=stage.timer.Remaining;stage.Confirm();stage.Confirm();
-            Check(Mathf.Approximately(stage.timer.Remaining,before-10),"exact 10 second penalty");Check(stage.Mistakes==1,"duplicate confirmation ignored");Check(stage.board.First=="B"&&stage.board.Edges.Count==6,"incorrect work preserved");
+            stage.SelectNode(rightNode);stage.Confirm();Check(stage.board.First==wrongNode&&stage.Mistakes==0,"exploration cannot edit or confirm");
+            yield return OpenBoard();Check(stage.board.First==wrongNode,"reopen keeps selected node");
+            stage.SelectNode(wrongNode);float before=stage.timer.Remaining;stage.Confirm();stage.Confirm();
+            Check(Mathf.Approximately(stage.timer.Remaining,before-10),"exact 10 second penalty");Check(stage.Mistakes==1,"duplicate confirmation ignored");Check(stage.board.First==wrongNode&&stage.board.Edges.Count==6,"incorrect work preserved");
             yield return new WaitForSeconds(stage.feedbackSeconds+.1f);
             Check(stage.BoardOpen&&!stage.LocalPlayer.enabled,"wrong feedback retains board movement lock");
-            stage.SelectNode("A");stage.Confirm();Check(!stage.timer.Running,"correct pauses immediately");
+            Check(stage.Challenge==firstProblem,"wrong attempt retains selected variant");
+            stage.SelectNode(rightNode);stage.Confirm();Check(!stage.timer.Running,"correct pauses immediately");
             while(stage.State==TreeStageState.CHALLENGE_COMPLETE||stage.Moving)yield return null;
             Check(stage.ChallengeIndex==1&&stage.State==TreeStageState.WAITING_FOR_ACTIVATION,"round 2 waits for book");
             Check(!stage.BoardOpen&&stage.ui.gameplayControls.activeInHierarchy&&!GameInput.Instance.GameplayInputBlocked,"round transition restores exploration");
             float remaining=stage.timer.Remaining;yield return new WaitForSeconds(.15f);Check(stage.timer.Remaining==remaining,"paused transition");
             yield return OpenBoard();
-            stage.SelectNode("A");stage.SelectNode("B");stage.Edit(false);stage.SelectNode("B");stage.SelectNode("A");stage.Edit(false);Check(stage.board.Edges.Count==1,"reject root parent/cycle");
+            var firstEdge=stage.Challenge.required[0];
+            stage.SelectNode(firstEdge.source);stage.SelectNode(firstEdge.destination);stage.Edit(false);
+            stage.SelectNode(firstEdge.destination);stage.SelectNode(firstEdge.source);stage.Edit(false);Check(stage.board.Edges.Count==1,"reject root parent/cycle");
             Button("Exit Tree Board").onClick.Invoke();yield return OpenBoard();
-            Check(stage.board.Edges.Count==1&&stage.board.First=="B"&&stage.board.Second=="A","exit and reopen keep edited branches and both endpoints");
+            Check(stage.board.Edges.Count==1&&stage.board.First==firstEdge.destination&&stage.board.Second==firstEdge.source,"exit and reopen keep edited branches and both endpoints");
             foreach(var edge in stage.Challenge.required.Skip(1)){stage.SelectNode(edge.source);stage.SelectNode(edge.destination);stage.Edit(false);}
             stage.Confirm();while(stage.State==TreeStageState.CHALLENGE_COMPLETE||stage.Moving)yield return null;
             Check(stage.ChallengeIndex==2,"round 3");yield return OpenBoard();
-            stage.SelectNode("B");stage.SelectNode("E");stage.Edit(false);Check(stage.board.Edges.Count==4,"multiple parents prevented");
-            stage.SelectNode("C");stage.SelectNode("E");stage.Edit(true);stage.SelectNode("B");stage.SelectNode("E");stage.Edit(false);stage.Confirm();
+            var oldEdge=stage.Challenge.initial.First(e=>!stage.Challenge.required.Any(r=>r.Key(true)==e.Key(true)));
+            var newEdge=stage.Challenge.required.First(e=>!stage.Challenge.initial.Any(r=>r.Key(true)==e.Key(true)));
+            stage.SelectNode(newEdge.source);stage.SelectNode(newEdge.destination);stage.Edit(false);Check(stage.board.Edges.Count==4,"multiple parents prevented");
+            stage.SelectNode(oldEdge.source);stage.SelectNode(oldEdge.destination);stage.Edit(true);
+            stage.SelectNode(newEdge.source);stage.SelectNode(newEdge.destination);stage.Edit(false);stage.Confirm();
             while(stage.State==TreeStageState.CHALLENGE_COMPLETE||stage.Moving)yield return null;
             Check(stage.ChallengeIndex==3,"round 4");yield return OpenBoard();stage.SetLesson(true);Check(!stage.timer.Running,"lesson pauses clock");stage.SetLesson(false);Check(stage.timer.Running,"lesson resumes clock");
-            Check(stage.BoardOpen&&!stage.ui.gameplayControls.activeInHierarchy&&!stage.LocalPlayer.enabled,"lesson returns to locked board");stage.SelectAnswer(3);stage.Confirm();
+            Check(stage.BoardOpen&&!stage.ui.gameplayControls.activeInHierarchy&&!stage.LocalPlayer.enabled,"lesson returns to locked board");
+            stage.SelectAnswer(TreeAnswerValidator.Depth(stage.Challenge,stage.Challenge.initial,stage.Challenge.target));stage.Confirm();
             while(stage.State==TreeStageState.CHALLENGE_COMPLETE||stage.Moving)yield return null;
             Check(stage.ChallengeIndex==4&&stage.Correct==4,"no early victory");yield return OpenBoard();
-            stage.SelectNode("A");stage.SelectNode("C");stage.Edit(true);stage.SelectNode("B");stage.SelectNode("D");stage.Edit(true);stage.Confirm();
+            var spanning=stage.Challenge;
+            System.Collections.Generic.List<TreeEdgeData> winning=null;
+            for(int mask=0;mask<32&&winning==null;mask++)
+            {
+                var subset=spanning.initial.Where((e,i)=>(mask&(1<<i))!=0).ToList();
+                if(TreeAnswerValidator.Validate(spanning,subset,null,null,out reason))winning=subset;
+            }
+            Check(winning!=null,"spanning variant has a solution");
+            foreach(var edge in spanning.initial.Where(e=>!winning.Contains(e)))
+            {stage.SelectNode(edge.source);stage.SelectNode(edge.destination);stage.Edit(true);}
+            stage.Confirm();
             while(stage.State==TreeStageState.CHALLENGE_COMPLETE)yield return null;
             Check(stage.State==TreeStageState.STAGE_COMPLETE&&stage.Correct==5,"five-round victory");Check(!stage.timer.Running,"victory stops clock");
             yield return WaitForExploration();

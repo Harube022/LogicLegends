@@ -48,6 +48,61 @@ public static class TreesStageChecks
         check(!TreeAnswerValidator.Validate(c[4],new[]{new TreeEdgeData("A","D"),new TreeEdgeData("A","B"),new TreeEdgeData("B","C")},null,null,out reason),"foreign spanning edge");
         var catalog=AssetDatabase.LoadAssetAtPath<TreeChallengeCatalog>("Assets/Prefabs/Trees/TreeChallenges.asset");
         check(catalog!=null&&catalog.challenges.Count==5,"saved five-round catalog");
-        Debug.Log("TREES VALIDATORS PASS: "+checks+" assertions; all 8 valid spanning trees accepted.");
+        check(catalog.variantSets!=null&&catalog.variantSets.Count==5,"five variant sets");
+        for(int round=0;round<5;round++)
+        {
+            var set=catalog.variantSets[round];
+            check(set!=null&&set.variants!=null&&set.variants.Count==10,"ten variants in round "+round);
+            var signatures=new HashSet<string>();
+            for(int index=0;index<10;index++)
+            {
+                var v=set.variants[index];
+                string label="round "+round+" variant "+index;
+                check(v!=null&&v.type==catalog.challenges[round].type,label+" type");
+                check(v.nodes.Select(n=>n.id).Distinct().Count()==v.nodes.Count,label+" unique nodes");
+                check(v.nodes.All(n=>n.position.x>=-1&&n.position.x<=1&&n.position.y>=0&&n.position.y<=1),label+" diagram bounds");
+                check(TreeAnswerValidator.ValidEdges(v,v.initial)&&TreeAnswerValidator.ValidEdges(v,v.required),label+" valid edges");
+                string signature=v.identification+"|"+v.root+"|"+v.target+"|"+v.objective+"|"+
+                    string.Join(",",v.initial.Select(e=>e.Key(v.Directed)).OrderBy(x=>x).ToArray())+"|"+
+                    string.Join(",",v.required.Select(e=>e.Key(v.Directed)).OrderBy(x=>x).ToArray());
+                check(signatures.Add(signature),label+" distinct problem");
+                switch(round)
+                {
+                    case 0:
+                        check(v.nodes.Count==7&&v.initial.Count==6&&TreeAnswerValidator.Rooted(v,v.initial),label+" seven-node terminology tree");
+                        check(v.nodes.Any(n=>TreeAnswerValidator.Validate(v,v.initial,n.id,null,out reason)),label+" has a correct node");
+                        check(v.nodes.Any(n=>!TreeAnswerValidator.Validate(v,v.initial,n.id,null,out reason)),label+" has an incorrect node");
+                        break;
+                    case 1:
+                        check(v.nodes.Count==5&&v.initial.Count==0&&v.required.Count==4,label+" four connection task");
+                        check(TreeAnswerValidator.Validate(v,v.required,null,null,out reason),label+" complete build accepted");
+                        check(!TreeAnswerValidator.Validate(v,v.initial,null,null,out reason),label+" empty build rejected");
+                        break;
+                    case 2:
+                        check(v.nodes.Count==5&&v.initial.Count==4&&v.required.Count==4&&TreeAnswerValidator.Rooted(v,v.initial),label+" intact starting tree");
+                        check(v.initial.Count(e=>!v.required.Any(r=>r.Key(true)==e.Key(true)))==1,label+" exactly one wrong branch");
+                        check(TreeAnswerValidator.Validate(v,v.required,null,null,out reason),label+" repair accepted");
+                        check(!TreeAnswerValidator.Validate(v,v.initial,null,null,out reason),label+" broken version rejected");
+                        break;
+                    case 3:
+                        int depth=TreeAnswerValidator.Depth(v,v.initial,v.target);
+                        check(v.nodes.Count==6&&v.initial.Count==5&&(depth==2||depth==3),label+" comparable depth task");
+                        check(TreeAnswerValidator.Validate(v,v.initial,null,depth,out reason),label+" correct depth accepted");
+                        check(!TreeAnswerValidator.Validate(v,v.initial,null,depth-1,out reason),label+" wrong depth rejected");
+                        break;
+                    case 4:
+                        check(v.nodes.Count==4&&v.initial.Count==5&&TreeAnswerValidator.Connected(v,v.initial),label+" five-edge graph");
+                        int solutions=0;
+                        for(int mask=0;mask<32;mask++)
+                        {
+                            var subset=v.initial.Where((e,i)=>(mask&(1<<i))!=0).ToList();
+                            if(TreeAnswerValidator.Validate(v,subset,null,null,out reason))solutions++;
+                        }
+                        check(solutions==8,label+" eight accepted spanning trees");
+                        break;
+                }
+            }
+        }
+        Debug.Log("TREES VALIDATORS PASS: "+checks+" assertions; all 50 saved variants checked.");
     }
 }
