@@ -11,6 +11,8 @@ public class ShopItem : MonoBehaviour
     [Header("Item Details")]
     [SerializeField] private string itemID;      
     public string ItemID => itemID;      // e.g., "shirt_red" or "pet_dog"
+    [SerializeField] private string displayName;
+    public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? itemID.Replace('_', ' ') : displayName;
     [SerializeField] private int price;          
     public int Price => price;          // How many coins it costs
     [SerializeField] private Currency currencyType;
@@ -32,7 +34,7 @@ public class ShopItem : MonoBehaviour
         if (isOwned)
         {
             buttonImage.sprite = purchasedSprite;
-            buyButton.interactable = false; // Prevent buying again
+            buyButton.interactable = true; // Owned clothes can still be previewed; the manager prevents buying twice.
             // Optional: If you have text on the button, you can change it to "OWNED" here
         }
         else

@@ -20,6 +20,7 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
     public event Action<RoomChatMessage> ChatReceived;
     public IReadOnlyList<string> Messages => messages;
     public IReadOnlyList<RoomChatMessage> ChatMessages => chatMessages;
+    public bool LastChatWasCensored { get; private set; }
     public string Status { get; private set; } = "Host a private game or enter a friend's code.";
     public bool Busy { get; private set; }
     public bool InLobby => PhotonNetwork.InRoom && !PhotonNetwork.OfflineMode;
@@ -119,16 +120,20 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
             FirebaseUser user = FirebaseAuth.DefaultInstance.CurrentUser;
             if (user != null)
             {
-                if (!string.IsNullOrWhiteSpace(user.DisplayName)) displayName = user.DisplayName;
-                var task = FirebaseDatabase.DefaultInstance.RootReference.Child("users").Child(user.UserId).GetValueAsync();
-                float until = Time.realtimeSinceStartup + 3f;
-                while (!task.IsCompleted && Time.realtimeSinceStartup < until && version == requestVersion) yield return null;
-                if (task.IsCompleted && !task.IsCanceled && !task.IsFaulted && FirebaseAuth.DefaultInstance.CurrentUser?.UserId == user.UserId)
-                    foreach (string key in new[] { "displayName", "username", "name" })
+                if (PlayerUsername.TryGetVerified(user.UserId, out string savedName)) displayName = savedName;
+                else
+                {
+                    var task = FirebaseDatabase.DefaultInstance.RootReference.Child("users").Child(user.UserId)
+                        .Child("username").GetValueAsync();
+                    float until = Time.realtimeSinceStartup + 3f;
+                    while (!task.IsCompleted && Time.realtimeSinceStartup < until && version == requestVersion) yield return null;
+                    if (task.IsCompleted && !task.IsCanceled && !task.IsFaulted && FirebaseAuth.DefaultInstance.CurrentUser?.UserId == user.UserId &&
+                        PlayerUsername.TryNormalize(task.Result.Value?.ToString(), out string username))
                     {
-                        string value = task.Result.Child(key).Value?.ToString();
-                        if (!string.IsNullOrWhiteSpace(value)) { displayName = value; break; }
+                        PlayerUsername.SetVerified(user.UserId, username);
+                        displayName = username;
                     }
+                }
             }
         }
         if (version != requestVersion) yield break;
@@ -311,12 +316,15 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
     public override void OnRoomPropertiesUpdate(Hashtable changes) { Changed?.Invoke(); }
     public bool SendChat(string value)
     {
+        LastChatWasCensored = false;
         if (!InLobby || leaving) return false;
         value = LobbyRules.CleanText(value, int.MaxValue);
         if (value.Length == 0) { Notify("Write a message first."); return false; }
         if (value.Length > LobbyRules.ChatLimit) { Notify("Messages can contain up to 200 characters."); return false; }
         if (Time.realtimeSinceStartup - lastSent < LobbyRules.ChatCooldown) { Notify("Please wait a moment before sending another message."); return false; }
-        if (!PhotonNetwork.RaiseEvent(LobbyRules.ChatEvent, value, new RaiseEventOptions { Receivers = ReceiverGroup.All }, SendOptions.SendReliable)) return false;
+        string censored = InappropriateTextFilter.Censor(value);
+        if (!PhotonNetwork.RaiseEvent(LobbyRules.ChatEvent, censored, new RaiseEventOptions { Receivers = ReceiverGroup.All }, SendOptions.SendReliable)) return false;
+        LastChatWasCensored = !string.Equals(value, censored, StringComparison.Ordinal);
         lastSent = Time.realtimeSinceStartup; return true;
     }
     public void OnEvent(EventData data)
@@ -333,6 +341,8 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
     private void AddSystem(string text) { AddMessage(text, 0, "ROOM"); }
     private void AddMessage(string text, int actor, string name)
     {
+        text = InappropriateTextFilter.Censor(text);
+        if (actor != 0) name = InappropriateTextFilter.Censor(name);
         var entry = new RoomChatMessage(++chatSequence, actor, name, text);
         chatMessages.Add(entry);
         messages.Add(actor == 0 ? "• " + text : name + ": " + text);

@@ -19,6 +19,8 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
     }
     private void Start()
     {
+        if (PhotonNetwork.InRoom && GetComponent<MultiplayerAvatarNameplate>() == null)
+            gameObject.AddComponent<MultiplayerAvatarNameplate>();
         if (photonView.IsMine) return;
         // Remote movement is received from its owner; it never consumes local input/physics.
         if (player != null) player.enabled = false;
