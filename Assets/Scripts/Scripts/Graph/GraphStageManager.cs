@@ -22,7 +22,7 @@ namespace LogicLegends.Graph
         private bool onboardingPending = true;
         public bool TutorialActive => controlsTutorial != null && controlsTutorial.IsActive;
         public AudioClip correctSound, wrongSound;
-        [Min(30)] public float countdownSeconds = 300;
+        [Min(30)] public float countdownSeconds = 600;
         [Min(.1f)] public float feedbackSeconds = 1.2f;
         public GraphStageState State { get; private set; } = GraphStageState.WAITING_FOR_ACTIVATION;
         public GraphTraversalTracker Tracker { get; } = new GraphTraversalTracker();
@@ -34,8 +34,9 @@ namespace LogicLegends.Graph
         public IReadOnlyList<int> RunChallengeIndices => runChallengeIndices.AsReadOnly();
         public int ChallengeCount => runChallengeIndices.Count;
         public int CatalogIndex => runChallengeIndices[ChallengeIndex];
+        public int ActiveVariantIndex => CatalogIndex;
         private GraphChallengeData activeChallenge;
-        public GraphChallengeData Challenge => activeChallenge ?? catalog.challenges[CatalogIndex];
+        public GraphChallengeData Challenge => activeChallenge ?? catalog.variantSets[ChallengeIndex].variants[ActiveVariantIndex];
         public Player LocalPlayer { get; private set; }
         public bool Ready { get; private set; }
         public bool Moving { get; private set; }
@@ -63,7 +64,13 @@ namespace LogicLegends.Graph
 
         private IEnumerator Start()
         {
-            runChallengeIndices = catalog.SelectRun(new System.Random(Guid.NewGuid().GetHashCode()));
+            var previous = new int[GraphChallengeCatalog.ChallengesPerRun];
+            for (int round = 0; round < previous.Length; round++)
+                previous[round] = PlayerPrefs.GetInt("LogicLegends.Graph.LastVariant." + round, -1);
+            runChallengeIndices = catalog.SelectRun(new System.Random(Guid.NewGuid().GetHashCode()), previous);
+            for (int round = 0; round < runChallengeIndices.Count; round++)
+                PlayerPrefs.SetInt("LogicLegends.Graph.LastVariant." + round, runChallengeIndices[round]);
+            PlayerPrefs.Save();
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.playOnAwake = false;
             audioSource.spatialBlend = 0;
@@ -193,7 +200,7 @@ namespace LogicLegends.Graph
         }
         private void BuildChallenge()
         {
-            activeChallenge = GraphGeometry.Layout(catalog.challenges[CatalogIndex]);
+            activeChallenge = GraphGeometry.Layout(catalog.variantSets[ChallengeIndex].variants[ActiveVariantIndex]);
             foreach (Transform child in arena) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
             bridges.Clear();
             vertices.Clear();

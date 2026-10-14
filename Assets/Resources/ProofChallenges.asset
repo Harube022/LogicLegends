@@ -158,3 +158,1577 @@ MonoBehaviour:
     - stepIds: 0200000001000000000000000300000004000000
     ruleOptions: []
     expectedRule: 
+  variantSets:
+  - variants:
+    - kind: 0
+      title: Identify Proof Styles
+      instructions: Place each proof on the correct altar.
+      context: "Premises: P; P \u2192 Q. Conclusion: Q."
+      scrolls:
+      - id: A
+        title: Formal Scroll
+        content: "Premises: P and P \u2192 Q. Conclusion: Q.\n\n1. P \u2014 Premise\n2.
+          P \u2192 Q \u2014 Premise\n3. Q \u2014 Modus Ponens, steps 1 and 2"
+        isFormal: 1
+      - id: B
+        title: Informal Scroll
+        content: "Premises: P and P \u2192 Q. Conclusion: Q.\n\nWe know P is true.
+          We are also given that P implies Q. Therefore, Q must be true."
+        isFormal: 0
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Identify Proof Styles
+      instructions: Read both proofs and place each on the correct altar.
+      context: 
+      scrolls:
+      - id: A
+        title: Even Sum
+        content: Two even numbers are made of whole pairs. Putting the pairs together
+          leaves no unpaired item, so their sum is even.
+        isFormal: 0
+      - id: B
+        title: Even Sum
+        content: 'Claim: Two even integers have an even sum.
+
+          1. Let a
+          = 2m and b = 2n. (Definition of even.)
+
+          2. a + b = 2(m + n).
+          (Algebra.)
+
+          3. m + n is an integer, so a + b is even. (Definition
+          of even.)'
+        isFormal: 1
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Identify Proof Styles
+      instructions: Read both proofs and place each on the correct altar.
+      context: 
+      scrolls:
+      - id: A
+        title: Odd Sum
+        content: 'Claim: Two odd integers have an even sum.
+
+          1. Let a =
+          2m + 1 and b = 2n + 1. (Definition of odd.)
+
+          2. a + b = 2(m +
+          n + 1). (Algebra.)
+
+          3. m + n + 1 is an integer, so a + b is even.
+          (Definition of even.)'
+        isFormal: 1
+      - id: B
+        title: Odd Sum
+        content: Each odd number has one leftover after forming pairs. The two leftovers
+          form another pair, so the sum is even.
+        isFormal: 0
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Identify Proof Styles
+      instructions: Read both proofs and place each on the correct altar.
+      context: 
+      scrolls:
+      - id: A
+        title: Even Square
+        content: An even number is built from pairs. Squaring it still produces a
+          number of complete pairs, so its square is even.
+        isFormal: 0
+      - id: B
+        title: Even Square
+        content: "Claim: The square of an even integer is even.\n1. Let n = 2k. (Definition
+          of even.)\n2. n\xB2 = 4k\xB2 = 2(2k\xB2). (Algebra.)\n3. 2k\xB2 is an integer,
+          so n\xB2 is even. (Definition of even.)"
+        isFormal: 1
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Identify Proof Styles
+      instructions: Read both proofs and place each on the correct altar.
+      context: 
+      scrolls:
+      - id: A
+        title: Odd Square
+        content: "Claim: The square of an odd integer is odd.\n1. Let n = 2k + 1.
+          (Definition of odd.)\n2. n\xB2 = 2(2k\xB2 + 2k) + 1. (Algebra.)\n3. 2k\xB2
+          + 2k is an integer, so n\xB2 is odd. (Definition of odd.)"
+        isFormal: 1
+      - id: B
+        title: Odd Square
+        content: An odd number has a leftover after pairing. When it is squared,
+          one leftover remains, so the square is odd.
+        isFormal: 0
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Identify Proof Styles
+      instructions: Read both proofs and place each on the correct altar.
+      context: 
+      scrolls:
+      - id: A
+        title: Even Plus Odd
+        content: The even group has no leftover and the odd group has one. Together
+          they still have one leftover, so the sum is odd.
+        isFormal: 0
+      - id: B
+        title: Even Plus Odd
+        content: 'Claim: An even integer plus an odd integer is odd.
+
+          1.
+          Let a = 2m and b = 2n + 1. (Parity definitions.)
+
+          2. a + b =
+          2(m + n) + 1. (Algebra.)
+
+          3. m + n is an integer, so a + b is
+          odd. (Definition of odd.)'
+        isFormal: 1
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Identify Proof Styles
+      instructions: Read both proofs and place each on the correct altar.
+      context: 
+      scrolls:
+      - id: A
+        title: Even Product
+        content: 'Claim: An even integer times an integer is even.
+
+          1.
+          Let a = 2m and let b be an integer. (Definition of even.)
+
+          2.
+          ab = 2(mb). (Algebra.)
+
+          3. mb is an integer, so ab is even. (Definition
+          of even.)'
+        isFormal: 1
+      - id: B
+        title: Even Product
+        content: An even amount consists of pairs. Taking any whole number of copies
+          preserves those pairs, so the product is even.
+        isFormal: 0
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Identify Proof Styles
+      instructions: Read both proofs and place each on the correct altar.
+      context: 
+      scrolls:
+      - id: A
+        title: Multiples of Three
+        content: Each number is made of complete groups of three. Combining the groups
+          still gives complete groups of three.
+        isFormal: 0
+      - id: B
+        title: Multiples of Three
+        content: 'Claim: The sum of two multiples of 3 is a multiple of 3.
+
+          1.
+          Let a = 3m and b = 3n. (Definition of multiple.)
+
+          2. a + b =
+          3(m + n). (Algebra.)
+
+          3. m + n is an integer, so 3 divides a
+          + b. (Definition of divides.)'
+        isFormal: 1
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Identify Proof Styles
+      instructions: Read both proofs and place each on the correct altar.
+      context: 
+      scrolls:
+      - id: A
+        title: Even Difference
+        content: 'Claim: The difference of two even integers is even.
+
+          1.
+          Let a = 2m and b = 2n. (Definition of even.)
+
+          2. a - b = 2(m
+          - n). (Algebra.)
+
+          3. m - n is an integer, so a - b is even. (Definition
+          of even.)'
+        isFormal: 1
+      - id: B
+        title: Even Difference
+        content: Subtracting complete pairs from complete pairs leaves a whole number
+          of pairs, so the difference is even.
+        isFormal: 0
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Identify Proof Styles
+      instructions: Read both proofs and place each on the correct altar.
+      context: 
+      scrolls:
+      - id: A
+        title: Odd Successor
+        content: An odd number has one item left after pairing. Add one more item
+          and it completes a pair, making the successor even.
+        isFormal: 0
+      - id: B
+        title: Odd Successor
+        content: 'Claim: The successor of an odd integer is even.
+
+          1. Let
+          n = 2k + 1. (Definition of odd.)
+
+          2. n + 1 = 2(k + 1). (Algebra.)
+
+          3.
+          k + 1 is an integer, so n + 1 is even. (Definition of even.)'
+        isFormal: 1
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+  - variants:
+    - kind: 0
+      title: Classify Multiple Proofs
+      instructions: Classify all four valid proofs by how their reasoning is presented.
+      context: 
+      scrolls:
+      - id: A
+        title: Even Square
+        content: "Claim: The square of an even integer is even.\n1. n = 2k for some
+          integer k. (Definition of even.)\n2. n\xB2 = 4k\xB2 = 2(2k\xB2). (Algebra.)\n3.
+          2k\xB2 is an integer, so n\xB2 is even. (Definition of even.)"
+        isFormal: 1
+      - id: B
+        title: Odd Sum
+        content: The sum of two odd integers is even. Each odd group has one item
+          left over after pairing. The two leftovers make a pair, so their combined
+          group has no unpaired item.
+        isFormal: 0
+      - id: C
+        title: Divisibility
+        content: 'Claim: If a divides b and b divides c, then a divides c.
+
+          1.
+          b = ak and c = bm for integers k,m. (Definition of divides.)
+
+          2.
+          c = (ak)m = a(km). (Substitution.)
+
+          3. km is an integer, so a
+          divides c. (Definition of divides.)'
+        isFormal: 1
+      - id: D
+        title: Multiple of Four
+        content: Every multiple of four is even. Four is two pairs; any whole number
+          of groups of four can be split into pairs without leaving anything over.
+        isFormal: 0
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Classify Multiple Proofs
+      instructions: Classify all four valid proofs by how their reasoning is presented.
+      context: 
+      scrolls:
+      - id: A
+        title: Even Product
+        content: An even amount consists of pairs. Taking any whole number of copies
+          preserves those pairs, so the product is even.
+        isFormal: 0
+      - id: B
+        title: Even Product
+        content: 'Claim: An even integer times an integer is even.
+
+          1.
+          Let a = 2m and let b be an integer. (Definition of even.)
+
+          2.
+          ab = 2(mb). (Algebra.)
+
+          3. mb is an integer, so ab is even. (Definition
+          of even.)'
+        isFormal: 1
+      - id: C
+        title: Even Sum
+        content: Two even numbers are made of whole pairs. Putting the pairs together
+          leaves no unpaired item, so their sum is even.
+        isFormal: 0
+      - id: D
+        title: Even Sum
+        content: 'Claim: Two even integers have an even sum.
+
+          1. Let a
+          = 2m and b = 2n. (Definition of even.)
+
+          2. a + b = 2(m + n).
+          (Algebra.)
+
+          3. m + n is an integer, so a + b is even. (Definition
+          of even.)'
+        isFormal: 1
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Classify Multiple Proofs
+      instructions: Classify all four valid proofs by how their reasoning is presented.
+      context: 
+      scrolls:
+      - id: A
+        title: Multiples of Three
+        content: 'Claim: The sum of two multiples of 3 is a multiple of 3.
+
+          1.
+          Let a = 3m and b = 3n. (Definition of multiple.)
+
+          2. a + b =
+          3(m + n). (Algebra.)
+
+          3. m + n is an integer, so 3 divides a
+          + b. (Definition of divides.)'
+        isFormal: 1
+      - id: B
+        title: Odd Sum
+        content: Each odd number has one leftover after forming pairs. The two leftovers
+          form another pair, so the sum is even.
+        isFormal: 0
+      - id: C
+        title: Odd Sum
+        content: 'Claim: Two odd integers have an even sum.
+
+          1. Let a =
+          2m + 1 and b = 2n + 1. (Definition of odd.)
+
+          2. a + b = 2(m +
+          n + 1). (Algebra.)
+
+          3. m + n + 1 is an integer, so a + b is even.
+          (Definition of even.)'
+        isFormal: 1
+      - id: D
+        title: Multiples of Three
+        content: Each number is made of complete groups of three. Combining the groups
+          still gives complete groups of three.
+        isFormal: 0
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Classify Multiple Proofs
+      instructions: Classify all four valid proofs by how their reasoning is presented.
+      context: 
+      scrolls:
+      - id: A
+        title: Even Square
+        content: An even number is built from pairs. Squaring it still produces a
+          number of complete pairs, so its square is even.
+        isFormal: 0
+      - id: B
+        title: Even Square
+        content: "Claim: The square of an even integer is even.\n1. Let n = 2k. (Definition
+          of even.)\n2. n\xB2 = 4k\xB2 = 2(2k\xB2). (Algebra.)\n3. 2k\xB2 is an integer,
+          so n\xB2 is even. (Definition of even.)"
+        isFormal: 1
+      - id: C
+        title: Even Difference
+        content: Subtracting complete pairs from complete pairs leaves a whole number
+          of pairs, so the difference is even.
+        isFormal: 0
+      - id: D
+        title: Even Difference
+        content: 'Claim: The difference of two even integers is even.
+
+          1.
+          Let a = 2m and b = 2n. (Definition of even.)
+
+          2. a - b = 2(m
+          - n). (Algebra.)
+
+          3. m - n is an integer, so a - b is even. (Definition
+          of even.)'
+        isFormal: 1
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Classify Multiple Proofs
+      instructions: Classify all four valid proofs by how their reasoning is presented.
+      context: 
+      scrolls:
+      - id: A
+        title: Odd Square
+        content: "Claim: The square of an odd integer is odd.\n1. Let n = 2k + 1.
+          (Definition of odd.)\n2. n\xB2 = 2(2k\xB2 + 2k) + 1. (Algebra.)\n3. 2k\xB2
+          + 2k is an integer, so n\xB2 is odd. (Definition of odd.)"
+        isFormal: 1
+      - id: B
+        title: Odd Successor
+        content: An odd number has one item left after pairing. Add one more item
+          and it completes a pair, making the successor even.
+        isFormal: 0
+      - id: C
+        title: Odd Successor
+        content: 'Claim: The successor of an odd integer is even.
+
+          1. Let
+          n = 2k + 1. (Definition of odd.)
+
+          2. n + 1 = 2(k + 1). (Algebra.)
+
+          3.
+          k + 1 is an integer, so n + 1 is even. (Definition of even.)'
+        isFormal: 1
+      - id: D
+        title: Odd Square
+        content: An odd number has a leftover after pairing. When it is squared,
+          one leftover remains, so the square is odd.
+        isFormal: 0
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Classify Multiple Proofs
+      instructions: Classify all four valid proofs by how their reasoning is presented.
+      context: 
+      scrolls:
+      - id: A
+        title: Multiple of Four
+        content: Four consists of two pairs. Any whole number of groups of four can
+          be split into pairs, so every multiple is even.
+        isFormal: 0
+      - id: B
+        title: Multiple of Four
+        content: 'Claim: Every multiple of 4 is even.
+
+          1. Let n = 4k. (Definition
+          of multiple.)
+
+          2. n = 2(2k). (Algebra.)
+
+          3. 2k is an
+          integer, so n is even. (Definition of even.)'
+        isFormal: 1
+      - id: C
+        title: Even Plus Odd
+        content: The even group has no leftover and the odd group has one. Together
+          they still have one leftover, so the sum is odd.
+        isFormal: 0
+      - id: D
+        title: Even Plus Odd
+        content: 'Claim: An even integer plus an odd integer is odd.
+
+          1.
+          Let a = 2m and b = 2n + 1. (Parity definitions.)
+
+          2. a + b =
+          2(m + n) + 1. (Algebra.)
+
+          3. m + n is an integer, so a + b is
+          odd. (Definition of odd.)'
+        isFormal: 1
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Classify Multiple Proofs
+      instructions: Classify all four valid proofs by how their reasoning is presented.
+      context: 
+      scrolls:
+      - id: A
+        title: Even Sum
+        content: 'Claim: Two even integers have an even sum.
+
+          1. Let a
+          = 2m and b = 2n. (Definition of even.)
+
+          2. a + b = 2(m + n).
+          (Algebra.)
+
+          3. m + n is an integer, so a + b is even. (Definition
+          of even.)'
+        isFormal: 1
+      - id: B
+        title: Even Product
+        content: An even amount consists of pairs. Taking any whole number of copies
+          preserves those pairs, so the product is even.
+        isFormal: 0
+      - id: C
+        title: Even Product
+        content: 'Claim: An even integer times an integer is even.
+
+          1.
+          Let a = 2m and let b be an integer. (Definition of even.)
+
+          2.
+          ab = 2(mb). (Algebra.)
+
+          3. mb is an integer, so ab is even. (Definition
+          of even.)'
+        isFormal: 1
+      - id: D
+        title: Even Sum
+        content: Two even numbers are made of whole pairs. Putting the pairs together
+          leaves no unpaired item, so their sum is even.
+        isFormal: 0
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Classify Multiple Proofs
+      instructions: Classify all four valid proofs by how their reasoning is presented.
+      context: 
+      scrolls:
+      - id: A
+        title: Multiples of Three
+        content: Each number is made of complete groups of three. Combining the groups
+          still gives complete groups of three.
+        isFormal: 0
+      - id: B
+        title: Multiples of Three
+        content: 'Claim: The sum of two multiples of 3 is a multiple of 3.
+
+          1.
+          Let a = 3m and b = 3n. (Definition of multiple.)
+
+          2. a + b =
+          3(m + n). (Algebra.)
+
+          3. m + n is an integer, so 3 divides a
+          + b. (Definition of divides.)'
+        isFormal: 1
+      - id: C
+        title: Odd Sum
+        content: Each odd number has one leftover after forming pairs. The two leftovers
+          form another pair, so the sum is even.
+        isFormal: 0
+      - id: D
+        title: Odd Sum
+        content: 'Claim: Two odd integers have an even sum.
+
+          1. Let a =
+          2m + 1 and b = 2n + 1. (Definition of odd.)
+
+          2. a + b = 2(m +
+          n + 1). (Algebra.)
+
+          3. m + n + 1 is an integer, so a + b is even.
+          (Definition of even.)'
+        isFormal: 1
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Classify Multiple Proofs
+      instructions: Classify all four valid proofs by how their reasoning is presented.
+      context: 
+      scrolls:
+      - id: A
+        title: Even Difference
+        content: 'Claim: The difference of two even integers is even.
+
+          1.
+          Let a = 2m and b = 2n. (Definition of even.)
+
+          2. a - b = 2(m
+          - n). (Algebra.)
+
+          3. m - n is an integer, so a - b is even. (Definition
+          of even.)'
+        isFormal: 1
+      - id: B
+        title: Even Square
+        content: An even number is built from pairs. Squaring it still produces a
+          number of complete pairs, so its square is even.
+        isFormal: 0
+      - id: C
+        title: Even Square
+        content: "Claim: The square of an even integer is even.\n1. Let n = 2k. (Definition
+          of even.)\n2. n\xB2 = 4k\xB2 = 2(2k\xB2). (Algebra.)\n3. 2k\xB2 is an integer,
+          so n\xB2 is even. (Definition of even.)"
+        isFormal: 1
+      - id: D
+        title: Even Difference
+        content: Subtracting complete pairs from complete pairs leaves a whole number
+          of pairs, so the difference is even.
+        isFormal: 0
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+    - kind: 0
+      title: Classify Multiple Proofs
+      instructions: Classify all four valid proofs by how their reasoning is presented.
+      context: 
+      scrolls:
+      - id: A
+        title: Odd Square
+        content: An odd number has a leftover after pairing. When it is squared,
+          one leftover remains, so the square is odd.
+        isFormal: 0
+      - id: B
+        title: Odd Square
+        content: "Claim: The square of an odd integer is odd.\n1. Let n = 2k + 1.
+          (Definition of odd.)\n2. n\xB2 = 2(2k\xB2 + 2k) + 1. (Algebra.)\n3. 2k\xB2
+          + 2k is an integer, so n\xB2 is odd. (Definition of odd.)"
+        isFormal: 1
+      - id: C
+        title: Odd Successor
+        content: An odd number has one item left after pairing. Add one more item
+          and it completes a pair, making the successor even.
+        isFormal: 0
+      - id: D
+        title: Odd Successor
+        content: 'Claim: The successor of an odd integer is even.
+
+          1. Let
+          n = 2k + 1. (Definition of odd.)
+
+          2. n + 1 = 2(k + 1). (Algebra.)
+
+          3.
+          k + 1 is an integer, so n + 1 is even. (Definition of even.)'
+        isFormal: 1
+      steps: []
+      acceptableOrders: []
+      ruleOptions: []
+      expectedRule: 
+  - variants:
+    - kind: 1
+      title: Arrange Formal Proof Steps
+      instructions: Select a statement tablet, then place it on a numbered STEP pedestal.
+        Interact with a filled slot to remove it.
+      context: "Premises: P, P \u2192 Q, Q \u2192 R. Conclusion: R."
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: P
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: "P \u2192 Q"
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: "Q \u2192 R"
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: Q
+        justification: "Modus Ponens from P and P \u2192 Q"
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: R
+        justification: "Modus Ponens from Q and Q \u2192 R"
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 1
+      title: Arrange Formal Proof Steps
+      instructions: Arrange the five shuffled statements into a valid proof, then
+        confirm at the Book Statue.
+      context: 'Premises: The code compiles; if the code compiles, then the program
+        runs; if the program runs, then the test executes. Conclusion: The test executes.'
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The code compiles
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the code compiles, then the program runs
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If the program runs, then the test executes
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: The program runs
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The test executes
+        justification: Modus Ponens from the third premise and the program runs
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 1
+      title: Arrange Formal Proof Steps
+      instructions: Arrange the five shuffled statements into a valid proof, then
+        confirm at the Book Statue.
+      context: 'Premises: The key is valid; if the key is valid, then the request
+        is authenticated; if the request is authenticated, then the data is accessible.
+        Conclusion: The data is accessible.'
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The key is valid
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the key is valid, then the request is authenticated
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If the request is authenticated, then the data is accessible
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: The request is authenticated
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The data is accessible
+        justification: Modus Ponens from the third premise and the request is authenticated
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 1
+      title: Arrange Formal Proof Steps
+      instructions: Arrange the five shuffled statements into a valid proof, then
+        confirm at the Book Statue.
+      context: 'Premises: The graph is connected; if the graph is connected, then
+        a path exists; if a path exists, then the target is reachable. Conclusion:
+        The target is reachable.'
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The graph is connected
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the graph is connected, then a path exists
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If a path exists, then the target is reachable
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: A path exists
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The target is reachable
+        justification: Modus Ponens from the third premise and a path exists
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 1
+      title: Arrange Formal Proof Steps
+      instructions: Arrange the five shuffled statements into a valid proof, then
+        confirm at the Book Statue.
+      context: 'Premises: The input is sorted; if the input is sorted, then binary
+        search applies; if binary search applies, then the lookup terminates. Conclusion:
+        The lookup terminates.'
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The input is sorted
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the input is sorted, then binary search applies
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If binary search applies, then the lookup terminates
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: Binary search applies
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The lookup terminates
+        justification: Modus Ponens from the third premise and binary search applies
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 1
+      title: Arrange Formal Proof Steps
+      instructions: Arrange the five shuffled statements into a valid proof, then
+        confirm at the Book Statue.
+      context: 'Premises: The file exists; if the file exists, then the loader opens
+        it; if the loader opens it, then the records are read. Conclusion: The records
+        are read.'
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The file exists
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the file exists, then the loader opens it
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If the loader opens it, then the records are read
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: The loader opens it
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The records are read
+        justification: Modus Ponens from the third premise and the loader opens it
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 1
+      title: Arrange Formal Proof Steps
+      instructions: Arrange the five shuffled statements into a valid proof, then
+        confirm at the Book Statue.
+      context: 'Premises: The password matches; if the password matches, then the
+        login succeeds; if the login succeeds, then the dashboard opens. Conclusion:
+        The dashboard opens.'
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The password matches
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the password matches, then the login succeeds
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If the login succeeds, then the dashboard opens
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: The login succeeds
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The dashboard opens
+        justification: Modus Ponens from the third premise and the login succeeds
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 1
+      title: Arrange Formal Proof Steps
+      instructions: Arrange the five shuffled statements into a valid proof, then
+        confirm at the Book Statue.
+      context: 'Premises: The sensor is active; if the sensor is active, then a signal
+        is sent; if a signal is sent, then the alert appears. Conclusion: The alert
+        appears.'
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The sensor is active
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the sensor is active, then a signal is sent
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If a signal is sent, then the alert appears
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: A signal is sent
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The alert appears
+        justification: Modus Ponens from the third premise and a signal is sent
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 1
+      title: Arrange Formal Proof Steps
+      instructions: Arrange the five shuffled statements into a valid proof, then
+        confirm at the Book Statue.
+      context: 'Premises: The package installs; if the package installs, then the
+        library loads; if the library loads, then the app starts. Conclusion: The
+        app starts.'
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The package installs
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the package installs, then the library loads
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If the library loads, then the app starts
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: The library loads
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The app starts
+        justification: Modus Ponens from the third premise and the library loads
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 1
+      title: Arrange Formal Proof Steps
+      instructions: Arrange the five shuffled statements into a valid proof, then
+        confirm at the Book Statue.
+      context: 'Premises: The value is positive; if the value is positive, then the
+        square root is real; if the square root is real, then the calculation proceeds.
+        Conclusion: The calculation proceeds.'
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The value is positive
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the value is positive, then the square root is real
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If the square root is real, then the calculation proceeds
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: The square root is real
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The calculation proceeds
+        justification: Modus Ponens from the third premise and the square root is
+          real
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+  - variants:
+    - kind: 2
+      title: Missing Justification
+      instructions: Select a RULE tablet and place it on RULE SLOT 1.
+      context: "1. P \u2014 Premise    2. P \u2192 Q \u2014 Premise    3. Q \u2014
+        [MISSING JUSTIFICATION]"
+      scrolls: []
+      steps: []
+      acceptableOrders: []
+      ruleOptions:
+      - Modus Ponens
+      - Modus Tollens
+      - Simplification
+      - Addition
+      expectedRule: Modus Ponens
+    - kind: 2
+      title: Missing Justification
+      instructions: Read the given proof, then place its missing justification in
+        the slot.
+      context: "1. If the input is valid, the parser accepts it.  2. The input is
+        valid.  3. The parser accepts it. \u2014 [MISSING]"
+      scrolls: []
+      steps: []
+      acceptableOrders: []
+      ruleOptions:
+      - Modus Tollens
+      - Simplification
+      - Addition
+      - Modus Ponens
+      expectedRule: Modus Ponens
+    - kind: 2
+      title: Missing Justification
+      instructions: Read the given proof, then place its missing justification in
+        the slot.
+      context: "1. If the file exists, it can open.  2. It cannot open.  3. The file
+        does not exist. \u2014 [MISSING]"
+      scrolls: []
+      steps: []
+      acceptableOrders: []
+      ruleOptions:
+      - Simplification
+      - Addition
+      - Modus Tollens
+      - Modus Ponens
+      expectedRule: Modus Tollens
+    - kind: 2
+      title: Missing Justification
+      instructions: Read the given proof, then place its missing justification in
+        the slot.
+      context: "1. The flag is set and the timer is running.  2. The flag is set.
+        \u2014 [MISSING]"
+      scrolls: []
+      steps: []
+      acceptableOrders: []
+      ruleOptions:
+      - Addition
+      - Simplification
+      - Modus Ponens
+      - Modus Tollens
+      expectedRule: Simplification
+    - kind: 2
+      title: Missing Justification
+      instructions: Read the given proof, then place its missing justification in
+        the slot.
+      context: "1. The user is logged in.  2. The user is logged in or the page is
+        public. \u2014 [MISSING]"
+      scrolls: []
+      steps: []
+      acceptableOrders: []
+      ruleOptions:
+      - Addition
+      - Modus Ponens
+      - Modus Tollens
+      - Simplification
+      expectedRule: Addition
+    - kind: 2
+      title: Missing Justification
+      instructions: Read the given proof, then place its missing justification in
+        the slot.
+      context: "1. The key is valid.  2. The server is online.  3. The key is valid
+        and the server is online. \u2014 [MISSING]"
+      scrolls: []
+      steps: []
+      acceptableOrders: []
+      ruleOptions:
+      - Modus Ponens
+      - Modus Tollens
+      - Simplification
+      - Conjunction
+      expectedRule: Conjunction
+    - kind: 2
+      title: Missing Justification
+      instructions: Read the given proof, then place its missing justification in
+        the slot.
+      context: "1. If the graph is connected, a path exists.  2. The graph is connected. 
+        3. A path exists. \u2014 [MISSING]"
+      scrolls: []
+      steps: []
+      acceptableOrders: []
+      ruleOptions:
+      - Simplification
+      - Addition
+      - Modus Ponens
+      - Modus Tollens
+      expectedRule: Modus Ponens
+    - kind: 2
+      title: Missing Justification
+      instructions: Read the given proof, then place its missing justification in
+        the slot.
+      context: "1. If the token is valid, access is granted.  2. Access is not granted. 
+        3. The token is invalid. \u2014 [MISSING]"
+      scrolls: []
+      steps: []
+      acceptableOrders: []
+      ruleOptions:
+      - Addition
+      - Modus Tollens
+      - Modus Ponens
+      - Simplification
+      expectedRule: Modus Tollens
+    - kind: 2
+      title: Missing Justification
+      instructions: Read the given proof, then place its missing justification in
+        the slot.
+      context: "1. The value is positive and even.  2. The value is even. \u2014
+        [MISSING]"
+      scrolls: []
+      steps: []
+      acceptableOrders: []
+      ruleOptions:
+      - Simplification
+      - Modus Ponens
+      - Modus Tollens
+      - Addition
+      expectedRule: Simplification
+    - kind: 2
+      title: Missing Justification
+      instructions: Read the given proof, then place its missing justification in
+        the slot.
+      context: "1. The test passes.  2. The test passes or the build is skipped.
+        \u2014 [MISSING]"
+      scrolls: []
+      steps: []
+      acceptableOrders: []
+      ruleOptions:
+      - Modus Ponens
+      - Modus Tollens
+      - Simplification
+      - Addition
+      expectedRule: Addition
+  - variants:
+    - kind: 3
+      title: Formalize an Informal Explanation
+      instructions: Place statements and matching rules on the numbered STEP and
+        RULE pedestals.
+      context: "Suppose P is true. Since P implies Q, Q follows. Since Q implies
+        R, R follows.\nPremises: P, P \u2192 Q, Q \u2192 R. Conclusion: R."
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: P
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: "P \u2192 Q"
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: "Q \u2192 R"
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: Q
+        justification: "Modus Ponens from P and P \u2192 Q"
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: R
+        justification: "Modus Ponens from Q and Q \u2192 R"
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 3
+      title: Formalize an Informal Explanation
+      instructions: Place all five statements in a valid order and pair each with
+        its justification.
+      context: Given The number is even; if the number is even, then its square is
+        even; if its square is even, then the parity check passes. Explain why the
+        parity check passes.
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The number is even
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the number is even, then its square is even
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If its square is even, then the parity check passes
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: Its square is even
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The parity check passes
+        justification: Modus Ponens from the third premise and its square is even
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 3
+      title: Formalize an Informal Explanation
+      instructions: Place all five statements in a valid order and pair each with
+        its justification.
+      context: Given The user has access; if the user has access, then the file can
+        open; if the file can open, then the report can load. Explain why the report
+        can load.
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The user has access
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the user has access, then the file can open
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If the file can open, then the report can load
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: The file can open
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The report can load
+        justification: Modus Ponens from the third premise and the file can open
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 3
+      title: Formalize an Informal Explanation
+      instructions: Place all five statements in a valid order and pair each with
+        its justification.
+      context: Given The device is online; if the device is online, then the message
+        can send; if the message can send, then the server receives it. Explain why
+        the server receives it.
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The device is online
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the device is online, then the message can send
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If the message can send, then the server receives it
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: The message can send
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The server receives it
+        justification: Modus Ponens from the third premise and the message can send
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 3
+      title: Formalize an Informal Explanation
+      instructions: Place all five statements in a valid order and pair each with
+        its justification.
+      context: Given The data is valid; if the data is valid, then the parser accepts
+        it; if the parser accepts it, then the record is stored. Explain why the
+        record is stored.
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The data is valid
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the data is valid, then the parser accepts it
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If the parser accepts it, then the record is stored
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: The parser accepts it
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The record is stored
+        justification: Modus Ponens from the third premise and the parser accepts
+          it
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 3
+      title: Formalize an Informal Explanation
+      instructions: Place all five statements in a valid order and pair each with
+        its justification.
+      context: Given The queue is nonempty; if the queue is nonempty, then an item
+        can be removed; if an item can be removed, then the worker can process it.
+        Explain why the worker can process it.
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The queue is nonempty
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the queue is nonempty, then an item can be removed
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If an item can be removed, then the worker can process it
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: An item can be removed
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The worker can process it
+        justification: Modus Ponens from the third premise and an item can be removed
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 3
+      title: Formalize an Informal Explanation
+      instructions: Place all five statements in a valid order and pair each with
+        its justification.
+      context: Given The vertex is visited; if the vertex is visited, then its edges
+        are checked; if its edges are checked, then its neighbors are discovered.
+        Explain why its neighbors are discovered.
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The vertex is visited
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the vertex is visited, then its edges are checked
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If its edges are checked, then its neighbors are discovered
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: Its edges are checked
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: Its neighbors are discovered
+        justification: Modus Ponens from the third premise and its edges are checked
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 3
+      title: Formalize an Informal Explanation
+      instructions: Place all five statements in a valid order and pair each with
+        its justification.
+      context: Given The payment succeeds; if the payment succeeds, then the order
+        is confirmed; if the order is confirmed, then the receipt is issued. Explain
+        why the receipt is issued.
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The payment succeeds
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the payment succeeds, then the order is confirmed
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If the order is confirmed, then the receipt is issued
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: The order is confirmed
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The receipt is issued
+        justification: Modus Ponens from the third premise and the order is confirmed
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 3
+      title: Formalize an Informal Explanation
+      instructions: Place all five statements in a valid order and pair each with
+        its justification.
+      context: Given The model is trained; if the model is trained, then a prediction
+        is produced; if a prediction is produced, then the result is displayed. Explain
+        why the result is displayed.
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The model is trained
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the model is trained, then a prediction is produced
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If a prediction is produced, then the result is displayed
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: A prediction is produced
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The result is displayed
+        justification: Modus Ponens from the third premise and a prediction is produced
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 
+    - kind: 3
+      title: Formalize an Informal Explanation
+      instructions: Place all five statements in a valid order and pair each with
+        its justification.
+      context: Given The token is current; if the token is current, then the session
+        remains valid; if the session remains valid, then the page is shown. Explain
+        why the page is shown.
+      scrolls: []
+      steps:
+      - id: premise-p
+        statement: The token is current
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-pq
+        statement: If the token is current, then the session remains valid
+        justification: Premise
+        prerequisiteIds: 
+      - id: premise-qr
+        statement: If the session remains valid, then the page is shown
+        justification: Premise
+        prerequisiteIds: 
+      - id: derive-q
+        statement: The session remains valid
+        justification: Modus Ponens from the first two premises
+        prerequisiteIds: 0000000001000000
+      - id: derive-r
+        statement: The page is shown
+        justification: Modus Ponens from the third premise and the session remains
+          valid
+        prerequisiteIds: 0200000003000000
+      acceptableOrders:
+      - stepIds: 0000000001000000020000000300000004000000
+      - stepIds: 0000000002000000010000000300000004000000
+      - stepIds: 0100000000000000020000000300000004000000
+      - stepIds: 0100000002000000000000000300000004000000
+      - stepIds: 0200000000000000010000000300000004000000
+      - stepIds: 0200000001000000000000000300000004000000
+      ruleOptions: []
+      expectedRule: 

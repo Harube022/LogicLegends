@@ -21,7 +21,7 @@ MonoBehaviour:
 
       Tap one node, then tap CONFIRM on the board.'
     root: A
-    target: 
+    target:
     type: 0
     identification: 0
     nodes:
@@ -68,7 +68,7 @@ MonoBehaviour:
       Use REMOVE to correct a connection.
       Tap CONFIRM when the complete structure is ready.'
     root: A
-    target: 
+    target:
     type: 1
     identification: 0
     nodes:
@@ -105,7 +105,7 @@ MonoBehaviour:
       A correction must remove the old
       parent link before adding the new one.'
     root: A
-    target: 
+    target:
     type: 2
     identification: 0
     nodes:
@@ -197,7 +197,7 @@ MonoBehaviour:
       Several answers are
       valid. Select branch endpoints and REMOVE until your tree is ready.'
     root: A
-    target: 
+    target:
     type: 5
     identification: 0
     nodes:
@@ -226,3 +226,2436 @@ MonoBehaviour:
       destination: D
       removable: 1
     required: []
+  variantSets:
+  - variants:
+    - title: Tree terminology
+      objective: Identify the root node.
+      lesson: 'The root has no parent. A parent points to its children. A leaf has
+        no children.
+
+
+        Tap one node, then tap CONFIRM on the board.'
+      root: A
+      target:
+      type: 0
+      identification: 0
+      nodes:
+      - id: A
+        position: {x: 0, y: 1}
+      - id: B
+        position: {x: -0.5, y: 0.5}
+      - id: C
+        position: {x: 0.5, y: 0.5}
+      - id: D
+        position: {x: -0.8, y: 0}
+      - id: E
+        position: {x: -0.3, y: 0}
+      - id: F
+        position: {x: 0.3, y: 0}
+      - id: G
+        position: {x: 0.8, y: 0}
+      initial:
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: B
+        destination: E
+        removable: 1
+      - source: C
+        destination: F
+        removable: 1
+      - source: C
+        destination: G
+        removable: 1
+      required: []
+    - title: Tree terminology
+      objective: Which node is the parent of E?
+      lesson: 'The root has no parent. A parent points to its children. A leaf has
+        no children.
+
+
+        Tap one node, then tap CONFIRM on the board.'
+      root: B
+      target: E
+      type: 0
+      identification: 1
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: -0.5733333, y: 0.5}
+      - id: D
+        position: {x: 0.5733333, y: 0.5}
+      - id: E
+        position: {x: -0.86, y: 0}
+      - id: F
+        position: {x: -0.28666666, y: 0}
+      - id: G
+        position: {x: 0.28666666, y: 0}
+      - id: A
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: C
+        destination: F
+        removable: 1
+      - source: D
+        destination: G
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      required:
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: C
+        destination: F
+        removable: 1
+      - source: D
+        destination: G
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+    - title: Tree terminology
+      objective: Select a child of node C.
+      lesson: 'The root has no parent. A parent points to its children. A leaf has
+        no children.
+
+
+        Tap one node, then tap CONFIRM on the board.'
+      root: E
+      target: C
+      type: 0
+      identification: 2
+      nodes:
+      - id: E
+        position: {x: 0, y: 1}
+      - id: D
+        position: {x: -0.5733333, y: 0.5}
+      - id: C
+        position: {x: 0.5733333, y: 0.5}
+      - id: B
+        position: {x: -0.86, y: 0}
+      - id: A
+        position: {x: -0.28666666, y: 0}
+      - id: G
+        position: {x: 0.28666666, y: 0}
+      - id: F
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: E
+        destination: D
+        removable: 1
+      - source: E
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: C
+        destination: G
+        removable: 1
+      - source: C
+        destination: F
+        removable: 1
+      required:
+      - source: E
+        destination: D
+        removable: 1
+      - source: E
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: C
+        destination: G
+        removable: 1
+      - source: C
+        destination: F
+        removable: 1
+    - title: Tree terminology
+      objective: Select a leaf node.
+      lesson: 'The root has no parent. A parent points to its children. A leaf has
+        no children.
+
+
+        Tap one node, then tap CONFIRM on the board.'
+      root: D
+      target:
+      type: 0
+      identification: 3
+      nodes:
+      - id: D
+        position: {x: 0, y: 1}
+      - id: E
+        position: {x: -0.5733333, y: 0.5}
+      - id: F
+        position: {x: 0.5733333, y: 0.5}
+      - id: G
+        position: {x: -0.86, y: 0}
+      - id: A
+        position: {x: -0.28666666, y: 0}
+      - id: B
+        position: {x: 0.28666666, y: 0}
+      - id: C
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: D
+        destination: E
+        removable: 1
+      - source: D
+        destination: F
+        removable: 1
+      - source: E
+        destination: G
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      - source: F
+        destination: B
+        removable: 1
+      - source: F
+        destination: C
+        removable: 1
+      required:
+      - source: D
+        destination: E
+        removable: 1
+      - source: D
+        destination: F
+        removable: 1
+      - source: E
+        destination: G
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      - source: F
+        destination: B
+        removable: 1
+      - source: F
+        destination: C
+        removable: 1
+    - title: Tree terminology
+      objective: Identify the root node.
+      lesson: 'The root has no parent. A parent points to its children. A leaf has
+        no children.
+
+
+        Tap one node, then tap CONFIRM on the board.'
+      root: C
+      target:
+      type: 0
+      identification: 0
+      nodes:
+      - id: C
+        position: {x: 0, y: 1}
+      - id: B
+        position: {x: -0.5733333, y: 0.5}
+      - id: A
+        position: {x: 0.5733333, y: 0.5}
+      - id: G
+        position: {x: -0.86, y: 0}
+      - id: F
+        position: {x: -0.28666666, y: 0}
+      - id: E
+        position: {x: 0.28666666, y: 0}
+      - id: D
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: C
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: B
+        destination: G
+        removable: 1
+      - source: B
+        destination: F
+        removable: 1
+      - source: A
+        destination: E
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      required:
+      - source: C
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: B
+        destination: G
+        removable: 1
+      - source: B
+        destination: F
+        removable: 1
+      - source: A
+        destination: E
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+    - title: Tree terminology
+      objective: Which node is the parent of B?
+      lesson: 'The root has no parent. A parent points to its children. A leaf has
+        no children.
+
+
+        Tap one node, then tap CONFIRM on the board.'
+      root: F
+      target: B
+      type: 0
+      identification: 1
+      nodes:
+      - id: F
+        position: {x: 0, y: 1}
+      - id: G
+        position: {x: -0.5733333, y: 0.5}
+      - id: A
+        position: {x: 0.5733333, y: 0.5}
+      - id: B
+        position: {x: -0.86, y: 0}
+      - id: C
+        position: {x: -0.28666666, y: 0}
+      - id: D
+        position: {x: 0.28666666, y: 0}
+      - id: E
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: F
+        destination: G
+        removable: 1
+      - source: F
+        destination: A
+        removable: 1
+      - source: G
+        destination: B
+        removable: 1
+      - source: G
+        destination: C
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: A
+        destination: E
+        removable: 1
+      required:
+      - source: F
+        destination: G
+        removable: 1
+      - source: F
+        destination: A
+        removable: 1
+      - source: G
+        destination: B
+        removable: 1
+      - source: G
+        destination: C
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: A
+        destination: E
+        removable: 1
+    - title: Tree terminology
+      objective: Select a child of node F.
+      lesson: 'The root has no parent. A parent points to its children. A leaf has
+        no children.
+
+
+        Tap one node, then tap CONFIRM on the board.'
+      root: A
+      target: F
+      type: 0
+      identification: 2
+      nodes:
+      - id: A
+        position: {x: 0, y: 1}
+      - id: G
+        position: {x: -0.5733333, y: 0.5}
+      - id: F
+        position: {x: 0.5733333, y: 0.5}
+      - id: E
+        position: {x: -0.86, y: 0}
+      - id: D
+        position: {x: -0.28666666, y: 0}
+      - id: C
+        position: {x: 0.28666666, y: 0}
+      - id: B
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: A
+        destination: G
+        removable: 1
+      - source: A
+        destination: F
+        removable: 1
+      - source: G
+        destination: E
+        removable: 1
+      - source: G
+        destination: D
+        removable: 1
+      - source: F
+        destination: C
+        removable: 1
+      - source: F
+        destination: B
+        removable: 1
+      required:
+      - source: A
+        destination: G
+        removable: 1
+      - source: A
+        destination: F
+        removable: 1
+      - source: G
+        destination: E
+        removable: 1
+      - source: G
+        destination: D
+        removable: 1
+      - source: F
+        destination: C
+        removable: 1
+      - source: F
+        destination: B
+        removable: 1
+    - title: Tree terminology
+      objective: Select a leaf node.
+      lesson: 'The root has no parent. A parent points to its children. A leaf has
+        no children.
+
+
+        Tap one node, then tap CONFIRM on the board.'
+      root: A
+      target:
+      type: 0
+      identification: 3
+      nodes:
+      - id: A
+        position: {x: 0, y: 1}
+      - id: B
+        position: {x: -0.5733333, y: 0.5}
+      - id: C
+        position: {x: 0.5733333, y: 0.5}
+      - id: D
+        position: {x: -0.86, y: 0}
+      - id: E
+        position: {x: -0.28666666, y: 0}
+      - id: F
+        position: {x: 0.28666666, y: 0}
+      - id: G
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: B
+        destination: E
+        removable: 1
+      - source: C
+        destination: F
+        removable: 1
+      - source: C
+        destination: G
+        removable: 1
+      required:
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: B
+        destination: E
+        removable: 1
+      - source: C
+        destination: F
+        removable: 1
+      - source: C
+        destination: G
+        removable: 1
+    - title: Tree terminology
+      objective: Identify the root node.
+      lesson: 'The root has no parent. A parent points to its children. A leaf has
+        no children.
+
+
+        Tap one node, then tap CONFIRM on the board.'
+      root: F
+      target:
+      type: 0
+      identification: 0
+      nodes:
+      - id: F
+        position: {x: 0, y: 1}
+      - id: E
+        position: {x: -0.5733333, y: 0.5}
+      - id: D
+        position: {x: 0.5733333, y: 0.5}
+      - id: C
+        position: {x: -0.86, y: 0}
+      - id: B
+        position: {x: -0.28666666, y: 0}
+      - id: A
+        position: {x: 0.28666666, y: 0}
+      - id: G
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: F
+        destination: E
+        removable: 1
+      - source: F
+        destination: D
+        removable: 1
+      - source: E
+        destination: C
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: D
+        destination: G
+        removable: 1
+      required:
+      - source: F
+        destination: E
+        removable: 1
+      - source: F
+        destination: D
+        removable: 1
+      - source: E
+        destination: C
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: D
+        destination: G
+        removable: 1
+    - title: Tree terminology
+      objective: Which node is the parent of F?
+      lesson: 'The root has no parent. A parent points to its children. A leaf has
+        no children.
+
+
+        Tap one node, then tap CONFIRM on the board.'
+      root: C
+      target: F
+      type: 0
+      identification: 1
+      nodes:
+      - id: C
+        position: {x: 0, y: 1}
+      - id: D
+        position: {x: -0.5733333, y: 0.5}
+      - id: E
+        position: {x: 0.5733333, y: 0.5}
+      - id: F
+        position: {x: -0.86, y: 0}
+      - id: G
+        position: {x: -0.28666666, y: 0}
+      - id: A
+        position: {x: 0.28666666, y: 0}
+      - id: B
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: C
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: D
+        destination: F
+        removable: 1
+      - source: D
+        destination: G
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+      required:
+      - source: C
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: D
+        destination: F
+        removable: 1
+      - source: D
+        destination: G
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+  - variants:
+    - title: Build a tree
+      objective: Root A. Connect A to B and C; connect B to D and E.
+      lesson: 'Select the parent first, then the child. Tap CONNECT. Each non-root
+        node needs exactly one parent.
+
+
+        Use REMOVE to correct a connection.
+        Tap CONFIRM when the complete structure is ready.'
+      root: A
+      target:
+      type: 1
+      identification: 0
+      nodes:
+      - id: A
+        position: {x: 0, y: 1}
+      - id: B
+        position: {x: -0.5, y: 0.5}
+      - id: C
+        position: {x: 0.5, y: 0.5}
+      - id: D
+        position: {x: -0.8, y: 0}
+      - id: E
+        position: {x: -0.2, y: 0}
+      initial: []
+      required:
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: B
+        destination: E
+        removable: 1
+    - title: Build a tree
+      objective: Root B. Add B to C, B to D, C to E, D to A.
+      lesson: 'Select the parent first, then the child. Tap CONNECT. Each non-root
+        node needs exactly one parent.
+
+
+        Use REMOVE to correct a connection.
+        Tap CONFIRM when the complete structure is ready.'
+      root: B
+      target:
+      type: 1
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: -0.86, y: 0.5}
+      - id: D
+        position: {x: 0.86, y: 0.5}
+      - id: E
+        position: {x: -0.86, y: 0}
+      - id: A
+        position: {x: 0.86, y: 0}
+      initial: []
+      required:
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+    - title: Build a tree
+      objective: Root C. Add C to B, C to A, C to E, B to D.
+      lesson: 'Select the parent first, then the child. Tap CONNECT. Each non-root
+        node needs exactly one parent.
+
+
+        Use REMOVE to correct a connection.
+        Tap CONFIRM when the complete structure is ready.'
+      root: C
+      target:
+      type: 1
+      identification: 0
+      nodes:
+      - id: C
+        position: {x: 0, y: 1}
+      - id: B
+        position: {x: -0.86, y: 0.5}
+      - id: A
+        position: {x: 0, y: 0.5}
+      - id: E
+        position: {x: 0.86, y: 0.5}
+      - id: D
+        position: {x: -0.86, y: 0}
+      initial: []
+      required:
+      - source: C
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+    - title: Build a tree
+      objective: Root D. Add D to E, E to A, E to B, A to C.
+      lesson: 'Select the parent first, then the child. Tap CONNECT. Each non-root
+        node needs exactly one parent.
+
+
+        Use REMOVE to correct a connection.
+        Tap CONFIRM when the complete structure is ready.'
+      root: D
+      target:
+      type: 1
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: 0, y: 1}
+      - id: E
+        position: {x: 0, y: 0.6666667}
+      - id: A
+        position: {x: -0.86, y: 0.33333334}
+      - id: B
+        position: {x: 0.86, y: 0.33333334}
+      - id: C
+        position: {x: -0.86, y: 0}
+      initial: []
+      required:
+      - source: D
+        destination: E
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+    - title: Build a tree
+      objective: Root A. Add A to E, A to D, D to C, D to B.
+      lesson: 'Select the parent first, then the child. Tap CONNECT. Each non-root
+        node needs exactly one parent.
+
+
+        Use REMOVE to correct a connection.
+        Tap CONFIRM when the complete structure is ready.'
+      root: A
+      target:
+      type: 1
+      identification: 0
+      nodes:
+      - id: A
+        position: {x: -0.215, y: 1}
+      - id: E
+        position: {x: -0.86, y: 0.5}
+      - id: D
+        position: {x: 0.43, y: 0.5}
+      - id: C
+        position: {x: 0, y: 0}
+      - id: B
+        position: {x: 0.86, y: 0}
+      initial: []
+      required:
+      - source: A
+        destination: E
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+    - title: Build a tree
+      objective: Root A. Add A to B, B to C, C to D, D to E.
+      lesson: 'Select the parent first, then the child. Tap CONNECT. Each non-root
+        node needs exactly one parent.
+
+
+        Use REMOVE to correct a connection.
+        Tap CONFIRM when the complete structure is ready.'
+      root: A
+      target:
+      type: 1
+      identification: 0
+      nodes:
+      - id: A
+        position: {x: 0, y: 1}
+      - id: B
+        position: {x: 0, y: 0.75}
+      - id: C
+        position: {x: 0, y: 0.5}
+      - id: D
+        position: {x: 0, y: 0.25}
+      - id: E
+        position: {x: 0, y: 0}
+      initial: []
+      required:
+      - source: A
+        destination: B
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      - source: C
+        destination: D
+        removable: 1
+      - source: D
+        destination: E
+        removable: 1
+    - title: Build a tree
+      objective: Root D. Add D to C, D to B, D to A, D to E.
+      lesson: 'Select the parent first, then the child. Tap CONNECT. Each non-root
+        node needs exactly one parent.
+
+
+        Use REMOVE to correct a connection.
+        Tap CONFIRM when the complete structure is ready.'
+      root: D
+      target:
+      type: 1
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: -0.86, y: 0}
+      - id: B
+        position: {x: -0.28666666, y: 0}
+      - id: A
+        position: {x: 0.28666666, y: 0}
+      - id: E
+        position: {x: 0.86, y: 0}
+      initial: []
+      required:
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: D
+        destination: E
+        removable: 1
+    - title: Build a tree
+      objective: Root C. Add C to D, D to E, D to A, D to B.
+      lesson: 'Select the parent first, then the child. Tap CONNECT. Each non-root
+        node needs exactly one parent.
+
+
+        Use REMOVE to correct a connection.
+        Tap CONFIRM when the complete structure is ready.'
+      root: C
+      target:
+      type: 1
+      identification: 0
+      nodes:
+      - id: C
+        position: {x: 0, y: 1}
+      - id: D
+        position: {x: 0, y: 0.5}
+      - id: E
+        position: {x: -0.86, y: 0}
+      - id: A
+        position: {x: 0, y: 0}
+      - id: B
+        position: {x: 0.86, y: 0}
+      initial: []
+      required:
+      - source: C
+        destination: D
+        removable: 1
+      - source: D
+        destination: E
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+    - title: Build a tree
+      objective: Root B. Add B to A, B to E, A to D, D to C.
+      lesson: 'Select the parent first, then the child. Tap CONNECT. Each non-root
+        node needs exactly one parent.
+
+
+        Use REMOVE to correct a connection.
+        Tap CONFIRM when the complete structure is ready.'
+      root: B
+      target:
+      type: 1
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: A
+        position: {x: -0.86, y: 0.6666667}
+      - id: E
+        position: {x: 0.86, y: 0.6666667}
+      - id: D
+        position: {x: -0.86, y: 0.33333334}
+      - id: C
+        position: {x: -0.86, y: 0}
+      initial: []
+      required:
+      - source: B
+        destination: A
+        removable: 1
+      - source: B
+        destination: E
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+    - title: Build a tree
+      objective: Root E. Add E to A, E to B, B to C, A to D.
+      lesson: 'Select the parent first, then the child. Tap CONNECT. Each non-root
+        node needs exactly one parent.
+
+
+        Use REMOVE to correct a connection.
+        Tap CONFIRM when the complete structure is ready.'
+      root: E
+      target:
+      type: 1
+      identification: 0
+      nodes:
+      - id: E
+        position: {x: 0, y: 1}
+      - id: A
+        position: {x: -0.86, y: 0.5}
+      - id: B
+        position: {x: 0.86, y: 0.5}
+      - id: C
+        position: {x: 0.86, y: 0}
+      - id: D
+        position: {x: -0.86, y: 0}
+      initial: []
+      required:
+      - source: E
+        destination: A
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+  - variants:
+    - title: Repair the broken tree
+      objective: Repair the tree so E is a child of B. Keep the other parent links.
+      lesson: 'Select the endpoints of an incorrect branch and tap REMOVE. Select
+        the new parent and child, then CONNECT.
+
+
+        A correction must remove
+        the old parent link before adding the new one.'
+      root: A
+      target:
+      type: 2
+      identification: 0
+      nodes:
+      - id: A
+        position: {x: 0, y: 1}
+      - id: B
+        position: {x: -0.5, y: 0.5}
+      - id: C
+        position: {x: 0.5, y: 0.5}
+      - id: D
+        position: {x: -0.8, y: 0}
+      - id: E
+        position: {x: -0.2, y: 0}
+      initial:
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      required:
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: B
+        destination: E
+        removable: 1
+    - title: Repair the broken tree
+      objective: Repair the tree so A is a child of D. Keep the other links.
+      lesson: 'Select the endpoints of an incorrect branch and tap REMOVE. Select
+        the new parent and child, then CONNECT.
+
+
+        A correction must remove
+        the old parent link before adding the new one.'
+      root: B
+      target:
+      type: 2
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: -0.86, y: 0.5}
+      - id: D
+        position: {x: 0.86, y: 0.5}
+      - id: E
+        position: {x: -0.86, y: 0}
+      - id: A
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: B
+        destination: A
+        removable: 1
+      required:
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+    - title: Repair the broken tree
+      objective: Repair the tree so D is a child of B. Keep the other links.
+      lesson: 'Select the endpoints of an incorrect branch and tap REMOVE. Select
+        the new parent and child, then CONNECT.
+
+
+        A correction must remove
+        the old parent link before adding the new one.'
+      root: C
+      target:
+      type: 2
+      identification: 0
+      nodes:
+      - id: C
+        position: {x: 0, y: 1}
+      - id: B
+        position: {x: -0.86, y: 0.5}
+      - id: A
+        position: {x: 0, y: 0.5}
+      - id: E
+        position: {x: 0.86, y: 0.5}
+      - id: D
+        position: {x: -0.86, y: 0}
+      initial:
+      - source: C
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: C
+        destination: D
+        removable: 1
+      required:
+      - source: C
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+    - title: Repair the broken tree
+      objective: Repair the tree so C is a child of A. Keep the other links.
+      lesson: 'Select the endpoints of an incorrect branch and tap REMOVE. Select
+        the new parent and child, then CONNECT.
+
+
+        A correction must remove
+        the old parent link before adding the new one.'
+      root: D
+      target:
+      type: 2
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: 0, y: 1}
+      - id: E
+        position: {x: 0, y: 0.6666667}
+      - id: A
+        position: {x: -0.86, y: 0.33333334}
+      - id: B
+        position: {x: 0.86, y: 0.33333334}
+      - id: C
+        position: {x: -0.86, y: 0}
+      initial:
+      - source: D
+        destination: E
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+      required:
+      - source: D
+        destination: E
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+    - title: Repair the broken tree
+      objective: Repair the tree so B is a child of D. Keep the other links.
+      lesson: 'Select the endpoints of an incorrect branch and tap REMOVE. Select
+        the new parent and child, then CONNECT.
+
+
+        A correction must remove
+        the old parent link before adding the new one.'
+      root: A
+      target:
+      type: 2
+      identification: 0
+      nodes:
+      - id: A
+        position: {x: -0.215, y: 1}
+      - id: E
+        position: {x: -0.86, y: 0.5}
+      - id: D
+        position: {x: 0.43, y: 0.5}
+      - id: C
+        position: {x: 0, y: 0}
+      - id: B
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: A
+        destination: E
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+      - source: A
+        destination: B
+        removable: 1
+      required:
+      - source: A
+        destination: E
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+    - title: Repair the broken tree
+      objective: Repair the tree so E is a child of D. Keep the other links.
+      lesson: 'Select the endpoints of an incorrect branch and tap REMOVE. Select
+        the new parent and child, then CONNECT.
+
+
+        A correction must remove
+        the old parent link before adding the new one.'
+      root: A
+      target:
+      type: 2
+      identification: 0
+      nodes:
+      - id: A
+        position: {x: 0, y: 1}
+      - id: B
+        position: {x: 0, y: 0.75}
+      - id: C
+        position: {x: 0, y: 0.5}
+      - id: D
+        position: {x: 0, y: 0.25}
+      - id: E
+        position: {x: 0, y: 0}
+      initial:
+      - source: A
+        destination: B
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      - source: C
+        destination: D
+        removable: 1
+      - source: A
+        destination: E
+        removable: 1
+      required:
+      - source: A
+        destination: B
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      - source: C
+        destination: D
+        removable: 1
+      - source: D
+        destination: E
+        removable: 1
+    - title: Repair the broken tree
+      objective: Repair the tree so E is a child of D. Keep the other links.
+      lesson: 'Select the endpoints of an incorrect branch and tap REMOVE. Select
+        the new parent and child, then CONNECT.
+
+
+        A correction must remove
+        the old parent link before adding the new one.'
+      root: D
+      target:
+      type: 2
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: -0.86, y: 0}
+      - id: B
+        position: {x: -0.28666666, y: 0}
+      - id: A
+        position: {x: 0.28666666, y: 0}
+      - id: E
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      required:
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: D
+        destination: E
+        removable: 1
+    - title: Repair the broken tree
+      objective: Repair the tree so B is a child of D. Keep the other links.
+      lesson: 'Select the endpoints of an incorrect branch and tap REMOVE. Select
+        the new parent and child, then CONNECT.
+
+
+        A correction must remove
+        the old parent link before adding the new one.'
+      root: C
+      target:
+      type: 2
+      identification: 0
+      nodes:
+      - id: C
+        position: {x: 0, y: 1}
+      - id: D
+        position: {x: 0, y: 0.5}
+      - id: E
+        position: {x: -0.86, y: 0}
+      - id: A
+        position: {x: 0, y: 0}
+      - id: B
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: C
+        destination: D
+        removable: 1
+      - source: D
+        destination: E
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: C
+        destination: B
+        removable: 1
+      required:
+      - source: C
+        destination: D
+        removable: 1
+      - source: D
+        destination: E
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+    - title: Repair the broken tree
+      objective: Repair the tree so C is a child of D. Keep the other links.
+      lesson: 'Select the endpoints of an incorrect branch and tap REMOVE. Select
+        the new parent and child, then CONNECT.
+
+
+        A correction must remove
+        the old parent link before adding the new one.'
+      root: B
+      target:
+      type: 2
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: A
+        position: {x: -0.86, y: 0.6666667}
+      - id: E
+        position: {x: 0.86, y: 0.6666667}
+      - id: D
+        position: {x: -0.86, y: 0.33333334}
+      - id: C
+        position: {x: -0.86, y: 0}
+      initial:
+      - source: B
+        destination: A
+        removable: 1
+      - source: B
+        destination: E
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      required:
+      - source: B
+        destination: A
+        removable: 1
+      - source: B
+        destination: E
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+    - title: Repair the broken tree
+      objective: Repair the tree so D is a child of A. Keep the other links.
+      lesson: 'Select the endpoints of an incorrect branch and tap REMOVE. Select
+        the new parent and child, then CONNECT.
+
+
+        A correction must remove
+        the old parent link before adding the new one.'
+      root: E
+      target:
+      type: 2
+      identification: 0
+      nodes:
+      - id: E
+        position: {x: 0, y: 1}
+      - id: A
+        position: {x: -0.86, y: 0.5}
+      - id: B
+        position: {x: 0.86, y: 0.5}
+      - id: C
+        position: {x: 0.86, y: 0}
+      - id: D
+        position: {x: -0.86, y: 0}
+      initial:
+      - source: E
+        destination: A
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      - source: E
+        destination: D
+        removable: 1
+      required:
+      - source: E
+        destination: A
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+  - variants:
+    - title: Tree depth
+      objective: What is the depth of node F?
+      lesson: 'Root depth and level are 0. Depth counts edges from the root to a
+        node. Height is the longest root-to-leaf path, also counted in edges.
+
+
+        Choose
+        a number, then confirm.'
+      root: A
+      target: F
+      type: 3
+      identification: 0
+      nodes:
+      - id: A
+        position: {x: 0, y: 1}
+      - id: B
+        position: {x: -0.5, y: 0.67}
+      - id: C
+        position: {x: 0.5, y: 0.67}
+      - id: D
+        position: {x: -0.7, y: 0.33}
+      - id: E
+        position: {x: -0.1, y: 0.33}
+      - id: F
+        position: {x: -0.8, y: 0}
+      initial:
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: B
+        destination: E
+        removable: 1
+      - source: D
+        destination: F
+        removable: 1
+      required: []
+    - title: Tree depth
+      objective: What is the depth of node A?
+      lesson: 'Root depth and level are 0. Depth counts edges from the root to a
+        node. Height is the longest root-to-leaf path, also counted in edges.
+
+
+        Choose
+        a number, then confirm.'
+      root: B
+      target: A
+      type: 3
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: -0.86, y: 0.6666667}
+      - id: D
+        position: {x: 0.86, y: 0.6666667}
+      - id: E
+        position: {x: -0.86, y: 0.33333334}
+      - id: F
+        position: {x: 0.86, y: 0.33333334}
+      - id: A
+        position: {x: -0.86, y: 0}
+      initial:
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: D
+        destination: F
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      required:
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: D
+        destination: F
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+    - title: Tree depth
+      objective: What is the depth of node E?
+      lesson: 'Root depth and level are 0. Depth counts edges from the root to a
+        node. Height is the longest root-to-leaf path, also counted in edges.
+
+
+        Choose
+        a number, then confirm.'
+      root: D
+      target: E
+      type: 3
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: 0.215, y: 1}
+      - id: C
+        position: {x: -0.43, y: 0.6666667}
+      - id: B
+        position: {x: 0.86, y: 0.6666667}
+      - id: A
+        position: {x: -0.86, y: 0.33333334}
+      - id: F
+        position: {x: 0, y: 0.33333334}
+      - id: E
+        position: {x: 0, y: 0}
+      initial:
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: C
+        destination: F
+        removable: 1
+      - source: F
+        destination: E
+        removable: 1
+      required:
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: C
+        destination: F
+        removable: 1
+      - source: F
+        destination: E
+        removable: 1
+    - title: Tree depth
+      objective: What is the depth of node C?
+      lesson: 'Root depth and level are 0. Depth counts edges from the root to a
+        node. Height is the longest root-to-leaf path, also counted in edges.
+
+
+        Choose
+        a number, then confirm.'
+      root: D
+      target: C
+      type: 3
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: -0.215, y: 1}
+      - id: E
+        position: {x: -0.86, y: 0.5}
+      - id: F
+        position: {x: 0.43, y: 0.5}
+      - id: A
+        position: {x: -0.86, y: 0}
+      - id: B
+        position: {x: 0, y: 0}
+      - id: C
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: D
+        destination: E
+        removable: 1
+      - source: D
+        destination: F
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      - source: F
+        destination: B
+        removable: 1
+      - source: F
+        destination: C
+        removable: 1
+      required:
+      - source: D
+        destination: E
+        removable: 1
+      - source: D
+        destination: F
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      - source: F
+        destination: B
+        removable: 1
+      - source: F
+        destination: C
+        removable: 1
+    - title: Tree depth
+      objective: What is the depth of node C?
+      lesson: 'Root depth and level are 0. Depth counts edges from the root to a
+        node. Height is the longest root-to-leaf path, also counted in edges.
+
+
+        Choose
+        a number, then confirm.'
+      root: B
+      target: C
+      type: 3
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: A
+        position: {x: -0.86, y: 0.6666667}
+      - id: F
+        position: {x: 0, y: 0.6666667}
+      - id: E
+        position: {x: 0.86, y: 0.6666667}
+      - id: D
+        position: {x: -0.86, y: 0.33333334}
+      - id: C
+        position: {x: -0.86, y: 0}
+      initial:
+      - source: B
+        destination: A
+        removable: 1
+      - source: B
+        destination: F
+        removable: 1
+      - source: B
+        destination: E
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+      required:
+      - source: B
+        destination: A
+        removable: 1
+      - source: B
+        destination: F
+        removable: 1
+      - source: B
+        destination: E
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+    - title: Tree depth
+      objective: What is the depth of node E?
+      lesson: 'Root depth and level are 0. Depth counts edges from the root to a
+        node. Height is the longest root-to-leaf path, also counted in edges.
+
+
+        Choose
+        a number, then confirm.'
+      root: F
+      target: E
+      type: 3
+      identification: 0
+      nodes:
+      - id: F
+        position: {x: 0, y: 1}
+      - id: A
+        position: {x: 0, y: 0.6666667}
+      - id: B
+        position: {x: -0.86, y: 0.33333334}
+      - id: C
+        position: {x: 0.86, y: 0.33333334}
+      - id: D
+        position: {x: -0.86, y: 0}
+      - id: E
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: F
+        destination: A
+        removable: 1
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      required:
+      - source: F
+        destination: A
+        removable: 1
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+    - title: Tree depth
+      objective: What is the depth of node A?
+      lesson: 'Root depth and level are 0. Depth counts edges from the root to a
+        node. Height is the longest root-to-leaf path, also counted in edges.
+
+
+        Choose
+        a number, then confirm.'
+      root: F
+      target: A
+      type: 3
+      identification: 0
+      nodes:
+      - id: F
+        position: {x: -0.215, y: 1}
+      - id: E
+        position: {x: -0.86, y: 0.6666667}
+      - id: D
+        position: {x: 0.43, y: 0.6666667}
+      - id: C
+        position: {x: 0, y: 0.33333334}
+      - id: B
+        position: {x: 0.86, y: 0.33333334}
+      - id: A
+        position: {x: 0, y: 0}
+      initial:
+      - source: F
+        destination: E
+        removable: 1
+      - source: F
+        destination: D
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      required:
+      - source: F
+        destination: E
+        removable: 1
+      - source: F
+        destination: D
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+    - title: Tree depth
+      objective: What is the depth of node A?
+      lesson: 'Root depth and level are 0. Depth counts edges from the root to a
+        node. Height is the longest root-to-leaf path, also counted in edges.
+
+
+        Choose
+        a number, then confirm.'
+      root: B
+      target: A
+      type: 3
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: -0.86, y: 0.6666667}
+      - id: D
+        position: {x: 0.86, y: 0.6666667}
+      - id: E
+        position: {x: -0.86, y: 0.33333334}
+      - id: F
+        position: {x: -0.86, y: 0}
+      - id: A
+        position: {x: 0.86, y: 0.33333334}
+      initial:
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: E
+        destination: F
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      required:
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: E
+        removable: 1
+      - source: E
+        destination: F
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+    - title: Tree depth
+      objective: What is the depth of node E?
+      lesson: 'Root depth and level are 0. Depth counts edges from the root to a
+        node. Height is the longest root-to-leaf path, also counted in edges.
+
+
+        Choose
+        a number, then confirm.'
+      root: D
+      target: E
+      type: 3
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: -0.86, y: 0.6666667}
+      - id: B
+        position: {x: 0.86, y: 0.6666667}
+      - id: A
+        position: {x: -0.86, y: 0.33333334}
+      - id: F
+        position: {x: 0.86, y: 0.33333334}
+      - id: E
+        position: {x: 0.86, y: 0}
+      initial:
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: B
+        destination: F
+        removable: 1
+      - source: F
+        destination: E
+        removable: 1
+      required:
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: B
+        destination: F
+        removable: 1
+      - source: F
+        destination: E
+        removable: 1
+    - title: Tree depth
+      objective: What is the depth of node C?
+      lesson: 'Root depth and level are 0. Depth counts edges from the root to a
+        node. Height is the longest root-to-leaf path, also counted in edges.
+
+
+        Choose
+        a number, then confirm.'
+      root: D
+      target: C
+      type: 3
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: 0, y: 1}
+      - id: E
+        position: {x: 0, y: 0.6666667}
+      - id: F
+        position: {x: -0.86, y: 0.33333334}
+      - id: A
+        position: {x: 0, y: 0.33333334}
+      - id: B
+        position: {x: 0.86, y: 0.33333334}
+      - id: C
+        position: {x: -0.86, y: 0}
+      initial:
+      - source: D
+        destination: E
+        removable: 1
+      - source: E
+        destination: F
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+      - source: F
+        destination: C
+        removable: 1
+      required:
+      - source: D
+        destination: E
+        removable: 1
+      - source: E
+        destination: F
+        removable: 1
+      - source: E
+        destination: A
+        removable: 1
+      - source: E
+        destination: B
+        removable: 1
+      - source: F
+        destination: C
+        removable: 1
+  - variants:
+    - title: Spanning tree
+      objective: Remove edges to connect all four vertices without a cycle. Keep
+        exactly 3 edges.
+      lesson: 'A spanning tree includes every original vertex, stays connected, and
+        has no cycle. With V vertices it has V - 1 edges.
+
+
+        Several answers
+        are valid. Select branch endpoints and REMOVE until your tree is ready.'
+      root: A
+      target:
+      type: 5
+      identification: 0
+      nodes:
+      - id: A
+        position: {x: 0, y: 1}
+      - id: B
+        position: {x: -0.8, y: 0.5}
+      - id: C
+        position: {x: 0.8, y: 0.5}
+      - id: D
+        position: {x: 0, y: 0}
+      initial:
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: D
+        removable: 1
+      required: []
+    - title: Spanning tree
+      objective: Remove edges to connect all four vertices without a cycle. Keep
+        exactly 3 edges.
+      lesson: 'A spanning tree includes every original vertex, stays connected, and
+        has no cycle. With V vertices it has V - 1 edges.
+
+
+        Several answers
+        are valid. Select branch endpoints and REMOVE until your tree is ready.'
+      root: B
+      target:
+      type: 5
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: -0.84, y: 0.5}
+      - id: D
+        position: {x: 0.84, y: 0.5}
+      - id: A
+        position: {x: 0, y: 0}
+      initial:
+      - source: B
+        destination: D
+        removable: 1
+      - source: B
+        destination: A
+        removable: 1
+      - source: C
+        destination: D
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      required: []
+    - title: Spanning tree
+      objective: Remove edges to connect all four vertices without a cycle. Keep
+        exactly 3 edges.
+      lesson: 'A spanning tree includes every original vertex, stays connected, and
+        has no cycle. With V vertices it has V - 1 edges.
+
+
+        Several answers
+        are valid. Select branch endpoints and REMOVE until your tree is ready.'
+      root: B
+      target:
+      type: 5
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: A
+        position: {x: 0.84, y: 0.5}
+      - id: D
+        position: {x: -0.84, y: 0.5}
+      - id: C
+        position: {x: 0, y: 0}
+      initial:
+      - source: B
+        destination: A
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+      required: []
+    - title: Spanning tree
+      objective: Remove edges to connect all four vertices without a cycle. Keep
+        exactly 3 edges.
+      lesson: 'A spanning tree includes every original vertex, stays connected, and
+        has no cycle. With V vertices it has V - 1 edges.
+
+
+        Several answers
+        are valid. Select branch endpoints and REMOVE until your tree is ready.'
+      root: D
+      target:
+      type: 5
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: 0, y: 1}
+      - id: A
+        position: {x: -0.84, y: 0.5}
+      - id: B
+        position: {x: 0.84, y: 0.5}
+      - id: C
+        position: {x: 0, y: 0}
+      initial:
+      - source: D
+        destination: A
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      required: []
+    - title: Spanning tree
+      objective: Remove edges to connect all four vertices without a cycle. Keep
+        exactly 3 edges.
+      lesson: 'A spanning tree includes every original vertex, stays connected, and
+        has no cycle. With V vertices it has V - 1 edges.
+
+
+        Several answers
+        are valid. Select branch endpoints and REMOVE until your tree is ready.'
+      root: D
+      target:
+      type: 5
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: 0.84, y: 0.5}
+      - id: B
+        position: {x: -0.84, y: 0.5}
+      - id: A
+        position: {x: 0, y: 0}
+      initial:
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: B
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: B
+        destination: A
+        removable: 1
+      required: []
+    - title: Spanning tree
+      objective: Remove edges to connect all four vertices without a cycle. Keep
+        exactly 3 edges.
+      lesson: 'A spanning tree includes every original vertex, stays connected, and
+        has no cycle. With V vertices it has V - 1 edges.
+
+
+        Several answers
+        are valid. Select branch endpoints and REMOVE until your tree is ready.'
+      root: B
+      target:
+      type: 5
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: -0.84, y: 0.5}
+      - id: D
+        position: {x: 0.84, y: 0.5}
+      - id: A
+        position: {x: 0, y: 0}
+      initial:
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: B
+        destination: A
+        removable: 1
+      - source: C
+        destination: D
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      required: []
+    - title: Spanning tree
+      objective: Remove edges to connect all four vertices without a cycle. Keep
+        exactly 3 edges.
+      lesson: 'A spanning tree includes every original vertex, stays connected, and
+        has no cycle. With V vertices it has V - 1 edges.
+
+
+        Several answers
+        are valid. Select branch endpoints and REMOVE until your tree is ready.'
+      root: B
+      target:
+      type: 5
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: A
+        position: {x: 0.84, y: 0.5}
+      - id: D
+        position: {x: -0.84, y: 0.5}
+      - id: C
+        position: {x: 0, y: 0}
+      initial:
+      - source: B
+        destination: A
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      - source: A
+        destination: D
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      required: []
+    - title: Spanning tree
+      objective: Remove edges to connect all four vertices without a cycle. Keep
+        exactly 3 edges.
+      lesson: 'A spanning tree includes every original vertex, stays connected, and
+        has no cycle. With V vertices it has V - 1 edges.
+
+
+        Several answers
+        are valid. Select branch endpoints and REMOVE until your tree is ready.'
+      root: D
+      target:
+      type: 5
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: 0, y: 1}
+      - id: A
+        position: {x: -0.84, y: 0.5}
+      - id: B
+        position: {x: 0.84, y: 0.5}
+      - id: C
+        position: {x: 0, y: 0}
+      initial:
+      - source: D
+        destination: B
+        removable: 1
+      - source: D
+        destination: C
+        removable: 1
+      - source: A
+        destination: B
+        removable: 1
+      - source: A
+        destination: C
+        removable: 1
+      - source: B
+        destination: C
+        removable: 1
+      required: []
+    - title: Spanning tree
+      objective: Remove edges to connect all four vertices without a cycle. Keep
+        exactly 3 edges.
+      lesson: 'A spanning tree includes every original vertex, stays connected, and
+        has no cycle. With V vertices it has V - 1 edges.
+
+
+        Several answers
+        are valid. Select branch endpoints and REMOVE until your tree is ready.'
+      root: D
+      target:
+      type: 5
+      identification: 0
+      nodes:
+      - id: D
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: 0.84, y: 0.5}
+      - id: B
+        position: {x: -0.84, y: 0.5}
+      - id: A
+        position: {x: 0, y: 0}
+      initial:
+      - source: D
+        destination: C
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      - source: C
+        destination: B
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: B
+        destination: A
+        removable: 1
+      required: []
+    - title: Spanning tree
+      objective: Remove edges to connect all four vertices without a cycle. Keep
+        exactly 3 edges.
+      lesson: 'A spanning tree includes every original vertex, stays connected, and
+        has no cycle. With V vertices it has V - 1 edges.
+
+
+        Several answers
+        are valid. Select branch endpoints and REMOVE until your tree is ready.'
+      root: B
+      target:
+      type: 5
+      identification: 0
+      nodes:
+      - id: B
+        position: {x: 0, y: 1}
+      - id: C
+        position: {x: -0.84, y: 0.5}
+      - id: D
+        position: {x: 0.84, y: 0.5}
+      - id: A
+        position: {x: 0, y: 0}
+      initial:
+      - source: B
+        destination: C
+        removable: 1
+      - source: B
+        destination: D
+        removable: 1
+      - source: C
+        destination: D
+        removable: 1
+      - source: C
+        destination: A
+        removable: 1
+      - source: D
+        destination: A
+        removable: 1
+      required: []

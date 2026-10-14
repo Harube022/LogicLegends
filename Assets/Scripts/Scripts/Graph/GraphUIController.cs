@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,6 +31,8 @@ namespace LogicLegends.Graph
         private float penaltyUntil;
         private RectTransform root, map;
         private GameObject result, lesson, choices;
+        private Vector2 mapOrigin = new Vector2(0, 12);
+        private float mapScale = 6.2f;
         private Button confirm, retry, lessonButton;
         private readonly List<Button> answerButtons = new List<Button>();
         private readonly Dictionary<string, Image> mapVertices = new Dictionary<string, Image>();
@@ -91,7 +94,7 @@ namespace LogicLegends.Graph
             var timerPanel = Panel("Clock", root, Vector2.one, new Vector2(-30, -305), new Vector2(270, 100), Vector2.one);
             var timerTitle = Text(timerPanel, "Clock title", "TIME LEFT", 18, false);
             Place(timerTitle.rectTransform, new Vector2(.5f, 1), new Vector2(0, -23), new Vector2(220, 24), new Vector2(.5f, .5f));
-            clock = Text(timerPanel, "Countdown", "05:00", 34, false); Inset(clock.rectTransform, 12, 12);
+            clock = Text(timerPanel, "Countdown", "10:00", 34, false); Inset(clock.rectTransform, 12, 12);
             clock.rectTransform.offsetMax = new Vector2(-12, -40); clock.color = StageUITheme.ReadingInk;
             clock.enableAutoSizing = false; clock.fontSize = 32;
             penalty = Text(root, "Timer deduction", "-10", 36, false);
@@ -304,6 +307,14 @@ namespace LogicLegends.Graph
         public void RebuildMap(GraphChallengeData preview = null)
         {
             var graph = preview ?? stage.Challenge;
+            float minX=graph.vertices.Min(v=>v.position.x/GraphGeometry.LayoutScale);
+            float maxX=graph.vertices.Max(v=>v.position.x/GraphGeometry.LayoutScale);
+            float minZ=graph.vertices.Min(v=>v.position.z/GraphGeometry.LayoutScale);
+            float maxZ=graph.vertices.Max(v=>v.position.z/GraphGeometry.LayoutScale);
+            mapOrigin=new Vector2((minX+maxX)*.5f,(minZ+maxZ)*.5f);
+            float width=map.rect.width>0?map.rect.width:198f;
+            float height=map.rect.height>0?map.rect.height:204f;
+            mapScale=Mathf.Min(6.2f,(width-36f)/Mathf.Max(1f,maxX-minX),(height-36f)/Mathf.Max(1f,maxZ-minZ));
             foreach (Transform child in map) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
             mapVertices.Clear();
             mapEdges.Clear();
@@ -340,7 +351,8 @@ namespace LogicLegends.Graph
             var marker=playerMarker.gameObject.AddComponent<Image>(); marker.sprite=pointer; marker.preserveAspect=true;
             marker.color=new Color32(22, 120, 76, 255); marker.raycastTarget=false;
         }
-        private Vector2 MapPoint(Vector3 p) => new Vector2(p.x / GraphGeometry.LayoutScale * 6.2f, (p.z / GraphGeometry.LayoutScale - 12) * 6.2f);
+        private Vector2 MapPoint(Vector3 p) => new Vector2((p.x / GraphGeometry.LayoutScale - mapOrigin.x) * mapScale,
+            (p.z / GraphGeometry.LayoutScale - mapOrigin.y) * mapScale);
         public void ShowPenalty() { penaltyUntil = Time.unscaledTime + 2.5f; penalty.gameObject.SetActive(true); }
         public void ShowResult(bool success)
         {

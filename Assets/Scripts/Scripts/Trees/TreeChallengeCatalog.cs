@@ -29,10 +29,15 @@ namespace LogicLegends.Trees
         public bool Editable => type == TreeChallengeType.Build || type == TreeChallengeType.Repair || type == TreeChallengeType.Spanning;
         public bool Directed => type != TreeChallengeType.Spanning;
     }
+    [Serializable] public class TreeChallengeVariantSet
+    {
+        public List<TreeChallengeData> variants = new List<TreeChallengeData>();
+    }
     [CreateAssetMenu(menuName = "Logic Legends/Trees Challenge Catalog")]
     public sealed class TreeChallengeCatalog : ScriptableObject
     {
         public List<TreeChallengeData> challenges = new List<TreeChallengeData>();
+        public List<TreeChallengeVariantSet> variantSets = new List<TreeChallengeVariantSet>();
         public static List<TreeChallengeData> Defaults()
         {
             var five = new List<TreeNodeData> { N("A",0,1),N("B",-.5f,.5f),N("C",.5f,.5f),N("D",-.8f,0),N("E",-.2f,0) };

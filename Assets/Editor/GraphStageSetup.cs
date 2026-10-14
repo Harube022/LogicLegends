@@ -84,6 +84,8 @@ public static class GraphStageSetup
         manager.vertexPrefab=MakeVertex(groundMat);
         manager.edgePrefab=MakeEdge(groundMat);
         manager.catalog=MakeCatalog();
+        if(manager.catalog.variantSets==null||manager.catalog.variantSets.Count!=GraphChallengeCatalog.ChallengesPerRun)
+            BuildGraphChallengeVariants.Build();
         // Preview geometry is replaced from the catalog at runtime.
         foreach(var v in manager.catalog.challenges[0].vertices) {var view=(GraphVertex)PrefabUtility.InstantiatePrefab(manager.vertexPrefab,manager.arena);view.Configure(v);}
         foreach(var e in manager.catalog.challenges[0].edges) {var view=(GraphEdge)PrefabUtility.InstantiatePrefab(manager.edgePrefab,manager.arena);view.Configure(e,manager.catalog.challenges[0].Vertex(e.source).position,manager.catalog.challenges[0].Vertex(e.destination).position);}
@@ -143,8 +145,10 @@ public static class GraphStageSetup
     {
         if(EditorApplication.isPlaying)throw new InvalidOperationException("Exit Play Mode first.");
         var catalog=MakeCatalog();
+        if(catalog.variantSets==null||catalog.variantSets.Count!=GraphChallengeCatalog.ChallengesPerRun)
+            BuildGraphChallengeVariants.Build();
         AssetDatabase.SaveAssetIfDirty(catalog);
-        Debug.Log("Graph pool contains "+catalog.challenges.Count+" challenges; each run randomly selects five without repeats.");
+        Debug.Log("Graph catalog contains five ordered challenge sets with ten variants each.");
     }
     static void AddNumberedChallenges(GraphChallengeCatalog catalog)
     {

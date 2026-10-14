@@ -48,7 +48,10 @@ namespace LogicLegends.Induction
         public bool BrowsingScrolls { get; private set; }
         public string Feedback { get; private set; } = "Interact with the Book Statue to begin Challenge 1.";
         public IReadOnlyList<InductionTablet> Tablets => tablets;
-        public InductionChallenge Challenge => InductionChallenges.All[ChallengeIndex];
+        int[] runVariantIndices;
+        public IReadOnlyList<int> RunVariantIndices => runVariantIndices;
+        public int ActiveVariantIndex => runVariantIndices[ChallengeIndex];
+        public InductionChallenge Challenge => InductionChallenges.VariantSets[ChallengeIndex][ActiveVariantIndex];
         public InductionTablet Held => Player.LocalInstance != null && Player.LocalInstance.GetHeldObject() != null
             ? Player.LocalInstance.GetHeldObject().GetComponent<InductionTablet>() : null;
         public bool CanAct => Ready && !Reading && (onboarding == null || !onboarding.IsActive) && Time.timeScale > 0 &&
@@ -70,6 +73,13 @@ namespace LogicLegends.Induction
         void Awake() { Instance = this; StageSelectionState.Select(stageNumber); }
         IEnumerator Start()
         {
+            var previous = new int[InductionChallenges.ChallengesPerRun];
+            for (int round = 0; round < previous.Length; round++)
+                previous[round] = PlayerPrefs.GetInt("LogicLegends.Induction.LastVariant." + round, -1);
+            runVariantIndices = InductionChallenges.SelectRun(new System.Random(Guid.NewGuid().GetHashCode()), previous);
+            for (int round = 0; round < runVariantIndices.Length; round++)
+                PlayerPrefs.SetInt("LogicLegends.Induction.LastVariant." + round, runVariantIndices[round]);
+            PlayerPrefs.Save();
             // Tick explicitly, so Settings/reading/input pauses cannot consume time.
             timer.enabled = false; timer.Initialize(startingSeconds, HandleGameOver);
             if (boardView == null) boardView = gameObject.AddComponent<InductionBoardView>();
@@ -240,7 +250,7 @@ namespace LogicLegends.Induction
             }
             Correct++; timer.Pause();
             if (completionSeals.Length > ChallengeIndex) completionSeals[ChallengeIndex].enabled = true;
-            if (Correct == InductionChallenges.All.Length)
+            if (Correct == InductionChallenges.ChallengesPerRun)
             {
                 State = InductionState.StageComplete; Feedback = "All challenges completed!";
                 CleanupTablets(); if (staircaseLight != null) staircaseLight.enabled = true;

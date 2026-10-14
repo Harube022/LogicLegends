@@ -1,0 +1,1300 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb25978d47022ce4c96a70ca5289e125, type: 3}
+  m_Name: DirectIndirectProofChallenges
+  m_EditorClassIdentifier: Assembly-CSharp::DirectIndirectProofCatalog
+  challenges:
+  - kind: 0
+    title: Identify the proof method
+    problem: "If n\xB2 is even, then n is even. An argument assumes n is odd and
+      derives that n\xB2 is odd. Is it a direct or an indirect proof? Activate the
+      matching altar, then confirm at the Book Statue."
+    explanation: "It proves the contrapositive: if n is odd, then n\xB2 is odd. This
+      is logically equivalent to the original statement."
+    station: 1
+    correctMethod: 1
+    tablets: []
+    displayOrder: 
+    acceptedOrders: []
+  - kind: 1
+    title: Construct a direct proof
+    problem: Prove directly that the sum of two even integers is even. Interact with
+      the Direct Proof altar, then drag the five steps into logical order on its
+      board. Confirm at the Book Statue.
+    explanation: A direct proof starts with even integers, rewrites their sum as
+      twice an integer, and reaches the conclusion.
+    station: 0
+    correctMethod: 0
+    tablets:
+    - id: even-a
+      statement: Let a and b be even integers.
+      justification: Begin with the given assumption.
+    - id: even-b
+      statement: a = 2m and b = 2n for integers m and n.
+      justification: Use the definition of an even integer.
+    - id: even-c
+      statement: a + b = 2m + 2n.
+      justification: Substitute the representations of a and b.
+    - id: even-d
+      statement: a + b = 2(m + n).
+      justification: Factor out 2.
+    - id: even-e
+      statement: Since m + n is an integer, a + b is even.
+      justification: Apply the definition of even again.
+    displayOrder: 0200000004000000000000000300000001000000
+    acceptedOrders:
+    - tabletIds: 0000000001000000020000000300000004000000
+  - kind: 1
+    title: Prove the contrapositive
+    problem: "Prove: if n\xB2 is even, then n is even. Use the equivalent contrapositive:
+      if n is odd, then n\xB2 is odd. Interact with the Indirect Proof altar and
+      drag all five steps into order."
+    explanation: "For odd n = 2k + 1, its square has the form 2r + 1. Therefore n\xB2
+      is odd, establishing the contrapositive."
+    station: 1
+    correctMethod: 0
+    tablets:
+    - id: odd-a
+      statement: Assume n is odd.
+      justification: Negate the original conclusion.
+    - id: odd-b
+      statement: n = 2k + 1 for some integer k.
+      justification: Use the definition of odd.
+    - id: odd-c
+      statement: "n\xB2 = (2k + 1)\xB2 = 4k\xB2 + 4k + 1."
+      justification: Expand the square.
+    - id: odd-d
+      statement: "n\xB2 = 2(2k\xB2 + 2k) + 1."
+      justification: Factor out 2 from the even part.
+    - id: odd-e
+      statement: "Thus n\xB2 is odd, proving the contrapositive."
+      justification: "The term 2k\xB2 + 2k is an integer."
+    displayOrder: 0300000000000000040000000100000002000000
+    acceptedOrders:
+    - tabletIds: 0000000001000000020000000300000004000000
+  - kind: 1
+    title: Proof by contradiction
+    problem: Prove that there is no greatest integer. Assume the opposite, derive
+      an integer larger than the supposed greatest, and arrange the five tablets.
+    explanation: Assuming a greatest integer N gives N + 1, an even larger integer.
+      That contradiction rules out a greatest integer.
+    station: 2
+    correctMethod: 0
+    tablets:
+    - id: greatest-a
+      statement: Assume a greatest integer N exists.
+      justification: Assume the negation of the conclusion.
+    - id: greatest-b
+      statement: N + 1 is also an integer.
+      justification: Integers are closed under addition.
+    - id: greatest-c
+      statement: N + 1 > N.
+      justification: Adding 1 makes a larger integer.
+    - id: greatest-d
+      statement: This contradicts N being the greatest integer.
+      justification: The assumption and result cannot both hold.
+    - id: greatest-e
+      statement: Therefore, no greatest integer exists.
+      justification: Reject the contradictory assumption.
+    displayOrder: 0400000002000000000000000300000001000000
+    acceptedOrders:
+    - tabletIds: 0000000001000000020000000300000004000000
+  - kind: 2
+    title: Choose and complete a proof
+    problem: Prove that the sum of two odd integers is even. Choose a proof strategy,
+      then arrange the five tablets in a valid argument.
+    explanation: This trial uses a direct derivation. An indirect proof is possible
+      mathematically, but the authored tablet sequence establishes the claim directly.
+    station: 0
+    correctMethod: 0
+    tablets:
+    - id: sum-a
+      statement: Let a and b be odd integers.
+      justification: Begin with the given assumption.
+    - id: sum-b
+      statement: a = 2m + 1 and b = 2n + 1 for integers m and n.
+      justification: Use the definition of odd integers.
+    - id: sum-c
+      statement: a + b = (2m + 1) + (2n + 1) = 2m + 2n + 2.
+      justification: Substitute and simplify.
+    - id: sum-d
+      statement: a + b = 2(m + n + 1).
+      justification: Factor out 2.
+    - id: sum-e
+      statement: Since m + n + 1 is an integer, a + b is even.
+      justification: Apply the definition of even.
+    displayOrder: 0400000001000000030000000000000002000000
+    acceptedOrders:
+    - tabletIds: 0000000001000000020000000300000004000000
+  variantSets:
+  - variants:
+    - kind: 0
+      title: Identify the proof method
+      problem: "If n\xB2 is even, then n is even. An argument assumes n is odd and
+        derives that n\xB2 is odd. Is it a direct or an indirect proof? Activate
+        the matching altar, then confirm at the Book Statue."
+      explanation: "It proves the contrapositive: if n is odd, then n\xB2 is odd.
+        This is logically equivalent to the original statement."
+      station: 1
+      correctMethod: 1
+      tablets: []
+      displayOrder: 
+      acceptedOrders: []
+    - kind: 0
+      title: Even-sum argument
+      problem: Given even a and b, the argument writes a = 2m and b = 2n, then a
+        + b = 2(m + n). Is this proof direct or indirect? Activate the matching altar,
+        then confirm at the Book Statue.
+      explanation: It begins with the premise and derives the conclusion directly.
+      station: 0
+      correctMethod: 0
+      tablets: []
+      displayOrder: 
+      acceptedOrders: []
+    - kind: 0
+      title: No greatest even integer
+      problem: An argument assumes a greatest even integer E, then produces the larger
+        even integer E + 2. Is this proof direct or indirect? Activate the matching
+        altar, then confirm at the Book Statue.
+      explanation: It contradicts the assumption that a greatest even integer exists.
+      station: 2
+      correctMethod: 2
+      tablets: []
+      displayOrder: 
+      acceptedOrders: []
+    - kind: 0
+      title: Odd-product argument
+      problem: Given odd a and b, the argument expands (2m + 1)(2n + 1) = 2(2mn +
+        m + n) + 1. Is this proof direct or indirect? Activate the matching altar,
+        then confirm at the Book Statue.
+      explanation: The argument derives oddness directly from the two odd inputs.
+      station: 0
+      correctMethod: 0
+      tablets: []
+      displayOrder: 
+      acceptedOrders: []
+    - kind: 0
+      title: Odd-square argument
+      problem: "To prove n\xB2 odd implies n odd, the argument assumes n even and
+        obtains n\xB2 = 4k\xB2, which is even. Is this proof direct or indirect?
+        Activate the matching altar, then confirm at the Book Statue."
+      explanation: It proves the contrapositive, so the method is indirect.
+      station: 1
+      correctMethod: 1
+      tablets: []
+      displayOrder: 
+      acceptedOrders: []
+    - kind: 0
+      title: Multiples of three
+      problem: Given a = 3m and b = 3n, the argument shows a + b = 3(m + n). Is this
+        proof direct or indirect? Activate the matching altar, then confirm at the
+        Book Statue.
+      explanation: It starts with the given divisibility and reaches the result directly.
+      station: 0
+      correctMethod: 0
+      tablets: []
+      displayOrder: 
+      acceptedOrders: []
+    - kind: 0
+      title: Smallest rational
+      problem: An argument assumes a smallest positive rational r, then constructs
+        the smaller positive rational r/2. Is this proof direct or indirect? Activate
+        the matching altar, then confirm at the Book Statue.
+      explanation: The constructed rational contradicts the assumed smallest one.
+      station: 2
+      correctMethod: 2
+      tablets: []
+      displayOrder: 
+      acceptedOrders: []
+    - kind: 0
+      title: Even square
+      problem: "To prove n\xB2 even implies n even, an argument assumes n odd and
+        shows n\xB2 = 2(2k\xB2 + 2k) + 1. Is this proof direct or indirect? Activate
+        the matching altar, then confirm at the Book Statue."
+      explanation: It proves the contrapositive, an indirect method.
+      station: 1
+      correctMethod: 1
+      tablets: []
+      displayOrder: 
+      acceptedOrders: []
+    - kind: 0
+      title: Divisible difference
+      problem: Given a = 5m and b = 5n, the argument computes a - b = 5(m - n). Is
+        this proof direct or indirect? Activate the matching altar, then confirm
+        at the Book Statue.
+      explanation: The conclusion follows directly from the starting assumptions.
+      station: 0
+      correctMethod: 0
+      tablets: []
+      displayOrder: 
+      acceptedOrders: []
+    - kind: 0
+      title: No greatest integer
+      problem: An argument assumes a greatest integer N and finds N + 1, an integer
+        larger than N. Is this proof direct or indirect? Activate the matching altar,
+        then confirm at the Book Statue.
+      explanation: It reaches a contradiction from the opposite of the claim.
+      station: 2
+      correctMethod: 2
+      tablets: []
+      displayOrder: 
+      acceptedOrders: []
+  - variants:
+    - kind: 1
+      title: Construct a direct proof
+      problem: Prove directly that the sum of two even integers is even. Interact
+        with the Direct Proof altar, then drag the five steps into logical order
+        on its board. Confirm at the Book Statue.
+      explanation: A direct proof starts with even integers, rewrites their sum as
+        twice an integer, and reaches the conclusion.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: even-a
+        statement: Let a and b be even integers.
+        justification: Begin with the given assumption.
+      - id: even-b
+        statement: a = 2m and b = 2n for integers m and n.
+        justification: Use the definition of an even integer.
+      - id: even-c
+        statement: a + b = 2m + 2n.
+        justification: Substitute the representations of a and b.
+      - id: even-d
+        statement: a + b = 2(m + n).
+        justification: Factor out 2.
+      - id: even-e
+        statement: Since m + n is an integer, a + b is even.
+        justification: Apply the definition of even again.
+      displayOrder: 0200000004000000000000000300000001000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Even plus odd
+      problem: Prove directly that an even integer plus an odd integer is odd. Arrange
+        five steps on the active altar.
+      explanation: Write both integers by parity, add, and factor the even part.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ArrangeSteps-Direct-v1-0
+        statement: Let a be even and b be odd.
+        justification: Begin with the premise.
+      - id: proof-ArrangeSteps-Direct-v1-1
+        statement: a = 2m and b = 2n + 1 for integers m,n.
+        justification: Use a definition or given relation.
+      - id: proof-ArrangeSteps-Direct-v1-2
+        statement: a + b = 2m + 2n + 1.
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Direct-v1-3
+        statement: a + b = 2(m + n) + 1.
+        justification: Rewrite the result in the required form.
+      - id: proof-ArrangeSteps-Direct-v1-4
+        statement: Hence a + b is odd.
+        justification: Apply the definition to conclude.
+      displayOrder: 0300000000000000040000000100000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Even product
+      problem: Prove directly that an even integer times any integer is even. Arrange
+        five steps on the active altar.
+      explanation: Factoring the product as twice an integer proves evenness.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ArrangeSteps-Direct-v2-0
+        statement: Let a be even and b be any integer.
+        justification: Begin with the premise.
+      - id: proof-ArrangeSteps-Direct-v2-1
+        statement: a = 2m for some integer m.
+        justification: Use a definition or given relation.
+      - id: proof-ArrangeSteps-Direct-v2-2
+        statement: ab = (2m)b.
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Direct-v2-3
+        statement: ab = 2(mb), and mb is an integer.
+        justification: Rewrite the result in the required form.
+      - id: proof-ArrangeSteps-Direct-v2-4
+        statement: Hence ab is even.
+        justification: Apply the definition to conclude.
+      displayOrder: 0400000002000000000000000300000001000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Odd product
+      problem: Prove directly that the product of two odd integers is odd. Arrange
+        five steps on the active altar.
+      explanation: The expanded product has the form twice an integer plus one.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ArrangeSteps-Direct-v3-0
+        statement: Let a and b be odd integers.
+        justification: Begin with the premise.
+      - id: proof-ArrangeSteps-Direct-v3-1
+        statement: a = 2m + 1 and b = 2n + 1.
+        justification: Use a definition or given relation.
+      - id: proof-ArrangeSteps-Direct-v3-2
+        statement: ab = 4mn + 2m + 2n + 1.
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Direct-v3-3
+        statement: ab = 2(2mn + m + n) + 1.
+        justification: Rewrite the result in the required form.
+      - id: proof-ArrangeSteps-Direct-v3-4
+        statement: Hence ab is odd.
+        justification: Apply the definition to conclude.
+      displayOrder: 0100000004000000020000000000000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Multiples of three
+      problem: Prove directly that the sum of two multiples of 3 is a multiple of
+        3. Arrange five steps on the active altar.
+      explanation: The sum retains a factor of 3.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ArrangeSteps-Direct-v4-0
+        statement: Let a and b be multiples of 3.
+        justification: Begin with the premise.
+      - id: proof-ArrangeSteps-Direct-v4-1
+        statement: a = 3m and b = 3n for integers m,n.
+        justification: Use a definition or given relation.
+      - id: proof-ArrangeSteps-Direct-v4-2
+        statement: a + b = 3m + 3n.
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Direct-v4-3
+        statement: a + b = 3(m + n), with m + n an integer.
+        justification: Rewrite the result in the required form.
+      - id: proof-ArrangeSteps-Direct-v4-4
+        statement: Hence 3 divides a + b.
+        justification: Apply the definition to conclude.
+      displayOrder: 0300000001000000040000000200000000000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Even difference
+      problem: Prove directly that the difference of two even integers is even. Arrange
+        five steps on the active altar.
+      explanation: The difference is twice an integer.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ArrangeSteps-Direct-v5-0
+        statement: Let a and b be even integers.
+        justification: Begin with the premise.
+      - id: proof-ArrangeSteps-Direct-v5-1
+        statement: a = 2m and b = 2n for integers m,n.
+        justification: Use a definition or given relation.
+      - id: proof-ArrangeSteps-Direct-v5-2
+        statement: a - b = 2m - 2n.
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Direct-v5-3
+        statement: a - b = 2(m - n), with m - n an integer.
+        justification: Rewrite the result in the required form.
+      - id: proof-ArrangeSteps-Direct-v5-4
+        statement: Hence a - b is even.
+        justification: Apply the definition to conclude.
+      displayOrder: 0200000000000000040000000100000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Even square
+      problem: Prove directly that the square of an even integer is even. Arrange
+        five steps on the active altar.
+      explanation: Its square still has a factor of 2.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ArrangeSteps-Direct-v6-0
+        statement: Let n be an even integer.
+        justification: Begin with the premise.
+      - id: proof-ArrangeSteps-Direct-v6-1
+        statement: n = 2k for an integer k.
+        justification: Use a definition or given relation.
+      - id: proof-ArrangeSteps-Direct-v6-2
+        statement: "n\xB2 = (2k)\xB2 = 4k\xB2."
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Direct-v6-3
+        statement: "n\xB2 = 2(2k\xB2), with 2k\xB2 an integer."
+        justification: Rewrite the result in the required form.
+      - id: proof-ArrangeSteps-Direct-v6-4
+        statement: "Hence n\xB2 is even."
+        justification: Apply the definition to conclude.
+      displayOrder: 0400000001000000030000000000000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Odd square
+      problem: Prove directly that the square of an odd integer is odd. Arrange five
+        steps on the active altar.
+      explanation: The square has the form twice an integer plus one.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ArrangeSteps-Direct-v7-0
+        statement: Let n be an odd integer.
+        justification: Begin with the premise.
+      - id: proof-ArrangeSteps-Direct-v7-1
+        statement: n = 2k + 1 for an integer k.
+        justification: Use a definition or given relation.
+      - id: proof-ArrangeSteps-Direct-v7-2
+        statement: "n\xB2 = 4k\xB2 + 4k + 1."
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Direct-v7-3
+        statement: "n\xB2 = 2(2k\xB2 + 2k) + 1."
+        justification: Rewrite the result in the required form.
+      - id: proof-ArrangeSteps-Direct-v7-4
+        statement: "Hence n\xB2 is odd."
+        justification: Apply the definition to conclude.
+      displayOrder: 0100000003000000000000000400000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Three even integers
+      problem: Prove directly that the sum of three even integers is even. Arrange
+        five steps on the active altar.
+      explanation: Their sum has a common factor of 2.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ArrangeSteps-Direct-v8-0
+        statement: Let a, b, and c be even integers.
+        justification: Begin with the premise.
+      - id: proof-ArrangeSteps-Direct-v8-1
+        statement: a = 2i, b = 2j, and c = 2k.
+        justification: Use a definition or given relation.
+      - id: proof-ArrangeSteps-Direct-v8-2
+        statement: a + b + c = 2i + 2j + 2k.
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Direct-v8-3
+        statement: a + b + c = 2(i + j + k).
+        justification: Rewrite the result in the required form.
+      - id: proof-ArrangeSteps-Direct-v8-4
+        statement: Hence a + b + c is even.
+        justification: Apply the definition to conclude.
+      displayOrder: 0200000004000000010000000300000000000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Divisibility of sums
+      problem: If d divides both a and b, prove directly that d divides a + b. Arrange
+        five steps on the active altar.
+      explanation: The same divisor factors from the sum.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ArrangeSteps-Direct-v9-0
+        statement: Assume d divides a and d divides b.
+        justification: Begin with the premise.
+      - id: proof-ArrangeSteps-Direct-v9-1
+        statement: Then a = dm and b = dn for integers m,n.
+        justification: Use a definition or given relation.
+      - id: proof-ArrangeSteps-Direct-v9-2
+        statement: a + b = dm + dn.
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Direct-v9-3
+        statement: a + b = d(m + n), with m + n an integer.
+        justification: Rewrite the result in the required form.
+      - id: proof-ArrangeSteps-Direct-v9-4
+        statement: Hence d divides a + b.
+        justification: Apply the definition to conclude.
+      displayOrder: 0400000000000000020000000100000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+  - variants:
+    - kind: 1
+      title: Prove the contrapositive
+      problem: "Prove: if n\xB2 is even, then n is even. Use the equivalent contrapositive:
+        if n is odd, then n\xB2 is odd. Interact with the Indirect Proof altar and
+        drag all five steps into order."
+      explanation: "For odd n = 2k + 1, its square has the form 2r + 1. Therefore
+        n\xB2 is odd, establishing the contrapositive."
+      station: 1
+      correctMethod: 0
+      tablets:
+      - id: odd-a
+        statement: Assume n is odd.
+        justification: Negate the original conclusion.
+      - id: odd-b
+        statement: n = 2k + 1 for some integer k.
+        justification: Use the definition of odd.
+      - id: odd-c
+        statement: "n\xB2 = (2k + 1)\xB2 = 4k\xB2 + 4k + 1."
+        justification: Expand the square.
+      - id: odd-d
+        statement: "n\xB2 = 2(2k\xB2 + 2k) + 1."
+        justification: Factor out 2 from the even part.
+      - id: odd-e
+        statement: "Thus n\xB2 is odd, proving the contrapositive."
+        justification: "The term 2k\xB2 + 2k is an integer."
+      displayOrder: 0300000000000000040000000100000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Odd square
+      problem: "Prove: if n\xB2 is odd, then n is odd. Arrange five steps on the
+        active altar."
+      explanation: Even n yields an even square, proving the contrapositive.
+      station: 1
+      correctMethod: 1
+      tablets:
+      - id: proof-ArrangeSteps-Contrapositive-v1-0
+        statement: Assume n is even.
+        justification: Negate the original conclusion.
+      - id: proof-ArrangeSteps-Contrapositive-v1-1
+        statement: n = 2k for an integer k.
+        justification: Use the parity definition.
+      - id: proof-ArrangeSteps-Contrapositive-v1-2
+        statement: "n\xB2 = (2k)\xB2 = 4k\xB2."
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Contrapositive-v1-3
+        statement: "n\xB2 = 2(2k\xB2), which is even."
+        justification: Identify the opposite parity.
+      - id: proof-ArrangeSteps-Contrapositive-v1-4
+        statement: "Therefore n\xB2 odd implies n odd."
+        justification: Conclude by contrapositive.
+      displayOrder: 0300000000000000040000000100000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Even cube
+      problem: "Prove: if n\xB3 is even, then n is even. Arrange five steps on the
+        active altar."
+      explanation: Odd n yields an odd cube, proving the contrapositive.
+      station: 1
+      correctMethod: 1
+      tablets:
+      - id: proof-ArrangeSteps-Contrapositive-v2-0
+        statement: Assume n is odd.
+        justification: Negate the original conclusion.
+      - id: proof-ArrangeSteps-Contrapositive-v2-1
+        statement: n = 2k + 1 for an integer k.
+        justification: Use the parity definition.
+      - id: proof-ArrangeSteps-Contrapositive-v2-2
+        statement: "n\xB3 = 8k\xB3 + 12k\xB2 + 6k + 1."
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Contrapositive-v2-3
+        statement: "n\xB3 = 2(4k\xB3 + 6k\xB2 + 3k) + 1, which is odd."
+        justification: Identify the opposite parity.
+      - id: proof-ArrangeSteps-Contrapositive-v2-4
+        statement: "Therefore n\xB3 even implies n even."
+        justification: Conclude by contrapositive.
+      displayOrder: 0400000002000000000000000300000001000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Odd cube
+      problem: "Prove: if n\xB3 is odd, then n is odd. Arrange five steps on the
+        active altar."
+      explanation: Even n yields an even cube, proving the contrapositive.
+      station: 1
+      correctMethod: 1
+      tablets:
+      - id: proof-ArrangeSteps-Contrapositive-v3-0
+        statement: Assume n is even.
+        justification: Negate the original conclusion.
+      - id: proof-ArrangeSteps-Contrapositive-v3-1
+        statement: n = 2k for an integer k.
+        justification: Use the parity definition.
+      - id: proof-ArrangeSteps-Contrapositive-v3-2
+        statement: "n\xB3 = (2k)\xB3 = 8k\xB3."
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Contrapositive-v3-3
+        statement: "n\xB3 = 2(4k\xB3), which is even."
+        justification: Identify the opposite parity.
+      - id: proof-ArrangeSteps-Contrapositive-v3-4
+        statement: "Therefore n\xB3 odd implies n odd."
+        justification: Conclude by contrapositive.
+      displayOrder: 0100000004000000020000000000000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Even triple square
+      problem: "Prove: if 3n\xB2 is even, then n is even. Arrange five steps on the
+        active altar."
+      explanation: "For odd n, 3n\xB2 is odd; this is the contrapositive."
+      station: 1
+      correctMethod: 1
+      tablets:
+      - id: proof-ArrangeSteps-Contrapositive-v4-0
+        statement: Assume n is odd.
+        justification: Negate the original conclusion.
+      - id: proof-ArrangeSteps-Contrapositive-v4-1
+        statement: n = 2k + 1 for an integer k.
+        justification: Use the parity definition.
+      - id: proof-ArrangeSteps-Contrapositive-v4-2
+        statement: "3n\xB2 = 12k\xB2 + 12k + 3."
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Contrapositive-v4-3
+        statement: "3n\xB2 = 2(6k\xB2 + 6k + 1) + 1, which is odd."
+        justification: Identify the opposite parity.
+      - id: proof-ArrangeSteps-Contrapositive-v4-4
+        statement: "Therefore 3n\xB2 even implies n even."
+        justification: Conclude by contrapositive.
+      displayOrder: 0300000001000000040000000200000000000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Odd triple square
+      problem: "Prove: if 3n\xB2 is odd, then n is odd. Arrange five steps on the
+        active altar."
+      explanation: "For even n, 3n\xB2 is even; this is the contrapositive."
+      station: 1
+      correctMethod: 1
+      tablets:
+      - id: proof-ArrangeSteps-Contrapositive-v5-0
+        statement: Assume n is even.
+        justification: Negate the original conclusion.
+      - id: proof-ArrangeSteps-Contrapositive-v5-1
+        statement: n = 2k for an integer k.
+        justification: Use the parity definition.
+      - id: proof-ArrangeSteps-Contrapositive-v5-2
+        statement: "3n\xB2 = 3(2k)\xB2 = 12k\xB2."
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Contrapositive-v5-3
+        statement: "3n\xB2 = 2(6k\xB2), which is even."
+        justification: Identify the opposite parity.
+      - id: proof-ArrangeSteps-Contrapositive-v5-4
+        statement: "Therefore 3n\xB2 odd implies n odd."
+        justification: Conclude by contrapositive.
+      displayOrder: 0200000000000000040000000100000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Even shifted square
+      problem: "Prove: if n\xB2 + 2n is even, then n is even. Arrange five steps
+        on the active altar."
+      explanation: "For odd n, n\xB2 + 2n is odd."
+      station: 1
+      correctMethod: 1
+      tablets:
+      - id: proof-ArrangeSteps-Contrapositive-v6-0
+        statement: Assume n is odd.
+        justification: Negate the original conclusion.
+      - id: proof-ArrangeSteps-Contrapositive-v6-1
+        statement: n = 2k + 1 for an integer k.
+        justification: Use the parity definition.
+      - id: proof-ArrangeSteps-Contrapositive-v6-2
+        statement: "n\xB2 + 2n = 4k\xB2 + 8k + 3."
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Contrapositive-v6-3
+        statement: "n\xB2 + 2n = 2(2k\xB2 + 4k + 1) + 1, which is odd."
+        justification: Identify the opposite parity.
+      - id: proof-ArrangeSteps-Contrapositive-v6-4
+        statement: "Therefore n\xB2 + 2n even implies n even."
+        justification: Conclude by contrapositive.
+      displayOrder: 0400000001000000030000000000000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Odd shifted square
+      problem: "Prove: if n\xB2 + 4n is odd, then n is odd. Arrange five steps on
+        the active altar."
+      explanation: "For even n, n\xB2 + 4n is even."
+      station: 1
+      correctMethod: 1
+      tablets:
+      - id: proof-ArrangeSteps-Contrapositive-v7-0
+        statement: Assume n is even.
+        justification: Negate the original conclusion.
+      - id: proof-ArrangeSteps-Contrapositive-v7-1
+        statement: n = 2k for an integer k.
+        justification: Use the parity definition.
+      - id: proof-ArrangeSteps-Contrapositive-v7-2
+        statement: "n\xB2 + 4n = 4k\xB2 + 8k."
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Contrapositive-v7-3
+        statement: "n\xB2 + 4n = 2(2k\xB2 + 4k), which is even."
+        justification: Identify the opposite parity.
+      - id: proof-ArrangeSteps-Contrapositive-v7-4
+        statement: "Therefore n\xB2 + 4n odd implies n odd."
+        justification: Conclude by contrapositive.
+      displayOrder: 0100000003000000000000000400000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Even spaced product
+      problem: 'Prove: if n(n + 2) is even, then n is even. Arrange five steps on
+        the active altar.'
+      explanation: For odd n, the two factors are odd and so is their product.
+      station: 1
+      correctMethod: 1
+      tablets:
+      - id: proof-ArrangeSteps-Contrapositive-v8-0
+        statement: Assume n is odd.
+        justification: Negate the original conclusion.
+      - id: proof-ArrangeSteps-Contrapositive-v8-1
+        statement: n = 2k + 1 for an integer k.
+        justification: Use the parity definition.
+      - id: proof-ArrangeSteps-Contrapositive-v8-2
+        statement: "n(n + 2) = (2k + 1)(2k + 3) = 4k\xB2 + 8k + 3."
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Contrapositive-v8-3
+        statement: "n(n + 2) = 2(2k\xB2 + 4k + 1) + 1, which is odd."
+        justification: Identify the opposite parity.
+      - id: proof-ArrangeSteps-Contrapositive-v8-4
+        statement: Therefore n(n + 2) even implies n even.
+        justification: Conclude by contrapositive.
+      displayOrder: 0200000004000000010000000300000000000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Odd spaced product
+      problem: 'Prove: if n(n + 4) is odd, then n is odd. Arrange five steps on the
+        active altar.'
+      explanation: For even n, the product is even.
+      station: 1
+      correctMethod: 1
+      tablets:
+      - id: proof-ArrangeSteps-Contrapositive-v9-0
+        statement: Assume n is even.
+        justification: Negate the original conclusion.
+      - id: proof-ArrangeSteps-Contrapositive-v9-1
+        statement: n = 2k for an integer k.
+        justification: Use the parity definition.
+      - id: proof-ArrangeSteps-Contrapositive-v9-2
+        statement: n(n + 4) = 2k(2k + 4).
+        justification: Substitute and simplify.
+      - id: proof-ArrangeSteps-Contrapositive-v9-3
+        statement: n(n + 4) = 2(k(2k + 4)), which is even.
+        justification: Identify the opposite parity.
+      - id: proof-ArrangeSteps-Contrapositive-v9-4
+        statement: Therefore n(n + 4) odd implies n odd.
+        justification: Conclude by contrapositive.
+      displayOrder: 0400000000000000020000000100000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+  - variants:
+    - kind: 1
+      title: Proof by contradiction
+      problem: Prove that there is no greatest integer. Assume the opposite, derive
+        an integer larger than the supposed greatest, and arrange the five tablets.
+      explanation: Assuming a greatest integer N gives N + 1, an even larger integer.
+        That contradiction rules out a greatest integer.
+      station: 2
+      correctMethod: 0
+      tablets:
+      - id: greatest-a
+        statement: Assume a greatest integer N exists.
+        justification: Assume the negation of the conclusion.
+      - id: greatest-b
+        statement: N + 1 is also an integer.
+        justification: Integers are closed under addition.
+      - id: greatest-c
+        statement: N + 1 > N.
+        justification: Adding 1 makes a larger integer.
+      - id: greatest-d
+        statement: This contradicts N being the greatest integer.
+        justification: The assumption and result cannot both hold.
+      - id: greatest-e
+        statement: Therefore, no greatest integer exists.
+        justification: Reject the contradictory assumption.
+      displayOrder: 0400000002000000000000000300000001000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: No least integer
+      problem: Prove that there is no least integer by contradiction. Arrange five
+        steps on the active altar.
+      explanation: The supposed least integer has a still smaller integer predecessor.
+      station: 2
+      correctMethod: 2
+      tablets:
+      - id: proof-ArrangeSteps-Contradiction-v1-0
+        statement: Assume a least integer N exists.
+        justification: Assume the opposite of the claim.
+      - id: proof-ArrangeSteps-Contradiction-v1-1
+        statement: N - 1 is also an integer.
+        justification: Construct a conflicting case.
+      - id: proof-ArrangeSteps-Contradiction-v1-2
+        statement: N - 1 < N.
+        justification: Compare it with the assumption.
+      - id: proof-ArrangeSteps-Contradiction-v1-3
+        statement: This contradicts N being the least integer.
+        justification: Identify the contradiction.
+      - id: proof-ArrangeSteps-Contradiction-v1-4
+        statement: Therefore no least integer exists.
+        justification: Reject the assumption.
+      displayOrder: 0300000000000000040000000100000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: No greatest even integer
+      problem: Prove that there is no greatest even integer by contradiction. Arrange
+        five steps on the active altar.
+      explanation: Adding 2 produces a larger even integer.
+      station: 2
+      correctMethod: 2
+      tablets:
+      - id: proof-ArrangeSteps-Contradiction-v2-0
+        statement: Assume a greatest even integer E exists.
+        justification: Assume the opposite of the claim.
+      - id: proof-ArrangeSteps-Contradiction-v2-1
+        statement: E + 2 is also even.
+        justification: Construct a conflicting case.
+      - id: proof-ArrangeSteps-Contradiction-v2-2
+        statement: E + 2 > E.
+        justification: Compare it with the assumption.
+      - id: proof-ArrangeSteps-Contradiction-v2-3
+        statement: This contradicts E being the greatest even integer.
+        justification: Identify the contradiction.
+      - id: proof-ArrangeSteps-Contradiction-v2-4
+        statement: Therefore no greatest even integer exists.
+        justification: Reject the assumption.
+      displayOrder: 0400000002000000000000000300000001000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: No least even integer
+      problem: Prove that there is no least even integer by contradiction. Arrange
+        five steps on the active altar.
+      explanation: Subtracting 2 produces a smaller even integer.
+      station: 2
+      correctMethod: 2
+      tablets:
+      - id: proof-ArrangeSteps-Contradiction-v3-0
+        statement: Assume a least even integer E exists.
+        justification: Assume the opposite of the claim.
+      - id: proof-ArrangeSteps-Contradiction-v3-1
+        statement: E - 2 is also even.
+        justification: Construct a conflicting case.
+      - id: proof-ArrangeSteps-Contradiction-v3-2
+        statement: E - 2 < E.
+        justification: Compare it with the assumption.
+      - id: proof-ArrangeSteps-Contradiction-v3-3
+        statement: This contradicts E being the least even integer.
+        justification: Identify the contradiction.
+      - id: proof-ArrangeSteps-Contradiction-v3-4
+        statement: Therefore no least even integer exists.
+        justification: Reject the assumption.
+      displayOrder: 0100000004000000020000000000000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: No greatest odd integer
+      problem: Prove that there is no greatest odd integer by contradiction. Arrange
+        five steps on the active altar.
+      explanation: Adding 2 produces a larger odd integer.
+      station: 2
+      correctMethod: 2
+      tablets:
+      - id: proof-ArrangeSteps-Contradiction-v4-0
+        statement: Assume a greatest odd integer O exists.
+        justification: Assume the opposite of the claim.
+      - id: proof-ArrangeSteps-Contradiction-v4-1
+        statement: O + 2 is also odd.
+        justification: Construct a conflicting case.
+      - id: proof-ArrangeSteps-Contradiction-v4-2
+        statement: O + 2 > O.
+        justification: Compare it with the assumption.
+      - id: proof-ArrangeSteps-Contradiction-v4-3
+        statement: This contradicts O being the greatest odd integer.
+        justification: Identify the contradiction.
+      - id: proof-ArrangeSteps-Contradiction-v4-4
+        statement: Therefore no greatest odd integer exists.
+        justification: Reject the assumption.
+      displayOrder: 0300000001000000040000000200000000000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: No least odd integer
+      problem: Prove that there is no least odd integer by contradiction. Arrange
+        five steps on the active altar.
+      explanation: Subtracting 2 produces a smaller odd integer.
+      station: 2
+      correctMethod: 2
+      tablets:
+      - id: proof-ArrangeSteps-Contradiction-v5-0
+        statement: Assume a least odd integer O exists.
+        justification: Assume the opposite of the claim.
+      - id: proof-ArrangeSteps-Contradiction-v5-1
+        statement: O - 2 is also odd.
+        justification: Construct a conflicting case.
+      - id: proof-ArrangeSteps-Contradiction-v5-2
+        statement: O - 2 < O.
+        justification: Compare it with the assumption.
+      - id: proof-ArrangeSteps-Contradiction-v5-3
+        statement: This contradicts O being the least odd integer.
+        justification: Identify the contradiction.
+      - id: proof-ArrangeSteps-Contradiction-v5-4
+        statement: Therefore no least odd integer exists.
+        justification: Reject the assumption.
+      displayOrder: 0200000000000000040000000100000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: No greatest rational
+      problem: Prove that there is no greatest rational number by contradiction.
+        Arrange five steps on the active altar.
+      explanation: Adding 1 produces a larger rational number.
+      station: 2
+      correctMethod: 2
+      tablets:
+      - id: proof-ArrangeSteps-Contradiction-v6-0
+        statement: Assume a greatest rational number r exists.
+        justification: Assume the opposite of the claim.
+      - id: proof-ArrangeSteps-Contradiction-v6-1
+        statement: r + 1 is also rational.
+        justification: Construct a conflicting case.
+      - id: proof-ArrangeSteps-Contradiction-v6-2
+        statement: r + 1 > r.
+        justification: Compare it with the assumption.
+      - id: proof-ArrangeSteps-Contradiction-v6-3
+        statement: This contradicts r being the greatest rational.
+        justification: Identify the contradiction.
+      - id: proof-ArrangeSteps-Contradiction-v6-4
+        statement: Therefore no greatest rational exists.
+        justification: Reject the assumption.
+      displayOrder: 0400000001000000030000000000000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: No smallest positive rational
+      problem: Prove that there is no smallest positive rational by contradiction.
+        Arrange five steps on the active altar.
+      explanation: Halving a positive rational yields a smaller positive rational.
+      station: 2
+      correctMethod: 2
+      tablets:
+      - id: proof-ArrangeSteps-Contradiction-v7-0
+        statement: Assume a smallest positive rational r exists.
+        justification: Assume the opposite of the claim.
+      - id: proof-ArrangeSteps-Contradiction-v7-1
+        statement: r/2 is rational and remains positive.
+        justification: Construct a conflicting case.
+      - id: proof-ArrangeSteps-Contradiction-v7-2
+        statement: 0 < r/2 < r.
+        justification: Compare it with the assumption.
+      - id: proof-ArrangeSteps-Contradiction-v7-3
+        statement: This contradicts r being the smallest positive rational.
+        justification: Identify the contradiction.
+      - id: proof-ArrangeSteps-Contradiction-v7-4
+        statement: Therefore no smallest positive rational exists.
+        justification: Reject the assumption.
+      displayOrder: 0100000003000000000000000400000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Even and odd
+      problem: Prove by contradiction that no integer is both even and odd. Arrange
+        five steps on the active altar.
+      explanation: The two parity forms would make an even number equal to 1.
+      station: 2
+      correctMethod: 2
+      tablets:
+      - id: proof-ArrangeSteps-Contradiction-v8-0
+        statement: Assume an integer n is both even and odd.
+        justification: Assume the opposite of the claim.
+      - id: proof-ArrangeSteps-Contradiction-v8-1
+        statement: Then n = 2a = 2b + 1 for integers a,b.
+        justification: Construct a conflicting case.
+      - id: proof-ArrangeSteps-Contradiction-v8-2
+        statement: Thus 2(a - b) = 1.
+        justification: Compare it with the assumption.
+      - id: proof-ArrangeSteps-Contradiction-v8-3
+        statement: 'An even integer cannot equal 1: contradiction.'
+        justification: Identify the contradiction.
+      - id: proof-ArrangeSteps-Contradiction-v8-4
+        statement: Therefore no integer is both even and odd.
+        justification: Reject the assumption.
+      displayOrder: 0200000004000000010000000300000000000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 1
+      title: Consecutive evens
+      problem: Prove by contradiction that two consecutive integers cannot both be
+        even. Arrange five steps on the active altar.
+      explanation: The successor of an even integer is odd.
+      station: 2
+      correctMethod: 2
+      tablets:
+      - id: proof-ArrangeSteps-Contradiction-v9-0
+        statement: Assume n and n + 1 are both even.
+        justification: Assume the opposite of the claim.
+      - id: proof-ArrangeSteps-Contradiction-v9-1
+        statement: Since n is even, n = 2k for some integer k.
+        justification: Construct a conflicting case.
+      - id: proof-ArrangeSteps-Contradiction-v9-2
+        statement: Then n + 1 = 2k + 1 is odd.
+        justification: Compare it with the assumption.
+      - id: proof-ArrangeSteps-Contradiction-v9-3
+        statement: This contradicts n + 1 being even.
+        justification: Identify the contradiction.
+      - id: proof-ArrangeSteps-Contradiction-v9-4
+        statement: Therefore consecutive integers cannot both be even.
+        justification: Reject the assumption.
+      displayOrder: 0400000000000000020000000100000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+  - variants:
+    - kind: 2
+      title: Choose and complete a proof
+      problem: Prove that the sum of two odd integers is even. Choose a proof strategy,
+        then arrange the five tablets in a valid argument.
+      explanation: This trial uses a direct derivation. An indirect proof is possible
+        mathematically, but the authored tablet sequence establishes the claim directly.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: sum-a
+        statement: Let a and b be odd integers.
+        justification: Begin with the given assumption.
+      - id: sum-b
+        statement: a = 2m + 1 and b = 2n + 1 for integers m and n.
+        justification: Use the definition of odd integers.
+      - id: sum-c
+        statement: a + b = (2m + 1) + (2n + 1) = 2m + 2n + 2.
+        justification: Substitute and simplify.
+      - id: sum-d
+        statement: a + b = 2(m + n + 1).
+        justification: Factor out 2.
+      - id: sum-e
+        statement: Since m + n + 1 is an integer, a + b is even.
+        justification: Apply the definition of even.
+      displayOrder: 0400000001000000030000000000000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 2
+      title: Consecutive sum
+      problem: Prove that the sum of two consecutive integers is odd. Choose a strategy
+        and arrange five steps on the trial altar.
+      explanation: The sum is twice an integer plus one.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ChooseAndArrange-Direct-v1-0
+        statement: Let n and n + 1 be consecutive integers.
+        justification: Begin with the premise.
+      - id: proof-ChooseAndArrange-Direct-v1-1
+        statement: Their sum is n + (n + 1).
+        justification: Use a definition or given relation.
+      - id: proof-ChooseAndArrange-Direct-v1-2
+        statement: n + (n + 1) = 2n + 1.
+        justification: Substitute and simplify.
+      - id: proof-ChooseAndArrange-Direct-v1-3
+        statement: This has the form 2k + 1 with k = n.
+        justification: Rewrite the result in the required form.
+      - id: proof-ChooseAndArrange-Direct-v1-4
+        statement: Therefore the sum is odd.
+        justification: Apply the definition to conclude.
+      displayOrder: 0300000000000000040000000100000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 2
+      title: Multiple of four
+      problem: Prove that every multiple of 4 is even. Choose a strategy and arrange
+        five steps on the trial altar.
+      explanation: A multiple of 4 is also a multiple of 2.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ChooseAndArrange-Direct-v2-0
+        statement: Let n be a multiple of 4.
+        justification: Begin with the premise.
+      - id: proof-ChooseAndArrange-Direct-v2-1
+        statement: n = 4k for some integer k.
+        justification: Use a definition or given relation.
+      - id: proof-ChooseAndArrange-Direct-v2-2
+        statement: n = 2(2k).
+        justification: Substitute and simplify.
+      - id: proof-ChooseAndArrange-Direct-v2-3
+        statement: Because 2k is an integer, n is twice an integer.
+        justification: Rewrite the result in the required form.
+      - id: proof-ChooseAndArrange-Direct-v2-4
+        statement: Therefore n is even.
+        justification: Apply the definition to conclude.
+      displayOrder: 0400000002000000000000000300000001000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 2
+      title: Triple an odd number
+      problem: Prove that three times an odd integer is odd. Choose a strategy and
+        arrange five steps on the trial altar.
+      explanation: The product has the form 2k + 1.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ChooseAndArrange-Direct-v3-0
+        statement: Let n be an odd integer.
+        justification: Begin with the premise.
+      - id: proof-ChooseAndArrange-Direct-v3-1
+        statement: n = 2k + 1 for some integer k.
+        justification: Use a definition or given relation.
+      - id: proof-ChooseAndArrange-Direct-v3-2
+        statement: 3n = 3(2k + 1) = 6k + 3.
+        justification: Substitute and simplify.
+      - id: proof-ChooseAndArrange-Direct-v3-3
+        statement: 3n = 2(3k + 1) + 1.
+        justification: Rewrite the result in the required form.
+      - id: proof-ChooseAndArrange-Direct-v3-4
+        statement: Therefore 3n is odd.
+        justification: Apply the definition to conclude.
+      displayOrder: 0100000004000000020000000000000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 2
+      title: Two evens and one odd
+      problem: Prove that two even integers plus one odd integer sum to an odd integer.
+        Choose a strategy and arrange five steps on the trial altar.
+      explanation: The sum is twice an integer plus one.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ChooseAndArrange-Direct-v4-0
+        statement: Let a,b be even and c be odd.
+        justification: Begin with the premise.
+      - id: proof-ChooseAndArrange-Direct-v4-1
+        statement: a = 2i, b = 2j, and c = 2k + 1.
+        justification: Use a definition or given relation.
+      - id: proof-ChooseAndArrange-Direct-v4-2
+        statement: a + b + c = 2i + 2j + 2k + 1.
+        justification: Substitute and simplify.
+      - id: proof-ChooseAndArrange-Direct-v4-3
+        statement: a + b + c = 2(i + j + k) + 1.
+        justification: Rewrite the result in the required form.
+      - id: proof-ChooseAndArrange-Direct-v4-4
+        statement: Therefore a + b + c is odd.
+        justification: Apply the definition to conclude.
+      displayOrder: 0300000001000000040000000200000000000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 2
+      title: Divisibility of products
+      problem: If d divides a, prove that d divides ab for any integer b. Choose
+        a strategy and arrange five steps on the trial altar.
+      explanation: The divisor remains a factor after multiplication.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ChooseAndArrange-Direct-v5-0
+        statement: Assume d divides a, and let b be an integer.
+        justification: Begin with the premise.
+      - id: proof-ChooseAndArrange-Direct-v5-1
+        statement: Then a = dk for some integer k.
+        justification: Use a definition or given relation.
+      - id: proof-ChooseAndArrange-Direct-v5-2
+        statement: ab = (dk)b.
+        justification: Substitute and simplify.
+      - id: proof-ChooseAndArrange-Direct-v5-3
+        statement: ab = d(kb), where kb is an integer.
+        justification: Rewrite the result in the required form.
+      - id: proof-ChooseAndArrange-Direct-v5-4
+        statement: Therefore d divides ab.
+        justification: Apply the definition to conclude.
+      displayOrder: 0200000000000000040000000100000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 2
+      title: Odd successor
+      problem: Prove that the successor of an odd integer is even. Choose a strategy
+        and arrange five steps on the trial altar.
+      explanation: Adding one to the odd form gives a factor of 2.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ChooseAndArrange-Direct-v6-0
+        statement: Let n be an odd integer.
+        justification: Begin with the premise.
+      - id: proof-ChooseAndArrange-Direct-v6-1
+        statement: n = 2k + 1 for some integer k.
+        justification: Use a definition or given relation.
+      - id: proof-ChooseAndArrange-Direct-v6-2
+        statement: n + 1 = 2k + 2.
+        justification: Substitute and simplify.
+      - id: proof-ChooseAndArrange-Direct-v6-3
+        statement: n + 1 = 2(k + 1).
+        justification: Rewrite the result in the required form.
+      - id: proof-ChooseAndArrange-Direct-v6-4
+        statement: Therefore n + 1 is even.
+        justification: Apply the definition to conclude.
+      displayOrder: 0400000001000000030000000000000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 2
+      title: Even linear expression
+      problem: If n is even, prove that 3n + 2 is even. Choose a strategy and arrange
+        five steps on the trial altar.
+      explanation: The expression factors into twice an integer.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ChooseAndArrange-Direct-v7-0
+        statement: Let n be an even integer.
+        justification: Begin with the premise.
+      - id: proof-ChooseAndArrange-Direct-v7-1
+        statement: n = 2k for some integer k.
+        justification: Use a definition or given relation.
+      - id: proof-ChooseAndArrange-Direct-v7-2
+        statement: 3n + 2 = 3(2k) + 2 = 6k + 2.
+        justification: Substitute and simplify.
+      - id: proof-ChooseAndArrange-Direct-v7-3
+        statement: 3n + 2 = 2(3k + 1).
+        justification: Rewrite the result in the required form.
+      - id: proof-ChooseAndArrange-Direct-v7-4
+        statement: Therefore 3n + 2 is even.
+        justification: Apply the definition to conclude.
+      displayOrder: 0100000003000000000000000400000002000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 2
+      title: Multiples of five
+      problem: Prove that the difference of two multiples of 5 is a multiple of 5.
+        Choose a strategy and arrange five steps on the trial altar.
+      explanation: The difference retains a factor of 5.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ChooseAndArrange-Direct-v8-0
+        statement: Let a and b be multiples of 5.
+        justification: Begin with the premise.
+      - id: proof-ChooseAndArrange-Direct-v8-1
+        statement: a = 5m and b = 5n for integers m,n.
+        justification: Use a definition or given relation.
+      - id: proof-ChooseAndArrange-Direct-v8-2
+        statement: a - b = 5m - 5n.
+        justification: Substitute and simplify.
+      - id: proof-ChooseAndArrange-Direct-v8-3
+        statement: a - b = 5(m - n), with m - n an integer.
+        justification: Rewrite the result in the required form.
+      - id: proof-ChooseAndArrange-Direct-v8-4
+        statement: Therefore 5 divides a - b.
+        justification: Apply the definition to conclude.
+      displayOrder: 0200000004000000010000000300000000000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
+    - kind: 2
+      title: Square of a multiple of three
+      problem: Prove that the square of a multiple of 3 is a multiple of 3. Choose
+        a strategy and arrange five steps on the trial altar.
+      explanation: The square retains a factor of 3.
+      station: 0
+      correctMethod: 0
+      tablets:
+      - id: proof-ChooseAndArrange-Direct-v9-0
+        statement: Let n be a multiple of 3.
+        justification: Begin with the premise.
+      - id: proof-ChooseAndArrange-Direct-v9-1
+        statement: n = 3k for some integer k.
+        justification: Use a definition or given relation.
+      - id: proof-ChooseAndArrange-Direct-v9-2
+        statement: "n\xB2 = (3k)\xB2 = 9k\xB2."
+        justification: Substitute and simplify.
+      - id: proof-ChooseAndArrange-Direct-v9-3
+        statement: "n\xB2 = 3(3k\xB2), with 3k\xB2 an integer."
+        justification: Rewrite the result in the required form.
+      - id: proof-ChooseAndArrange-Direct-v9-4
+        statement: "Therefore 3 divides n\xB2."
+        justification: Apply the definition to conclude.
+      displayOrder: 0400000000000000020000000100000003000000
+      acceptedOrders:
+      - tabletIds: 0000000001000000020000000300000004000000
