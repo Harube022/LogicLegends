@@ -62,11 +62,11 @@ public sealed class SetsUIController : MonoBehaviour
     private static readonly (string title, string body)[] HelpPages =
     {
         ("Start at the book", "Approach the Book Statue and tap the hand button to start Challenge 1. On a keyboard, press E. Interacting again during the challenge does not restart it."),
-        ("Read Board 1", "The board shows Condition 1 of 5, sets A and B, and U = {1, 2, 3, 4, 5, 6, 7, 8, 9}. The members of a set are the numbers inside its braces."),
+        ("Read Board 1", "The board shows Question 1 of 5, sets A and B, and U = {1, 2, 3, 4, 5, 6, 7, 8, 9}. These numbered blocks represent elements of a set. The number identifies each element. A and B are sets, represented by the two circles in the Venn diagram."),
         ("Collect numbered blocks", "There is one block for each number from 1 through 9 at the spawner. Move with the on-screen joystick and tap the hand button near a block to carry it. On a keyboard, use WASD and E."),
         ("Fill the Venn diagram", "Bring members of A only to the left region, members of both sets to A ∩ B, and members of B only to the right region. Tap PLACE in the matching region. Leave unused blocks at the spawner."),
-        ("Check and revise", "You can pick up a placed block and move it. If a number does not belong in either set, carry it out of the diagram and tap RETURN. Tap SUBMIT when ready. An incorrect answer keeps this condition active."),
-        ("Complete Challenge 1", "Each correct submission moves to the next condition and returns all nine blocks to the spawner. Complete all five conditions to finish Challenge 1. The next challenge waits for another book interaction.")
+        ("Check and revise", "You can pick up a placed element block and move it. If an element does not belong in either set, carry it out of the diagram and tap RETURN. Tap SUBMIT when ready. An incorrect answer keeps this question active."),
+        ("Complete Challenge 1", "Each correct submission moves to the next question and returns all nine element blocks to the spawner. Answer all five questions to finish Challenge 1. The next challenge waits for another book interaction.")
     };
     private Color neutralFeedback = new Color(0.04f, 0.09f, 0.15f, 0.9f);
     private Color correctFeedback = new Color(0.08f, 0.42f, 0.18f, 0.95f);
@@ -169,7 +169,7 @@ public sealed class SetsUIController : MonoBehaviour
     {
         BuildHudIfNeeded();
         if (condition == null) return;
-        if (challengeText != null) challengeText.text = $"CHALLENGE 1 — CONDITION {conditionNumber} OF {totalConditions}";
+        if (challengeText != null) challengeText.text = $"CHALLENGE 1 — QUESTION {conditionNumber} OF {totalConditions}";
         if (setAText != null) setAText.text = "A = " + FormatConditionSet(condition.setA);
         if (setBText != null) setBText.text = "B = " + FormatConditionSet(condition.setB);
         if (universalSetText != null)

@@ -40,6 +40,7 @@ public class StudyLibraryController : MonoBehaviour
         else CloseBook();
     }
     public int CurrentSpreadStartPage => spreadStartPage;
+    public bool IsReading => currentBook!=null;
 
     private void Awake()
     {
@@ -59,6 +60,7 @@ public class StudyLibraryController : MonoBehaviour
 
     public void EnterShelf(StudyShelfZone shelf)
     {
+        if(LogicLibraryTutorialController.InteractionsBlocked)return;
         if (activeShelf == shelf) return;
 
         if (activeShelf == null)
@@ -91,6 +93,7 @@ public class StudyLibraryController : MonoBehaviour
 
     public void OpenBook(StudyShelfZone shelf, StudyBookDefinition book)
     {
+        if(LogicLibraryTutorialController.InteractionsBlocked)return;
         if (shelf == null || shelf != activeShelf || book == null) return;
 
         currentBook = book;

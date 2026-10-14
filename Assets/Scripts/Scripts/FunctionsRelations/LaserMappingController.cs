@@ -29,6 +29,7 @@ public sealed class LaserMappingController : MonoBehaviour
     public event Action<string> Feedback;
     public IReadOnlyCollection<MappingPair> Pairs => beams.Keys;
     public int ConnectionCount => beams.Count;
+    public Material PracticeLaserMaterial => laserMaterial;
     public LaserVisualState VisualState => visualState;
     public string SelectedDomain => selectedDomain;
     public Transform DomainDiamond => domainDiamonds.Length > 0 ? domainDiamonds[0] : domainDiamond;

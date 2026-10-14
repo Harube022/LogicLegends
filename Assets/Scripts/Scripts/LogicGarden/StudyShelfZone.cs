@@ -30,6 +30,9 @@ public class StudyShelfZone : MonoBehaviour
     private Material shelfOutlineMaterial;
     private Material shelfGlowMaterial;
     private readonly List<GameObject> shelfHighlightObjects = new List<GameObject>();
+    public string Period => shelfTitle;
+    public CinemachineCamera FocusCamera => focusCamera;
+    public Vector3 LabelPosition => labelWorldPosition;
 
     public void Configure(StudyLibraryController newController, CinemachineCamera newCamera, string title,
         StudyBookDefinition[] shelfBooks, Vector3 labelPosition, Vector3[] cardPositions, Vector3 canvasEulerAngles)
@@ -77,6 +80,11 @@ public class StudyShelfZone : MonoBehaviour
     private void Update()
     {
         UpdateShelfHighlight();
+        if(activePlayerCollider!=null&&DialogueManager.Instance!=null)
+        {
+            DialogueManager.Instance.SetInteractLabel("Read");
+            if(LogicLibraryTutorialController.InteractionsBlocked)DialogueManager.Instance.ToggleInteractButton(false);
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -86,7 +94,7 @@ public class StudyShelfZone : MonoBehaviour
         if (Player.LocalInstance != null && player != Player.LocalInstance) return;
 
         activePlayerCollider = other;
-        if (DialogueManager.Instance != null) DialogueManager.Instance.ToggleInteractButton(true);
+        if (DialogueManager.Instance != null){DialogueManager.Instance.SetInteractLabel("Read");DialogueManager.Instance.ToggleInteractButton(!LogicLibraryTutorialController.InteractionsBlocked);}
     }
 
     private void OnTriggerExit(Collider other)
@@ -99,6 +107,7 @@ public class StudyShelfZone : MonoBehaviour
 
     private void HandleInteractAction(object sender, System.EventArgs eventArgs)
     {
+        if(LogicLibraryTutorialController.InteractionsBlocked||(gameInput!=null&&gameInput.GameplayInputBlocked))return;
         if (activePlayerCollider == null || controller == null || controller.IsViewing(this)) return;
         controller.EnterShelf(this);
         if (DialogueManager.Instance != null) DialogueManager.Instance.ToggleInteractButton(false);

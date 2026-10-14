@@ -68,6 +68,12 @@ public class DialogueManager : MonoBehaviour
             interactButton.SetActive(isOn || keepInteractButtonVisible);
         }
     }
+    public void SetInteractLabel(string label)
+    {
+        if(interactButton==null)return;
+        foreach(var text in interactButton.GetComponentsInChildren<TMP_Text>(true))text.text=label;
+        foreach(var text in interactButton.GetComponentsInChildren<UnityEngine.UI.Text>(true))text.text=label;
+    }
 
     // Sets keeps the existing mobile hand control on screen; interaction
     // handlers still decide whether the player is in range and may act.

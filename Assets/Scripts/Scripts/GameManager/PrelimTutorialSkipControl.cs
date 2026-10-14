@@ -97,6 +97,8 @@ public sealed class PrelimTutorialSkipControl : MonoBehaviour
     public void Release()
     {
         button.onClick.RemoveAllListeners();
+        // Destroy is deferred until frame end; a new session must not reuse this control.
+        gameObject.name = "PRELIM Shared Skip Tutorial (Released)";
         gameObject.SetActive(false);
         Destroy(gameObject);
     }

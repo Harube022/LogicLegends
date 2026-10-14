@@ -21,26 +21,28 @@ public sealed class SetssssHelpUI : MonoBehaviour
 
     private static readonly Page[] Pages =
     {
+        new Page("Sets and their elements",
+            "These numbered blocks represent elements of a set. The number identifies each element. A and B are sets, represented by the two circles in the Venn diagram. The circles and other marked areas are placement regions. Place each element in the region required by the question. The overlap, A ∩ B, represents elements shared by both sets."),
         new Page("Begin at the book",
             "Approach the book statue and tap the hand button or Interact with Book to begin Challenge 1. Closing this guide does not start the challenge or its timer. After a challenge is complete, return to the book to start the next one."),
         new Page("Move and interact",
-            "Use the joystick to move and the jump button to jump. Face a nearby object and tap the hand button to interact; the E key also works. Interact with Book and Pick Up Block use that same interaction. Near the spawner, tap View Board to read the condition, then Back to return."),
-        new Page("Collect numbered blocks",
-            "In Challenges 1–4, the spawner offers 10 numbered blocks from 1–99. The numbers needed for the board are included; the others are distractors. Face a block and tap the hand button or Pick Up Block. Carry it to the diagram, face the region, and tap the hand button to place it. Return Block sends a held block back."),
+            "Use the joystick to move and the jump button to jump. Face a nearby object and tap the hand button to interact; the E key also works. Interact with Book and Pick Up Element use that same interaction. Near the spawner, tap View Board to read the question on the Information Board, then Back to return."),
+        new Page("Collect element blocks",
+            "In Challenges 1–4, the spawner offers 10 element blocks from 1–99, including every needed element. Face an element block and tap the hand button or Pick Up Element. Carry it to the diagram and tap the hand button to drop it at your actual carry position. Element blocks fall naturally: let them settle inside the intended boundary before submitting. Return Element sends a held element block back."),
         new Page("Challenge 1 — Single set",
-            "Read the number on Board 1 and place it in the named set region. Most conditions show A; one condition shows B. Complete all 10 conditions. Leave the other numbered blocks at the spawner."),
+            "Read the Information Board and place the required element block in the named set's region. A question can ask for A or B. Answer five questions, randomly selected from the existing bank. Leave unused element blocks at the spawner."),
         new Page("Challenge 2 — Sets A and B",
-            "Read both sets on the board. Place every A element in the A-only region and every B element in the B-only region. These questions have no shared elements, so leave A ∩ B empty. Complete all 10 conditions."),
+            "Read both sets on the Information Board. Place every A element in the A-only region and every B element in the B-only region. These questions have no shared elements, so leave the overlap region A ∩ B empty. Answer five questions."),
         new Page("Challenge 3 — Intersection",
-            "Compare A and B. Place values found only in A in A, values found only in B in B, and shared values once in A ∩ B. Unused blocks stay at the spawner. Complete all 10 conditions."),
+            "The overlap, A ∩ B, represents elements shared by both sets. Compare A and B: place A-only elements in the A-only region, B-only elements in the B-only region, and each shared element once in the overlap region. Unused element blocks stay at the spawner. Answer five questions."),
         new Page("Challenge 4 — Set differences",
-            "Fill all five answer areas. A and B each need their full listed set. Put shared values in A ∩ B, values only in A in A − B, and values only in B in B − A. A value can belong in several areas. Every pickup from the spawner leaves a replacement with the same number, so you can collect another copy. Complete all 10 conditions."),
+            "A − B contains elements in A but not B; B − A contains elements in B but not A. Fill all five marked answer regions: the A and B answer regions each need their full listed set, the overlap needs shared elements, and the difference regions need their respective elements. Use separate copies wherever the question requires an element in several regions. Every spawner pickup leaves a replacement of the same element; picking up a placed element does not. Answer five questions."),
         new Page("Challenge 5 — Complement",
-            "BORDERLINES marks the universal set U. Only the current A or B circle is active. Reposition the preplaced numbers: members of the named set go inside its circle; every other U element stays outside that circle but inside U. Each number appears once, with no replacement copies. Complete all 5 conditions."),
+            "BORDERLINES marks the boundary of universal set U, which contains every element considered in the question. A set's complement contains the U elements outside that set. Only the current A or B circle is active. Reposition the preplaced element blocks: members of the named set go inside its circle; complement elements go outside that circle but inside U. Each element appears once, with no replacement copies. Answer five questions."),
         new Page("Submit, fix, and try again",
-            "Near the diagram, tap Submit to check every required placement. A wrong submission costs 10 seconds and keeps the same condition. Placed blocks stay put; red marks show misplaced blocks, and a message warns about missing elements without giving away their locations. Move only what needs fixing, then submit again."),
+            "Near the diagram, tap Submit to check every element block's settled position. Each physical block fills only one required placement; element blocks outside valid regions are incorrect. Green number labels mark correct placements, while red labels and outlines show mistakes. A wrong submission costs 10 seconds and keeps element blocks in position. Move only what needs fixing: pickup or movement clears that element's label color until the next submission."),
         new Page("Time and progress",
-            "Each challenge has its own 18-minute countdown. It starts only when you activate the book and waits at 18:00 before then. Conditions are shuffled at challenge start: 10 each in Challenges 1–4, and 5 in Challenge 5. Correct submissions advance; finish every condition to complete the challenge. Time reaching zero ends the attempt.")
+            "Each challenge has its own 18-minute countdown. It starts only when you activate the book and waits at 18:00 before then. Each playthrough randomly selects five distinct questions from each challenge's existing bank. Correct submissions advance; answer all five to complete the challenge. The HUD shows only time and challenge progress; read each question on the Information Board. Time reaching zero ends the attempt.")
     };
 
     private RectTransform safeArea, card;

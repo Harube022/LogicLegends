@@ -7,6 +7,7 @@ public class GrabbableObject : MonoBehaviourPun
     [Header("Current State")]
     [SerializeField] private Transform holdPoint;
     [SerializeField] private bool isHeld;
+    public bool IsHeld => isHeld;
 
     // ---> NEW LIFECYCLE FLAG <---
     public bool isStoredInInventory = false;
@@ -141,6 +142,13 @@ public class GrabbableObject : MonoBehaviourPun
         // ---> CRITICAL GHOST THROW FIX <---
         // If the block is stored, ignore any drop requests from your player interaction controller
         if (isStoredInInventory) return;
+
+        var inferenceCrystal = GetComponent<LogicLegends.Inference.InferenceCrystal>();
+        if (inferenceCrystal != null && isHeld && !inferenceCrystal.PrepareAccessibleDrop())
+        {
+            inferenceCrystal.ReturnToOrigin();
+            return;
+        }
 
         isHeld = false;
         holdPoint = null;

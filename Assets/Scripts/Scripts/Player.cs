@@ -122,6 +122,8 @@ public class Player : MonoBehaviourPun
         // select a different nearby block or drop it a second time.
         if (SetssssChallengeOne.ActiveInstance != null &&
             SetssssChallengeOne.ActiveInstance.TryHandleInteraction()) return;
+        if (LogicLegends.Inference.InferenceCrystalInteraction.Active != null &&
+            LogicLegends.Inference.InferenceCrystalInteraction.Active.TryHandleInteraction()) return;
         float interactionDistance = 2f;
         Vector3 rayStart = transform.position + Vector3.up * 0.5f; 
         float castRadius = 0.5f; 
