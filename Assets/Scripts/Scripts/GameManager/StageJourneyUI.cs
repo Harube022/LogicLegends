@@ -34,12 +34,15 @@ public sealed class StageJourneyUI : MonoBehaviour
     private float previousTimeScale;
     private bool previousInputBlocked, previousPlayerEnabled;
     private int tutorialIndex;
-    private readonly string[] tutorialTitles = { "Build the argument", "Find the matching crystal", "Place and validate", "Finish the stage" };
+    private readonly string[] tutorialTitles = { "Start and explore", "Premises", "Rules of inference", "Rule Crystals", "Conclusions", "Five challenges", "Time and feedback" };
     private readonly string[] tutorialBodies = {
-        "Interact with the Book Statue to start the challenge timer. Near the altar, tap VIEW BOARD to examine the board; before the book starts the game, it is read-only. Once started, fill the premise blanks and tap CHECK ARGUMENT. The timer pauses while the board or this guide is open.",
-        "Once the premises are correct, explore the pillars. Collect a rule crystal using Interact. Read the rule names carefully: every crystal looks equally important, so choose from the argument rather than its appearance.",
-        "Return to the board with your crystal. Tap PLACE RULE, then validate the argument. A wrong crystal is removed; explore again and find another. The conclusion is revealed only after a correct validation.",
-        "Complete each challenge, then interact with the book statue to start the next one. The result screen stays open when all challenges are complete. If the 18-minute exploration timer reaches zero, restart the stage or return to the Main Menu." };
+        "Use the joystick to move and the jump button to jump. Interact with the Book Statue to start each challenge. Walk up the altar stairs and tap View Board. Complete the premises, identify their reasoning pattern, collect its Rule Crystal, and return to validate the answer.",
+        "Premises are statements accepted as true and used to support a conclusion. Read the whole argument. Drag the supplied words into its blanks, then tap Check argument. Incorrect blanks stay editable; correct premises unlock the crystal search.",
+        "A rule of inference is a valid reasoning pattern used to derive a conclusion from premises. Look at how the statements connect, including and, or, if/then, and negation. Choose the rule that fits that structure, rather than guessing from a crystal's appearance.",
+        "A Rule Crystal is a collectible representing a specific inference rule. Its label identifies the rule. Choose the one that fits the completed premises. Near an available crystal, tap Collect Rule Crystal or use the hand button. You can carry one crystal at a time.",
+        "A conclusion is the statement that logically follows from the premises using the selected rule. Carry your Rule Crystal back, open View Board, and tap Place Rule Crystal. This validates its rule immediately: a correct match reveals the conclusion; a wrong crystal is rejected.",
+        "Complete five questions total: one randomly selected from each challenge's bank of ten. Tasks progress from direct facts to conditionals, negation, reasoning chains, and compound dilemmas. Correct rules never repeat in one playthrough. Return to the book to start each new challenge.",
+        "The shared 18-minute exploration timer starts through the book. It pauses during Help, practice, board viewing, and between challenges; it resumes when you start the next challenge. Wrong answers show error feedback; correct answers show success. Time up offers restart or Menu; five successes complete the stage." };
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() { Instance = null; }
@@ -162,7 +165,7 @@ public sealed class StageJourneyUI : MonoBehaviour
                 if (inferenceRemaining == 0) ShowFailure(3, "The exploration timer ran out.", RestartInference);
             }
             clockLabel.text = FormatTime(inferenceRemaining);
-            progressLabel.text = inference == null ? "EXPLORE THE BOARD" : "RULES SOLVED  " + inference.SolvedRounds + " / " + inference.requiredRounds;
+            progressLabel.text = inference == null ? "EXPLORE THE BOARD" : "CHALLENGE " + Mathf.Min(inference.SolvedRounds + 1, inference.requiredRounds) + " OF " + inference.requiredRounds;
             if (inferenceHelp != null) inferenceHelp.gameObject.SetActive(!resultOpen && !tutorialOpen &&
                 (inferenceOnboarding == null || !inferenceOnboarding.IsActive) &&
                 !(inference != null && inference.IsBoardOpen));
@@ -373,7 +376,7 @@ public sealed class StageJourneyUI : MonoBehaviour
         tutorialBody.alignment = TextAlignmentOptions.TopLeft;
         tutorialPage = StageUITheme.Text("PageIndicator", inner, "", 24);
         StageUITheme.Stretch(tutorialPage.rectTransform, new Vector2(0.42f, 0.27f), new Vector2(0.58f, 0.34f));
-        tutorialBack = StageUITheme.Button("PreviousPage", inner, "BACK", () => ChangePage(-1));
+        tutorialBack = StageUITheme.Button("PreviousPage", inner, "PREVIOUS", () => ChangePage(-1));
         tutorialNext = StageUITheme.Button("NextPage", inner, "NEXT", () => ChangePage(1));
         StageUITheme.Stretch((RectTransform)tutorialBack.transform, new Vector2(0.1f, 0.12f), new Vector2(0.32f, 0.25f));
         StageUITheme.Stretch((RectTransform)tutorialNext.transform, new Vector2(0.35f, 0.12f), new Vector2(0.57f, 0.25f));

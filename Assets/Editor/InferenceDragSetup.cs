@@ -56,9 +56,9 @@ public static class InferenceDragSetup
         grid.constraintCount = 1; grid.cellSize = new Vector2(180, 58); grid.spacing = new Vector2(0, 14);
         grid.childAlignment = TextAnchor.UpperCenter;
         var intro = body.GetComponentsInChildren<TMPro.TMP_Text>(true).First(t => t.text.StartsWith("Build the premises.") || t.text.StartsWith("Complete the words."));
-        intro.text = "Complete the words. Then bring a rule diamond to the altar.";
+        intro.text = "Complete the premises. Then bring the matching Rule Crystal to the altar.";
         Height(c.feedback.gameObject, 72);
-        c.placeButton.GetComponentInChildren<TMPro.TMP_Text>().text = "Place diamond here";
+        c.placeButton.GetComponentInChildren<TMPro.TMP_Text>().text = "Place Rule Crystal";
         c.exploreButton.GetComponentInChildren<TMPro.TMP_Text>().text = "Explore / return";
         c.placeButton.gameObject.SetActive(false); c.nextButton.gameObject.SetActive(false);
         c.validateButton.gameObject.SetActive(true);
@@ -86,7 +86,7 @@ public static class InferenceDragSetup
             var marker = new GameObject("RuleDiamondPlacementMarker", typeof(RectTransform));
             marker.transform.SetParent(socket, false);
             var text = marker.AddComponent<TMPro.TextMeshPro>();
-            text.font = c.font; text.text = "PLACE DIAMOND HERE";
+            text.font = c.font; text.text = "PLACE RULE CRYSTAL HERE";
             text.fontSize = 12; text.alignment = TMPro.TextAlignmentOptions.Center;
             text.color = c.heading.color; text.rectTransform.sizeDelta = new Vector2(16, 3);
             marker.transform.localPosition = Vector3.up * 2.3f;

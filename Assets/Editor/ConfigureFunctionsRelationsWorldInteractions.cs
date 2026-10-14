@@ -87,7 +87,7 @@ public static class ConfigureFunctionsRelationsWorldInteractions
         Vector3 localSize = book.transform.InverseTransformVector(new Vector3(2.9f, 4.2f, 2.6f));
         bookBlocker.size = new Vector3(Mathf.Abs(localSize.x), Mathf.Abs(localSize.y), Mathf.Abs(localSize.z));
 
-        Transform hud = canvas.transform.Find("FR_HUD");
+        Transform hud = canvas.transform.Find("FR_HUD") ?? canvas.transform.Find("SafeArea/FR_HUD");
         Transform prompt = hud.Find("Interaction Prompt");
         if (prompt == null)
         {
@@ -118,7 +118,7 @@ public static class ConfigureFunctionsRelationsWorldInteractions
         Set(manager, "interactionPromptText", prompt.GetComponentInChildren<TMP_Text>());
         prompt.gameObject.SetActive(false);
 
-        var hudTimer = hud.Find("Challenge Timer");
+        var hudTimer = hud.Find("Challenge Timer") ?? hud.Find("CurrentStageHud/StageCountdown");
         if (hudTimer == null)
         {
             hudTimer = new GameObject("Challenge Timer", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI)).transform;
@@ -160,27 +160,6 @@ public static class ConfigureFunctionsRelationsWorldInteractions
         domainPanel.gameObject.SetActive(false);
         rangePanel.gameObject.SetActive(false);
 
-        var physicalBoard = GameObject.Find("Board");
-        Transform problem = physicalBoard.transform.Find("FR_ProblemText");
-        if (problem == null)
-        {
-            problem = new GameObject("FR_ProblemText", typeof(TextMeshPro)).transform;
-            problem.SetParent(physicalBoard.transform, true);
-        }
-        problem.position = new Vector3(-188.1f, 11.1f, 918.03f);
-        problem.rotation = Quaternion.identity;
-        problem.localScale = Vector3.one;
-        var problemText = problem.GetComponent<TextMeshPro>();
-        problemText.fontSize = 6f;
-        problemText.enableAutoSizing = true;
-        problemText.fontSizeMin = 3.5f;
-        problemText.fontSizeMax = 6f;
-        problemText.alignment = TextAlignmentOptions.Center;
-        problemText.rectTransform.sizeDelta = new Vector2(13f, 7f);
-        problemText.color = new Color(.92f, .97f, 1f);
-        problemText.text = "FUNCTIONS & RELATIONS\nActivate the Book Statue to reveal the challenge.";
-        Set(manager, "worldProblemText", problemText);
-
         string[] pedestalNames = { "Pedestals", "Pedestals (1)", "Pedestals (2)" };
         string[] answerNames = { "FUNCTION\nONLY", "NOT A\nFUNCTION", "RELATION\nONLY" };
         string[] emblems = { "", "", "?" };
@@ -211,8 +190,7 @@ public static class ConfigureFunctionsRelationsWorldInteractions
         Set(manager, "neutralPedestalOrbMaterial", neutralOrb);
         Set(manager, "neutralPedestalIconMaterial", blueLaser);
 
-        // The full-screen board is for reading the problem and selecting classification answers.
-        // Confirmation is physical: the player presses Interact at the Book Statue.
+        // Reading uses the InformationBoard camera. Submit is restored on the HUD below.
         var submit = canvas.transform.Find("FR_MappingBoard/Submit Mapping");
         if (submit != null) submit.gameObject.SetActive(false);
         var legacyLayer = canvas.transform.Find("FR_MappingBoard/Laser Layer");
@@ -223,6 +201,7 @@ public static class ConfigureFunctionsRelationsWorldInteractions
         if (legacyCodomains != null) legacyCodomains.gameObject.SetActive(false);
         EditorUtility.SetDirty(manager);
         EditorUtility.SetDirty(controller);
+        ConfigureFunctionsRelationsPresentation.Configure();
         EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
         AssetDatabase.SaveAssets();
         Debug.Log("Functions and Relations diamond controls, solid Book collider, and URP laser configured.");

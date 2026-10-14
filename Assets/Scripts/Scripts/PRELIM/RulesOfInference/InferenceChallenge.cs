@@ -56,15 +56,28 @@ namespace LogicLegends.Inference
         readonly List<InferenceCrystal> crystals = new List<InferenceCrystal>();
         readonly List<Behaviour> pausedCameraInputs = new List<Behaviour>();
         InferenceDeck deck;
+        InferenceQuestion[] stageQuestions;
         InferenceCrystal placed;
         Player player;
         bool restorePlayerControl, hudWasActive, previousCursorVisible;
         CursorLockMode previousCursorLock;
         bool roundSolved;
 
+        void OnValidate()
+        {
+            if (dragPuzzle != null && gameObject.scene.name == "RulesOfInference") requiredRounds = InferenceStageQuestions.ChallengeCount;
+        }
+
         void Awake()
         {
             deck = new InferenceDeck(Guid.NewGuid().GetHashCode());
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RulesOfInference" && dragPuzzle != null)
+            {
+                requiredRounds = InferenceStageQuestions.ChallengeCount;
+                stageQuestions = InferenceStageQuestions.Select(rules, Guid.NewGuid().GetHashCode());
+                var access = gameObject.AddComponent<InferenceAltarAccess>(); access.Build();
+                var interaction = gameObject.AddComponent<InferenceCrystalInteraction>(); interaction.Initialize(this);
+            }
             placeButton.onClick.AddListener(PlaceHeldCrystal);
             validateButton.onClick.AddListener(ValidateBoard);
             exploreButton.onClick.AddListener(CloseBoard);
@@ -200,12 +213,12 @@ namespace LogicLegends.Inference
         void NewRound()
         {
             ClearCrystals();
-            Question = deck.Draw(rules, dragPuzzle != null);
+            Question = stageQuestions != null ? stageQuestions[SolvedRounds] : deck.Draw(rules, dragPuzzle != null);
             roundSolved = false;
             if (dragPuzzle != null)
             {
                 Stage = InferencePuzzleStage.CompletingPremises;
-                heading.text = "RULES OF INFERENCE";
+                heading.text = stageQuestions == null ? "RULES OF INFERENCE" : "RULES OF INFERENCE — CHALLENGE " + (SolvedRounds + 1) + " OF 5";
                 dragPuzzle.Build(Question, rules);
                 legend.gameObject.SetActive(false);
                 wordBank.text = "WORD BANK"; wordBank.gameObject.SetActive(true);
@@ -274,8 +287,10 @@ namespace LogicLegends.Inference
         void RefreshStageButtons()
         {
             if (diamondPlacementMarker != null) diamondPlacementMarker.SetActive(Stage == InferencePuzzleStage.FindingDiamond);
+            if (diamondPlacementMarker != null && diamondPlacementMarker.GetComponent<TMP_Text>() != null)
+                diamondPlacementMarker.GetComponent<TMP_Text>().text = "PLACE RULE CRYSTAL HERE";
             placeButton.gameObject.SetActive(Stage == InferencePuzzleStage.FindingDiamond);
-            placeButton.GetComponentInChildren<TMP_Text>().text = "Place diamond here";
+            placeButton.GetComponentInChildren<TMP_Text>().text = "Place Rule Crystal";
             validateButton.gameObject.SetActive(Stage == InferencePuzzleStage.CompletingPremises);
             validateButton.GetComponentInChildren<TMP_Text>().text = "Check argument";
         }
@@ -332,7 +347,7 @@ namespace LogicLegends.Inference
             var crystal = held == null ? null : held.GetComponent<InferenceCrystal>();
             if (crystal == null) { Feedback("Bring a crystal from the island, then choose Place crystal.", false); return; }
             if (crystal.QuestionId != Question.Id) { Feedback("This crystal belongs to another challenge.", false); return; }
-            if (dragPuzzle != null && crystal.GetComponent<RuleDiamond>() == null) { Feedback("Bring a rule diamond to the altar.", false); return; }
+            if (dragPuzzle != null && crystal.GetComponent<RuleDiamond>() == null) { Feedback("Bring a Rule Crystal to the altar.", false); return; }
             if (placed != null) placed.ReturnToOrigin();
             held.Drop(); player.SetHeldObjectSilently(null);
             crystal.Place(conclusionSocket); placed = crystal;
@@ -350,7 +365,7 @@ namespace LogicLegends.Inference
                     placed.ReturnToOrigin(); placed = null;
                     Stage = InferencePuzzleStage.FindingDiamond; RefreshStageButtons();
                     WorldStageAudio.PlayAnswerFeedback(false);
-                    Feedback("Incorrect Rule. Try another diamond.", false);
+                    Feedback("Incorrect rule. Collect another Rule Crystal that fits the premises.", false);
                     return;
                 }
                 // Correct diamond placed -> instantly solve and reveal conclusion!
@@ -381,7 +396,7 @@ namespace LogicLegends.Inference
                     WorldStageAudio.PlayAnswerFeedback(true);
                     dragPuzzle.LockPremises(); wordBank.gameObject.SetActive(false);
                     SpawnRuleDiamonds(); Stage = InferencePuzzleStage.FindingDiamond; RefreshStageButtons();
-                    Feedback("Premises complete. Explore, pick up a rule diamond, and bring it to the altar.", true);
+                    Feedback("Premises complete. Collect the Rule Crystal whose label fits this reasoning pattern, then return to the altar.", true);
                     return;
                 }
                 return;

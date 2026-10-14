@@ -9,13 +9,14 @@ public sealed class PrelimChallengeCompletionNotice : MonoBehaviour
     private RectTransform panel;
     private TextMeshProUGUI message;
     private Coroutine finalMessageRoutine;
+    private bool useHostBounds;
 
-    public static PrelimChallengeCompletionNotice GetOrCreate(RectTransform host, TMP_Text style)
+    public static PrelimChallengeCompletionNotice GetOrCreate(RectTransform host, TMP_Text style, TextMeshProUGUI existingMessage = null)
     {
         if (host == null) return null;
         PrelimChallengeCompletionNotice notice = host.GetComponent<PrelimChallengeCompletionNotice>();
         if (notice == null) notice = host.gameObject.AddComponent<PrelimChallengeCompletionNotice>();
-        notice.BuildIfNeeded(host, style);
+        notice.BuildIfNeeded(host, style, existingMessage);
         return notice;
     }
 
@@ -39,6 +40,20 @@ public sealed class PrelimChallengeCompletionNotice : MonoBehaviour
         SetPresentation(true);
         Show("Start!");
         finalMessageRoutine = StartCoroutine(HideFinalAfterDelay(1.5f));
+    }
+
+    public void UseHostBounds()
+    {
+        useHostBounds = true;
+        SetPresentation(false);
+    }
+
+    public void ShowFeedback(string text, Color color, float seconds)
+    {
+        SetPresentation(false);
+        if (message != null) message.color = color;
+        Show(text);
+        finalMessageRoutine = StartCoroutine(HideFinalAfterDelay(seconds));
     }
 
     public void Hide()
@@ -67,14 +82,15 @@ public sealed class PrelimChallengeCompletionNotice : MonoBehaviour
     private void SetPresentation(bool compact)
     {
         if (panel == null || message == null) return;
-        panel.anchorMin = compact ? new Vector2(0.35f, 0.42f) : new Vector2(0.15f, 0.37f);
-        panel.anchorMax = compact ? new Vector2(0.65f, 0.58f) : new Vector2(0.85f, 0.63f);
+        panel.anchorMin = useHostBounds ? Vector2.zero : compact ? new Vector2(0.35f, 0.42f) : new Vector2(0.15f, 0.37f);
+        panel.anchorMax = useHostBounds ? Vector2.one : compact ? new Vector2(0.65f, 0.58f) : new Vector2(0.85f, 0.63f);
+        panel.offsetMin = panel.offsetMax = Vector2.zero;
         message.fontSizeMax = compact ? 72f : 44f;
         message.fontSizeMin = compact ? 38f : 24f;
         message.color = compact ? new Color(1f, 0.9f, 0.55f) : Color.white;
     }
 
-    private void BuildIfNeeded(RectTransform host, TMP_Text style)
+    private void BuildIfNeeded(RectTransform host, TMP_Text style, TextMeshProUGUI existingMessage)
     {
         if (panel != null) return;
         GameObject background = new GameObject("PrelimChallengeCompletionNotice",
@@ -90,10 +106,15 @@ public sealed class PrelimChallengeCompletionNotice : MonoBehaviour
         image.color = new Color(0.025f, 0.11f, 0.16f, 0.92f);
         image.raycastTarget = false;
 
-        GameObject label = new GameObject("Message", typeof(RectTransform),
-            typeof(CanvasRenderer), typeof(TextMeshProUGUI));
-        message = label.GetComponent<TextMeshProUGUI>();
+        if (existingMessage != null) message = existingMessage;
+        else
+        {
+            GameObject label = new GameObject("Message", typeof(RectTransform),
+                typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            message = label.GetComponent<TextMeshProUGUI>();
+        }
         message.transform.SetParent(panel, false);
+        message.gameObject.SetActive(true);
         RectTransform labelRect = message.rectTransform;
         labelRect.anchorMin = Vector2.zero;
         labelRect.anchorMax = Vector2.one;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -46,12 +47,18 @@ namespace LogicLegends.Inference
         public readonly InferenceRule Rule;
         public readonly InferenceForm Form;
         public readonly InferenceExample Example;
+        public readonly InferenceQuestionSpec Spec;
         public readonly string Id = Guid.NewGuid().ToString("N");
-        public string Conclusion => Resolve(Form.conclusion);
+        public string Conclusion => Spec == null ? Resolve(Form.conclusion) : Spec.ConclusionSentence(Example);
 
         public InferenceQuestion(InferenceRule rule, int form, int example)
         {
             Rule = rule; Form = rule.forms[form]; Example = rule.examples[example];
+        }
+        public InferenceQuestion(InferenceRule rule, InferenceQuestionSpec spec, InferenceExample example)
+        {
+            Rule = rule; Spec = spec; Example = example;
+            Form = new InferenceForm { premises = spec.Premises.Select(p => new InferencePremise { tokens = new[] { p } }).ToArray(), conclusion = spec.Conclusion, distractors = new string[0] };
         }
 
         public static bool IsBlank(string token) => token.StartsWith("{") || token.StartsWith("[");

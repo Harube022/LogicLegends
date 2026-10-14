@@ -25,7 +25,8 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
 
     public static InferenceControlsOnboarding Active { get; private set; }
     public bool IsActive { get; private set; }
-    public bool AllowsJump => IsActive && step == Step.Jump;
+    public bool AllowsJump => IsActive && (step == Step.Jump || step == Step.BoardApproach);
+    public bool IsCrystalPractice => IsActive && step == Step.CrystalTower;
     public bool SuppressMovement => IsActive && step != Step.Movement && step != Step.BoardApproach;
     public bool IsBookStep => IsActive && step == Step.Book;
     public bool IsBoardApproach => IsActive && step == Step.BoardApproach;
@@ -498,7 +499,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         StageUITheme.Stretch(heading.rectTransform, new Vector2(0.04f, 0.84f),
             new Vector2(0.96f, 0.96f));
         boardTabs = new RectTransform[3];
-        string[] labels = { "1  COMPLETE PREMISES", "2  FIND A DIAMOND", "3  REVEAL CONCLUSION" };
+        string[] labels = { "1  COMPLETE PREMISES", "2  FIND A RULE CRYSTAL", "3  REVEAL CONCLUSION" };
         for (int i = 0; i < boardTabs.Length; i++)
         {
             boardTabs[i] = StageUITheme.Rect("Practice Board Step " + (i + 1), card);
@@ -513,7 +514,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
                 new Vector2(0.98f, 0.94f));
         }
         RectTransform sample = StageUITheme.Rect("Practice Premises", card);
-        StageUITheme.Stretch(sample, new Vector2(0.04f, 0.28f), new Vector2(0.96f, 0.68f));
+        StageUITheme.Stretch(sample, new Vector2(0.04f, 0.38f), new Vector2(0.96f, 0.68f));
         sample.gameObject.AddComponent<Image>().color = new Color(0.08f, 0.15f, 0.19f, 1f);
         var sampleText = (TextMeshProUGUI)StageUITheme.Text("Placeholder Argument", sample,
             "PRACTICE EXAMPLE\nPremise:  [choose a word]  ...\nTherefore,  [conclusion hidden]",
@@ -525,7 +526,8 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
             "", 29, true);
         boardExplanation.color = Color.white;
         StageUITheme.Stretch(boardExplanation.rectTransform, new Vector2(0.05f, 0.14f),
-            new Vector2(0.95f, 0.27f));
+            new Vector2(0.95f, 0.37f));
+        boardExplanation.enableAutoSizing = true; boardExplanation.fontSizeMin = 25f; boardExplanation.fontSizeMax = 29f;
         boardNextButton = StageUITheme.Button("Practice Board Next", card, "Next", NextStep);
         StageUITheme.Stretch((RectTransform)boardNextButton.transform,
             new Vector2(0.58f, 0.025f), new Vector2(0.8f, 0.13f));
@@ -558,16 +560,13 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         switch (boardStep)
         {
             case Step.BoardPremises:
-                boardExplanation.text = "Complete the premises using the available choices. " +
-                    "Drag words into the blanks, then tap Check argument.";
+                boardExplanation.text = "Premises are statements accepted as true and used to support a conclusion. Read and complete them by dragging the available words into the blanks, then tap Check argument. Their logical structure tells you which rule to collect.";
                 break;
             case Step.BoardDiamond:
-                boardExplanation.text = "Find a rule diamond that matches the completed premises. " +
-                    "Collect it at a crystal tower and bring it back to the altar.";
+                boardExplanation.text = "A rule of inference is a valid reasoning pattern that derives a conclusion from premises. A Rule Crystal represents one rule; its label identifies it. Choose the crystal whose rule fits the completed premises, then carry it back to the altar.";
                 break;
             case Step.BoardConclusion:
-                boardExplanation.text = "Place the matching rule diamond at the altar. " +
-                    "The correct rule reveals the conclusion and completes the round.";
+                boardExplanation.text = "The conclusion is the statement that logically follows from the premises using the selected rule. Tap Place Rule Crystal to validate your choice. A correct rule reveals the conclusion and completes this challenge. The next challenge waits at the book.";
                 break;
             case Step.BoardBack:
                 boardExplanation.text = "Tap Back to return to the stage and learn where to find crystals.";
@@ -590,8 +589,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         CreatePracticeCrystal();
         FocusCamera(practiceCrystal.transform, crystalCameraOffset);
         SetWorldStep(Step.CrystalTower,
-            "Search crystal towers for rule crystals. Approach a crystal and use the hand " +
-            "button to collect it. Tap the hand button to try this practice crystal.",
+            "A Rule Crystal represents a specific inference rule, identified by its label. Collect the rule that fits your premises. During gameplay, use Collect Rule Crystal or the hand button when in range. Try either button with this practice crystal.",
             practiceCrystal.transform, false);
     }
 

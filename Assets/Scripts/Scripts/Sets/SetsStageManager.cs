@@ -686,7 +686,7 @@ public sealed class SetsStageManager : MonoBehaviour
         SetsConditionData condition = CurrentChallenge.conditions[conditionIndex];
         string a = condition.setA == null || condition.setA.Length == 0 ? "{}" : "{" + string.Join(", ", condition.setA) + "}";
         string b = condition.setB == null || condition.setB.Length == 0 ? "{} (empty set)" : "{" + string.Join(", ", condition.setB) + "}";
-        boardInstructions.text = $"<color=#F4D794>Challenge 1</color>\nCondition {conditionIndex + 1} of {CurrentChallenge.conditions.Count}\n\nA = {a}    B = {b}\nU = {{1, 2, 3, 4, 5, 6, 7, 8, 9}}\n\nLeft: A - B   Middle: A ∩ B   Right: B - A\nLeave unused numbers at the spawner.\n" +
+        boardInstructions.text = $"<color=#F4D794>Challenge 1</color>\nQuestion {conditionIndex + 1} of {CurrentChallenge.conditions.Count}\n\nA = {a}    B = {b}\nU = {{1, 2, 3, 4, 5, 6, 7, 8, 9}}\n\nLeft: A - B   Middle: A ∩ B   Right: B - A\nLeave unused element blocks at the spawner.\n" +
             (waitingForActivation ? "Interact with the Book Statue to start." : "Press Submit when the diagram is complete.");
     }
 

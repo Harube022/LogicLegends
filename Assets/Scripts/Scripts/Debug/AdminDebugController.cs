@@ -322,7 +322,7 @@ public sealed class AdminDebugController : MonoBehaviour
         clearChallengeButton = CreateButton("ClearCurrentChallenge", card, font,
             "Clear Current Challenge", new Vector2(0f, 60f), ClearCurrentChallenge);
         clearConditionButton = CreateButton("ClearCurrentCondition", card, font,
-            "Clear Current Condition", new Vector2(0f, -45f), ClearCurrentCondition);
+            "Clear Current Question", new Vector2(0f, -45f), ClearCurrentCondition);
         CreateButton("CloseAdminDebug", card, font, "Close",
             new Vector2(0f, -150f), ClosePanel);
         panelRoot.gameObject.SetActive(false);

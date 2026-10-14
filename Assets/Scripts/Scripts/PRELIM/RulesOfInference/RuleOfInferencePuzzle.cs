@@ -245,6 +245,13 @@ namespace LogicLegends.Inference
         public RuleOfInferencePuzzle(InferenceQuestion source)
         {
             Source = source; RuleType = TypeOf(source.Rule);
+            if (source.Spec != null)
+            {
+                LogicalPremises = source.Spec.Premises;
+                source.Spec.BuildPremises(Premises, CorrectPlacements, source.Example);
+                Conclusion = source.Conclusion.TrimEnd('.') + ".";
+                return;
+            }
             LogicalPremises = source.Form.premises.Select(p => string.Join(" ", p.tokens.Where(t => t != "\n"))
                 .Replace("{", "").Replace("}", "").Replace("[", "").Replace("]", "")).ToArray();
             

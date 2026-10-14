@@ -7,7 +7,7 @@ using Unity.Cinemachine;
 using System.Collections.Generic;
 
 /// <summary>Scene-local introduction. The library portal remains locked until the last line is acknowledged.</summary>
-public sealed class LogicGardenIntroduction : MonoBehaviour
+public sealed partial class LogicGardenIntroduction : MonoBehaviour
 {
     [SerializeField] private Transform lefyahj;
     [SerializeField] private InteractPortal libraryDoor;
@@ -24,10 +24,17 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
     [SerializeField] private InteractPortal[] otherLibraryEntrances;
     [SerializeField] private TextMeshProUGUI wizardNotification;
     [SerializeField] private GameObject wizardAttentionMarker;
+    [SerializeField] private Shader attentionOverlayShader;
     [SerializeField] private CinemachineCamera libraryDialogueCamera;
     [SerializeField, Min(0.1f)] private float guidedCameraBlendSeconds = 1.2f;
     [SerializeField, Min(1f)] private float interactionRange = 4f;
     [SerializeField, Range(0f, 1f)] private float cameraFacingThreshold = 0.45f;
+    [SerializeField] private LogicGardenControlsOnboarding onboarding;
+    public LogicGardenControlsOnboarding Onboarding => onboarding;
+    public bool OnboardingBusy => (onboarding != null && (onboarding.IsActive || onboarding.IsPending)) || (libraryTutorial!=null&&libraryTutorial.IsBusy);
+    public bool Talking => talking;
+    public bool InLibrary => inLibrary;
+    public Transform Wizard => lefyahj;
 
     private static readonly string[] Lines =
     {
@@ -58,6 +65,7 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
     private CinemachineBrain cameraBrain;
     private CinemachineBlendDefinition previousBlend;
     private readonly List<Behaviour> pausedCameraInputs = new List<Behaviour>();
+    private Material attentionMaterial;
 
     private void Start()
     {
@@ -89,9 +97,16 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
                 if (portal != null)
                 {
                     portal.SetInteractionUnlocked(conversationComplete);
+                    portal.onTeleport.RemoveListener(OnOtherLibraryEntranceUsed);
                     portal.onTeleport.AddListener(OnOtherLibraryEntranceUsed);
                 }
         if (libraryDialogueCamera != null) libraryDialogueCamera.gameObject.SetActive(false);
+        if(wizardAttentionMarker!=null&&attentionOverlayShader!=null)
+        {
+            var marker=wizardAttentionMarker.GetComponent<TMP_Text>();
+            attentionMaterial=new Material(marker.fontSharedMaterial);attentionMaterial.shader=attentionOverlayShader;
+            marker.fontSharedMaterial=attentionMaterial;marker.fontSize=11;
+        }
         UpdateWizardAttention();
         UpdateObjectives();
         if (locationTitle != null)
@@ -99,11 +114,19 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
             locationTitle.text = "LogicGarden";
             locationTitle.gameObject.SetActive(true);
         }
+        if (onboarding == null) onboarding = GetComponent<LogicGardenControlsOnboarding>();
+        if (onboarding == null) onboarding = gameObject.AddComponent<LogicGardenControlsOnboarding>();
+        onboarding.Initialize(this, locationTitle.transform.parent as RectTransform);
+        if(libraryTutorial==null)libraryTutorial=GetComponent<LogicLibraryTutorialController>();
+        if(libraryTutorial==null)libraryTutorial=gameObject.AddComponent<LogicLibraryTutorialController>();
+        libraryTutorial.Initialize(this,studyLibrary);
+        UpdateWizardAttention();
     }
 
     private void OnDisable()
     {
         if (input != null) input.OnInteractAction -= OnInteract;
+        if(libraryTutorial!=null)libraryTutorial.Cancel(false);
         if (talking) CloseDialogue(false);
         RestoreGameplayCamera();
         if (otherLibraryEntrances != null)
@@ -111,10 +134,17 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
                 if (portal != null) portal.onTeleport.RemoveListener(OnOtherLibraryEntranceUsed);
         if (contextualButton != null) contextualButton.gameObject.SetActive(false);
     }
+    private void OnEnable()
+    {
+        if(input!=null){input.OnInteractAction-=OnInteract;input.OnInteractAction+=OnInteract;}
+        if(otherLibraryEntrances!=null)
+            foreach(var portal in otherLibraryEntrances)if(portal!=null){portal.onTeleport.RemoveListener(OnOtherLibraryEntranceUsed);portal.onTeleport.AddListener(OnOtherLibraryEntranceUsed);}
+    }
+    private void OnDestroy(){if(attentionMaterial!=null)Destroy(attentionMaterial);}
 
     private void Update()
     {
-        if (talking || teleportPending || inLibrary || (input != null && input.GameplayInputBlocked))
+        if (OnboardingBusy || talking || teleportPending || inLibrary || (input != null && input.GameplayInputBlocked))
         {
             if (contextualButton != null) contextualButton.gameObject.SetActive(false);
             return;
@@ -155,7 +185,7 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
 
     public void Interact()
     {
-        if (talking || teleportPending || inLibrary || (input != null && input.GameplayInputBlocked)) return;
+        if (OnboardingBusy || talking || teleportPending || inLibrary || (input != null && input.GameplayInputBlocked)) return;
         if (player == null) player = FindLocalPlayer();
         if (IsTargeted(lefyahj))
         {
@@ -199,6 +229,7 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
 
     public void Next()
     {
+        if(libraryTutorial!=null&&libraryTutorial.TourActive){libraryTutorial.Next();return;}
         if (!talking) return;
         line++;
         string[] lines = libraryDialogue ? LibraryLines : Lines;
@@ -221,9 +252,12 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
         if (returnToGardenButton != null) returnToGardenButton.gameObject.SetActive(inLibrary);
         if (acknowledgedFinalLine && libraryDialogue)
         {
+            if(replayDialogue){FinishReplayDialogue(acknowledgedFinalLine);return;}
             LogicGardenProgress.SeeIntroduction();
+            libraryTutorial.BeginTour(true);
             return;
         }
+        if(replayDialogue){FinishReplayDialogue(acknowledgedFinalLine);return;}
         if (acknowledgedFinalLine && !conversationComplete)
         {
             conversationComplete = true;
@@ -239,10 +273,11 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
 
     private void UpdateWizardAttention()
     {
-        bool show = !conversationComplete && !talking && !inLibrary;
-        if (wizardAttentionMarker != null) wizardAttentionMarker.SetActive(show);
-        if (wizardNotification != null) wizardNotification.gameObject.SetActive(show);
+        bool incomplete = !conversationComplete && !inLibrary;
+        if (wizardAttentionMarker != null) wizardAttentionMarker.SetActive(incomplete);
+        if (wizardNotification != null) wizardNotification.gameObject.SetActive(incomplete && !talking && !OnboardingBusy);
     }
+    public void RefreshAfterControlsTutorial(){UpdateWizardAttention();UpdateObjectives();}
 
     private void ShowLibraryCamera()
     {
@@ -303,6 +338,7 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
                 UpdateWizardAttention();
                 UpdateObjectives();
                 if (!LogicGardenProgress.IntroductionSeen) BeginLibraryDialogue();
+                else if(!LogicGardenProgress.LibraryTourCompleted)libraryTutorial.BeginTour(true);
                 yield break;
             }
             yield return null;
@@ -312,7 +348,7 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
 
     public void ReturnToGarden()
     {
-        if (!inLibrary || talking || teleportPending || player == null || gardenEntry == null ||
+        if (OnboardingBusy || !inLibrary || talking || teleportPending || player == null || gardenEntry == null ||
             TeleportManager.Instance == null || TeleportManager.Instance.IsTeleporting) return;
         if (studyLibrary != null) studyLibrary.ExitActiveShelf();
         teleportPending = true;
@@ -326,7 +362,7 @@ public sealed class LogicGardenIntroduction : MonoBehaviour
         float deadline = Time.realtimeSinceStartup + 8f;
         while (player != null && Time.realtimeSinceStartup < deadline)
         {
-            if (Vector3.Distance(player.transform.position, gardenEntry.position) < 3f)
+            if (!TeleportManager.Instance.IsTeleporting && Vector3.Distance(player.transform.position, gardenEntry.position) < 3f)
             {
                 inLibrary = false;
                 teleportPending = false;

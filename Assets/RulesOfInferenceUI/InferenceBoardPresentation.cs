@@ -115,12 +115,12 @@ namespace LogicLegends.RulesOfInferenceUI
             var intro = content.GetComponentsInChildren<TMP_Text>(true)
                 .First(t => t.transform.parent == content && t != challenge.heading && t != challenge.feedback);
             Text(intro, bodyFont, 30, Pale);
-            intro.text = "Complete the premises. Find a rule diamond. Reveal the conclusion.";
+            intro.text = "Complete true premises. Collect the matching Rule Crystal. Validate to reveal the conclusion.";
             Box(intro.rectTransform, 28, 78, 1480, 36);
             var strip = Rect(content, "Theme_Progress");
             Box(strip, 28, 124, 1480, 38);
             steps = new TMP_Text[3];
-            string[] titles = { "1  COMPLETE PREMISES", "2  FIND A DIAMOND", "3  REVEAL CONCLUSION" };
+            string[] titles = { "1  COMPLETE PREMISES", "2  FIND A RULE CRYSTAL", "3  REVEAL CONCLUSION" };
             for (int i = 0; i < 3; i++)
             {
                 var step = Rect(strip, "Step" + i);
@@ -334,7 +334,7 @@ namespace LogicLegends.RulesOfInferenceUI
             bankViewport.gameObject.SetActive(!searching && !solved);
             bankStatus.gameObject.SetActive(searching || solved);
             bankStatus.text = solved ? "ARGUMENT COMPLETE\n\nThe conclusion is revealed.\n\nTry another argument, or return to the island."
-                : "PREMISES COMPLETE\n\nFind a rule diamond at the pillars.\n\nBring it back to the altar.";
+                : "PREMISES COMPLETE\n\nCollect the Rule Crystal whose label fits your reasoning pattern.\n\nBring it back to the altar.";
             var hint = content.Find("PuzzleWorkspace/WordBankWorkspace/Theme_BankHint");
             hint.gameObject.SetActive(!searching && !solved);
             

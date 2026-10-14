@@ -54,8 +54,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
     [SerializeField] private UnityEvent onChallengeCompleted;
 
     private const int BlocksPerCondition = 10;
-    private const int ConditionsPerChallenge = 10;
-    private const int ComplementConditions = 5;
+    public const int QuestionsPerChallenge = 5;
     // Entry 6 is the supplied B = {29}; every other Challenge 1 entry is A-only.
     private static readonly SetsConditionData[] challengeOneBank =
     {
@@ -115,12 +114,12 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         new ComplementCondition("3,14,25,36,47,58,69,80,91", "14,36,58,80", "B"),
         new ComplementCondition("9,16,28,35,49,57,64,82,96", "16,35,57", "A")
     };
-    private readonly int[] selectedEntryIndices = new int[ConditionsPerChallenge];
-    private readonly List<int> unansweredEntries = new List<int>(ConditionsPerChallenge);
+    private readonly int[] selectedEntryIndices = new int[QuestionsPerChallenge];
+    private readonly List<int> unansweredEntries = new List<int>(QuestionsPerChallenge);
 
-    private readonly Dictionary<string, SetZone> placed = new Dictionary<string, SetZone>();
-    private readonly Dictionary<string, bool> placedOnDifferenceRegion = new Dictionary<string, bool>();
-    private readonly Dictionary<string, int> placementSlots = new Dictionary<string, int>();
+    // Available spawner blocks are not answers. Once released, a physical block
+    // remains an answer (even outside the diagram) until explicitly returned.
+    private readonly HashSet<GrabbableObject> releasedBlocks = new HashSet<GrabbableObject>();
     // Challenge 4 allows one value in several regions, so its placements are
     // tracked by physical block instance rather than by the displayed number.
     private enum ChallengeFourRegion { A, B, Intersection, AMinusB, BMinusA }
@@ -130,8 +129,6 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         new Dictionary<GrabbableObject, ChallengeFourBlockState>();
     private readonly Dictionary<GrabbableObject, int> challengeFourSpawnSlots = new Dictionary<GrabbableObject, int>();
     private readonly GrabbableObject[] challengeFourAvailableAtSlot = new GrabbableObject[BlocksPerCondition];
-    private readonly Dictionary<GrabbableObject, ChallengeFourRegion> challengeFourPlacements = new Dictionary<GrabbableObject, ChallengeFourRegion>();
-    private readonly Dictionary<GrabbableObject, int> challengeFourSlots = new Dictionary<GrabbableObject, int>();
     private sealed class PlacementReview
     {
         public readonly HashSet<GrabbableObject> incorrectBlocks = new HashSet<GrabbableObject>();
@@ -147,6 +144,9 @@ public sealed class SetssssChallengeOne : MonoBehaviour
     private Player player;
     private GrabbableObject previouslyHeld;
     private Bounds diagramBounds;
+    private Bounds aCircleBounds;
+    private Bounds bCircleBounds;
+    private SetssssPlacementFootprint aFootprint, bFootprint, aMinusBFootprint, bMinusAFootprint;
     private Bounds aMinusBBounds;
     private Bounds bMinusABounds;
     private Bounds universalBounds;
@@ -168,13 +168,32 @@ public sealed class SetssssChallengeOne : MonoBehaviour
     private float lastInteractionTime = -10f;
     private float nextSubmitTime;
     private RectTransform viewBoardRect;
-    private float feedbackDefaultFontSize;
-    private Vector2 feedbackDefaultSize;
-    private Vector2 feedbackDefaultPosition;
-    private int feedbackGeneration;
+    private SetssssChallengePresentation presentation;
+    private SetssssHudView hud;
 
     public static SetssssChallengeOne ActiveInstance { get; private set; }
 
+    public SetssssHudView Hud => hud;
+    public int ChallengeCount => 5;
+    public int ConditionCount => CurrentConditionCount;
+    public int QuestionCount => QuestionsPerChallenge;
+    public int QuestionIndex => conditionIndex;
+    public string CurrentProblem
+    {
+        get
+        {
+            if (complete) return "All five challenges completed.";
+            if (gameOverTriggered) return "Time expired. Retry this challenge.";
+            if (!started || !HasActiveQuestion) return "Activate the book statue to reveal the question.";
+            if (challengeNumber == 5)
+                return "U = {" + string.Join(", ", activeComplement.universe) + "}\n" +
+                    activeComplement.setName + " = {" + string.Join(", ", activeComplement.selected) + "}";
+            string problem = "A = {" + string.Join(", ", activeCondition.setA) + "}";
+            if (challengeNumber > 1 || activeCondition.setB.Length > 0)
+                problem += "\nB = {" + string.Join(", ", activeCondition.setB) + "}";
+            return problem;
+        }
+    }
     public bool Started => started;
     public bool Complete => complete;
     public bool IsGameOver => gameOverTriggered;
@@ -183,7 +202,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
     public int ChallengeNumber => challengeNumber;
     public SetsConditionData ActiveCondition => activeCondition;
     public IReadOnlyList<int> SelectedEntryIndices => selectedEntryIndices;
-    private int CurrentConditionCount => challengeNumber == 5 ? ComplementConditions : ConditionsPerChallenge;
+    private int CurrentConditionCount => QuestionsPerChallenge;
     private bool HasActiveQuestion => challengeNumber == 5 ? activeComplement != null : activeCondition != null;
     public bool CanDebugClearChallenge => started && !complete && !gameOverTriggered && !advancing && HasActiveQuestion;
     public bool CanDebugClearCondition => CanDebugClearChallenge;
@@ -238,13 +257,14 @@ public sealed class SetssssChallengeOne : MonoBehaviour
 
     private void Start()
     {
-        if (feedbackText != null)
-        {
-            feedbackDefaultFontSize = feedbackText.fontSize;
-            feedbackDefaultSize = feedbackText.rectTransform.sizeDelta;
-            feedbackDefaultPosition = feedbackText.rectTransform.anchoredPosition;
-        }
         ConfigureTimerDisplay();
+        hud = GetComponent<SetssssHudView>();
+        if (hud == null) hud = gameObject.AddComponent<SetssssHudView>();
+        hud.Initialize(this, timerText, reminderText, feedbackText);
+        presentation = GetComponent<SetssssChallengePresentation>();
+        if (presentation == null) presentation = gameObject.AddComponent<SetssssChallengePresentation>();
+        presentation.Initialize(timerText);
+        presentation.SetDeductionArea(hud.DeductionArea);
         ResetTimerForNextChallenge();
         aMinusBBounds = GetRendererBounds(aMinusBRegion);
         bMinusABounds = GetRendererBounds(bMinusARegion);
@@ -263,10 +283,11 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         ConfigureContextButton(interactWithBookButton);
         ConfigureContextButton(pickUpBlockButton);
         ConfigureContextButton(returnBlockButton);
+        if (pickUpBlockButton != null) pickUpBlockButton.GetComponentInChildren<TMP_Text>(true).text = "Pick Up Element";
+        if (returnBlockButton != null) returnBlockButton.GetComponentInChildren<TMP_Text>(true).text = "Return Element";
         if (interactWithBookButton != null) interactWithBookButton.onClick.AddListener(UseExistingInteraction);
         if (pickUpBlockButton != null) pickUpBlockButton.onClick.AddListener(UseExistingInteraction);
         if (returnBlockButton != null) returnBlockButton.onClick.AddListener(ReturnHeldBlock);
-        if (reminderText != null) reminderText.gameObject.SetActive(false);
 
         Renderer[] diagramRenderers = diagram != null ? diagram.GetComponentsInChildren<Renderer>() : null;
         if (diagramRenderers != null && diagramRenderers.Length > 0)
@@ -278,6 +299,12 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         diagramRendererOriginallyEnabled = diagramRenderer != null && diagramRenderer.enabled;
         diagramMeshFilter = diagram != null ? diagram.GetComponent<MeshFilter>() : null;
         originalDiagramMesh = diagramMeshFilter != null ? diagramMeshFilter.sharedMesh : null;
+        aCircleBounds = GetUsedMeshBounds(existingACircleMesh, diagram);
+        bCircleBounds = GetUsedMeshBounds(existingBCircleMesh, diagram);
+        aFootprint = new SetssssPlacementFootprint(existingACircleMesh, diagram);
+        bFootprint = new SetssssPlacementFootprint(existingBCircleMesh, diagram);
+        aMinusBFootprint = RegionFootprint(aMinusBRegion);
+        bMinusAFootprint = RegionFootprint(bMinusARegion);
         if (diagramMeshFilter == null || existingACircleMesh == null || existingBCircleMesh == null)
             Debug.LogError("Setssss Challenge 5 needs both existing AB circle mesh views.", this);
         if (universalBoundary == null)
@@ -304,7 +331,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
             SetBlockColliders(block, false);
             block.gameObject.SetActive(false); // No old question visible while waiting for the book.
         }
-        if (feedbackText != null) feedbackText.text = string.Empty;
+        hud?.Notice.Hide();
         RefreshComplementVisuals();
         UpdateBookPrompt();
         RefreshBoard();
@@ -351,7 +378,8 @@ public sealed class SetssssChallengeOne : MonoBehaviour
 
     private void TickTimer()
     {
-        if (!started || complete || gameOverTriggered || Time.deltaTime <= 0f) return;
+        if (!started || complete || gameOverTriggered || Time.deltaTime <= 0f ||
+            presentation != null && presentation.IsIntroductionOpen) return;
         timeRemaining = Mathf.Max(0f, timeRemaining - Time.deltaTime);
         UpdateTimerDisplay();
         if (timeRemaining <= 0f) TriggerGameOver();
@@ -359,8 +387,17 @@ public sealed class SetssssChallengeOne : MonoBehaviour
 
     private void ApplyIncorrectSubmissionPenalty()
     {
-        if (gameOverTriggered) return;
-        timeRemaining = Mathf.Max(0f, timeRemaining - incorrectSubmissionPenaltySeconds);
+        DeductTime(incorrectSubmissionPenaltySeconds);
+    }
+
+    public void DeductTime(float seconds)
+    {
+        if (!started || complete || gameOverTriggered || float.IsNaN(seconds) || float.IsInfinity(seconds) || seconds <= 0f ||
+            presentation != null && presentation.IsIntroductionOpen ||
+            SetssssControlsOnboarding.Active != null && SetssssControlsOnboarding.Active.IsActive) return;
+        float deduction = Mathf.Min(seconds, timeRemaining);
+        timeRemaining -= deduction;
+        if (presentation != null) presentation.ShowDeduction(deduction);
         UpdateTimerDisplay();
         if (timeRemaining <= 0f) TriggerGameOver();
     }
@@ -372,15 +409,13 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         timeRemaining = 0f;
         UpdateTimerDisplay();
         StopAllCoroutines();
-        RestoreFeedbackLayout();
-        if (feedbackText != null) feedbackText.text = string.Empty;
+        hud?.Notice.Hide();
         if (boardView != null && boardView.IsViewingBoard) boardView.Back();
         if (bookPrompt != null) bookPrompt.gameObject.SetActive(false);
         if (submitButton != null) submitButton.gameObject.SetActive(false);
         SetVisible(interactWithBookButton, false);
         SetVisible(pickUpBlockButton, false);
         SetVisible(returnBlockButton, false);
-        if (reminderText != null) reminderText.gameObject.SetActive(false);
         if (input != null) input.SetGameplayInputBlocked(true);
         if (player != null) player.ToggleControl(false);
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
@@ -434,7 +469,14 @@ public sealed class SetssssChallengeOne : MonoBehaviour
     private void ShuffleUnansweredEntries()
     {
         unansweredEntries.Clear();
-        for (int i = 0; i < CurrentConditionCount; i++) unansweredEntries.Add(i);
+        int bankSize = challengeNumber == 5 ? challengeFiveBank.Length :
+            challengeNumber == 1 ? challengeOneBank.Length : challengeNumber == 2 ? challengeTwoBank.Length :
+            challengeNumber == 3 ? challengeThreeBank.Length : challengeFourBank.Length;
+        if (bankSize < QuestionsPerChallenge)
+            throw new InvalidOperationException("Each challenge needs at least five distinct questions.");
+        // Shuffle the entire bank before taking five, so later bank entries
+        // remain eligible. A correct answer consumes one entry; retries keep it.
+        for (int i = 0; i < bankSize; i++) unansweredEntries.Add(i);
         for (int i = unansweredEntries.Count - 1; i > 0; i--)
         {
             int swap = UnityEngine.Random.Range(0, i + 1);
@@ -442,6 +484,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
             unansweredEntries[i] = unansweredEntries[swap];
             unansweredEntries[swap] = previous;
         }
+        unansweredEntries.RemoveRange(QuestionsPerChallenge, unansweredEntries.Count - QuestionsPerChallenge);
     }
 
     private SetsConditionData GetBankCondition(int index)
@@ -599,58 +642,6 @@ public sealed class SetssssChallengeOne : MonoBehaviour
             : region == SetZone.B_ONLY || region == SetZone.INTERSECTION;
     }
 
-    private void SnapToComplement(GrabbableObject block, Vector3 playerPosition)
-    {
-        if (block == null) return;
-        bool inside = IsInsideSelectedSet(playerPosition);
-        int slot = 0;
-        for (; slot < 9; slot++)
-        {
-            Vector3 candidate = ComplementPosition(inside, slot);
-            bool occupied = false;
-            for (int i = 0; i < activeComplement.universe.Length; i++)
-            {
-                GrabbableObject other = numberedBlocks[i];
-                if (other == null || other == block || !other.gameObject.activeInHierarchy) continue;
-                Vector3 delta = other.transform.position - candidate;
-                delta.y = 0f;
-                if (delta.sqrMagnitude < 6.25f) { occupied = true; break; }
-            }
-            if (!occupied) break;
-        }
-        Rigidbody body = block.GetComponent<Rigidbody>();
-        if (body != null)
-        {
-            body.linearVelocity = Vector3.zero;
-            body.angularVelocity = Vector3.zero;
-            body.isKinematic = true;
-            body.useGravity = false;
-        }
-        block.transform.SetParent(universalBoundary, true);
-        block.transform.position = slot < 9 ? ComplementPosition(inside, slot) :
-            new Vector3(playerPosition.x, universalBounds.max.y + 0.9f, playerPosition.z);
-    }
-
-    private bool ValidateComplementArrangement()
-    {
-        if (activeComplement == null || player.GetHeldObject() != null) return false;
-        var universe = new HashSet<int>();
-        var selected = new HashSet<int>();
-        var seen = new HashSet<int>();
-        foreach (string value in activeComplement.universe) universe.Add(int.Parse(value));
-        foreach (string value in activeComplement.selected) selected.Add(int.Parse(value));
-        for (int i = 0; i < activeComplement.universe.Length; i++)
-        {
-            GrabbableObject block = numberedBlocks[i];
-            if (block == null || !block.gameObject.activeInHierarchy) return false;
-            int value = GetBlockNumber(block);
-            Vector3 point = block.transform.position;
-            if (!universe.Contains(value) || !seen.Add(value) || !IsInsideUniversal(point) ||
-                IsInsideSelectedSet(point) != selected.Contains(value)) return false;
-        }
-        return seen.SetEquals(universe) && !numberedBlocks[9].gameObject.activeInHierarchy;
-    }
-
     private void UpdateBookPrompt()
     {
         if (bookPrompt == null) return;
@@ -662,10 +653,11 @@ public sealed class SetssssChallengeOne : MonoBehaviour
     // stage restart outside Game Over starts again at Challenge 1.
     public void RestartChallenge()
     {
+        if (presentation != null) { presentation.CancelIntroduction(); presentation.ClearDeductions(); }
         int restartAt = gameOverTriggered ? challengeNumber : 1;
         if (boardView != null && boardView.IsViewingBoard) boardView.Back();
         StopAllCoroutines();
-        RestoreFeedbackLayout();
+        hud?.Notice.Hide();
         ResetAllBlocks();
         started = false;
         advancing = false;
@@ -682,8 +674,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         foreach (GrabbableObject block in numberedBlocks)
             if (block != null) { SetBlockColliders(block, false); block.gameObject.SetActive(false); }
         UpdateBookPrompt();
-        if (feedbackText != null) feedbackText.text = string.Empty;
-        if (reminderText != null) reminderText.gameObject.SetActive(false);
+        hud?.Notice.Hide();
         if (submitButton != null) submitButton.gameObject.SetActive(false);
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         Time.timeScale = 1f;
@@ -694,6 +685,9 @@ public sealed class SetssssChallengeOne : MonoBehaviour
 
     private void OnDisable()
     {
+        hud?.Notice.Hide();
+        if (presentation != null) { presentation.CancelIntroduction(); presentation.ClearDeductions(); }
+        RefreshDifferenceRegions();
         if (ActiveInstance == this) ActiveInstance = null;
         ClearAllErrorIndicators();
         if (diagramMeshFilter != null) diagramMeshFilter.sharedMesh = originalDiagramMesh;
@@ -752,7 +746,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         {
             held.Drop();
             player.SetHeldObjectSilently(null);
-            PlaceOrReturnBlock(held, heldNumber);
+            RecordReleasedBlock(held);
             previouslyHeld = null;
             return true;
         }
@@ -761,67 +755,81 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         {
             if (!started)
             {
-                started = true;
-                RefreshDifferenceRegions();
-                if (bookPrompt != null) bookPrompt.gameObject.SetActive(false);
-                ShuffleUnansweredEntries();
-                DrawCondition();
-                StartCoroutine(ShowChallengeStartFeedback());
+                if (challengeNumber == 4 && presentation != null)
+                {
+                    hud?.Notice.Hide();
+                    presentation.ShowIntroduction(StartGameplayChallenge);
+                    RefreshDifferenceRegions();
+                }
+                else StartGameplayChallenge();
             }
             return true;
         }
 
         GrabbableObject target = FindTargetedBlock();
         if (target == null || !started) return false;
-        if (challengeNumber == 4)
-        {
-            if (!challengeFourStates.TryGetValue(target, out ChallengeFourBlockState state) ||
-                state == ChallengeFourBlockState.Held) return true;
-            // Every actual spawner pickup, including a replacement pickup,
-            // creates exactly one successor at the same numbered slot.
-            if (state == ChallengeFourBlockState.AtSpawner && !ReplaceSpawnerPickup(target)) return true;
-            challengeFourPlacements.Remove(target);
-            challengeFourSlots.Remove(target);
-            challengeFourStates[target] = ChallengeFourBlockState.Held;
-        }
-        int number = GetBlockNumber(target);
-        ClearErrorIndicator(target);
-        if (challengeNumber != 4)
-        {
-            placed.Remove(number.ToString());
-            placementSlots.Remove(number.ToString());
-        }
         target.Grab(player.GetHoldPoint());
         player.SetHeldObjectSilently(target);
+        NoteBlockPickedUp(target);
         previouslyHeld = target;
         return true;
     }
 
-    private bool ReplaceSpawnerPickup(GrabbableObject picked)
+    private void StartGameplayChallenge()
     {
-        int slot = challengeFourSpawnSlots[picked];
-        if (challengeFourAvailableAtSlot[slot] != picked) return false;
+        if (!isActiveAndEnabled || started || complete || gameOverTriggered) return;
+        started = true;
+        RefreshDifferenceRegions();
+        if (bookPrompt != null) bookPrompt.gameObject.SetActive(false);
+        ShuffleUnansweredEntries();
+        DrawCondition();
+        hud?.Notice.ShowStart();
+    }
+
+    private void NoteBlockPickedUp(GrabbableObject block)
+    {
+        releasedBlocks.Remove(block);
+        ClearErrorIndicator(block);
+        Rigidbody carriedBody = block.GetComponent<Rigidbody>();
+        // Held objects follow the hand in LateUpdate. Discard interpolation
+        // history left by a previous physical drop before following it again.
+        if (carriedBody != null) carriedBody.interpolation = RigidbodyInterpolation.None;
+        if (challengeNumber != 4) return;
+        if (challengeFourStates.TryGetValue(block, out ChallengeFourBlockState state) &&
+            state == ChallengeFourBlockState.AtSpawner)
+            ReplaceSpawnerPickup(block);
+        challengeFourStates[block] = ChallengeFourBlockState.Held;
+    }
+
+    private void ReplaceSpawnerPickup(GrabbableObject picked)
+    {
+        if (!challengeFourSpawnSlots.TryGetValue(picked, out int slot) ||
+            challengeFourAvailableAtSlot[slot] != picked) return;
+        int value = GetBlockNumber(picked);
+        // A replacement must not inherit the just-picked object's held state.
         GrabbableObject replacement = Instantiate(picked, spawner);
         replacement.name = "NumberBlock_" + (slot + 1) + "_Replacement";
+        replacement.ConfigureInventoryState(false, null, false);
+        foreach (Transform child in replacement.GetComponentsInChildren<Transform>(true))
+            if (child.name == "Incorrect Placement Outline") Destroy(child.gameObject);
         replacement.transform.localPosition = spawnPositions[slot];
         replacement.transform.localRotation = spawnRotations[slot];
-        replacement.GetComponent<SetssssNumberedBlock>().SetValue(GetBlockNumber(picked));
+        replacement.GetComponent<SetssssNumberedBlock>().SetValue(value);
         Rigidbody body = replacement.GetComponent<Rigidbody>();
         if (body != null)
         {
+            body.interpolation = RigidbodyInterpolation.None;
             body.linearVelocity = Vector3.zero;
             body.angularVelocity = Vector3.zero;
             body.isKinematic = true;
             body.useGravity = false;
         }
-        replacement.isStoredInInventory = false;
         replacement.gameObject.SetActive(true);
         SetBlockColliders(replacement, true);
         challengeFourCopies.Add(replacement);
         challengeFourStates[replacement] = ChallengeFourBlockState.AtSpawner;
         challengeFourSpawnSlots[replacement] = slot;
         challengeFourAvailableAtSlot[slot] = replacement;
-        return true;
     }
 
     private bool IsBookTargeted()
@@ -919,41 +927,12 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         SetVisible(pickUpBlockButton, controlsAvailable && started && !complete && !advancing &&
                                       !holdingNumber && FindTargetedBlock() != null);
         SetVisible(returnBlockButton, controlsAvailable && started && !complete && !advancing && holdingNumber);
-        if (reminderText != null)
-        {
-            bool showReminder = started && !complete && !gameOverTriggered && IsPastBoard();
-            if (reminderText.gameObject.activeSelf != showReminder) reminderText.gameObject.SetActive(showReminder);
-        }
-
         if (!started || complete || gameOverTriggered || advancing) return;
         GrabbableObject held = player.GetHeldObject();
-        if (held != null)
-        {
-            ClearErrorIndicator(held);
-            int number = GetBlockNumber(held);
-            if (number > 0)
-            {
-                if (challengeNumber == 4)
-                {
-                    challengeFourPlacements.Remove(held);
-                    challengeFourSlots.Remove(held);
-                }
-                else
-                {
-                    placed.Remove(number.ToString());
-                    placedOnDifferenceRegion.Remove(number.ToString());
-                    placementSlots.Remove(number.ToString());
-                }
-            }
-        }
-        if (previouslyHeld != null && held != previouslyHeld)
-        {
-            int number = GetBlockNumber(previouslyHeld);
-            if (number > 0)
-            {
-                PlaceOrReturnBlock(previouslyHeld, number);
-            }
-        }
+        if (held != previouslyHeld && held != null && GetBlockNumber(held) > 0)
+            NoteBlockPickedUp(held); // Covers other existing grab input paths too.
+        if (previouslyHeld != null && held != previouslyHeld && GetBlockNumber(previouslyHeld) > 0)
+            RecordReleasedBlock(previouslyHeld);
         previouslyHeld = held != null && GetBlockNumber(held) > 0 ? held : null;
     }
 
@@ -1020,7 +999,8 @@ public sealed class SetssssChallengeOne : MonoBehaviour
 
     private void RefreshDifferenceRegions()
     {
-        bool available = started && !complete && challengeNumber == 4;
+        bool available = !complete && challengeNumber == 4 &&
+            (started || presentation != null && presentation.IsIntroductionOpen);
         if (aMinusBRegion != null) aMinusBRegion.SetActive(available);
         if (bMinusARegion != null) bMinusARegion.SetActive(available);
     }
@@ -1077,50 +1057,31 @@ public sealed class SetssssChallengeOne : MonoBehaviour
                point.z >= bounds.min.z - diagramInteractionRange && point.z <= bounds.max.z + diagramInteractionRange;
     }
 
-    private static bool IsInsideVisibleRegion(Vector3 point, Bounds bounds)
+    private static SetssssPlacementFootprint RegionFootprint(GameObject region)
     {
-        if (bounds.extents.x <= 0f || bounds.extents.z <= 0f) return false;
-        float x = (point.x - bounds.center.x) / bounds.extents.x;
-        float z = (point.z - bounds.center.z) / bounds.extents.z;
-        return x * x + z * z <= 1f;
+        MeshFilter filter = region != null ? region.GetComponent<MeshFilter>() : null;
+        return new SetssssPlacementFootprint(filter != null ? filter.sharedMesh : null, region != null ? region.transform : null);
+    }
+
+    private static Bounds GetUsedMeshBounds(Mesh mesh, Transform target)
+    {
+        if (mesh == null || target == null) return default;
+        Vector3[] vertices = mesh.vertices;
+        int[] triangles = mesh.triangles;
+        if (triangles.Length == 0) return default;
+        Bounds bounds = new Bounds(target.TransformPoint(vertices[triangles[0]]), Vector3.zero);
+        foreach (int index in triangles) bounds.Encapsulate(target.TransformPoint(vertices[index]));
+        return bounds;
     }
 
     private bool TryGetMainVennRegion(Vector3 point, out SetZone region)
     {
-        region = SetZone.OUTSIDE;
-        if (diagram == null || diagramBounds.extents.x <= 0f || diagramBounds.extents.z <= 0f)
-            return false;
-        // The visible AB mesh contains two overlapping circular areas. Checking
-        // both circles also keeps the intersection from being swallowed by A or B.
-        float radius = Mathf.Min(diagramBounds.extents.z, diagramBounds.extents.x * 0.61f);
-        float centerOffset = diagramBounds.extents.x - radius;
-        float x = point.x - diagramBounds.center.x;
-        float z = point.z - diagramBounds.center.z;
-        bool inA = (x + centerOffset) * (x + centerOffset) + z * z <= radius * radius;
-        bool inB = (x - centerOffset) * (x - centerOffset) + z * z <= radius * radius;
-        if (inA && inB) region = SetZone.INTERSECTION;
-        else if (inA) region = SetZone.A_ONLY;
-        else if (inB) region = SetZone.B_ONLY;
+        // Use the triangles actually referenced by the existing A/B meshes.
+        bool inA = aFootprint != null && aFootprint.Contains(point);
+        bool inB = bFootprint != null && bFootprint.Contains(point);
+        region = inA && inB ? SetZone.INTERSECTION :
+            inA ? SetZone.A_ONLY : inB ? SetZone.B_ONLY : SetZone.OUTSIDE;
         return region != SetZone.OUTSIDE;
-    }
-
-    private bool TryGetRegion(Vector3 point, out SetZone zone, out Bounds surface)
-    {
-        zone = SetZone.OUTSIDE;
-        surface = diagramBounds;
-        if (started && challengeNumber == 4)
-        {
-            if (IsInsideVisibleRegion(point, aMinusBBounds)) { zone = SetZone.A_ONLY; surface = aMinusBBounds; return true; }
-            if (IsInsideVisibleRegion(point, bMinusABounds)) { zone = SetZone.B_ONLY; surface = bMinusABounds; return true; }
-            return TryGetMainVennRegion(point, out zone);
-        }
-        if (!IsNearDiagram(point)) return false;
-        float offset = point.x - diagramBounds.center.x;
-        float intersectionHalfWidth = diagramBounds.extents.x * 0.13f;
-        if (offset < -intersectionHalfWidth) { zone = SetZone.A_ONLY; return true; }
-        if (offset > intersectionHalfWidth) { zone = SetZone.B_ONLY; return true; }
-        if (challengeNumber >= 3) { zone = SetZone.INTERSECTION; return true; }
-        return false; // The first two challenge banks have no intersection membership.
     }
 
     private bool TryGetChallengeFourRegion(Vector3 point, out ChallengeFourRegion region, out Bounds surface)
@@ -1128,13 +1089,13 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         region = ChallengeFourRegion.Intersection;
         surface = diagramBounds;
         // Test the dedicated regions first; they can sit near the main board.
-        if (IsInsideVisibleRegion(point, aMinusBBounds))
+        if (aMinusBFootprint != null && aMinusBFootprint.Contains(point))
         {
             region = ChallengeFourRegion.AMinusB;
             surface = aMinusBBounds;
             return true;
         }
-        if (IsInsideVisibleRegion(point, bMinusABounds))
+        if (bMinusAFootprint != null && bMinusAFootprint.Contains(point))
         {
             region = ChallengeFourRegion.BMinusA;
             surface = bMinusABounds;
@@ -1146,96 +1107,62 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         return true;
     }
 
-    private void PlaceOrReturnBlock(GrabbableObject block, int number)
+    private void RecordReleasedBlock(GrabbableObject block)
+    {
+        if (block == null) return;
+        // Drop already releases at the hold point with gravity. Never assign a
+        // position, slot, region, or parent: the physics result is the answer.
+        releasedBlocks.Add(block);
+        if (challengeNumber == 4) challengeFourStates[block] = ChallengeFourBlockState.Placed;
+    }
+
+    private static Vector3 PlacementPoint(GrabbableObject block)
+    {
+        Collider collider = block.GetComponent<Collider>();
+        return collider != null && collider.enabled ? collider.bounds.center : block.transform.position;
+    }
+
+    private static bool IsOnPlacementSurface(GrabbableObject block, Bounds surface)
+    {
+        Collider collider = block.GetComponent<Collider>();
+        float bottom = collider != null && collider.enabled ? collider.bounds.min.y : block.transform.position.y;
+        if (bottom < surface.min.y - 1.1f) return false;
+        // Naturally settled blocks may stack. Check the supporting floor under
+        // the stack instead of rejecting a correct region because of its height.
+        RaycastHit[] hits = Physics.RaycastAll(PlacementPoint(block) + Vector3.up * .01f,
+            Vector3.down, 20f, ~0, QueryTriggerInteraction.Ignore);
+        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.collider.GetComponentInParent<SetssssNumberedBlock>() != null ||
+                hit.collider.GetComponentInParent<Player>() != null) continue;
+            return hit.point.y >= surface.min.y - 1.1f && hit.point.y <= surface.max.y + .35f;
+        }
+        return false;
+    }
+
+    private IEnumerable<GrabbableObject> AnswerBlocks()
     {
         if (challengeNumber == 5)
         {
-            if (IsInsideUniversal(player.transform.position)) SnapToComplement(block, player.transform.position);
-            else ReturnBlock(GetBlockIndex(block));
+            foreach (GrabbableObject block in numberedBlocks)
+                if (block != null && block.gameObject.activeInHierarchy) yield return block;
         }
-        else if (challengeNumber == 4)
+        else
         {
-            if (TryGetChallengeFourRegion(player.transform.position, out ChallengeFourRegion region, out Bounds surface))
-                SnapToChallengeFourRegion(block, region, surface);
-            else ReturnOrRecycleBlock(block);
+            foreach (GrabbableObject block in releasedBlocks)
+                if (block != null && block.gameObject.activeInHierarchy) yield return block;
         }
-        else if (TryGetRegion(player.transform.position, out SetZone zone, out Bounds surface))
-            SnapToDiagram(block, number, zone, surface);
-        else ReturnOrRecycleBlock(block);
     }
 
-    private void SnapToChallengeFourRegion(GrabbableObject block, ChallengeFourRegion region, Bounds surface)
+    private bool BlocksAreSettled()
     {
-        if (block == null) return;
-        Rigidbody body = block.GetComponent<Rigidbody>();
-        if (body != null)
+        foreach (GrabbableObject block in AnswerBlocks())
         {
-            body.linearVelocity = Vector3.zero;
-            body.angularVelocity = Vector3.zero;
-            body.isKinematic = true;
-            body.useGravity = false;
+            Rigidbody body = block.GetComponent<Rigidbody>();
+            if (body != null && !body.isKinematic && !body.IsSleeping() &&
+                (body.linearVelocity.sqrMagnitude > 0.04f || body.angularVelocity.sqrMagnitude > 0.04f)) return false;
         }
-        challengeFourPlacements.Remove(block);
-        challengeFourSlots.Remove(block);
-        var occupied = new HashSet<int>();
-        foreach (var pair in challengeFourPlacements)
-            if (pair.Value == region && challengeFourSlots.TryGetValue(pair.Key, out int used)) occupied.Add(used);
-        int slot = 0;
-        while (occupied.Contains(slot)) slot++;
-        float side = region == ChallengeFourRegion.A ? -1f : region == ChallengeFourRegion.B ? 1f : 0f;
-        bool difference = region == ChallengeFourRegion.AMinusB || region == ChallengeFourRegion.BMinusA;
-        float x = surface.center.x + (difference ? 0f : side * surface.extents.x * 0.32f) + ((slot % 3) - 1) * 1.9f;
-        float z = surface.center.z + ((slot / 3) - 1) * 1.9f;
-        block.transform.position = new Vector3(x, surface.max.y + 0.85f, z);
-        challengeFourPlacements[block] = region;
-        challengeFourSlots[block] = slot;
-        challengeFourStates[block] = ChallengeFourBlockState.Placed;
-    }
-
-    private void SnapToDiagram(GrabbableObject block, int number, SetZone zone, Bounds surface)
-    {
-        if (block == null || diagram == null) return;
-        Rigidbody body = block.GetComponent<Rigidbody>();
-        if (body != null)
-        {
-            body.linearVelocity = Vector3.zero;
-            body.angularVelocity = Vector3.zero;
-            body.isKinematic = true;
-            body.useGravity = false;
-        }
-        string key = number.ToString();
-        placed.Remove(key);
-        placedOnDifferenceRegion.Remove(key);
-        placementSlots.Remove(key);
-        var occupied = new HashSet<int>();
-        foreach (var pair in placed)
-            if (pair.Value == zone && placementSlots.TryGetValue(pair.Key, out int usedSlot)) occupied.Add(usedSlot);
-        int slot = 0;
-        while (occupied.Contains(slot)) slot++;
-        float side = zone == SetZone.A_ONLY ? -1f : zone == SetZone.B_ONLY ? 1f : 0f;
-        bool differenceSurface = surface.center != diagramBounds.center;
-        float x = surface.center.x + (differenceSurface ? 0f : side * surface.extents.x * 0.32f) + ((slot % 3) - 1) * 1.9f;
-        float z = surface.center.z + ((slot / 3) - 1) * 1.9f;
-        block.transform.position = new Vector3(x, surface.max.y + 0.85f, z);
-        placed[key] = zone;
-        placedOnDifferenceRegion[key] = differenceSurface;
-        placementSlots[key] = slot;
-    }
-
-    private bool ValidateFiveRegionPlacements()
-    {
-        if (activeCondition == null) return false;
-        var expected = ExpectedFiveRegionValues();
-        var seen = new Dictionary<ChallengeFourRegion, HashSet<int>>();
-        foreach (ChallengeFourRegion region in expected.Keys) seen[region] = new HashSet<int>();
-        foreach (var placement in challengeFourPlacements)
-        {
-            int number = GetBlockNumber(placement.Key);
-            if (number < 1 || !expected[placement.Value].Contains(number) || !seen[placement.Value].Add(number))
-                return false;
-        }
-        foreach (var pair in expected)
-            if (!seen[pair.Key].SetEquals(pair.Value)) return false;
         return true;
     }
 
@@ -1268,51 +1195,34 @@ public sealed class SetssssChallengeOne : MonoBehaviour
             var selected = new HashSet<int>();
             foreach (string value in activeComplement.universe) universe.Add(int.Parse(value));
             foreach (string value in activeComplement.selected) selected.Add(int.Parse(value));
-            var firstByValue = new Dictionary<int, GrabbableObject>();
-            foreach (GrabbableObject block in numberedBlocks)
+            var seen = new HashSet<int>();
+            foreach (GrabbableObject block in AnswerBlocks())
             {
-                if (block == null || !block.gameObject.activeInHierarchy) continue;
-                if (block == numberedBlocks[9]) review.incorrectBlocks.Add(block);
                 int value = GetBlockNumber(block);
-                if (firstByValue.TryGetValue(value, out GrabbableObject first))
-                {
-                    review.incorrectBlocks.Add(first);
-                    review.incorrectBlocks.Add(block);
-                }
-                else firstByValue.Add(value, block);
-                Vector3 position = block.transform.position;
-                if (!universe.Contains(value) || !IsInsideUniversal(position) ||
-                    IsInsideSelectedSet(position) != selected.Contains(value))
-                    review.incorrectBlocks.Add(block);
+                Vector3 point = PlacementPoint(block);
+                if (!universe.Contains(value) || !seen.Add(value) || !IsInsideUniversal(point) ||
+                    !IsOnPlacementSurface(block, universalBounds) ||
+                    IsInsideSelectedSet(point) != selected.Contains(value)) review.incorrectBlocks.Add(block);
             }
-            foreach (int value in universe)
-                if (!firstByValue.ContainsKey(value)) review.missingRequired = true;
+            review.missingRequired = !seen.SetEquals(universe);
             return review;
         }
 
         if (challengeNumber == 4)
         {
             var expected = ExpectedFiveRegionValues();
-            var firstByRegion = new Dictionary<ChallengeFourRegion, Dictionary<int, GrabbableObject>>();
-            foreach (ChallengeFourRegion region in expected.Keys)
-                firstByRegion.Add(region, new Dictionary<int, GrabbableObject>());
-            foreach (var placement in challengeFourPlacements)
+            var seen = new Dictionary<ChallengeFourRegion, HashSet<int>>();
+            foreach (ChallengeFourRegion region in expected.Keys) seen[region] = new HashSet<int>();
+            foreach (GrabbableObject block in AnswerBlocks())
             {
-                GrabbableObject block = placement.Key;
-                if (block == null || !block.gameObject.activeInHierarchy) continue;
                 int value = GetBlockNumber(block);
-                var first = firstByRegion[placement.Value];
-                if (first.TryGetValue(value, out GrabbableObject earlier))
-                {
-                    review.incorrectBlocks.Add(earlier);
+                // A physical instance counts once in exactly one current region.
+                if (!TryGetChallengeFourRegion(PlacementPoint(block), out ChallengeFourRegion region, out Bounds surface) ||
+                    !IsOnPlacementSurface(block, surface) || !expected[region].Contains(value) || !seen[region].Add(value))
                     review.incorrectBlocks.Add(block);
-                }
-                else first.Add(value, block);
-                if (!expected[placement.Value].Contains(value)) review.incorrectBlocks.Add(block);
             }
             foreach (var pair in expected)
-                foreach (int value in pair.Value)
-                    if (!firstByRegion[pair.Key].ContainsKey(value)) review.missingRequired = true;
+                if (!seen[pair.Key].SetEquals(pair.Value)) review.missingRequired = true;
             return review;
         }
 
@@ -1322,16 +1232,15 @@ public sealed class SetssssChallengeOne : MonoBehaviour
             expectedZones[int.Parse(value)] = bValues.Contains(value) ? SetZone.INTERSECTION : SetZone.A_ONLY;
         foreach (string value in activeCondition.setB)
             if (!expectedZones.ContainsKey(int.Parse(value))) expectedZones[int.Parse(value)] = SetZone.B_ONLY;
-        foreach (GrabbableObject block in numberedBlocks)
+        var validValues = new HashSet<int>();
+        foreach (GrabbableObject block in AnswerBlocks())
         {
-            if (block == null || !block.gameObject.activeInHierarchy) continue;
             int value = GetBlockNumber(block);
-            if (placed.TryGetValue(value.ToString(), out SetZone zone) &&
-                (!expectedZones.TryGetValue(value, out SetZone expectedZone) || zone != expectedZone))
+            if (!TryGetMainVennRegion(PlacementPoint(block), out SetZone zone) || !IsOnPlacementSurface(block, diagramBounds) ||
+                !expectedZones.TryGetValue(value, out SetZone expectedZone) || zone != expectedZone || !validValues.Add(value))
                 review.incorrectBlocks.Add(block);
         }
-        foreach (int value in expectedZones.Keys)
-            if (!placed.ContainsKey(value.ToString())) review.missingRequired = true;
+        review.missingRequired = validValues.Count != expectedZones.Count;
         return review;
     }
 
@@ -1380,6 +1289,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
 
     private void ClearErrorIndicator(GrabbableObject block)
     {
+        if (block != null) block.GetComponent<SetssssNumberedBlock>()?.ResetPlacementFeedback();
         if (block != null && errorIndicators.TryGetValue(block, out LineRenderer line) && line != null)
             line.gameObject.SetActive(false);
     }
@@ -1401,28 +1311,30 @@ public sealed class SetssssChallengeOne : MonoBehaviour
             !IsNearPlacementArea(player.transform.position)) return;
         if (Time.unscaledTime < nextSubmitTime) return;
         nextSubmitTime = Time.unscaledTime + 0.25f;
-        if (player.GetHeldObject() != null) { StartCoroutine(ShowFeedback("Place your block first.", Color.red, 2f)); return; }
+        if (player.GetHeldObject() != null) { StartCoroutine(ShowFeedback("Place your element block first.", Color.red, 2f)); return; }
 
-        var entries = new List<KeyValuePair<string, SetZone>>();
-        foreach (var pair in placed) entries.Add(pair);
-        bool correct = challengeNumber == 5 ? ValidateComplementArrangement() :
-            challengeNumber == 4 ? ValidateFiveRegionPlacements() :
-            SetsStageManager.ValidateConditionPlacements(activeCondition, entries);
+        if (!BlocksAreSettled())
+        {
+            StartCoroutine(ShowFeedback("Wait for the element blocks to settle, then submit.", StageUITheme.Gold, 2f));
+            return;
+        }
+        PlacementReview review = ReviewIncorrectPlacement();
+        bool correct = !review.missingRequired && review.incorrectBlocks.Count == 0;
+        foreach (GrabbableObject block in AnswerBlocks())
+            block.GetComponent<SetssssNumberedBlock>()?.SetPlacementFeedback(!review.incorrectBlocks.Contains(block));
         WorldStageAudio.PlayAnswerFeedback(correct);
         if (!correct)
         {
-            PlacementReview review = ReviewIncorrectPlacement();
             ShowPlacementErrors(review);
             ApplyIncorrectSubmissionPenalty();
             if (gameOverTriggered) return;
-            string message = "Incorrect. Fix the highlighted blocks and submit again.";
+            string message = "Incorrect. Fix the highlighted element blocks and submit again.\nKeep green numbers; correct the red numbers.";
             if (review.missingRequired) message += "\nSome required elements are missing.";
-            message += "\n-10s";
             StartCoroutine(ShowFeedback(message, new Color(1f, 0.35f, 0.35f), 2.8f));
             return;
         }
         ClearAllErrorIndicators();
-        RestoreFeedbackLayout();
+        hud?.Notice.Hide();
         StartCoroutine(Advance());
     }
 
@@ -1452,28 +1364,24 @@ public sealed class SetssssChallengeOne : MonoBehaviour
                     if (block != null) { SetBlockColliders(block, false); block.gameObject.SetActive(false); }
                 UpdateBookPrompt();
                 RefreshBoard();
-                if (feedbackText != null)
-                {
-                    feedbackText.text = "Challenge " + finishedChallenge + " Complete! Interact with the Book Statue to start Challenge " + challengeNumber + ".";
-                    feedbackText.color = Color.green;
-                }
+                hud?.Notice.ShowWaiting(finishedChallenge, challengeNumber);
                 yield break;
             }
             complete = true;
             RefreshDifferenceRegions();
             RefreshComplementVisuals();
             RefreshBoard();
-            if (feedbackText != null) { feedbackText.text = "Challenge 5 Complete!"; feedbackText.color = Color.green; }
+            hud?.Notice.Hide();
             onChallengeCompleted?.Invoke();
             SetssssStageResultUI.Show();
             yield break;
         }
-        if (feedbackText != null) { feedbackText.text = "Correct!"; feedbackText.color = Color.green; }
+        hud?.Notice.ShowFeedback("Correct!", Color.green, 1.2f);
         yield return new WaitForSeconds(1.2f);
         conditionIndex++;
         DrawCondition();
         advancing = false;
-        if (feedbackText != null) feedbackText.text = string.Empty;
+        hud?.Notice.Hide();
     }
 
     private void ResetAllBlocks()
@@ -1490,22 +1398,18 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         challengeFourStates.Clear();
         challengeFourSpawnSlots.Clear();
         Array.Clear(challengeFourAvailableAtSlot, 0, challengeFourAvailableAtSlot.Length);
-        challengeFourPlacements.Clear();
-        challengeFourSlots.Clear();
+        releasedBlocks.Clear();
         for (int i = 0; i < numberedBlocks.Length && i < BlocksPerCondition; i++) ReturnBlock(i);
         previouslyHeld = null;
-        placed.Clear();
-        placedOnDifferenceRegion.Clear();
-        placementSlots.Clear();
     }
 
     private void ReturnOrRecycleBlock(GrabbableObject block)
     {
         if (block == null) return;
+        block.GetComponent<SetssssNumberedBlock>()?.ResetPlacementFeedback();
         if (challengeNumber == 4 && challengeFourSpawnSlots.TryGetValue(block, out int slot))
         {
-            challengeFourPlacements.Remove(block);
-            challengeFourSlots.Remove(block);
+            releasedBlocks.Remove(block);
             // A successor normally occupies this slot. Retire the returned
             // instance instead of stacking it on top of that successor.
             if (challengeFourAvailableAtSlot[slot] != null && challengeFourAvailableAtSlot[slot] != block)
@@ -1540,6 +1444,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
     {
         if (index < 0 || index >= numberedBlocks.Length || numberedBlocks[index] == null) return;
         GrabbableObject block = numberedBlocks[index];
+        block.GetComponent<SetssssNumberedBlock>()?.ResetPlacementFeedback();
         Rigidbody body = block.GetComponent<Rigidbody>();
         if (body != null)
         {
@@ -1554,13 +1459,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         block.isStoredInInventory = false;
         block.gameObject.SetActive(true);
         SetBlockColliders(block, true);
-        int value = GetBlockNumber(block);
-        if (value > 0)
-        {
-            placed.Remove(value.ToString());
-            placedOnDifferenceRegion.Remove(value.ToString());
-            placementSlots.Remove(value.ToString());
-        }
+        releasedBlocks.Remove(block);
     }
 
     private static void SetBlockColliders(GrabbableObject block, bool enabled)
@@ -1599,15 +1498,11 @@ public sealed class SetssssChallengeOne : MonoBehaviour
             string universal = "U = {" + string.Join(", ", activeComplement.universe) + "}";
             string selected = activeComplement.setName + " = {" + string.Join(", ", activeComplement.selected) + "}";
             boardText.fontSize = 6.7f;
-            boardText.text = "<color=#F4D794>Challenge 5 — Set Complement</color>\nCondition " +
-                (conditionIndex + 1) + " of 5\n\n" + universal + "\n" + selected +
+            boardText.text = "<color=#F4D794>Challenge 5 — Set Complement</color>\nQuestion " +
+                (conditionIndex + 1) + " of " + QuestionCount + "\n\n" + universal + "\n" + selected +
                 "\nMove every U element into its correct area.\n" + activeComplement.setName +
                 " members go inside " + activeComplement.setName + ".\n" + activeComplement.setName +
                 "<sup>c</sup>: outside " + activeComplement.setName + ", but inside U.";
-            if (reminderText != null)
-                reminderText.text = "Challenge 5 — Condition " + (conditionIndex + 1) +
-                    " of 5: " + selected + "\nPlace all U elements; others go outside " +
-                    activeComplement.setName + " but inside U.";
             return;
         }
         if (activeCondition == null) return;
@@ -1617,64 +1512,19 @@ public sealed class SetssssChallengeOne : MonoBehaviour
         if (challengeNumber == 4)
         {
             boardText.fontSize = 6.8f;
-            boardText.text = "<color=#F4D794>Challenge 4 — Set Difference</color>\nCondition " +
-                (conditionIndex + 1) + " of 10\n\n" + instruction +
+            boardText.text = "<color=#F4D794>Challenge 4 — Set Difference</color>\nQuestion " +
+                (conditionIndex + 1) + " of " + QuestionCount + "\n\n" + instruction +
                 "\nFill A and B with all their members.\nPlace shared members in A ∩ B.\nFill A − B and B − A with differences.";
-            if (reminderText != null)
-                reminderText.text = "Challenge 4 — Condition " + (conditionIndex + 1) +
-                    " of 10: " + instruction.Replace(" = ", "=").Replace("\n", "  ");
             return;
         }
         boardText.fontSize = challengeNumber == 1 ? 13.5f : 9f;
-        boardText.text = "<color=#F4D794>Challenge " + challengeNumber + "</color>\nCondition " + (conditionIndex + 1) + " of 10\n\n" + instruction;
-        if (reminderText != null)
-            reminderText.text = "Challenge " + challengeNumber + " — Condition " + (conditionIndex + 1) + " of 10: " + instruction;
+        boardText.text = "<color=#F4D794>Challenge " + challengeNumber + "</color>\nQuestion " + (conditionIndex + 1) + " of " + QuestionCount + "\n\n" + instruction;
     }
 
     private IEnumerator ShowFeedback(string message, Color color, float seconds)
     {
-        if (feedbackText == null) yield break;
-        int generation = ++feedbackGeneration;
-        if (message.StartsWith("Incorrect. Fix the highlighted blocks", StringComparison.Ordinal))
-        {
-            feedbackText.fontSize = 32f;
-            feedbackText.rectTransform.sizeDelta = new Vector2(feedbackDefaultSize.x, 155f);
-            feedbackText.rectTransform.anchoredPosition = new Vector2(feedbackDefaultPosition.x, -175f);
-        }
-        feedbackText.text = message;
-        feedbackText.color = color;
-        yield return new WaitForSeconds(seconds);
-        if (generation == feedbackGeneration && !complete && feedbackText.text == message)
-        {
-            feedbackText.text = string.Empty;
-            RestoreFeedbackLayout();
-        }
-    }
-
-    private IEnumerator ShowChallengeStartFeedback()
-    {
-        yield return ShowFeedback("Start", new Color(0.95f, 0.86f, 0.52f), 1.4f);
-        if (challengeNumber == 4)
-        {
-            if (feedbackText != null)
-            {
-                feedbackText.fontSize = 30f;
-                Vector2 size = feedbackDefaultSize;
-                size.y = Mathf.Max(size.y, 150f);
-                feedbackText.rectTransform.sizeDelta = size;
-            }
-            yield return ShowFeedback("Difficulty increased! Two new set-difference regions are now available: A − B and B − A.",
-                new Color(0.95f, 0.86f, 0.52f), 4f);
-            RestoreFeedbackLayout();
-        }
-    }
-
-    private void RestoreFeedbackLayout()
-    {
-        if (feedbackText == null || feedbackDefaultFontSize <= 0f) return;
-        feedbackText.fontSize = feedbackDefaultFontSize;
-        feedbackText.rectTransform.sizeDelta = feedbackDefaultSize;
-        feedbackText.rectTransform.anchoredPosition = feedbackDefaultPosition;
+        hud?.Notice.ShowFeedback(message, color, seconds);
+        yield break;
     }
 
     private static void FaceCamera(Transform target)

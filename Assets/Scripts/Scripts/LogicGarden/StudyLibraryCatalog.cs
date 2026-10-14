@@ -2,6 +2,17 @@ using UnityEngine;
 
 public static class StudyLibraryCatalog
 {
+    public static string TourExplanation(string period)
+    {
+        switch(period)
+        {
+            case "PRELIM": return "PRELIM covers propositional logic, truth tables, and rules of inference. These books explain propositions, logical connectives, truth values, and valid arguments.";
+            case "MIDTERMS": return "MIDTERMS covers formal and informal proofs, followed by direct and indirect proofs. Learn how to structure a proof and use deduction, contradiction, and the contrapositive.";
+            case "PRE-FINALS": return "PRE-FINALS contains mathematical induction, sets, and functions and relations. Explore induction proofs, set operations and complements, ordered pairs, and mappings.";
+            case "FINALS": return "FINALS introduces graphs and trees. Learn about vertices, edges, degree, paths and cycles, then explore tree terminology, tree types, and spanning trees.";
+            default:return "Select Read to explore the lessons on this shelf.";
+        }
+    }
     public static StudyBookDefinition[] GetShelf(string period)
     {
         switch (period)

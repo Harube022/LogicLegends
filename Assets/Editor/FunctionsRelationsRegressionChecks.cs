@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -176,19 +177,24 @@ public static class FunctionsRelationsRegressionChecks
             }
             Check(controller.DomainDiamonds[0].Find("FR_PurposeLabel") != null &&
                 controller.RangeDiamonds[0].Find("FR_PurposeLabel") != null, "Diamond purpose labels are missing.");
-            var problem = GameObject.Find("Board/FR_ProblemText");
-            Check(problem != null, "Physical board problem text is missing.");
-            var boardRenderer = GameObject.Find("Board").GetComponent<Renderer>();
+            var informationBoard = GameObject.Find("InformationBoard");
+            Check(informationBoard != null && PrefabUtility.IsPartOfPrefabInstance(informationBoard), "InformationBoard must retain its prefab link.");
+            var problem = informationBoard.GetComponentsInChildren<TMPro.TMP_Text>(true)
+                .FirstOrDefault(t => t.name == "ChallengeInstructionsLabel");
+            Check(problem != null, "InformationBoard instructions are missing.");
+            var boardRenderer = informationBoard.GetComponentsInChildren<Renderer>()
+                .First(r => r.name == "Info_ParchmentSurface");
             Check(problem.transform.position.x >= boardRenderer.bounds.min.x &&
                 problem.transform.position.x <= boardRenderer.bounds.max.x &&
                 problem.transform.position.y >= boardRenderer.bounds.min.y &&
                 problem.transform.position.y <= boardRenderer.bounds.max.y &&
                 problem.transform.position.z < boardRenderer.bounds.min.z,
-                "Physical board problem text should sit within and just in front of the board.");
+                "InformationBoard instructions should sit within and just in front of the parchment.");
+            Check(GameObject.Find("Board") == null, "The retired Board must not display duplicate instructions.");
             Check(GameObject.Find("Book_Statue").GetComponentsInChildren<Renderer>(true).Length > 0,
                 "Book Statue needs renderers for incorrect-answer feedback.");
             var serialized = new SerializedObject(manager.GetComponent<FunctionsRelationsStageManager>());
-            foreach (string field in new[] { "catalog", "mapping", "bookStatue", "bookInteractionCollider", "board", "gameplayControls", "interactionPromptText", "worldProblemText", "neutralPedestalOrbMaterial", "neutralPedestalIconMaterial", "hudTimerText", "domainChoicesPanel", "rangeChoicesPanel", "undoConnectionButton", "submitButton", "openButton", "resultsPanel", "retryButton", "menuButton" })
+            foreach (string field in new[] { "catalog", "mapping", "bookStatue", "bookInteractionCollider", "board", "informationBoardView", "gameplayControls", "interactionPromptText", "nearbyInteractionButton", "worldProblemText", "worldChallengeTitleText", "worldChallengeSetsText", "domainInteractionTarget", "rangeInteractionTarget", "neutralPedestalOrbMaterial", "neutralPedestalIconMaterial", "hudTimerText", "domainChoicesPanel", "rangeChoicesPanel", "undoConnectionButton", "submitButton", "openButton", "resultsPanel", "retryButton", "menuButton" })
                 Check(serialized.FindProperty(field).objectReferenceValue != null, "Missing stage reference: " + field);
             var pedestals = serialized.FindProperty("classificationPedestals");
             Check(pedestals.arraySize == 3, "Challenges 4 and 5 need three answer pedestals.");

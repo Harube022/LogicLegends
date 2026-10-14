@@ -18,6 +18,7 @@ public class InteractPortal : MonoBehaviour
 
     public bool TryInteract(GameObject player)
     {
+        if (LogicGardenControlsOnboarding.Active != null) return false;
         if (!requireInteraction || !interactionUnlocked || player == null || !player.CompareTag("Player") ||
             teleportDestination == null || TeleportManager.Instance == null ||
             Vector2.Distance(new Vector2(player.transform.position.x, player.transform.position.z),
@@ -35,6 +36,7 @@ public class InteractPortal : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (LogicGardenControlsOnboarding.Active != null) return;
         if (requireInteraction || !interactionUnlocked) return;
         if (other.CompareTag("Player"))
         {

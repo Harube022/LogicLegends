@@ -45,6 +45,8 @@ public class GameInput : MonoBehaviour
     private void Jump_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        if (FunctionsRelationsControlsOnboarding.Active != null && !FunctionsRelationsControlsOnboarding.Active.AllowsJump) return;
+        if (LogicGardenControlsOnboarding.Active != null && !LogicGardenControlsOnboarding.Active.AllowsJump) return;
         if (LogicLegends.Induction.InductionControlsOnboarding.Active != null &&
             LogicLegends.Induction.InductionControlsOnboarding.Active.IsActive &&
             !LogicLegends.Induction.InductionControlsOnboarding.Active.AllowsJump) return;
@@ -81,6 +83,10 @@ public class GameInput : MonoBehaviour
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        if (FunctionsRelationsControlsOnboarding.Active != null)
+        { FunctionsRelationsControlsOnboarding.Active.TryPracticeInteraction(); return; }
+        if (LogicGardenControlsOnboarding.Active != null)
+        { LogicGardenControlsOnboarding.Active.TryPracticeInteraction(); return; }
         if (LogicLegends.Induction.InductionControlsOnboarding.Active != null && LogicLegends.Induction.InductionControlsOnboarding.Active.IsActive)
         { LogicLegends.Induction.InductionControlsOnboarding.Active.TryPracticeInteraction(); return; }
         if (LogicLegends.Graph.GraphControlsOnboarding.Active != null && LogicLegends.Graph.GraphControlsOnboarding.Active.IsActive)
@@ -120,6 +126,9 @@ public class GameInput : MonoBehaviour
     public Vector2 GetMovementVectorNormalized(float deadZone)
     {
         if (GameplayInputBlocked) return Vector2.zero;
+        if (FunctionsRelationsControlsOnboarding.Active != null &&
+            FunctionsRelationsControlsOnboarding.Active.TryGetMovementOverride(out Vector2 functionsMovement)) return functionsMovement;
+        if (LogicGardenControlsOnboarding.Active != null && LogicGardenControlsOnboarding.Active.TryGetMovementOverride(out Vector2 gardenMovement)) return gardenMovement;
         if (LogicLegends.Induction.InductionControlsOnboarding.Active != null &&
             LogicLegends.Induction.InductionControlsOnboarding.Active.TryGetMovementOverride(out Vector2 inductionMovement)) return inductionMovement;
         if (LogicLegends.Graph.GraphControlsOnboarding.Active != null &&
@@ -153,6 +162,8 @@ public class GameInput : MonoBehaviour
     public void MobileJump()
     {
         if (GameplayInputBlocked) return;
+        if (FunctionsRelationsControlsOnboarding.Active != null && !FunctionsRelationsControlsOnboarding.Active.AllowsJump) return;
+        if (LogicGardenControlsOnboarding.Active != null && !LogicGardenControlsOnboarding.Active.AllowsJump) return;
         if (LogicLegends.Induction.InductionControlsOnboarding.Active != null &&
             LogicLegends.Induction.InductionControlsOnboarding.Active.IsActive &&
             !LogicLegends.Induction.InductionControlsOnboarding.Active.AllowsJump) return;
@@ -189,6 +200,10 @@ public class GameInput : MonoBehaviour
     public void MobileInteract()
     {
         if (GameplayInputBlocked) return;
+        if (FunctionsRelationsControlsOnboarding.Active != null)
+        { FunctionsRelationsControlsOnboarding.Active.TryPracticeInteraction(); return; }
+        if (LogicGardenControlsOnboarding.Active != null)
+        { LogicGardenControlsOnboarding.Active.TryPracticeInteraction(); return; }
         if (LogicLegends.Induction.InductionControlsOnboarding.Active != null && LogicLegends.Induction.InductionControlsOnboarding.Active.IsActive)
         { LogicLegends.Induction.InductionControlsOnboarding.Active.TryPracticeInteraction(); return; }
         if (LogicLegends.Graph.GraphControlsOnboarding.Active != null && LogicLegends.Graph.GraphControlsOnboarding.Active.IsActive)

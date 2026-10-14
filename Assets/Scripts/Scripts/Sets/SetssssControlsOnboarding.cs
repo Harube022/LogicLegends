@@ -8,7 +8,7 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class SetssssControlsOnboarding : MonoBehaviour
 {
-    private enum Step { Movement, Jump, Interaction, Book, Timer, Spawner, ViewBoard, Board, Placement, PlacementSubmit, Confirm }
+    private enum Step { Movement, Jump, Interaction, Book, Timer, ChallengeIndicator, Spawner, ViewBoard, Board, Placement, PlacementSubmit, Differences, Complement, Confirm }
 
     [SerializeField, Range(0.15f, 0.8f)] private float joystickDeadZone = 0.3f;
     [SerializeField, Min(0.1f)] private float movementDistance = 0.35f;
@@ -29,6 +29,8 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
 
     private Step step;
     private RectTransform safeArea, joystick, jumpButton, handButton, timerRect, viewBoardRect;
+    private RectTransform challengeRect;
+    private SetssssHudView hud;
     private RectTransform highlight, arrow, instructions, worldHighlight;
     private TextMeshProUGUI instructionText;
     private Button nextButton;
@@ -90,7 +92,9 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
         joystickRoot = joystickHost != null ? joystickHost.gameObject : null;
         jumpRoot = jumpButton != null ? jumpButton.gameObject : null;
         handRoot = handButton != null ? handButton.gameObject : null;
-        timerRect = safeArea != null ? safeArea.Find("Gameplay_Interface/TimerText") as RectTransform : null;
+        hud = SetssssChallengeOne.ActiveInstance.Hud;
+        timerRect = hud != null ? hud.Timer.rectTransform : null;
+        challengeRect = hud != null ? hud.Challenge.rectTransform : null;
         viewBoardRect = safeArea != null ? safeArea.Find("ViewBoardButton") as RectTransform : null;
         bookTarget = GameObject.Find("Book_Statue")?.transform;
         bookPrompt = bookTarget != null ? bookTarget.Find("Challenge Start Prompt")?.GetComponent<TextMeshPro>() : null;
@@ -103,7 +107,8 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
         if (player == null || input == null || safeArea == null || mobileControls == null ||
             jumpButton == null || handButton == null || bookTarget == null || spawnerTarget == null ||
             boardTarget == null || diagramTarget == null || universalTarget == null ||
-            boardText == null || timerText == null || viewBoardRect == null)
+            boardText == null || timerText == null || viewBoardRect == null ||
+            challengeRect == null)
         {
             Debug.LogError("Setssss tutorial needs the player, Canvas 1 controls, timer, book, spawner, board, and diagram.", this);
             return;
@@ -253,8 +258,18 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
             highlight.SetParent(target, false);
             highlight.anchorMin = Vector2.zero;
             highlight.anchorMax = Vector2.one;
-            highlight.offsetMin = new Vector2(-10f, -10f);
-            highlight.offsetMax = new Vector2(10f, 10f);
+            bool hudTarget = target == timerRect || target == challengeRect;
+            float padding = hudTarget ? 3f : 10f;
+            highlight.offsetMin = new Vector2(-padding, -padding);
+            highlight.offsetMax = new Vector2(padding, padding);
+            foreach (Image edge in highlight.GetComponentsInChildren<Image>())
+            {
+                RectTransform edgeRect = edge.rectTransform;
+                Vector2 size = edgeRect.sizeDelta;
+                if (edgeRect.anchorMin.x == edgeRect.anchorMax.x) size.x = hudTarget ? 3f : 7f;
+                else size.y = hudTarget ? 3f : 7f;
+                edgeRect.sizeDelta = size;
+            }
             highlight.SetAsLastSibling();
             highlight.gameObject.SetActive(true);
         }
@@ -313,19 +328,26 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
             timerRect, null, true);
     }
 
+    private void BeginChallengeIndicator()
+    {
+        ShowStep(Step.ChallengeIndicator,
+            "This indicator shows your current challenge out of five. Answer five questions per challenge, then activate the book statue to begin the next one. Read each question and its required sets on the Information Board.",
+            challengeRect, null, true);
+    }
+
     private void BeginSpawner()
     {
         CreateSampleBlocks();
         FocusCamera(spawnerTarget, spawnerCameraOffset, true);
         ShowStep(Step.Spawner,
-            "Collect numbered blocks here and place them in the correct set regions. The numbers above the blocks identify their values. Each condition has 10 blocks numbered from 1 to 99, including every value you need.",
+            "These numbered blocks represent elements of a set. The number identifies each element. In Challenges 1–4, each question offers 10 element blocks numbered from 1 to 99, including every element you need. Collect them here, then follow the Information Board.",
             null, spawnerTarget, true);
     }
 
     private void BeginViewBoard()
     {
         ShowStep(Step.ViewBoard,
-            "When you are near the spawner, tap View Board to take a closer look at the current condition.",
+            "When you are near the spawner, tap View Board to read the current question and its required sets on the Information Board.",
             viewBoardRect);
     }
 
@@ -337,10 +359,10 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
     private void BeginBoard()
     {
         DestroySampleBlocks();
-        boardText.text = "<color=#F4D794>PRACTICE CONDITION</color>\nA = {12}     B = {27}\nPlace 12 in A and 27 in B.";
+        boardText.text = "<color=#F4D794>PRACTICE QUESTION</color>\nA = {12}     B = {27}";
         FocusCamera(boardTarget, boardCameraOffset, false);
         ShowStep(Step.Board,
-            "This board shows your current challenge and the sets you need to complete. Read the condition to determine which blocks belong in each region. This is only a practice condition.",
+            "The Information Board shows the current question, the required sets, and placement instructions. Place each element in the region required by the question. This is only a practice question; the real sets appear when you start at the book.",
             null, boardTarget, true);
     }
 
@@ -348,7 +370,7 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
     {
         FocusCamera(universalTarget, diagramCameraOffset, true);
         ShowStep(Step.Placement,
-            "Place blocks in the regions required by the current condition. The overlap represents elements shared by A and B.",
+            "A and B are sets, represented by the two circles in the Venn diagram. Place each element in the region required by the question. The overlap, A ∩ B, represents elements shared by both sets.",
             null, universalTarget, true);
         foreach (RectTransform marker in regionMarkers) marker.gameObject.SetActive(true);
     }
@@ -356,9 +378,23 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
     private void BeginPlacementSubmit()
     {
         ShowStep(Step.PlacementSubmit,
-            "Press Submit to check your work. Incorrect placements remain in position and are marked so you can correct them.",
+            "Press Submit to check all placed element blocks. Each physical block counts for one placement. Incorrect placements stay in position and are marked for correction, with a 10-second penalty. Keep green labels and fix red labels.",
             null, universalTarget, true);
         foreach (RectTransform marker in regionMarkers) marker.gameObject.SetActive(true);
+    }
+
+    private void BeginDifferences()
+    {
+        ShowStep(Step.Differences,
+            "In Challenge 4, A − B means elements in A but not B; B − A means elements in B but not A. Two extra answer regions appear. Use separate element blocks for the full A and B regions, shared elements in A ∩ B, and the required differences. Spawner pickups provide replacement copies.",
+            null, universalTarget, true);
+    }
+
+    private void BeginComplement()
+    {
+        ShowStep(Step.Complement,
+            "In Challenge 5, the boundary represents universal set U: all elements considered in the question. A complement contains elements inside U but outside the named set. Move each element block inside its set's circle or into its complement area within U, as the Information Board requires.",
+            null, universalTarget, true);
     }
 
     public void NextStep()
@@ -366,11 +402,14 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
         if (!IsActive) return;
         switch (step)
         {
-            case Step.Timer: BeginSpawner(); break;
+            case Step.Timer: BeginChallengeIndicator(); break;
+            case Step.ChallengeIndicator: BeginSpawner(); break;
             case Step.Spawner: BeginViewBoard(); break;
             case Step.Board: BeginPlacement(); break;
             case Step.Placement: BeginPlacementSubmit(); break;
-            case Step.PlacementSubmit: BeginConfirmation(); break;
+            case Step.PlacementSubmit: BeginDifferences(); break;
+            case Step.Differences: BeginComplement(); break;
+            case Step.Complement: BeginConfirmation(); break;
         }
     }
 
@@ -448,12 +487,28 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
         }
         RectTransform target = step == Step.Movement ? joystick :
             step == Step.Jump ? jumpButton : step == Step.Interaction ? handButton :
-            step == Step.Timer ? timerRect : step == Step.ViewBoard ? viewBoardRect :
+            step == Step.Timer ? timerRect : step == Step.ChallengeIndicator ? challengeRect :
+            step == Step.ViewBoard ? viewBoardRect :
             worldHighlight.gameObject.activeSelf ? worldHighlight : null;
         bool uiStep = step == Step.Movement || step == Step.Jump || step == Step.Interaction ||
-                      step == Step.Timer || step == Step.ViewBoard;
+                      step == Step.Timer || step == Step.ChallengeIndicator || step == Step.ViewBoard;
+        bool hudStep = step == Step.Timer || step == Step.ChallengeIndicator;
+        var blockers = new List<RectTransform>(ControlTutorialLayout.FindBlockers());
+        if (hudStep)
+        {
+            // Keep HUD arrows outside the compact panel, aligned with the actual
+            // target's center, so the timer and progress stay clear.
+            Rect panelBounds = SetssssHudView.RelativeBounds(hud.Hud, highlight);
+            arrow.anchorMin = arrow.anchorMax = new Vector2(0f, .5f);
+            arrow.pivot = new Vector2(.5f, .5f);
+            arrow.anchoredPosition = new Vector2(panelBounds.xMin - highlight.rect.xMin - 24f, 0f);
+            arrow.sizeDelta = new Vector2(36f, 32f);
+            arrow.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            arrow.GetComponent<TMP_Text>().fontSize = 32f;
+            blockers.Add(arrow);
+        }
         ControlTutorialLayout.Place(instructions, instructionText, (RectTransform)nextButton.transform,
-            safeArea, target, false, ControlTutorialLayout.FindBlockers(), uiStep ? arrow : null);
+            safeArea, target, false, blockers.ToArray(), uiStep && !hudStep ? arrow : null);
     }
 
     private void SetGuidedControls(bool showHand)
