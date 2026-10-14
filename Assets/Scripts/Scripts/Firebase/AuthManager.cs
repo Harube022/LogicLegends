@@ -18,6 +18,7 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private GameObject modeSelection; 
     [SerializeField] private GameObject settingsMenu;
     [SerializeField] private GameObject characterSelectMenu;
+    [SerializeField] private UsernameSetupUI usernameSetup;
 
     [Header("Cinematic Intro Settings")]
     [Tooltip("The UI Panel that holds your Video Player")]
@@ -56,6 +57,7 @@ public class AuthManager : MonoBehaviour
     [Header("Login Feedback")]
     [SerializeField] private TMP_Text authenticationMessage;
     private bool signingIn;
+    private bool playIntroAfterUsername;
     private int sessionVersion;
     private string observedUserId;
     private volatile bool authStateChanged;
@@ -78,6 +80,7 @@ public class AuthManager : MonoBehaviour
         authStateChanged = false;
         string currentId = auth.CurrentUser?.UserId;
         if (currentId == observedUserId) return;
+        PlayerUsername.Clear();
         observedUserId = currentId;
         sessionVersion++;
         if (currentId != null) CheckLoginState();
@@ -203,7 +206,6 @@ public class AuthManager : MonoBehaviour
             int version = sessionVersion;
             string savedId = savedUser.UserId;
             // Firebase persists credentials. A temporary network failure must not erase them.
-            ShowModeSelection();
             Feedback("Welcome back! Loading your profile...");
             CheckFirstTimeSetup();
             Debug.Log("Found saved session. Verifying with server...");
@@ -253,7 +255,10 @@ public class AuthManager : MonoBehaviour
         string userId = auth.CurrentUser.UserId;
         observedUserId = userId;
         int version = sessionVersion;
+        playIntroAfterUsername = false;
         ShowModeSelection();
+        if (usernameSetup != null) usernameSetup.ShowLoading();
+        Feedback("Checking your player profile...");
         DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
 
         Debug.Log("Checking if player has chosen a base character...");
@@ -262,17 +267,43 @@ public class AuthManager : MonoBehaviour
             if (!IsCurrentSession(version, userId)) return;
             if (task.IsFaulted || task.IsCanceled)
             {
-                Feedback("Signed in. Couldn't load your profile; check your connection.", loginFeedbackDuration);
+                ClearFeedback();
+                if (usernameSetup != null) usernameSetup.ShowLoadError();
+                else Feedback("Signed in. Couldn't load your profile; check your connection.", loginFeedbackDuration);
                 return;
             }
 
             DataSnapshot snapshot = task.Result;
             if (snapshot.Exists && snapshot.Value != null && snapshot.Value.ToString() != "")
             {
-                Feedback("Logged in successfully.", loginFeedbackDuration);
+                dbRef.Child("users").Child(userId).Child("username").GetValueAsync().ContinueWithOnMainThread(nameTask =>
+                {
+                    if (!IsCurrentSession(version, userId)) return;
+                    if (nameTask.IsFaulted || nameTask.IsCanceled)
+                    {
+                        ClearFeedback();
+                        if (usernameSetup != null) usernameSetup.ShowLoadError();
+                        else Feedback("Couldn't load your player name. Check your connection.", loginFeedbackDuration);
+                        return;
+                    }
+                    if (PlayerUsername.TryNormalize(nameTask.Result.Value?.ToString(), out string storedUsername))
+                    {
+                        PlayerUsername.SetVerified(userId, storedUsername);
+                        if (usernameSetup != null) usernameSetup.Hide();
+                        ShowModeSelection();
+                        Feedback("Logged in successfully.", loginFeedbackDuration);
+                    }
+                    else if (usernameSetup != null)
+                    {
+                        ClearFeedback();
+                        usernameSetup.ShowPrompt();
+                    }
+                    else Debug.LogError("Username prompt is missing from the Main Menu scene.");
+                });
             }
             else
             {
+                if (usernameSetup != null) usernameSetup.Hide();
                 ShowCharacterSelectScreen();
                 Feedback("Logged in successfully.", loginFeedbackDuration);
             }
@@ -298,16 +329,49 @@ public class AuthManager : MonoBehaviour
             {
                 Debug.Log($"Successfully saved {characterID} as base character!");
                 LogicGardenProgress.ResetForNewGame();
-                // ShowModeSelection(); // Move them to the game now!
-                PlayIntroCutscene();
+                playIntroAfterUsername = true;
+                if (usernameSetup != null) usernameSetup.ShowPrompt();
+                else Debug.LogError("Username prompt is missing from the Main Menu scene.");
             }
         });
+    }
+
+    public void RetryUsernameSetup() => CheckFirstTimeSetup();
+
+    public void SubmitUsername(string value)
+    {
+        if (auth == null || auth.CurrentUser == null || usernameSetup == null) return;
+        var validation = PlayerUsername.Validate(value, out string username);
+        if (validation != PlayerUsername.ValidationResult.Valid)
+        {
+            usernameSetup.ShowPrompt(PlayerUsername.Feedback(validation));
+            return;
+        }
+        string userId = auth.CurrentUser.UserId;
+        int version = sessionVersion;
+        usernameSetup.ShowSaving();
+        FirebaseDatabase.DefaultInstance.RootReference.Child("users").Child(userId).Child("username")
+            .SetValueAsync(username).ContinueWithOnMainThread(task =>
+            {
+                if (!IsCurrentSession(version, userId)) return;
+                if (task.IsFaulted || task.IsCanceled)
+                {
+                    usernameSetup.ShowPrompt("Couldn't save your name. Check your connection and retry.");
+                    return;
+                }
+                usernameSetup.Hide();
+                PlayerUsername.SetVerified(userId, username);
+                if (playIntroAfterUsername) PlayIntroCutscene();
+                else ShowModeSelection();
+                playIntroAfterUsername = false;
+            });
     }
 
     // ---> NEW: Methods to handle the video and scene loading <---
     private void PlayIntroCutscene()
     {
         ClearFeedback();
+        if (usernameSetup != null) usernameSetup.Hide();
         // 1. Hide all other UI menus
         if (loginMenu != null) loginMenu.SetActive(false);
         if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
@@ -593,6 +657,9 @@ public class AuthManager : MonoBehaviour
         sessionVersion++;
         observedUserId = null;
         signingIn = false;
+        playIntroAfterUsername = false;
+        PlayerUsername.Clear();
+        if (usernameSetup != null) usernameSetup.Hide();
         CancelInvoke();
         if (auth != null && auth.CurrentUser != null)
         {
@@ -619,6 +686,7 @@ public class AuthManager : MonoBehaviour
     // --- UI ROUTING ---
     public void ShowLoginScreen() 
     { 
+        if (usernameSetup != null) usernameSetup.Hide();
         var menu = FindFirstObjectByType<MainMenuManager>();
         if (menu != null) menu.ShowLoginMenu();
         if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
@@ -637,6 +705,7 @@ public class AuthManager : MonoBehaviour
     }
     private void ShowModeSelection() 
     { 
+        if (usernameSetup != null) usernameSetup.Hide();
         loginMenu.SetActive(false); 
         // signUpMenu.SetActive(false); 
         if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
@@ -646,6 +715,7 @@ public class AuthManager : MonoBehaviour
     }
     private void ShowCharacterSelectScreen()
     {
+        if (usernameSetup != null) usernameSetup.Hide();
         loginMenu.SetActive(false); 
         // signUpMenu.SetActive(false); 
         modeSelection.SetActive(false); 

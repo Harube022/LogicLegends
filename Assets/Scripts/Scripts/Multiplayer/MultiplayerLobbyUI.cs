@@ -137,7 +137,7 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         // All controls live inside the painted rim, including the footer/back action.
         var inside=MultiplayerUIArt.Rect("Interior",frame,.07f,.08f,.93f,.92f);
         MultiplayerUIArt.Label("Eyebrow",inside,"ADVENTURE TOGETHER",0,.955f,1,1,24,false,StageUITheme.Gold);
-        MultiplayerUIArt.Label("Heading",inside,"PRIVATE MULTIPLAYER",0,.85f,1,.955f,52,false,StageUITheme.Ink);
+        MultiplayerUIArt.Label("Heading",inside,"MULTIPLAYER",0,.85f,1,.955f,52,false,StageUITheme.Ink);
         status=MultiplayerUIArt.Label("Status",inside,"Host a private game or enter a friend's code.",.04f,.14f,.96f,.20f,24,true,StageUITheme.Ink);
         choicePanel=MultiplayerUIArt.Rect("HostOrJoin",inside,0,.21f,1,.83f).gameObject;
         var hostCard=MultiplayerUIArt.GraphCard("HostCard",choicePanel.transform,0,.04f,.48f,1);
@@ -152,20 +152,19 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         joinChoice=LobbyAction("JoinGame",joinCard,"JOIN GAME",.5f,.185f);
         joinPanel=MultiplayerUIArt.Rect("JoinByCode",inside,0,.21f,1,.83f).gameObject;
         var inviteCard=MultiplayerUIArt.GraphCard("InviteCard",joinPanel.transform,.12f,0,.88f,1);
-        MultiplayerUIArt.Label("CardEyebrow",inviteCard,"YOUR INVITATION",.08f,.84f,.92f,.93f,22,false,StageUITheme.ReadingInk);
-        MultiplayerUIArt.Label("Title",inviteCard,"ENTER INVITE CODE",.08f,.66f,.92f,.82f,44,false,StageUITheme.ReadingInk);
-        MultiplayerUIArt.Label("Instructions",inviteCard,"Ask your host for their six-character invite code.",.08f,.52f,.92f,.64f,26,true,StageUITheme.ReadingInk);
-        inviteInput=MultiplayerUIArt.Input("InviteCode",inviteCard,"SIX-CHARACTER CODE",.13f,.31f,.87f,.48f,34,24);
+        MultiplayerUIArt.Label("Title",inviteCard,"ENTER INVITE CODE",.08f,.72f,.92f,.88f,44,false,StageUITheme.ReadingInk);
+        MultiplayerUIArt.Label("Instructions",inviteCard,"Enter the code your friend shared.",.08f,.52f,.92f,.64f,26,true,StageUITheme.ReadingInk);
+        inviteInput=MultiplayerUIArt.Input("InviteCode",inviteCard,"Invite code",.13f,.31f,.87f,.48f,34,24);
         join=LobbyAction("JoinCode",inviteCard,"JOIN LOBBY",.5f,.185f,true);
         ((RectTransform)join.transform).anchoredPosition=new Vector2(-122,0);
         cancelJoin=LobbyAction("CancelJoin",inviteCard,"BACK",.5f,.185f,width:220);
         ((RectTransform)cancelJoin.transform).anchoredPosition=new Vector2(152,0);
         waitingPanel=MultiplayerUIArt.Rect("WaitingLobby",inside,0,.05f,1,.85f).gameObject;
-        MultiplayerUIArt.Label("InviteLabel",waitingPanel.transform,"INVITE CODE",0,.86f,.18f,1,26,false,StageUITheme.Gold);
-        code=MultiplayerUIArt.Label("Code",waitingPanel.transform,"------",.18f,.86f,.40f,1,44,false,StageUITheme.Ink);
-        copy=LobbyAction("CopyCode",waitingPanel.transform,"COPY",.49f,1,width:220);
+        count=MultiplayerUIArt.Label("PlayerCount",waitingPanel.transform,"1 / 4 PLAYERS",0,.86f,.36f,1,30,false,StageUITheme.Ink);
+        MultiplayerUIArt.Label("InviteLabel",waitingPanel.transform,"INVITE CODE",.40f,.86f,.55f,1,26,false,StageUITheme.Gold);
+        code=MultiplayerUIArt.Label("Code",waitingPanel.transform,"------",.56f,.86f,.73f,1,44,false,StageUITheme.Ink);
+        copy=LobbyAction("CopyCode",waitingPanel.transform,"COPY",.85f,1,width:220);
         ((RectTransform)copy.transform).anchoredPosition=new Vector2(0,-44);
-        count=MultiplayerUIArt.Label("PlayerCount",waitingPanel.transform,"1 / 4 PLAYERS",.64f,.86f,1,1,30,false,StageUITheme.Ink);
         var roster=MultiplayerUIArt.GraphCard("PlayerRoster",waitingPanel.transform,0,.20f,.36f,.84f);
         MultiplayerUIArt.Label("RosterHeading",roster,"YOUR PARTY",.08f,.83f,.92f,.96f,30,false,StageUITheme.ReadingInk);
         slots=new TMP_Text[4];

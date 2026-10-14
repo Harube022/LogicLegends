@@ -72,6 +72,7 @@ public sealed class MultiplayerGameChat : MonoBehaviour
         if(!available) { unread=0;Close(); }
         unreadLabel.transform.parent.gameObject.SetActive(unread>0);
         unreadLabel.text=unread>99?"99+":unread.ToString();
+        unreadLabel.fontSize=unread>99?17:unread>9?21:25;
         if(available)roomLabel.text=service.Players.Length+" / 4 adventurers  ·  Private conversation";
     }
     public void Toggle() { if(IsOpen)Close();else Open(); }
@@ -126,11 +127,11 @@ public sealed class MultiplayerGameChat : MonoBehaviour
         toggleRect.anchoredPosition=new Vector2(50,-185);MultiplayerUIArt.StandardAction(hud.toggle,220);
         hud.toggle.navigation=new Navigation { mode=Navigation.Mode.None };
         var badgeRect=MultiplayerUIArt.Rect("UnreadBadge",toggleRect,1,1,1,1);
-        badgeRect.sizeDelta=new Vector2(68,48);badgeRect.anchoredPosition=new Vector2(-4,0);
-        var badge=badgeRect.gameObject.AddComponent<Image>();badge.sprite=MultiplayerUIArt.ChatField;badge.type=Image.Type.Sliced;
-        badge.pixelsPerUnitMultiplier=Mathf.Min(badge.sprite.rect.width,badge.sprite.rect.height)*.01f;
+        badgeRect.sizeDelta=new Vector2(48,48);badgeRect.anchoredPosition=new Vector2(-4,0);
+        var badge=badgeRect.gameObject.AddComponent<Image>();badge.sprite=Resources.LoadAll<Sprite>("StageUI/UnreadNotification")[0];
+        badge.color=new Color(.82f,.16f,.14f,1f);
         badge.raycastTarget=false;
-        hud.unreadLabel=MultiplayerUIArt.Label("Unread",badgeRect,"",0,0,1,1,25,false,StageUITheme.ReadingInk);
+        hud.unreadLabel=MultiplayerUIArt.Label("Unread",badgeRect,"",0,0,1,1,25,false,new Color(1f,.96f,.86f,1f));
         hud.overlay=MultiplayerUIArt.Rect("ChatOverlay",root).gameObject;
         var dim=hud.overlay.AddComponent<Image>();dim.color=new Color(.01f,.02f,.025f,.32f);dim.pixelsPerUnitMultiplier=4.5f;
         hud.backdrop=hud.overlay.AddComponent<Button>();hud.backdrop.targetGraphic=dim;hud.backdrop.transition=Selectable.Transition.None;

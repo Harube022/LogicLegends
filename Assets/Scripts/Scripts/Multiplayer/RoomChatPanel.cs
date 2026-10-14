@@ -67,7 +67,8 @@ public sealed class RoomChatPanel : MonoBehaviour
         if (service.SendChat(input.text))
         {
             input.text="";nextSend=Time.unscaledTime+LobbyRules.ChatCooldown;
-            if(feedback!=null)feedback.text="Message sent to your party.";
+            if(feedback!=null)feedback.text=service.LastChatWasCensored
+                ? "Inappropriate words were censored before sending." : "Message sent to your party.";
         }
         else if(feedback!=null)feedback.text=service.Status;
     }

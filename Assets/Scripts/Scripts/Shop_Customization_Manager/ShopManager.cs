@@ -13,6 +13,9 @@ public class ShopManager : MonoBehaviour
     [SerializeField] private TMP_Text gemsText;
     [Header("All Shop Items")]
     [SerializeField] private ShopItem[] allShopItems;
+    [Header("Clothes Preview And Confirmation")]
+    [SerializeField] private ShopPreviewUI previewUI;
+    private ShopItem previewedItem;
     [Header("Loading Feedback")]
     [SerializeField] private TMP_Text loadingMessage;
     [SerializeField] private UnityEngine.UI.Button retryButton;
@@ -42,6 +45,8 @@ public class ShopManager : MonoBehaviour
     private void OnEnable() { RetryLoad(); }
     private void OnDisable()
     {
+        if (previewUI != null) previewUI.Close();
+        previewedItem = null;
         requestVersion++;
         StopAllCoroutines();
         dataLoaded = false;
@@ -79,6 +84,8 @@ public class ShopManager : MonoBehaviour
     public void RetryLoad()
     {
         if (!isActiveAndEnabled || purchasing) return;
+        if (previewUI != null) previewUI.Close();
+        previewedItem = null;
         StopAllCoroutines();
         int version = ++requestVersion;
         dataLoaded = false;
@@ -230,58 +237,127 @@ public class ShopManager : MonoBehaviour
     public void AttemptPurchase(ShopItem itemToBuy)
     {
         if (!dataLoaded || revealing || purchasing || !IsCurrent(requestVersion) || itemToBuy == null ||
-            !Fits(itemToBuy) || ownedItems.Contains(itemToBuy.ItemID) || itemToBuy.Price < 0) return;
+            !Fits(itemToBuy) || itemToBuy.Price < 0) return;
+        if (previewUI == null)
+        {
+            Status("The clothes preview is unavailable. Please reopen the shop.", false);
+            return;
+        }
+        previewedItem = itemToBuy;
+        purchaseFeedbackVersion++; // Old result timers must not clear a different item's preview.
+        Status("", false);
+        previewUI.Show(itemToBuy, playerBaseCharacter, BalanceFor(itemToBuy), ownedItems.Contains(itemToBuy.ItemID));
+    }
+
+    // A failed purchase can keep its modal open for feedback/retry, even though
+    // fresh shop data is required before another purchase is allowed.
+    public bool IsPreviewCurrent => IsCurrent(requestVersion);
+    public bool IsPurchasing => purchasing;
+    private int BalanceFor(ShopItem item) => item.CurrencyType == ShopItem.Currency.Coins ? currentCoins : currentGems;
+
+    public void RequestPurchaseConfirmation()
+    {
+        if (!CanPurchasePreview()) return;
+        previewUI.ShowConfirmation(BalanceFor(previewedItem));
+    }
+
+    private bool CanPurchasePreview()
+    {
+        return dataLoaded && IsPreviewCurrent && !revealing && !purchasing && previewUI != null && previewUI.IsOpen &&
+            previewedItem != null && Fits(previewedItem) && previewedItem.Price >= 0 &&
+            !ownedItems.Contains(previewedItem.ItemID);
+    }
+
+    public void ConfirmPurchase()
+    {
+        // Only the second, explicit confirmation action can submit a purchase.
+        if (!CanPurchasePreview() || !previewUI.IsConfirming) return;
+        var itemToBuy = previewedItem;
         bool coins = itemToBuy.CurrencyType == ShopItem.Currency.Coins;
-        int balance = coins ? currentCoins : currentGems;
+        int balance = BalanceFor(itemToBuy);
         int version = requestVersion;
         int feedbackVersion = ++purchaseFeedbackVersion;
         if (balance < itemToBuy.Price)
         {
-            Status("Not enough " + itemToBuy.CurrencyType.ToString().ToLowerInvariant() + ".", false);
-            StartCoroutine(ClearPurchaseFeedback(version, feedbackVersion));
+            previewUI.ShowResult("Not enough " + itemToBuy.CurrencyType.ToString().ToLowerInvariant() + ".", false, balance);
             return;
         }
         purchasing = true;
         Status("", false);
+        previewUI.ShowSaving();
         StartCoroutine(DelayedPurchaseFeedback(version, feedbackVersion));
-        // Save the inventory and the charged balance together; leave the other currency untouched.
-        var updates = new Dictionary<string, object>
+        string itemId = itemToBuy.ItemID;
+        int price = itemToBuy.Price;
+        string expectedCharacter = playerBaseCharacter;
+        string currency = coins ? "coins" : "gems";
+        string rejection = null;
+        // Recheck the server balance and ownership together, so stale previews or
+        // purchases from another device cannot charge twice or overwrite currency.
+        dbRef.Child("users").Child(userId).RunTransaction(data =>
         {
-            { coins ? "coins" : "gems", balance - itemToBuy.Price },
-            { "inventory/" + itemToBuy.ItemID, true }
-        };
-        dbRef.Child("users").Child(userId).UpdateChildrenAsync(updates).ContinueWithOnMainThread(task =>
+            rejection = null;
+            int freshBalance;
+            var decision = ShopPurchaseRules.Evaluate(data.Value != null,
+                data.Child("base_character").Value?.ToString(), expectedCharacter,
+                data.Child("inventory").Child(itemId).Value?.ToString().ToLowerInvariant() == "true",
+                data.Child(currency).Value, price, out freshBalance);
+            // Firebase may first invoke this callback with an empty local cache.
+            // Submit the unchanged value so the server can supply the actual
+            // account and retry; do not confuse a cache miss with a changed body.
+            if (decision == ShopPurchaseDecision.WaitForServerData) return TransactionResult.Success(data);
+            if (decision != ShopPurchaseDecision.Ready)
+            {
+                rejection = ShopPurchaseRules.Feedback(decision, currency);
+                return TransactionResult.Abort();
+            }
+            data.Child(currency).Value = freshBalance - price;
+            data.Child("inventory").Child(itemId).Value = true;
+            return TransactionResult.Success(data);
+        }).ContinueWithOnMainThread(task =>
         {
             if (!IsCurrent(version)) return;
             purchasing = false;
-            if (task.IsFaulted || task.IsCanceled)
+            if (task.IsFaulted || task.IsCanceled || rejection != null)
             {
-                dataLoaded = false;
-                HideItems();
-                Status("Couldn't save the purchase. Retry to reload your balances.", true);
+                ShowPurchaseFailure(rejection ?? "Couldn't complete the purchase. Retry to refresh your shop.");
                 return;
             }
-            if (coins) currentCoins = balance - itemToBuy.Price;
-            else currentGems = balance - itemToBuy.Price;
-            ownedItems.Add(itemToBuy.ItemID);
+            // An unchanged empty account is not a confirmed purchase.
+            if (task.Result == null || !task.Result.Exists ||
+                task.Result.Child("inventory").Child(itemId).Value?.ToString().ToLowerInvariant() != "true")
+            {
+                ShowPurchaseFailure("Couldn't confirm the purchase. Retry to refresh your shop.");
+                return;
+            }
+            ReadBalance(task.Result, "coins", out currentCoins);
+            ReadBalance(task.Result, "gems", out currentGems);
+            ownedItems.Add(itemId);
             UpdateShopUI();
-            Status("Purchase successful.", false);
+            previewUI.ShowResult("Purchase successful. Equip it in Customization.", true, BalanceFor(itemToBuy), true);
             StartCoroutine(ClearPurchaseFeedback(version, feedbackVersion));
         });
+    }
+
+    private void ShowPurchaseFailure(string message)
+    {
+        dataLoaded = false;
+        HideItems();
+        Status("", false);
+        previewUI.ShowError(message);
     }
 
     private IEnumerator DelayedPurchaseFeedback(int version, int feedbackVersion)
     {
         yield return new WaitForSecondsRealtime(Mathf.Max(0f, purchaseProgressDelay));
         if (IsCurrent(version) && feedbackVersion == purchaseFeedbackVersion && purchasing)
-            Status("Saving your purchase...", false);
+            previewUI.ShowProgress();
     }
 
     private IEnumerator ClearPurchaseFeedback(int version, int feedbackVersion)
     {
         yield return new WaitForSecondsRealtime(Mathf.Max(0f, purchaseFeedbackDuration));
         if (IsCurrent(version) && feedbackVersion == purchaseFeedbackVersion && !purchasing)
-            Status("", false);
+            previewUI.ClearResultFeedback();
     }
 
 
@@ -294,6 +370,41 @@ public class ShopManager : MonoBehaviour
             if (item == null) continue;
             item.gameObject.SetActive(Fits(item));
             item.UpdateUI(ownedItems.Contains(item.ItemID));
+        }
+    }
+}
+
+public enum ShopPurchaseDecision
+{
+    WaitForServerData, MissingCharacter, CharacterChanged, AlreadyOwned, InvalidBalance, InsufficientFunds, Ready
+}
+
+/// <summary>Pure transaction validation, also used to check cold-cache and stale-account regressions without database writes.</summary>
+public static class ShopPurchaseRules
+{
+    public static ShopPurchaseDecision Evaluate(bool hasAccountData, string storedCharacter, string expectedCharacter,
+        bool owned, object balanceValue, int price, out int balance)
+    {
+        balance = 0;
+        if (!hasAccountData) return ShopPurchaseDecision.WaitForServerData;
+        if (string.IsNullOrEmpty(storedCharacter)) return ShopPurchaseDecision.MissingCharacter;
+        if (storedCharacter != expectedCharacter) return ShopPurchaseDecision.CharacterChanged;
+        if (owned) return ShopPurchaseDecision.AlreadyOwned;
+        if (price < 0 || (balanceValue != null && (!int.TryParse(balanceValue.ToString(), out balance) || balance < 0)))
+            return ShopPurchaseDecision.InvalidBalance;
+        return balance < price ? ShopPurchaseDecision.InsufficientFunds : ShopPurchaseDecision.Ready;
+    }
+
+    public static string Feedback(ShopPurchaseDecision decision, string currency)
+    {
+        switch (decision)
+        {
+            case ShopPurchaseDecision.MissingCharacter: return "Couldn't load your saved character. Retry to refresh your shop.";
+            case ShopPurchaseDecision.CharacterChanged: return "Your saved character changed. Retry to refresh your shop before buying.";
+            case ShopPurchaseDecision.AlreadyOwned: return "You already own these clothes. Retry to refresh your shop.";
+            case ShopPurchaseDecision.InvalidBalance: return "Couldn't read your balance. Retry to refresh your shop.";
+            case ShopPurchaseDecision.InsufficientFunds: return "Not enough " + currency + ". Retry to refresh your balance.";
+            default: return "Couldn't confirm the purchase. Retry to refresh your shop.";
         }
     }
 }
