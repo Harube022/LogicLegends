@@ -58,6 +58,16 @@ public class TruthBlock : MonoBehaviour
         RestoreInWorld(originalPosition, originalRotation);
     }
 
+    public bool ReturnToInventory()
+    {
+        if (InventoryManager.Instance == null ||
+            !InventoryManager.Instance.TryStoreReturnedBlock(this)) return false;
+        isPlacedInColumn = false;
+        isAtSpawnPoint = false;
+        if (spawnOwner != null) spawnOwner.ReleaseSpawn(this);
+        return true;
+    }
+
     public void RespawnAt(Transform point)
     {
         currentSpawnPoint = point;

@@ -69,6 +69,23 @@ public class InventoryManager : MonoBehaviour
         return -1; // Inventory full
     }
 
+    // A rejected column gives back the same physical blocks. Keep the current
+    // selection unchanged so the player can choose a stack for the retry.
+    public bool TryStoreReturnedBlock(TruthBlock blockInstance)
+    {
+        if (blockInstance == null) return false;
+        for (int i = 0; i < slots.Length; i++)
+            if (slots[i].physicalBlocks.Contains(blockInstance)) return true;
+        for (int i = 0; i < slots.Length; i++)
+            if (!slots[i].isEmpty && slots[i].blockValue == blockInstance.value &&
+                slots[i].TryAdd(blockInstance.value, blockInstance))
+            { UpdateBlockVisibility(); UpdateUI(); return true; }
+        for (int i = 0; i < slots.Length; i++)
+            if (slots[i].isEmpty && slots[i].TryAdd(blockInstance.value, blockInstance))
+            { UpdateBlockVisibility(); UpdateUI(); return true; }
+        return false;
+    }
+
     public bool TryRemoveBlock(TruthBlock blockInstance)
     {
         for (int i = 0; i < slots.Length; i++)
