@@ -45,6 +45,7 @@ public class GameInput : MonoBehaviour
     private void Jump_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        if (ProofsControlsOnboarding.Active != null && !ProofsControlsOnboarding.Active.AllowsJump) return;
         if (FunctionsRelationsControlsOnboarding.Active != null && !FunctionsRelationsControlsOnboarding.Active.AllowsJump) return;
         if (LogicGardenControlsOnboarding.Active != null && !LogicGardenControlsOnboarding.Active.AllowsJump) return;
         if (LogicLegends.Induction.InductionControlsOnboarding.Active != null &&
@@ -83,6 +84,8 @@ public class GameInput : MonoBehaviour
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        if (ProofsControlsOnboarding.Active != null)
+        { ProofsControlsOnboarding.Active.TryPracticeInteraction(); return; }
         if (FunctionsRelationsControlsOnboarding.Active != null)
         { FunctionsRelationsControlsOnboarding.Active.TryPracticeInteraction(); return; }
         if (LogicGardenControlsOnboarding.Active != null)
@@ -126,6 +129,7 @@ public class GameInput : MonoBehaviour
     public Vector2 GetMovementVectorNormalized(float deadZone)
     {
         if (GameplayInputBlocked) return Vector2.zero;
+        if (ProofsControlsOnboarding.Active != null && ProofsControlsOnboarding.Active.TryGetMovementOverride(out Vector2 proofsMovement)) return proofsMovement;
         if (FunctionsRelationsControlsOnboarding.Active != null &&
             FunctionsRelationsControlsOnboarding.Active.TryGetMovementOverride(out Vector2 functionsMovement)) return functionsMovement;
         if (LogicGardenControlsOnboarding.Active != null && LogicGardenControlsOnboarding.Active.TryGetMovementOverride(out Vector2 gardenMovement)) return gardenMovement;
@@ -162,6 +166,7 @@ public class GameInput : MonoBehaviour
     public void MobileJump()
     {
         if (GameplayInputBlocked) return;
+        if (ProofsControlsOnboarding.Active != null && !ProofsControlsOnboarding.Active.AllowsJump) return;
         if (FunctionsRelationsControlsOnboarding.Active != null && !FunctionsRelationsControlsOnboarding.Active.AllowsJump) return;
         if (LogicGardenControlsOnboarding.Active != null && !LogicGardenControlsOnboarding.Active.AllowsJump) return;
         if (LogicLegends.Induction.InductionControlsOnboarding.Active != null &&
@@ -200,6 +205,8 @@ public class GameInput : MonoBehaviour
     public void MobileInteract()
     {
         if (GameplayInputBlocked) return;
+        if (ProofsControlsOnboarding.Active != null)
+        { ProofsControlsOnboarding.Active.TryPracticeInteraction(); return; }
         if (FunctionsRelationsControlsOnboarding.Active != null)
         { FunctionsRelationsControlsOnboarding.Active.TryPracticeInteraction(); return; }
         if (LogicGardenControlsOnboarding.Active != null)

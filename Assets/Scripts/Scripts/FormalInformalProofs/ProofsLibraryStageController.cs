@@ -8,7 +8,7 @@ using UnityEngine.UI;
 /// <summary>
 /// Five Book-confirmed proof challenges share one timer and the existing mobile input.
 /// </summary>
-public sealed class ProofsLibraryStageController : MonoBehaviour
+public sealed partial class ProofsLibraryStageController : MonoBehaviour
 {
     [SerializeField] private Transform bookStatue;
     [SerializeField] private ProofChallengeCatalog catalog;
@@ -77,7 +77,7 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
     public int CorrectCount => correctCount;
     public int MistakeCount => mistakeCount;
     public float ActiveGameplaySeconds => activeGameplaySeconds;
-    public bool CanDebugClearChallenge => started && !finished && !transitioning && !flashing &&
+    public bool CanDebugClearChallenge => !InputSuppressed && started && !finished && !transitioning && !flashing &&
         !readerPanel.activeSelf && !takeBackPanel.activeSelf;
     public int Placement(int index) => placements[index];
 
@@ -119,6 +119,8 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
         closeButton.onClick.AddListener(CloseReader);
         retryButton.onClick.AddListener(RetryStage);
         menuButton.onClick.AddListener(ReturnToMenu);
+        Presentation = gameObject.AddComponent<ProofsStageUI>();
+        Presentation.Initialize(this);
     }
 
     private void OnEnable() { BindInput(); }
@@ -142,19 +144,21 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
     {
         if (input == null) BindInput();
         if (player == null) player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
-        if (started && !finished)
+        if (started && !finished && !GameplayPaused)
         {
             secondsLeft = Mathf.Max(0f, secondsLeft - Time.deltaTime);
             activeGameplaySeconds += Time.deltaTime;
             if (secondsLeft <= 0f) Finish(false);
         }
         RefreshTimer();
+        if (InputSuppressed) { promptText.gameObject.SetActive(false); return; }
         if (finished)
         {
             promptText.text = secondsLeft <= 0f ? "TIME'S UP" : "CHALLENGE COMPLETE";
             return;
         }
         if (readerPanel.activeSelf || takeBackPanel.activeSelf || player == null) return;
+        promptText.gameObject.SetActive(true);
         int target = NearestTarget();
         if (transitioning) { promptText.text = "CHALLENGE COMPLETE"; return; }
         if (target == 0) promptText.text = started ?
@@ -228,6 +232,7 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
         int choice = UnityEngine.Random.Range(0, variants.Length - (previous >= 0 ? 1 : 0));
         if (previous >= 0 && choice >= previous) choice++;
         activeChallenge = variants[choice];
+        adminSelectedVariants[challengeIndex] = choice;
         LastVariant[challengeIndex] = choice;
         PlayerPrefs.SetInt(historyKey, choice);
         PlayerPrefs.Save();
@@ -235,6 +240,8 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     private void OnInteract(object sender, EventArgs args)
     {
+        if (Tutorial != null) { Tutorial.TryPracticeInteraction(); return; }
+        if (InputSuppressed || input != null && input.GameplayInputBlocked) return;
         if (readerPanel.activeSelf || takeBackPanel.activeSelf || finished || transitioning) return;
         int target = NearestTarget();
         if (target == 0)
@@ -253,6 +260,8 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     public void Activate()
     {
+        if (Tutorial != null) { Tutorial.TryPracticeInteraction(); return; }
+        if (InputSuppressed) return;
         if (started || finished || transitioning) return;
         ChooseVariant();
         started = true;
@@ -318,6 +327,8 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     public void ReadScroll(int index)
     {
+        if (Tutorial != null) { Tutorial.ReadPracticeScroll(); return; }
+        if (InputSuppressed) return;
         if (!started || finished || Current.kind != ProofChallengeKind.SortScrolls ||
             index < 0 || index >= Current.scrolls.Length || carriedScroll >= 0 ||
             placements[index] >= 0 || !scrolls[index].gameObject.activeInHierarchy) return;
@@ -331,6 +342,8 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     public void CarryReadScroll()
     {
+        if (Tutorial != null) { Tutorial.CollectPracticeScroll(); return; }
+        if (InputSuppressed) return;
         if (readingScroll < 0 || finished) return;
         int index = readingScroll;
         CloseReader();
@@ -357,6 +370,7 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     public void CloseReader()
     {
+        if (Tutorial != null) { Tutorial.ClosePracticeReader(); return; }
         readingScroll = -1;
         readerPanel.SetActive(false);
         promptText.gameObject.SetActive(true);
@@ -474,6 +488,8 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     public void PlaceOnPedestal(int pedestalIndex)
     {
+        if (Tutorial != null) { Tutorial.PlacePracticeScroll(pedestalIndex); return; }
+        if (InputSuppressed) return;
         if (!started || finished || carriedScroll < 0 || pedestalIndex < 0 || pedestalIndex >= 2) return;
         int index = carriedScroll;
         placements[index] = pedestalIndex;
@@ -488,6 +504,8 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     public void RetrieveFromPedestal(int pedestalIndex)
     {
+        if (Tutorial != null) { Tutorial.OpenPracticeTakeBack(); return; }
+        if (InputSuppressed) return;
         if (!started || finished || carriedScroll >= 0 || pedestalIndex < 0 || pedestalIndex >= 2) return;
         if (CountOnPedestal(pedestalIndex) == 0) return;
         takeBackPedestal = pedestalIndex;
@@ -507,6 +525,8 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     public void TakeBackScroll(int index)
     {
+        if (Tutorial != null) { Tutorial.TakeBackPracticeScroll(); return; }
+        if (InputSuppressed) return;
         if (!takeBackPanel.activeSelf || !started || finished || carriedScroll >= 0 ||
             index < 0 || index >= placements.Length || placements[index] != takeBackPedestal) return;
         int pedestalIndex = takeBackPedestal;
@@ -517,6 +537,7 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     public void CloseTakeBackPicker()
     {
+        if (Tutorial != null) { Tutorial.ClosePracticeTakeBack(); return; }
         takeBackPedestal = -1;
         takeBackPanel.SetActive(false);
         promptText.gameObject.SetActive(true);
@@ -560,6 +581,8 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
 
     public void Submit()
     {
+        if (Tutorial != null) { Tutorial.ConfirmPracticeArrangement(); return; }
+        if (InputSuppressed) return;
         if (!started || finished || flashing || transitioning) return;
         bool complete = Current.kind == ProofChallengeKind.SortScrolls;
         if (complete)
@@ -728,6 +751,7 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
     private void Finish(bool won)
     {
         if (finished) return;
+        Presentation?.CloseForResult();
         finished = true;
         started = false;
         transitioning = false;
@@ -747,7 +771,11 @@ public sealed class ProofsLibraryStageController : MonoBehaviour
             "TIME'S UP\nChallenges completed: " + correctCount + "/5\nMistakes: " + mistakeCount;
         resultsPanel.SetActive(true);
         LockGameplay();
+#if UNITY_EDITOR
+        if (won && !SuppressProgressionForValidation) StageCompleteManager.UnlockStage(Mathf.Min(7, StageSelectionState.LastStage));
+#else
         if (won) StageCompleteManager.UnlockStage(Mathf.Min(7, StageSelectionState.LastStage));
+#endif
     }
 
     public void RetryStage()

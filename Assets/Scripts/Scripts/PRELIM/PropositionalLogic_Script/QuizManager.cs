@@ -33,7 +33,7 @@ public class TopicChallenge
     public TruthTableHintBoard hintBoard;
 }
 
-public class QuizManager : MonoBehaviour
+public partial class QuizManager : MonoBehaviour
 {
     [Header("System References")]
     [SerializeField] private LevelTimerManager timerManager;
@@ -777,6 +777,7 @@ public class QuizManager : MonoBehaviour
 
         int questionIndex = currentQuestionOrder[nextQuestionOrderIndex++];
         currentQuestion = pool[questionIndex];
+        adminDrawnQuestions.Add(currentQuestion);
         previousQuestionIndex = questionIndex;
     }
 

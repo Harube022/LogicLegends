@@ -62,7 +62,9 @@ public sealed class FunctionsRelationsBoardView : MonoBehaviour
         if (connectionBeams != null)
             foreach (var renderer in connectionBeams.GetComponentsInChildren<Renderer>(true))
             { avatarVisibility[renderer] = renderer.enabled; renderer.enabled = false; }
-        if (backButton != null) backButton.gameObject.SetActive(true);
+        // Practice may have disabled Back while an explanation was being read.
+        // Every new board view starts with a usable UI exit, independent of gameplay input.
+        if (backButton != null) { backButton.interactable = true; backButton.gameObject.SetActive(true); }
         FrameBoard();
         return true;
     }

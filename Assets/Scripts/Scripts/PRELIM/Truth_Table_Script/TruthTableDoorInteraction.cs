@@ -10,7 +10,7 @@ using TMPro;
 /// <summary>
 /// One quiz interaction point for the six Truth_Table house doors.
 /// </summary>
-public class TruthTableDoorInteraction : MonoBehaviour
+public partial class TruthTableDoorInteraction : MonoBehaviour
 {
     private const string DoorPromptText = "INTERACT WITH DOOR";
 
