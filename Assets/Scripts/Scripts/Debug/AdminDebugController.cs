@@ -23,6 +23,7 @@ public sealed class AdminDebugController : MonoBehaviour
     private Button adminButton;
     private Button clearChallengeButton;
     private Button clearConditionButton;
+    private AdminAnswerViewer answerViewer;
     private bool panelOpen;
     private bool clearConsumed;
     private bool challengeEligibleAtOpen;
@@ -32,8 +33,6 @@ public sealed class AdminDebugController : MonoBehaviour
     private bool playerWasEnabled;
     private CursorLockMode previousCursorLock;
     private bool previousCursorVisible;
-    private int lastScreenWidth;
-    private int lastScreenHeight;
 
     private void Awake()
     {
@@ -45,6 +44,9 @@ public sealed class AdminDebugController : MonoBehaviour
         if (SceneManager.GetActiveScene().name != "PRELIM" &&
             SceneManager.GetActiveScene().name != "Setssss" &&
             SceneManager.GetActiveScene().name != "Formal vs. Informal Proofs" &&
+            SceneManager.GetActiveScene().name != "RulesOfInference" &&
+            SceneManager.GetActiveScene().name != "Functions and Relations" &&
+            SceneManager.GetActiveScene().name != "Induction" &&
             SceneManager.GetActiveScene().name != "Direct&Indirect")
             enabled = false;
     }
@@ -79,6 +81,9 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private void Update()
     {
+        if (adminButton != null && (SceneManager.GetActiveScene().name == "Functions and Relations" ||
+            SceneManager.GetActiveScene().name == "Induction"))
+            adminButton.gameObject.SetActive(adminButtonEnabled && (panelOpen || !IsAnotherModalBlocking()));
         if (adminButton != null && SceneManager.GetActiveScene().name == "Setssss")
         {
             bool visible = adminButtonEnabled && (SetssssControlsOnboarding.Active == null ||
@@ -103,7 +108,38 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private bool IsAnotherModalBlocking()
     {
+        // An unanswered pop quiz is itself the current question. Its own input
+        // lock remains in place when this nested Admin view closes.
+        if (SceneManager.GetActiveScene().name == "PRELIM" && StageSelectionState.SelectedStage == 2 && Time.timeScale > 0f)
+        {
+            var quiz = FindFirstObjectByType<TruthTableDoorInteraction>();
+            var clock = quiz != null ? quiz.GetComponent<TruthTableStageClock>() : null;
+            if (quiz != null && quiz.AdminQuestionOpen && clock != null && !clock.IsTutorialOpen &&
+                !clock.IsGameOver && !clock.IsCompleted) return false;
+        }
         if (input == null || input.GameplayInputBlocked || Time.timeScale == 0f) return true;
+        if (SceneManager.GetActiveScene().name == "Functions and Relations")
+        {
+            var stage = FindFirstObjectByType<FunctionsRelationsStageManager>();
+            return stage == null || stage.GameplayPaused || stage.IsBoardOpen ||
+                stage.State == FunctionsRelationsState.VALIDATING || stage.State == FunctionsRelationsState.CHALLENGE_COMPLETE ||
+                stage.State == FunctionsRelationsState.STAGE_COMPLETE || stage.State == FunctionsRelationsState.GAME_OVER;
+        }
+        if (SceneManager.GetActiveScene().name == "Induction")
+        {
+            var stage = FindFirstObjectByType<LogicLegends.Induction.InductionStageManager>();
+            return stage == null || !stage.Ready || stage.Reading || stage.help == null || stage.help.OnboardingPending ||
+                stage.onboarding != null && stage.onboarding.IsActive ||
+                stage.State == LogicLegends.Induction.InductionState.StageComplete || stage.State == LogicLegends.Induction.InductionState.GameOver;
+        }
+        if (SceneManager.GetActiveScene().name == "RulesOfInference")
+        {
+            var inference = FindFirstObjectByType<LogicLegends.Inference.InferenceChallenge>();
+            return inference == null || inference.IsBoardOpen || inference.PuzzleCompleted ||
+                (StageJourneyUI.Instance != null && StageJourneyUI.Instance.InferenceEnded) ||
+                (InferenceControlsOnboarding.Active != null &&
+                 InferenceControlsOnboarding.Active.IsActive);
+        }
         if (SceneManager.GetActiveScene().name == "Setssss")
         {
             if (SetssssControlsOnboarding.Active != null &&
@@ -114,7 +150,7 @@ public sealed class AdminDebugController : MonoBehaviour
         if (SceneManager.GetActiveScene().name == "Formal vs. Informal Proofs")
         {
             ProofsLibraryStageController proofs = FindFirstObjectByType<ProofsLibraryStageController>();
-            return proofs == null || proofs.Finished;
+            return proofs == null || proofs.Finished || proofs.InputSuppressed;
         }
         if (SceneManager.GetActiveScene().name == "Direct&Indirect")
         {
@@ -128,8 +164,7 @@ public sealed class AdminDebugController : MonoBehaviour
         if (StageSelectionState.SelectedStage == 1)
         {
             PropositionalLogicTutorial tutorial = FindFirstObjectByType<PropositionalLogicTutorial>();
-            QuizManager quiz = FindFirstObjectByType<QuizManager>();
-            return tutorial != null && tutorial.IsOpen || quiz != null && quiz.IsQuizActive;
+            return tutorial != null && tutorial.IsOpen;
         }
         if (StageSelectionState.SelectedStage == 2)
         {
@@ -143,6 +178,21 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private bool CanClearChallenge()
     {
+        if (SceneManager.GetActiveScene().name == "Functions and Relations")
+        {
+            var stage = FindFirstObjectByType<FunctionsRelationsStageManager>();
+            return stage != null && stage.CanDebugClearChallenge;
+        }
+        if (SceneManager.GetActiveScene().name == "Induction")
+        {
+            var stage = FindFirstObjectByType<LogicLegends.Induction.InductionStageManager>();
+            return stage != null && stage.CanDebugClearChallenge;
+        }
+        if (SceneManager.GetActiveScene().name == "RulesOfInference")
+        {
+            var stage = FindFirstObjectByType<LogicLegends.Inference.InferenceChallenge>();
+            return stage != null && stage.HasStarted && !stage.PuzzleCompleted;
+        }
         if (SceneManager.GetActiveScene().name == "Setssss")
         {
             SetssssChallengeOne sets = FindFirstObjectByType<SetssssChallengeOne>();
@@ -165,6 +215,8 @@ public sealed class AdminDebugController : MonoBehaviour
         }
         if (StageSelectionState.SelectedStage == 2)
         {
+            var doors = FindFirstObjectByType<TruthTableDoorInteraction>();
+            if (doors != null && doors.IsQuizOpen) return false;
             foreach (DynamicLogicPuzzle puzzle in FindObjectsByType<DynamicLogicPuzzle>(
                          FindObjectsSortMode.None))
                 if (puzzle.CanDebugClearChallenge) return true;
@@ -189,6 +241,8 @@ public sealed class AdminDebugController : MonoBehaviour
         challengeEligibleAtOpen = CanClearChallenge();
         conditionEligibleAtOpen = CanClearCondition();
         panelOpen = true;
+        card.gameObject.SetActive(true);
+        if (answerViewer != null) answerViewer.Hide();
         player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
         inputWasBlocked = input != null && input.GameplayInputBlocked;
         playerWasEnabled = player != null && player.enabled;
@@ -225,6 +279,7 @@ public sealed class AdminDebugController : MonoBehaviour
         if (!panelOpen) return;
         panelOpen = false;
         panelRoot.gameObject.SetActive(false);
+        if (answerViewer != null) answerViewer.Hide();
         if (propositionalTimer != null) propositionalTimer.SetTutorialPaused(false);
         if (truthClock != null) truthClock.SetTutorialOpen(false);
         propositionalTimer = null;
@@ -241,6 +296,18 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private bool IsTerminalState()
     {
+        if (SceneManager.GetActiveScene().name == "Functions and Relations")
+        {
+            var stage = FindFirstObjectByType<FunctionsRelationsStageManager>();
+            return stage == null || stage.State == FunctionsRelationsState.STAGE_COMPLETE || stage.State == FunctionsRelationsState.GAME_OVER;
+        }
+        if (SceneManager.GetActiveScene().name == "Induction")
+        {
+            var stage = FindFirstObjectByType<LogicLegends.Induction.InductionStageManager>();
+            return stage == null || stage.State == LogicLegends.Induction.InductionState.StageComplete || stage.State == LogicLegends.Induction.InductionState.GameOver;
+        }
+        if (SceneManager.GetActiveScene().name == "RulesOfInference")
+            return StageJourneyUI.Instance != null && StageJourneyUI.Instance.InferenceEnded;
         if (SceneManager.GetActiveScene().name == "Setssss")
         {
             SetssssChallengeOne sets = FindFirstObjectByType<SetssssChallengeOne>();
@@ -279,7 +346,22 @@ public sealed class AdminDebugController : MonoBehaviour
         // Restore the exact pre-panel pause/input state before the existing
         // completion flow starts. That flow owns the next challenge's state.
         ClosePanel();
-        if (SceneManager.GetActiveScene().name == "Setssss")
+        if (SceneManager.GetActiveScene().name == "Functions and Relations")
+        {
+            var stage = FindFirstObjectByType<FunctionsRelationsStageManager>();
+            if (stage != null) stage.DebugClearCurrentChallenge();
+        }
+        else if (SceneManager.GetActiveScene().name == "Induction")
+        {
+            var stage = FindFirstObjectByType<LogicLegends.Induction.InductionStageManager>();
+            if (stage != null) stage.DebugClearCurrentChallenge();
+        }
+        else if (SceneManager.GetActiveScene().name == "RulesOfInference")
+        {
+            var stage = FindFirstObjectByType<LogicLegends.Inference.InferenceChallenge>();
+            if (stage != null) stage.DebugClearCurrentChallenge();
+        }
+        else if (SceneManager.GetActiveScene().name == "Setssss")
         {
             SetssssChallengeOne sets = FindFirstObjectByType<SetssssChallengeOne>();
             if (sets != null) sets.DebugClearCurrentChallenge();
@@ -329,6 +411,10 @@ public sealed class AdminDebugController : MonoBehaviour
         Image shade = overlay.GetComponent<Image>();
         shade.color = new Color(0.015f, 0.025f, 0.03f, 0.82f);
         shade.raycastTarget = true;
+        var modalCanvas = overlay.AddComponent<Canvas>();
+        modalCanvas.overrideSorting = true;
+        modalCanvas.sortingOrder = 1000;
+        overlay.AddComponent<GraphicRaycaster>();
 
         GameObject cardObject = new GameObject("AdminDebugCard", typeof(RectTransform),
             typeof(CanvasRenderer), typeof(Image));
@@ -343,13 +429,21 @@ public sealed class AdminDebugController : MonoBehaviour
 
         TextMeshProUGUI title = CreateText("AdminDebugTitle", card, font, 52f);
         title.text = "Admin / Debug";
-        Place(title.rectTransform, new Vector2(0f, 170f), new Vector2(650f, 78f));
+        Place(title.rectTransform, new Vector2(0f, 235f), new Vector2(650f, 78f));
         clearChallengeButton = CreateButton("ClearCurrentChallenge", card, font,
-            "Clear Current Challenge", new Vector2(0f, 60f), ClearCurrentChallenge);
+            "Clear Current Challenge", new Vector2(0f, 120f), ClearCurrentChallenge);
         clearConditionButton = CreateButton("ClearCurrentCondition", card, font,
-            "Clear Current Question", new Vector2(0f, -45f), ClearCurrentCondition);
+            "Clear Current Question", new Vector2(0f, 15f), ClearCurrentCondition);
+        CreateButton("ViewQuestionsAndAnswers", card, font, "View Questions & Answers",
+            new Vector2(0f, -90f), OpenAnswerViewer);
         CreateButton("CloseAdminDebug", card, font, "Close",
-            new Vector2(0f, -150f), ClosePanel);
+            new Vector2(0f, -195f), ClosePanel);
+        answerViewer = overlay.AddComponent<AdminAnswerViewer>();
+        answerViewer.Build(uiCanvas, panelRoot, font, () =>
+        {
+            answerViewer.Hide();
+            card.gameObject.SetActive(true);
+        });
         panelRoot.gameObject.SetActive(false);
         UpdateLayout();
     }
@@ -367,12 +461,15 @@ public sealed class AdminDebugController : MonoBehaviour
         rect.pivot = new Vector2(1f, 0f);
         rect.anchoredPosition = new Vector2(-40f, 40f);
         rect.sizeDelta = new Vector2(200f, 90f);
-        if (SceneManager.GetActiveScene().name == "Direct&Indirect")
+        if (SceneManager.GetActiveScene().name == "Functions and Relations" || SceneManager.GetActiveScene().name == "Induction" ||
+            SceneManager.GetActiveScene().name == "Direct&Indirect" ||
+            SceneManager.GetActiveScene().name == "RulesOfInference")
         {
             // Above the mobile action controls and below this stage's timer.
             rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(1f, 1f);
-            rect.anchoredPosition = new Vector2(-40f, -150f);
+            rect.anchoredPosition = new Vector2(-40f,
+                SceneManager.GetActiveScene().name == "RulesOfInference" ? -360f : -150f);
             rect.sizeDelta = new Vector2(170f, 72f);
         }
         Image image = go.GetComponent<Image>();
@@ -387,23 +484,30 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private void UpdateLayout()
     {
-        if (card == null || uiCanvas == null ||
-            lastScreenWidth == Screen.width && lastScreenHeight == Screen.height) return;
-        lastScreenWidth = Screen.width;
-        lastScreenHeight = Screen.height;
-        RectTransform canvasRect = (RectTransform)uiCanvas.transform;
-        card.sizeDelta = new Vector2(Mathf.Min(760f, canvasRect.rect.width - 48f),
-            Mathf.Min(520f, canvasRect.rect.height - 48f));
+        if (card == null || uiCanvas == null) return;
+        Canvas.ForceUpdateCanvases();
         Rect safe = Screen.safeArea;
         float left = Mathf.Clamp(safe.xMin, 0f, Screen.width);
         float right = Mathf.Clamp(safe.xMax, 0f, Screen.width);
         float bottom = Mathf.Clamp(safe.yMin, 0f, Screen.height);
         float top = Mathf.Clamp(safe.yMax, 0f, Screen.height);
+        if (right <= left || top <= bottom) { left = bottom = 0; right = Screen.width; top = Screen.height; }
         Vector2 safeCenter = right > left && top > bottom
             ? new Vector2((left + right) * 0.5f, (bottom + top) * 0.5f)
             : new Vector2(Screen.width, Screen.height) * 0.5f;
         Vector2 pixelOffset = safeCenter - new Vector2(Screen.width, Screen.height) * 0.5f;
-        card.anchoredPosition = pixelOffset / Mathf.Max(0.001f, uiCanvas.scaleFactor);
+        float scale = Mathf.Max(0.001f, uiCanvas.scaleFactor);
+        card.sizeDelta = new Vector2(Mathf.Min(760f, (right - left) / scale - 48f),
+            Mathf.Min(620f, (top - bottom) / scale - 48f));
+        card.anchoredPosition = pixelOffset / scale;
+    }
+
+    private void OpenAnswerViewer()
+    {
+        // Only the already-authorized Admin modal exposes this read-only viewer.
+        if (!panelOpen || answerViewer == null) return;
+        answerViewer.Show(AdminQuestionAnswers.Capture());
+        card.gameObject.SetActive(false);
     }
 
     private static Button CreateButton(string name, Transform parent, TMP_FontAsset font,

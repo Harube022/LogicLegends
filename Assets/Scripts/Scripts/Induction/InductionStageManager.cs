@@ -11,7 +11,7 @@ namespace LogicLegends.Induction
 {
     public enum InductionState { WaitingForBook, Active, StageComplete, GameOver }
 
-    public sealed class InductionStageManager : MonoBehaviour
+    public sealed partial class InductionStageManager : MonoBehaviour
     {
         public static InductionStageManager Instance { get; private set; }
         [Header("Shared countdown for the entire stage")]
@@ -248,6 +248,10 @@ namespace LogicLegends.Induction
                 if (errors.Any(k => slots.First(s => s.key == k).Tablet == null)) Feedback += "\nSome required tablets are missing.";
                 timer.Penalize(incorrectPenalty); ui.SetFeedback(false); return;
             }
+            CompleteCurrentChallenge();
+        }
+        void CompleteCurrentChallenge()
+        {
             Correct++; timer.Pause();
             if (completionSeals.Length > ChallengeIndex) completionSeals[ChallengeIndex].enabled = true;
             if (Correct == InductionChallenges.ChallengesPerRun)

@@ -87,3 +87,22 @@ Forms follow **IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 3.pptx**:
 MP (slide 8), MT (10), HS (12), DS (14), CD (16–17), SIMP (19), CONJ (21),
 ADD (23), DN (25), and TAU (27). CD preserves the combined conditional premise.
 TAU follows the slides' idempotence forms `p OR p -> p` and `p AND p -> p`.
+
+## Admin question viewer and water-area support
+
+RulesOfInference enables its existing shared Admin controller. `View Questions & Answers`
+uses read-only snapshots of the live selected question and each challenge bank, including
+board blank order, Rule Crystal and conclusion. The same viewer covers every existing
+Admin stage (both PRELIM topics, Setssss, Formal/Informal Proofs and Direct/Indirect).
+Opening or paging the viewer never draws questions, validates answers or changes inventory.
+Back stays inside the paused Admin modal; Close restores the prior input/timer state.
+
+The stair support is limited to the actual altar mesh footprint. Tread-edge ramps replace
+the former broad flat disc; short landings extend only onto dry ground, never over exposed
+water. The original ground, water appearance and altar colliders remain intact. A separate
+camera-facing, bobbing book exclamation mark follows the waiting/active/terminal states.
+
+`AdminAnswerChecks.CheckCatalogs()` verifies all existing Admin question sources in Edit
+Mode without saving scenes. The opt-in `Admin.AnswersQA` SessionState check exercises the
+pond footprint, book indicator states, scrolling and read-only modal behavior in Play Mode
+at 800x480, 1280x720 and 2960x1440. Leave it disabled during normal play.

@@ -78,7 +78,7 @@ public static class TruthTableChallengeQuestions
 
 // One session selects three distinct entries from each difficulty and keeps
 // them fixed through retries, door resets and block returns.
-public sealed class TruthTableChallengePhase : IPuzzlePhase
+public sealed partial class TruthTableChallengePhase : IPuzzlePhase
 {
     private static readonly string[] DifficultyNames = { "Easy", "Medium", "Hard" };
     private readonly DynamicLogicPuzzle puzzle;

@@ -9,7 +9,7 @@ using UnityEngine.UI;
 // Uses the Setssss scene's existing numbered GrabbableObjects and hand/E input.
 // The original SetsStageManager supplies the shared set-membership validator.
 [DisallowMultipleComponent]
-public sealed class SetssssChallengeOne : MonoBehaviour
+public sealed partial class SetssssChallengeOne : MonoBehaviour
 {
     [Header("Setssss scene objects")]
     [SerializeField] private Transform bookStatue;
@@ -485,6 +485,7 @@ public sealed class SetssssChallengeOne : MonoBehaviour
             unansweredEntries[swap] = previous;
         }
         unansweredEntries.RemoveRange(QuestionsPerChallenge, unansweredEntries.Count - QuestionsPerChallenge);
+        adminSelectedQuestions[challengeNumber] = unansweredEntries.ToArray();
     }
 
     private SetsConditionData GetBankCondition(int index)
