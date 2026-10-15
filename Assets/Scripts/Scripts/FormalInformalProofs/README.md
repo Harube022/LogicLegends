@@ -120,3 +120,34 @@ pedestals using the joystick; tap Interact, Carry, Close, Retry, and Main Menu;
 check the reading panel and pedestal text on a target phone aspect
 ratio; complete one full five-challenge run; verify audio and scene transition
 to the main menu. These touchscreen and device-size checks were not automated.
+
+## PRELIM-style onboarding and board camera
+
+The controller attaches `ProofsStageUI`, `ProofsHelpUI`, and `ProofsBoardView` at
+runtime to the existing scene references. Prefab instances and altar/board models
+stay intact. The compact safe-area HUD uses the existing live countdown and
+challenge index. Help opens on spawn, pauses input/time, and can be reopened;
+closing a reopened guide restores the same challenge without replaying onboarding.
+
+The first Let's Begin starts joystick → hand practice → successful jump, followed
+by separate timer/progress explanations, book practice, formal/informal altar
+explanations, and the existing scroll reader/Carry/Take Back controls. A separate
+practice stand/model and practice-only fields keep real inventory, placements,
+question selection, penalties and progression unchanged. The book retains both
+its real activation and whole-answer confirmation behavior.
+
+One shared PRELIM Skip control cancels practice and camera movement into Let's
+start? Yes prepares Challenge 1 while leaving the timer/book gate waiting; No
+repeats movement. Both finish paths restore text, button state, camera inputs,
+avatar visibility and UI layout. View Board also works outside practice and Back
+restores the gameplay camera/controls. During an active challenge, its countdown
+continues in board view, matching the existing scroll-reading timer rule. Help
+and tutorial practice pause it.
+
+For offline QA, set the Editor SessionState flag `Proofs.OnboardingQA` and choose
+`Proofs.CheckSize` (2=800x480, 4=1280x720, 12=2960x1440), then enter Play in this
+scene. The opt-in check exercises Help pages, deliberate movement, hand/jump order,
+reader collection and correction, Skip/No/Yes cleanup, normal board viewing, wrong
+answer preservation/penalty, and all five authored validations. It suppresses
+account unlock writes and restores question-history preferences on exiting Play.
+Leave the flag disabled for ordinary play.

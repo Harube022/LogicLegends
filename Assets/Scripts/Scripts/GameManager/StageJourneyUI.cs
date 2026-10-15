@@ -31,6 +31,7 @@ public sealed class StageJourneyUI : MonoBehaviour
     private bool inferenceFirstGuidePending = true;
     private float inferenceRemaining;
     private bool inferenceFinished, resultOpen, tutorialOpen, navigating;
+    public bool InferenceEnded => inferenceFinished || resultOpen || inferenceRemaining <= 0f;
     private float previousTimeScale;
     private bool previousInputBlocked, previousPlayerEnabled;
     private int tutorialIndex;

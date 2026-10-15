@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 namespace LogicLegends.Inference
 {
     public enum InferencePuzzleStage { CompletingPremises, FindingDiamond, Solved }
-    public class InferenceChallenge : MonoBehaviour
+    public partial class InferenceChallenge : MonoBehaviour
     {
         [Header("Editable challenge content")]
         public InferenceRule[] rules;
@@ -115,6 +115,13 @@ namespace LogicLegends.Inference
                 (InferenceControlsOnboarding.Active != null && InferenceControlsOnboarding.Active.IsActive)) return false;
             HasStarted = true;
             onBookStarted?.Invoke(SolvedRounds + 1);
+            return true;
+        }
+
+        public bool DebugClearCurrentChallenge()
+        {
+            if (!HasStarted || PuzzleCompleted) return false;
+            CompleteRound();
             return true;
         }
 

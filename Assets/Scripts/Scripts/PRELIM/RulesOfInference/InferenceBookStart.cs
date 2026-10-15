@@ -14,6 +14,9 @@ namespace LogicLegends.Inference
         private GameInput subscribedInput;
         private TextMeshPro prompt;
         private Button interactButton;
+        private TextMeshPro waitingIndicator;
+        private Bounds bookBounds;
+        private bool boundsReady;
 
         private void Update()
         {
@@ -26,21 +29,22 @@ namespace LogicLegends.Inference
             }
             EnsurePrompt();
             EnsureButton();
+            bool waiting = challenge != null && challenge.isActiveAndEnabled && !challenge.HasStarted &&
+                !challenge.PuzzleCompleted && (StageJourneyUI.Instance == null || !StageJourneyUI.Instance.InferenceEnded);
+            if (waitingIndicator != null)
+            {
+                waitingIndicator.gameObject.SetActive(waiting);
+                waitingIndicator.transform.position = new Vector3(bookBounds.center.x,
+                    bookBounds.max.y + 3.8f + Mathf.Sin(Time.unscaledTime * 2f) * .35f, bookBounds.center.z);
+                if (Camera.main != null) waitingIndicator.transform.rotation = Camera.main.transform.rotation;
+            }
             if (interactButton != null) interactButton.gameObject.SetActive(CanInteract());
             if (prompt != null)
             {
-                prompt.gameObject.SetActive(challenge != null && !challenge.HasStarted &&
-                    !challenge.PuzzleCompleted);
+                prompt.gameObject.SetActive(waiting);
                 if (prompt.gameObject.activeSelf)
                 {
-                    Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
-                    if (renderers.Length > 0)
-                    {
-                        Bounds bounds = renderers[0].bounds;
-                        for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
-                        prompt.transform.position = new Vector3(bounds.center.x, bounds.max.y + 0.8f,
-                            bounds.center.z);
-                    }
+                    prompt.transform.position = new Vector3(bookBounds.center.x, bookBounds.max.y + .8f, bookBounds.center.z);
                     if (Camera.main != null) prompt.transform.rotation = Camera.main.transform.rotation;
                 }
             }
@@ -65,6 +69,15 @@ namespace LogicLegends.Inference
         private void EnsurePrompt()
         {
             if (prompt != null) return;
+            // Cache only the statue's geometry; including our labels makes bounds grow every frame.
+            if (!boundsReady)
+            {
+                bookBounds = new Bounds(transform.position, Vector3.zero);
+                foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
+                    if (renderer.GetComponent<TMP_Text>() == null && renderer.GetComponent<TMP_SubMesh>() == null)
+                        bookBounds.Encapsulate(renderer.bounds);
+                boundsReady = true;
+            }
             GameObject label = new GameObject("Inference Book Start Prompt", typeof(TextMeshPro));
             prompt = label.GetComponent<TextMeshPro>();
             prompt.text = promptText;
@@ -76,6 +89,16 @@ namespace LogicLegends.Inference
             prompt.outlineWidth = 0.25f;
             prompt.rectTransform.sizeDelta = new Vector2(26f, 5f);
             prompt.transform.localScale = Vector3.one * 0.75f;
+            var indicator = new GameObject("Inference Book Waiting Indicator", typeof(TextMeshPro));
+            waitingIndicator = indicator.GetComponent<TextMeshPro>();
+            waitingIndicator.text = "!";
+            waitingIndicator.font = StageUITheme.HeadingFont;
+            waitingIndicator.fontSize = 13f;
+            waitingIndicator.alignment = TextAlignmentOptions.Center;
+            waitingIndicator.color = StageUITheme.Gold;
+            waitingIndicator.outlineColor = Color.black;
+            waitingIndicator.outlineWidth = .25f;
+            waitingIndicator.rectTransform.sizeDelta = new Vector2(5f, 5f);
         }
 
         private void OnInteract(object sender, System.EventArgs args) => TryStartFromInteraction();
@@ -98,6 +121,7 @@ namespace LogicLegends.Inference
             if (tutorial != null && tutorial.IsActive) return tutorial.IsBookStep;
             if (challenge == null || !challenge.isActiveAndEnabled || subscribedInput == null ||
                 subscribedInput.GameplayInputBlocked || challenge.HasStarted ||
+                (StageJourneyUI.Instance != null && StageJourneyUI.Instance.InferenceEnded) ||
                 challenge.PuzzleCompleted || challenge.IsBoardOpen ||
                 (InferenceControlsOnboarding.Active != null && InferenceControlsOnboarding.Active.IsActive)) return false;
             Player player = Player.LocalInstance;
@@ -118,6 +142,8 @@ namespace LogicLegends.Inference
             subscribedInput = null;
             if (prompt != null) Destroy(prompt.gameObject);
             prompt = null;
+            if (waitingIndicator != null) Destroy(waitingIndicator.gameObject);
+            waitingIndicator = null;
             if (interactButton != null) Destroy(interactButton.gameObject);
             interactButton = null;
         }

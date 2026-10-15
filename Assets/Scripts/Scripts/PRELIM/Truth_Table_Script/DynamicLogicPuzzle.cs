@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using TMPro;
 
-public class DynamicLogicPuzzle : MonoBehaviour
+public partial class DynamicLogicPuzzle : MonoBehaviour
 {
     private IPuzzlePhase currentPhase;
     private TruthTableChallengePhase challengePhase;

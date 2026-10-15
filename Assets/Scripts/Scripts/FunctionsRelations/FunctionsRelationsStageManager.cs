@@ -18,7 +18,7 @@ public enum FunctionsRelationsState
 }
 
 [DisallowMultipleComponent]
-public sealed class FunctionsRelationsStageManager : MonoBehaviour
+public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 {
     [Header("Gameplay")]
     [SerializeField] private MappingChallengeCatalog catalog;

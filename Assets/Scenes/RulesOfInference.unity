@@ -7647,6 +7647,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7105875067273239300, guid: 0d2cb549cf2c64948a529b94581046ce, type: 3}
   m_PrefabInstance: {fileID: 834164496}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &281294272
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 281294274}
+  - component: {fileID: 281294273}
+  m_Layer: 0
+  m_Name: Admin Debug
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &281294273
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 281294272}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c114bb8b0277a8b419bf019367e011d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AdminDebugController
+  featureEnabled: 1
+  allowInPlayerBuilds: 1
+  uiCanvas: {fileID: 0}
+  adminButtonEnabled: 1
+--- !u!4 &281294274
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 281294272}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &286298918
 GameObject:
   m_ObjectHideFlags: 0
@@ -31410,3 +31458,4 @@ SceneRoots:
   - {fileID: 1603902448}
   - {fileID: 1301278207}
   - {fileID: 1335240804}
+  - {fileID: 281294274}

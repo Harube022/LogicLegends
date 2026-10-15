@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>Book-driven five-challenge proof trial with one shared countdown.</summary>
-public sealed class DirectIndirectProofStageController : MonoBehaviour
+public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 {
     public enum TrialState { WaitingForActivation, Active, Validating, ChallengeComplete, StageComplete, GameOver }
 
@@ -287,6 +287,7 @@ public sealed class DirectIndirectProofStageController : MonoBehaviour
         if (state != TrialState.WaitingForActivation) return;
         activeVariantIndex = UnityEngine.Random.Range(0, catalog.variantSets[challengeIndex].variants.Length);
         activeChallenge = catalog.variantSets[challengeIndex].variants[activeVariantIndex];
+        adminSelectedVariants[challengeIndex] = activeVariantIndex;
         TrialProofChallenge challenge = Current;
         selectedMethod = -1;
         selectedSource = -1;
