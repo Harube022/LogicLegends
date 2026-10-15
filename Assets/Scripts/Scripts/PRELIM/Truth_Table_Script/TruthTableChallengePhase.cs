@@ -189,9 +189,10 @@ public sealed class TruthTableChallengePhase : IPuzzlePhase
 
         if (!correct)
         {
-            // Replace this attempt's four blocks from the same answers used by
-            // validation. The selected question remains unchanged on a retry.
-            puzzle.RespawnBlocksForRetry(currentAnswers);
+            // Give back the actual four blocks so the player can retry the same
+            // expression without searching the houses again.
+            foreach (TruthBlock block in placedBlocks)
+                if (block != null && !block.ReturnToInventory()) block.ReturnToOrigin(false);
             Array.Clear(placedBlocks, 0, placedBlocks.Length);
             currentRow = 0;
             puzzle.UpdatePlacementIndicator();

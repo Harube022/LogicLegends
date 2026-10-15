@@ -102,7 +102,7 @@ public class DynamicLogicPuzzle : MonoBehaviour
         if (houseDoors != null) houseDoors.PlayAnswerFeedback(correct);
         if (!correct && houseDoors != null) houseDoors.ApplyIncorrectColumnPenalty();
         if (houseDoors != null && !houseDoors.IsStageRunning && !correct) return;
-        if (houseDoors != null) houseDoors.ResetAfterColumnEvaluation();
+        if (correct && houseDoors != null) houseDoors.ResetAfterColumnEvaluation();
         ShowColumnFeedback(correct);
         UpdatePlacementIndicator();
         Debug.Log(correct ? "Truth_Table column correct; advancing." :
