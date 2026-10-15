@@ -23,6 +23,7 @@ public class TeleportManager : MonoBehaviourPun
     public static bool UsesCoveredTransitions =>
         SceneManager.GetSceneByName("PRELIM").isLoaded ||
         SceneManager.GetSceneByName("RulesOfInference").isLoaded ||
+        SceneManager.GetActiveScene().name == "LogicGarden" ||
         SceneManager.GetActiveScene().name == "Graph" ||
         SceneManager.GetActiveScene().name == "Trees" ||
         SceneManager.GetActiveScene().name == "MultiplayerStage";
