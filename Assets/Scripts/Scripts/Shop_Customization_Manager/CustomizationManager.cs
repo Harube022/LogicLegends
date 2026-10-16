@@ -27,6 +27,8 @@ public class CustomizationManager : MonoBehaviour
     [Header("Loading Transition")]
     [SerializeField] private UnityEngine.UI.ScrollRect itemsScroll;
     [SerializeField] private CanvasGroup[] revealGroups = new CanvasGroup[0];
+    [SerializeField] private CanvasGroup scrollbarLoadingGate;
+    [SerializeField] private CharacterInspectView inspection;
     private const string LoadingText = "Loading your character and equipped skin...";
     private bool pendingLoadingFeedback;
     private float loadingMessageShownAt = -1f;
@@ -62,6 +64,8 @@ public class CustomizationManager : MonoBehaviour
     private void HideContent()
     {
         SetReveal(0f, false);
+        if (inspection != null) inspection.Clear();
+        SetScrollbarReveal(false);
         if (itemsScroll != null)
         {
             itemsScroll.StopMovement();
@@ -223,6 +227,25 @@ public class CustomizationManager : MonoBehaviour
         SetReveal(1f, true);
         if (itemsScroll != null) itemsScroll.enabled = true;
         revealing = false;
+        RefreshScrollbarVisibility();
+    }
+
+    private void LateUpdate() => RefreshScrollbarVisibility();
+
+    private void RefreshScrollbarVisibility()
+    {
+        if (itemsScroll == null || itemsScroll.content == null) return;
+        var viewport = itemsScroll.viewport != null ? itemsScroll.viewport : (RectTransform)itemsScroll.transform;
+        SetScrollbarReveal(isActiveAndEnabled && dataLoaded && !revealing &&
+            itemsScroll.content.rect.height > viewport.rect.height + 1f);
+    }
+
+    private void SetScrollbarReveal(bool visible)
+    {
+        if (scrollbarLoadingGate == null) return;
+        scrollbarLoadingGate.alpha = visible ? 1f : 0f;
+        scrollbarLoadingGate.interactable = visible;
+        scrollbarLoadingGate.blocksRaycasts = visible;
     }
 
     private bool Fits(CustomizationItem item)
@@ -297,6 +320,11 @@ public class CustomizationManager : MonoBehaviour
                     (entry.itemID == equippedClothes || entry.itemID == equippedPet));
         if (maleMannequin != null) maleMannequin.SetActive(body == maleMannequin);
         if (femaleMannequin != null) femaleMannequin.SetActive(body == femaleMannequin);
+        if (inspection != null)
+            foreach (var entry in mannequinModels)
+                if (entry != null && entry.model != null && entry.itemID == equippedClothes && body != null &&
+                    entry.model.transform.IsChildOf(body.transform))
+                { inspection.ShowCharacter(body.transform,entry.model.transform); break; }
         foreach (var item in allUIItems)
         {
             if (item == null) continue;
