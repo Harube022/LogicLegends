@@ -64,6 +64,8 @@ namespace LogicLegends.Inference
     [RequireComponent(typeof(UnityEngine.UI.Image))]
     public sealed class DropZone : MonoBehaviour, IDropHandler, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
+        public bool? CheckedCorrect { get; private set; }
+        public void SetFeedback(bool correct) => CheckedCorrect = correct;
         public DraggableWord PlacedWord { get; private set; }
         public string Value => PlacedWord == null ? null : PlacedWord.Word;
         public bool Locked { get; private set; }
@@ -94,6 +96,7 @@ namespace LogicLegends.Inference
             if (PlacedWord != null && PlacedWord != word) PlacedWord.ReturnToBank();
             if (word.Zone != null) word.Zone.Release(word);
             PlacedWord = word; word.Zone = this;
+            CheckedCorrect = null;
             word.transform.SetParent(transform, false);
             var rect = (RectTransform)word.transform;
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
@@ -104,6 +107,7 @@ namespace LogicLegends.Inference
         internal void Release(DraggableWord word)
         {
             if (PlacedWord == word) PlacedWord = null;
+            CheckedCorrect = null;
             word.Zone = null;
         }
         public void Lock()

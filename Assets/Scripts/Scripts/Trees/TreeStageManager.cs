@@ -51,8 +51,11 @@ namespace LogicLegends.Trees
         }
         void OnDestroy(){if(input!=null){input.OnInteractAction-=OnInteract;if(BoardOpen)input.SetGameplayInputBlocked(inputBeforeBoard);}if(boardFocus!=null)boardFocus.Exit();}
         void OnInteract(object sender,EventArgs args){InteractBook();}
+        void OnDisable() { BookStatuePresentation.SetRequired(bookStatue, false); }
         void Update()
         {
+            BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && Ready && !Moving && !BoardOpen &&
+                !LessonOpen && (State == TreeStageState.WAITING_FOR_ACTIVATION || State == TreeStageState.ACTIVE));
             if(!Ready)return;
             ui.Refresh();
         }

@@ -162,6 +162,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     private void OnDisable()
     {
+        BookStatuePresentation.SetRequired(bookStatue, false);
         RestoreBookMaterials();
         if (input != null) input.OnInteractAction -= OnInteract;
         if (input != null) input.SetGameplayInputBlocked(false);
@@ -179,6 +180,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     private void Update()
     {
+        BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && state == TrialState.WaitingForActivation);
         if (input == null) BindInput();
         if (player == null) player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
         if (timerRunning)

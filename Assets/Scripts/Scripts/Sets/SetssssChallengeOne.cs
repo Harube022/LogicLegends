@@ -154,7 +154,6 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
     private bool diagramRendererOriginallyEnabled;
     private MeshFilter diagramMeshFilter;
     private Mesh originalDiagramMesh;
-    private TextMeshPro universalLabel;
     private ComplementCondition activeComplement;
     private bool started;
     private bool advancing;
@@ -170,6 +169,8 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
     private RectTransform viewBoardRect;
     private SetssssChallengePresentation presentation;
     private SetssssHudView hud;
+    private SetssssChallengeIntroductions introductions;
+    public SetssssChallengeIntroductions Introductions => introductions;
 
     public static SetssssChallengeOne ActiveInstance { get; private set; }
 
@@ -315,7 +316,6 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         universalBounds = GetRendererBounds(universalBoundary != null ? universalBoundary.gameObject : null);
         if (universalBounds.extents.x <= 0f || universalBounds.extents.z <= 0f)
             Debug.LogError("Setssss Challenge 5 requires the existing BORDERLINES renderer as U.", this);
-        CreateComplementVisuals();
 
         for (int i = 0; i < BlocksPerCondition; i++)
         {
@@ -335,6 +335,9 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         RefreshComplementVisuals();
         UpdateBookPrompt();
         RefreshBoard();
+        introductions = GetComponent<SetssssChallengeIntroductions>();
+        if (introductions == null) introductions = gameObject.AddComponent<SetssssChallengeIntroductions>();
+        introductions.Initialize(this);
     }
 
     private void ConfigureTimerDisplay()
@@ -654,6 +657,9 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
     // stage restart outside Game Over starts again at Challenge 1.
     public void RestartChallenge()
     {
+        bool newPlaythrough = !gameOverTriggered;
+        introductions?.Cancel();
+        if (newPlaythrough) introductions?.ResetPlaythrough();
         if (presentation != null) { presentation.CancelIntroduction(); presentation.ClearDeductions(); }
         int restartAt = gameOverTriggered ? challengeNumber : 1;
         if (boardView != null && boardView.IsViewingBoard) boardView.Back();
@@ -686,6 +692,8 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
 
     private void OnDisable()
     {
+        introductions?.Cancel();
+        BookStatuePresentation.SetRequired(bookStatue, false);
         hud?.Notice.Hide();
         if (presentation != null) { presentation.CancelIntroduction(); presentation.ClearDeductions(); }
         RefreshDifferenceRegions();
@@ -693,7 +701,6 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         ClearAllErrorIndicators();
         if (diagramMeshFilter != null) diagramMeshFilter.sharedMesh = originalDiagramMesh;
         if (diagramRenderer != null) diagramRenderer.enabled = diagramRendererOriginallyEnabled;
-        if (universalLabel != null) universalLabel.gameObject.SetActive(false);
         if (submitButton != null) submitButton.onClick.RemoveListener(Submit);
         if (interactWithBookButton != null) interactWithBookButton.onClick.RemoveListener(UseExistingInteraction);
         if (pickUpBlockButton != null) pickUpBlockButton.onClick.RemoveListener(UseExistingInteraction);
@@ -727,6 +734,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
     // follows the same target selection and pickup/drop path in Setssss.
     public bool TryHandleInteraction()
     {
+        if (introductions != null && introductions.MustIntroduceCurrentChallenge) return true;
         if (SetssssControlsOnboarding.Active != null &&
             SetssssControlsOnboarding.Active.IsActive) return true;
         if (complete || gameOverTriggered || advancing) return true;
@@ -756,13 +764,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         {
             if (!started)
             {
-                if (challengeNumber == 4 && presentation != null)
-                {
-                    hud?.Notice.Hide();
-                    presentation.ShowIntroduction(StartGameplayChallenge);
-                    RefreshDifferenceRegions();
-                }
-                else StartGameplayChallenge();
+                StartGameplayChallenge();
             }
             return true;
         }
@@ -899,6 +901,9 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
 
     private void Update()
     {
+        BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && !started && !complete && !gameOverTriggered &&
+            !advancing && (introductions == null || !introductions.MustIntroduceCurrentChallenge) &&
+            (SetssssControlsOnboarding.Active == null || !SetssssControlsOnboarding.Active.IsActive), bookPrompt);
         TickTimer();
         AdjustControlLayout();
         if (input == null) BindInput();
@@ -907,8 +912,6 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
 
         if (bookPrompt != null && bookPrompt.gameObject.activeSelf && Camera.main != null)
             FaceCamera(bookPrompt.transform);
-        if (universalLabel != null && universalLabel.gameObject.activeSelf && Camera.main != null)
-            FaceCamera(universalLabel.transform);
 
         bool nearDiagram = started && !complete && !gameOverTriggered && !advancing && IsNearPlacementArea(player.transform.position);
         bool controlsAvailable = !gameOverTriggered && input != null && !input.GameplayInputBlocked &&
@@ -1001,46 +1004,20 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
     private void RefreshDifferenceRegions()
     {
         bool available = !complete && challengeNumber == 4 &&
-            (started || presentation != null && presentation.IsIntroductionOpen);
+            (started || introductions != null && introductions.IsOpen || presentation != null && presentation.IsIntroductionOpen);
         if (aMinusBRegion != null) aMinusBRegion.SetActive(available);
         if (bMinusARegion != null) bMinusARegion.SetActive(available);
-    }
-
-    private void CreateComplementVisuals()
-    {
-        if (universalBoundary == null || universalLabel != null) return;
-        // BORDERLINES remains the existing U boundary. The AB GameObject itself
-        // displays one of its original circles; no new circle is instantiated.
-        universalLabel = CreateComplementLabel("Universal Set U", "U", new Color(0.4f, 0.95f, 0.95f));
-    }
-
-    private TextMeshPro CreateComplementLabel(string objectName, string value, Color color)
-    {
-        GameObject labelObject = new GameObject(objectName);
-        labelObject.transform.SetParent(universalBoundary, false);
-        TextMeshPro label = labelObject.AddComponent<TextMeshPro>();
-        if (boardText != null) label.font = boardText.font;
-        label.text = value;
-        label.fontSize = 6f;
-        label.color = color;
-        label.alignment = TextAlignmentOptions.Center;
-        label.rectTransform.sizeDelta = new Vector2(9f, 5f);
-        labelObject.SetActive(false);
-        return label;
     }
 
     private void RefreshComplementVisuals()
     {
         bool visible = started && !complete && challengeNumber == 5 && activeComplement != null;
+        bool preview = introductions != null && introductions.IsOpen && challengeNumber == 5;
         if (diagramMeshFilter != null)
-            diagramMeshFilter.sharedMesh = visible
+            diagramMeshFilter.sharedMesh = preview ? existingACircleMesh : visible
                 ? (activeComplement.setName == "A" ? existingACircleMesh : existingBCircleMesh)
                 : originalDiagramMesh;
         if (diagramRenderer != null) diagramRenderer.enabled = diagramRendererOriginallyEnabled;
-        if (universalLabel != null) universalLabel.gameObject.SetActive(visible);
-        if (!visible) return;
-        universalLabel.transform.position = new Vector3(universalBounds.min.x + 5f,
-            universalBounds.max.y + 2.6f, universalBounds.min.z + 4f);
     }
 
     private bool IsNearPlacementArea(Vector3 point)

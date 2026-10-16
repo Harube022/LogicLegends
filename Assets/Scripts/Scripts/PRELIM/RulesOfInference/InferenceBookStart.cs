@@ -14,7 +14,6 @@ namespace LogicLegends.Inference
         private GameInput subscribedInput;
         private TextMeshPro prompt;
         private Button interactButton;
-        private TextMeshPro waitingIndicator;
         private Bounds bookBounds;
         private bool boundsReady;
 
@@ -31,13 +30,7 @@ namespace LogicLegends.Inference
             EnsureButton();
             bool waiting = challenge != null && challenge.isActiveAndEnabled && !challenge.HasStarted &&
                 !challenge.PuzzleCompleted && (StageJourneyUI.Instance == null || !StageJourneyUI.Instance.InferenceEnded);
-            if (waitingIndicator != null)
-            {
-                waitingIndicator.gameObject.SetActive(waiting);
-                waitingIndicator.transform.position = new Vector3(bookBounds.center.x,
-                    bookBounds.max.y + 3.8f + Mathf.Sin(Time.unscaledTime * 2f) * .35f, bookBounds.center.z);
-                if (Camera.main != null) waitingIndicator.transform.rotation = Camera.main.transform.rotation;
-            }
+            BookStatuePresentation.SetRequired(transform, waiting, prompt);
             if (interactButton != null) interactButton.gameObject.SetActive(CanInteract());
             if (prompt != null)
             {
@@ -89,16 +82,7 @@ namespace LogicLegends.Inference
             prompt.outlineWidth = 0.25f;
             prompt.rectTransform.sizeDelta = new Vector2(26f, 5f);
             prompt.transform.localScale = Vector3.one * 0.75f;
-            var indicator = new GameObject("Inference Book Waiting Indicator", typeof(TextMeshPro));
-            waitingIndicator = indicator.GetComponent<TextMeshPro>();
-            waitingIndicator.text = "!";
-            waitingIndicator.font = StageUITheme.HeadingFont;
-            waitingIndicator.fontSize = 13f;
-            waitingIndicator.alignment = TextAlignmentOptions.Center;
-            waitingIndicator.color = StageUITheme.Gold;
-            waitingIndicator.outlineColor = Color.black;
-            waitingIndicator.outlineWidth = .25f;
-            waitingIndicator.rectTransform.sizeDelta = new Vector2(5f, 5f);
+
         }
 
         private void OnInteract(object sender, System.EventArgs args) => TryStartFromInteraction();
@@ -142,8 +126,7 @@ namespace LogicLegends.Inference
             subscribedInput = null;
             if (prompt != null) Destroy(prompt.gameObject);
             prompt = null;
-            if (waitingIndicator != null) Destroy(waitingIndicator.gameObject);
-            waitingIndicator = null;
+            BookStatuePresentation.SetRequired(transform, false);
             if (interactButton != null) Destroy(interactButton.gameObject);
             interactButton = null;
         }

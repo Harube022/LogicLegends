@@ -25,7 +25,7 @@ namespace LogicLegends.Inference
             }
             AvailableCrystal = FindAvailable();
             var tutorial = InferenceControlsOnboarding.Active;
-            bool practice = tutorial != null && tutorial.IsCrystalPractice && !GameInput.Instance.GameplayInputBlocked;
+            bool practice = tutorial != null && tutorial.IsCrystalPractice && GameInput.Instance != null && !GameInput.Instance.GameplayInputBlocked;
             CollectButton.gameObject.SetActive(practice || AvailableCrystal != null);
         }
         bool CanUse()
@@ -68,9 +68,22 @@ namespace LogicLegends.Inference
             }
             var crystal = FindAvailable();
             if (crystal == null) return false;
-            var grab = crystal.GetComponent<GrabbableObject>(); grab.Grab(player.GetHoldPoint()); player.SetHeldObjectSilently(grab);
+            var quiz = Challenge.GetComponent<InferenceCrystalQuiz>();
+            if (quiz == null) return false;
+            // Both pickup inputs reach this gate; no inventory mutation happens before answering.
+            if (!quiz.Open(() => CollectAfterQuiz(crystal))) return true;
             AvailableCrystal = null; if (CollectButton != null) CollectButton.gameObject.SetActive(false);
             return true;
+        }
+        void CollectAfterQuiz(InferenceCrystal crystal)
+        {
+            if (!CanUse() || crystal == null || crystal.IsPlaced || crystal.QuestionId != Challenge.Question?.Id) return;
+            var player = Player.LocalInstance;
+            var grab = crystal.GetComponent<GrabbableObject>();
+            if (player.GetHeldObject() != null || grab.IsHeld || grab.isStoredInInventory) return;
+            grab.Grab(player.GetHoldPoint()); player.SetHeldObjectSilently(grab);
+            AvailableCrystal = null;
+            if (CollectButton != null) CollectButton.gameObject.SetActive(false);
         }
         void OnDisable() { if (Active == this) Active = null; if (CollectButton != null) CollectButton.gameObject.SetActive(false); }
         void OnEnable() { if (Challenge != null) Active = this; }

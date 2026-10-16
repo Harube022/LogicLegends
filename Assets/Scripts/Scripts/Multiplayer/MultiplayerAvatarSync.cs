@@ -10,6 +10,7 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
     private Vector3 targetPosition;
     private Quaternion targetRotation;
     private bool received, walking, jumping, running;
+    public float AnimationMovementSpeed { get; private set; }
 
     private void Awake()
     {
@@ -56,15 +57,22 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
         if (!stream.IsWriting && info.Sender != photonView.Owner) return;
         if (stream.IsWriting)
         {
+            var controller = GetComponent<CharacterController>();
+            bool canMove = player != null && player.enabled && controller != null && controller.enabled && Time.timeScale > 0;
+            Vector3 velocity = canMove ? controller.velocity : Vector3.zero;
+            velocity.y = 0f;
+            bool moving = canMove && player.IsWalking() && velocity.sqrMagnitude > .0025f;
             stream.SendNext(transform.position); stream.SendNext(transform.rotation);
-            stream.SendNext(player != null && player.IsWalking());
-            stream.SendNext(player != null && player.IsJumping());
-            stream.SendNext(player != null && player.IsRunning());
+            stream.SendNext(moving);
+            stream.SendNext(canMove && player.IsJumping());
+            stream.SendNext(moving && player.IsRunning());
+            stream.SendNext(velocity.magnitude);
         }
         else
         {
             targetPosition = (Vector3)stream.ReceiveNext(); targetRotation = (Quaternion)stream.ReceiveNext();
             walking = (bool)stream.ReceiveNext(); jumping = (bool)stream.ReceiveNext(); running = (bool)stream.ReceiveNext();
+            AnimationMovementSpeed = (float)stream.ReceiveNext();
             if (!received) transform.SetPositionAndRotation(targetPosition, targetRotation);
             received = true;
         }

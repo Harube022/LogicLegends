@@ -4,6 +4,7 @@ using UnityEngine;
 namespace LogicLegends.Inference
 {
     [RequireComponent(typeof(GrabbableObject))]
+    [DefaultExecutionOrder(1500)] // Billboard after the gameplay camera has moved.
     public class InferenceCrystal : MonoBehaviour
     {
         public TMP_Text label;
@@ -19,8 +20,24 @@ namespace LogicLegends.Inference
         float originalColliderRadius;
         float pillarPickupDrop, pillarPickupRadius;
         bool hasPillarPickup;
+        Bounds towerBounds;
+        bool hasTowerLabel;
+        Vector3 originalLabelScale;
         float trappedSince = -1f;
         public Vector3 PickupOrigin => origin;
+
+        public void ConfigureTowerLabel(Transform tower)
+        {
+            var renderers = tower.GetComponentsInChildren<MeshRenderer>(true);
+            if (renderers.Length == 0) return;
+            towerBounds = renderers[0].bounds;
+            foreach (var renderer in renderers) towerBounds.Encapsulate(renderer.bounds);
+            hasTowerLabel = true;
+            originalLabelScale = label.transform.localScale;
+            label.rectTransform.sizeDelta = new Vector2(24f, 5f);
+            label.textWrappingMode = TextWrappingModes.Normal;
+            label.overflowMode = TextOverflowModes.Overflow;
+        }
 
         void RestoreSolidCollider()
         {
@@ -148,6 +165,26 @@ namespace LogicLegends.Inference
                     if (!found) { visual = renderer.bounds; found = true; } else visual.Encapsulate(renderer.bounds);
                 }
                 if (found) label.transform.position = new Vector3(visual.center.x, visual.max.y + .8f, visual.center.z);
+                // Put the name on the camera-facing side of the whole tower's
+                // bounds, rather than inside its frame or high above its roof.
+                if (hasTowerLabel && !IsPlaced && grabbable != null && !grabbable.IsHeld &&
+                    (transform.position - origin).sqrMagnitude < .01f)
+                {
+                    Vector3 towardCamera = Camera.main.transform.position - towerBounds.center;
+                    towardCamera.y = 0f;
+                    if (towardCamera.sqrMagnitude < .01f) towardCamera = Vector3.back;
+                    towardCamera.Normalize();
+                    float edge = Mathf.Abs(towardCamera.x) * towerBounds.extents.x + Mathf.Abs(towardCamera.z) * towerBounds.extents.z;
+                    Vector3 position = towerBounds.center + towardCamera * (edge + 3f);
+                    position.y = visual.max.y + 1.5f;
+                    label.transform.position = position;
+                    float distance = Vector3.Distance(position, Camera.main.transform.position);
+                    label.transform.localScale = originalLabelScale * Mathf.Clamp(distance * .045f, .3f, 1f);
+                    label.transform.rotation = distance > .01f
+                        ? Quaternion.LookRotation(position - Camera.main.transform.position, Vector3.up)
+                        : Camera.main.transform.rotation;
+                }
+                else if (hasTowerLabel) label.transform.localScale = originalLabelScale;
             }
             // A dropped answer must remain recoverable, including if it falls off the island.
             if (!IsPlaced && transform.position.y < origin.y - 12f) ReturnToOrigin();

@@ -30,20 +30,27 @@ public sealed class StageJourneyUI : MonoBehaviour
     private PrelimChallengeCompletionNotice inferenceNotice;
     private bool inferenceFirstGuidePending = true;
     private float inferenceRemaining;
+    private bool inferenceQuizOpen, inferenceCompletionPending;
+    private int inferenceWaitingNotice;
+    private TMP_Text inferenceDeduction;
+    private float inferenceDeductionAt = -10;
+    public float InferenceRemainingSeconds => inferenceRemaining;
+    public bool InferenceQuizOpen => inferenceQuizOpen;
     private bool inferenceFinished, resultOpen, tutorialOpen, navigating;
     public bool InferenceEnded => inferenceFinished || resultOpen || inferenceRemaining <= 0f;
     private float previousTimeScale;
     private bool previousInputBlocked, previousPlayerEnabled;
     private int tutorialIndex;
-    private readonly string[] tutorialTitles = { "Start and explore", "Premises", "Rules of inference", "Rule Crystals", "Conclusions", "Five challenges", "Time and feedback" };
+    private readonly string[] tutorialTitles = { "Start and explore", "Premises", "Rules of inference", "Rule Crystals", "Crystal pickup quiz", "Conclusions", "Five challenges", "Time and feedback" };
     private readonly string[] tutorialBodies = {
         "Use the joystick to move and the jump button to jump. Interact with the Book Statue to start each challenge. Walk up the altar stairs and tap View Board. Complete the premises, identify their reasoning pattern, collect its Rule Crystal, and return to validate the answer.",
         "Premises are statements accepted as true and used to support a conclusion. Read the whole argument. Drag the supplied words into its blanks, then tap Check argument. Incorrect blanks stay editable; correct premises unlock the crystal search.",
         "A rule of inference is a valid reasoning pattern used to derive a conclusion from premises. Look at how the statements connect, including and, or, if/then, and negation. Choose the rule that fits that structure, rather than guessing from a crystal's appearance.",
         "A Rule Crystal is a collectible representing a specific inference rule. Its label identifies the rule. Choose the one that fits the completed premises. Near an available crystal, tap Collect Rule Crystal or use the hand button. You can carry one crystal at a time.",
-        "A conclusion is the statement that logically follows from the premises using the selected rule. Carry your Rule Crystal back, open View Board, and tap Place Rule Crystal. This validates its rule immediately: a correct match reveals the conclusion; a wrong crystal is rejected.",
+        "Before collecting a crystal, answer one multiple-choice question about logical equivalence. Choose A–D, read Correct or Incorrect feedback, then tap Collect Rule Crystal. Either answer allows collection. An incorrect answer subtracts 10 seconds once. These quiz topics are separate from the nine inference rules on the crystals.",
+        "A conclusion is the statement that logically follows from the premises using the selected rule. Carry your Rule Crystal back and tap Submit to Altar to open the board. Then tap Place Rule Crystal to check it. A correct match reveals the conclusion. Read it, then press Back or Continue. A wrong crystal is rejected.",
         "Complete five questions total: one randomly selected from each challenge's bank of ten. Tasks progress from direct facts to conditionals, negation, reasoning chains, and compound dilemmas. Correct rules never repeat in one playthrough. Return to the book to start each new challenge.",
-        "The shared 18-minute exploration timer starts through the book. It pauses during Help, practice, board viewing, and between challenges; it resumes when you start the next challenge. Wrong answers show error feedback; correct answers show success. Time up offers restart or Menu; five successes complete the stage." };
+        "The shared 18-minute timer starts through the book. It pauses during Help, practice, board viewing, pickup quizzes, and between challenges. An incorrect pickup quiz subtracts 10 seconds even while paused; incorrect premise or crystal submissions show feedback. The book resumes the remaining time for the next challenge. Five successes complete the stage." };
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() { Instance = null; }
@@ -123,6 +130,7 @@ public sealed class StageJourneyUI : MonoBehaviour
                 inference.onChallengeCompleted.AddListener(OnInferenceComplete);
                 inference.onRoundCompleted += OnInferenceRoundCompleted;
                 inference.onBookStarted += OnInferenceBookStarted;
+                inference.onBoardClosed += OnInferenceBoardClosed;
             }
             BuildInferenceTutorial();
             inferenceOnboarding = FindFirstObjectByType<InferenceControlsOnboarding>(FindObjectsInactive.Include);
@@ -160,7 +168,7 @@ public sealed class StageJourneyUI : MonoBehaviour
         {
             if (inference != null && inference.HasStarted && !inferenceFinished && !resultOpen && !tutorialOpen &&
                 (inferenceOnboarding == null || !inferenceOnboarding.IsActive) &&
-                !inference.IsBoardOpen && Time.timeScale > 0)
+                !inference.IsBoardOpen && !inferenceQuizOpen && Time.timeScale > 0)
             {
                 inferenceRemaining = Mathf.Max(0, inferenceRemaining - Time.deltaTime);
                 if (inferenceRemaining == 0) ShowFailure(3, "The exploration timer ran out.", RestartInference);
@@ -168,11 +176,47 @@ public sealed class StageJourneyUI : MonoBehaviour
             clockLabel.text = FormatTime(inferenceRemaining);
             progressLabel.text = inference == null ? "EXPLORE THE BOARD" : "CHALLENGE " + Mathf.Min(inference.SolvedRounds + 1, inference.requiredRounds) + " OF " + inference.requiredRounds;
             if (inferenceHelp != null) inferenceHelp.gameObject.SetActive(!resultOpen && !tutorialOpen &&
+                !inferenceQuizOpen &&
                 (inferenceOnboarding == null || !inferenceOnboarding.IsActive) &&
                 !(inference != null && inference.IsBoardOpen));
         }
         if (stage == 2 && truthClock != null && truthClock.TimeAdjustmentVisible)
             progressLabel.text += "\n" + truthClock.TimeAdjustmentText;
+        if (inferenceDeduction != null)
+        {
+            float age = Time.unscaledTime - inferenceDeductionAt;
+            inferenceDeduction.gameObject.SetActive(age < 2.2f && !resultOpen && !tutorialOpen);
+            var color = inferenceDeduction.color; color.a = 1f - Mathf.Clamp01((age - 1.2f) / 1f); inferenceDeduction.color = color;
+        }
+    }
+
+    public void SetInferenceQuizOpen(bool open)
+    {
+        inferenceQuizOpen = open;
+        if (!open && inferenceRemaining <= 0 && !resultOpen && !inferenceFinished)
+            ShowFailure(3, "The exploration timer ran out.", RestartInference);
+    }
+
+    public void DeductInferenceSeconds(float seconds)
+    {
+        if (seconds <= 0 || inference == null || !inference.HasStarted || resultOpen || inferenceFinished) return;
+        inferenceRemaining = Mathf.Max(0, inferenceRemaining - seconds);
+        if (inferenceDeduction == null)
+        {
+            inferenceDeduction = StageUITheme.Text("InferenceTimeDeduction", hud, "", 32, true);
+            var rect = inferenceDeduction.rectTransform;
+            rect.anchorMin = rect.anchorMax = new Vector2(.18f, .07f); rect.pivot = new Vector2(.5f, 1);
+            rect.anchoredPosition = new Vector2(0, -4); rect.sizeDelta = new Vector2(140, 40);
+            inferenceDeduction.color = new Color(1, .35f, .3f); inferenceDeduction.raycastTarget = false;
+        }
+        inferenceDeduction.text = "−" + seconds.ToString("0.#") + "s"; inferenceDeductionAt = Time.unscaledTime;
+        inferenceDeduction.color = new Color(1f, .15f, .12f, 1f);
+        inferenceDeduction.gameObject.SetActive(true);
+        // Keep the penalty above the quiz shade, without intercepting input.
+        var penaltyCanvas = inferenceDeduction.GetComponent<Canvas>();
+        if (penaltyCanvas == null) penaltyCanvas = inferenceDeduction.gameObject.AddComponent<Canvas>();
+        penaltyCanvas.overrideSorting = true; penaltyCanvas.sortingOrder = 305;
+        clockLabel.text = FormatTime(inferenceRemaining);
     }
 
     public static string StageName(int stage) => stage == 1 ? "Propositional Logic" : stage == 2 ? "Truth Table" : "Rules of Inference";
@@ -344,6 +388,7 @@ public sealed class StageJourneyUI : MonoBehaviour
     private void OnInferenceComplete()
     {
         if (resultOpen) return;
+        if (inference != null && inference.IsBoardOpen) { inferenceCompletionPending = true; return; }
         inferenceFinished = true;
         if (inference != null) inference.CloseBoard();
         inferenceNotice?.Hide();
@@ -354,12 +399,23 @@ public sealed class StageJourneyUI : MonoBehaviour
 
     private void OnInferenceRoundCompleted(int completedChallenge)
     {
-        if (inference != null) inference.CloseBoard();
+        if (inference != null && inference.IsBoardOpen) { inferenceWaitingNotice = completedChallenge; return; }
         inferenceNotice?.ShowWaiting(completedChallenge, completedChallenge + 1);
+    }
+
+    private void OnInferenceBoardClosed()
+    {
+        if (inferenceCompletionPending) { inferenceCompletionPending = false; OnInferenceComplete(); }
+        else if (inferenceWaitingNotice > 0)
+        {
+            inferenceNotice?.ShowWaiting(inferenceWaitingNotice, inferenceWaitingNotice + 1);
+            inferenceWaitingNotice = 0;
+        }
     }
 
     private void OnInferenceBookStarted(int challengeNumber)
     {
+        inferenceWaitingNotice = 0;
         inferenceNotice?.Hide();
         inferenceNotice?.ShowStart();
     }
@@ -393,7 +449,7 @@ public sealed class StageJourneyUI : MonoBehaviour
     public void OpenInferenceTutorial()
     {
         if (TeleportManager.Instance != null && TeleportManager.Instance.IsTransitioning) return;
-        if (tutorialOpen || resultOpen || inferenceTutorial == null ||
+        if (tutorialOpen || resultOpen || inferenceQuizOpen || inferenceTutorial == null ||
             (inferenceOnboarding != null && inferenceOnboarding.IsActive)) return;
         Pause(); tutorialOpen = true; tutorialIndex = 0; ChangePage(0);
         inferenceTutorial.SetActive(true); inferenceTutorial.transform.SetAsLastSibling();
@@ -425,6 +481,7 @@ public sealed class StageJourneyUI : MonoBehaviour
             inference.onChallengeCompleted.RemoveListener(OnInferenceComplete);
             inference.onRoundCompleted -= OnInferenceRoundCompleted;
             inference.onBookStarted -= OnInferenceBookStarted;
+            inference.onBoardClosed -= OnInferenceBoardClosed;
         }
         if (Instance == this) Instance = null;
         if (resultOpen || tutorialOpen) Time.timeScale = 1;

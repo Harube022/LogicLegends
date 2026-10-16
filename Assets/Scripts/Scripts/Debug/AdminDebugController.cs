@@ -87,7 +87,9 @@ public sealed class AdminDebugController : MonoBehaviour
         if (adminButton != null && SceneManager.GetActiveScene().name == "Setssss")
         {
             bool visible = adminButtonEnabled && (SetssssControlsOnboarding.Active == null ||
-                           !SetssssControlsOnboarding.Active.IsActive);
+                           !SetssssControlsOnboarding.Active.IsActive) &&
+                           (SetssssChallengeOne.ActiveInstance == null || SetssssChallengeOne.ActiveInstance.Introductions == null ||
+                            !SetssssChallengeOne.ActiveInstance.Introductions.IsOpen);
             if (adminButton.gameObject.activeSelf != visible) adminButton.gameObject.SetActive(visible);
         }
         if (panelOpen) UpdateLayout();

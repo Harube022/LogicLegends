@@ -60,9 +60,7 @@ public partial class QuizManager : MonoBehaviour
     private TextMeshProUGUI answerFeedbackText;
     private Coroutine answerFeedbackCoroutine;
     private PrelimChallengeCompletionNotice completionNotice;
-    private TextMeshPro bookStartIndicator;
     private BookInteract indicatorBook;
-    private float indicatorHeight;
 
     [Header("Challenge Sequence")]
     [SerializeField] private List<TopicChallenge> challenges;
@@ -135,7 +133,7 @@ public partial class QuizManager : MonoBehaviour
             answerFeedbackCoroutine = null;
         }
         if (answerFeedbackText != null) answerFeedbackText.gameObject.SetActive(false);
-        if (bookStartIndicator != null) bookStartIndicator.gameObject.SetActive(false);
+        if (indicatorBook != null) BookStatuePresentation.SetRequired(indicatorBook.transform, false);
         if (soundEffectsSource != null)
         {
             soundEffectsSource.Stop();
@@ -200,7 +198,6 @@ public partial class QuizManager : MonoBehaviour
         }
 
         EnsureFeedbackUI();
-        EnsureBookIndicator();
         RectTransform noticeHost = safeAreaPanel != null
             ? safeAreaPanel.transform as RectTransform
             : quizPanel != null ? quizPanel.GetComponentInParent<Canvas>()?.transform as RectTransform : null;
@@ -325,55 +322,20 @@ public partial class QuizManager : MonoBehaviour
         label.SetActive(false);
     }
 
-    private void EnsureBookIndicator()
-    {
-        if (bookStartIndicator != null) return;
-        GameObject indicator = new GameObject("PropositionalBookStartIndicator",
-            typeof(RectTransform), typeof(TextMeshPro));
-        indicator.transform.SetParent(transform, false);
-        bookStartIndicator = indicator.GetComponent<TextMeshPro>();
-        if (questionTextUI != null) bookStartIndicator.font = questionTextUI.font;
-        bookStartIndicator.text = "Interact to start the game";
-        bookStartIndicator.fontSize = 10f;
-        bookStartIndicator.fontStyle = FontStyles.Bold;
-        bookStartIndicator.alignment = TextAlignmentOptions.Center;
-        bookStartIndicator.textWrappingMode = TextWrappingModes.NoWrap;
-        bookStartIndicator.color = new Color(1f, 0.93f, 0.7f);
-        bookStartIndicator.outlineColor = new Color32(0, 0, 0, 255);
-        bookStartIndicator.outlineWidth = 0.25f;
-        bookStartIndicator.rectTransform.pivot = new Vector2(0.5f, 0f);
-        bookStartIndicator.rectTransform.sizeDelta = new Vector2(44f, 12f);
-        indicator.transform.localScale = Vector3.one * 0.48f;
-        indicator.SetActive(false);
-    }
-
     private void UpdateBookIndicator()
     {
-        if (bookStartIndicator == null) return;
         TopicChallenge challenge = GetCurrentChallenge();
         Transform room = challenge != null && challenge.roomChoiceCanvas != null
             ? challenge.roomChoiceCanvas.transform.parent : null;
         BookInteract book = room != null ? room.GetComponentInChildren<BookInteract>(true) : null;
-        bool visible = StageSelectionState.SelectedStage == 1 &&
-                       (PropositionalControlsOnboarding.Active == null ||
-                        !PropositionalControlsOnboarding.Active.IsActive) &&
-                       challenge != null && book != null && book.IsReadyForInteraction &&
-                       !IsQuizActive && (timerManager == null || timerManager.RemainingTime > 0f);
-        if (bookStartIndicator.gameObject.activeSelf != visible)
-            bookStartIndicator.gameObject.SetActive(visible);
-        if (!visible) return;
-
-        if (indicatorBook != book)
-        {
-            indicatorBook = book;
-            float top = book.transform.position.y;
-            foreach (Renderer renderer in book.GetComponentsInChildren<Renderer>(true))
-                if (renderer.bounds.max.y > top) top = renderer.bounds.max.y;
-            indicatorHeight = top - book.transform.position.y + 0.3f;
-        }
-        bookStartIndicator.transform.position = book.transform.position + Vector3.up * indicatorHeight;
-        Camera view = Camera.main;
-        if (view != null) bookStartIndicator.transform.rotation = view.transform.rotation;
+        if (indicatorBook != null && indicatorBook != book)
+            BookStatuePresentation.SetRequired(indicatorBook.transform, false);
+        indicatorBook = book;
+        bool visible = isActiveAndEnabled && StageSelectionState.SelectedStage == 1 && !IsSequenceComplete &&
+                       (PropositionalControlsOnboarding.Active == null || !PropositionalControlsOnboarding.Active.IsActive) &&
+                       book != null && book.IsReadyForInteraction && !IsQuizActive &&
+                       (timerManager == null || timerManager.RemainingTime > 0f);
+        if (book != null) BookStatuePresentation.SetRequired(book.transform, visible);
     }
 
     private void GenerateChallengeOrder()
