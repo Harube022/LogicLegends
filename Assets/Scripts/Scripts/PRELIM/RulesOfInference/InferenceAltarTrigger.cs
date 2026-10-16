@@ -13,6 +13,7 @@ namespace LogicLegends.Inference
         private Player nearbyPlayer;
         private float lastSeenAt;
         private Button viewBoardButton;
+        private TMP_Text viewBoardLabel;
         [SerializeField] private Transform altarVisual;
         [SerializeField, Min(0f)] private float labelHeight = 6f;
         [SerializeField, Min(0f)] private float indicatorHeight = 11.5f;
@@ -44,6 +45,9 @@ namespace LogicLegends.Inference
                 (tutorial == null || !tutorial.IsActive || tutorial.IsBoardApproach) &&
                 (GameInput.Instance == null || !GameInput.Instance.GameplayInputBlocked);
             viewBoardButton.gameObject.SetActive(available);
+            var held = nearbyPlayer != null ? nearbyPlayer.GetHeldObject() : null;
+            bool carryingRule = held != null && held.GetComponent<RuleDiamond>() != null;
+            viewBoardLabel.text = available && carryingRule ? "Submit to Altar" : "View Board";
         }
 
         private void UpdateAltarLabels()
@@ -99,11 +103,12 @@ namespace LogicLegends.Inference
             if (safeArea == null) return;
             viewBoardButton = StageUITheme.Button("InferenceViewBoardButton", safeArea,
                 "View Board", ViewBoard);
+            viewBoardLabel = viewBoardButton.GetComponentInChildren<TMP_Text>();
             RectTransform rect = (RectTransform)viewBoardButton.transform;
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
             rect.pivot = new Vector2(0.5f, 0f);
             rect.anchoredPosition = new Vector2(0f, 175f);
-            rect.sizeDelta = new Vector2(280f, 86f);
+            rect.sizeDelta = new Vector2(340f, 86f);
             viewBoardButton.gameObject.SetActive(false);
         }
 

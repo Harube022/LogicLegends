@@ -286,6 +286,17 @@ namespace LogicLegends.Inference
                 }
                 pages.Add(new AdminAnswerPage("Challenge " + (c + 1) + " — Inference", text.ToString()));
             }
+            var quiz = GetComponent<InferenceCrystalQuiz>();
+            foreach (var item in InferencePickupQuestions.Bank)
+            {
+                var text = new StringBuilder(item.Prompt + "\n\n");
+                for (int i = 0; i < 4; i++) text.AppendLine((char)('A' + i) + ". " + item.Choices[i]);
+                text.AppendLine("\nCorrect answer: " + item.Choices[0] + "\n" + item.Explanation);
+                text.AppendLine("Week 4 source: slide " + item.SourceSlide + ". Equivalence quiz; separate from the inference-rule puzzle.");
+                if (quiz != null && quiz.IsOpen && quiz.Current.Question == item)
+                    text.AppendLine("CURRENT QUIZ — correct displayed choice: " + (char)('A' + quiz.Current.CorrectChoice));
+                pages.Add(new AdminAnswerPage("Crystal pickup quiz — " + item.Id, text.ToString()));
+            }
         }
     }
 }

@@ -59,6 +59,7 @@ public sealed class SetssssHelpUI : MonoBehaviour
     private CursorLockMode previousCursorLock;
     private float previousTimeScale;
     private int pageIndex;
+    public bool BlocksChallengeIntroduction => isActiveAndEnabled && (open || showOnFirstEntry && !shownOnEntry);
 
     private void Awake()
     {

@@ -52,8 +52,6 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
     private TruthTableStageClock stageClock;
     [SerializeField] private Transform bookStatue;
-    private TextMeshPro bookStartIndicator;
-    private float bookIndicatorHeight;
     private TMP_Text promptLabel;
     private string doorPromptText;
     private bool warnedAboutMissingBook;
@@ -266,11 +264,12 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
     private void Update()
     {
+        UpdateBookIndicator();
         if (!IsTruthTableActive)
         {
             if (panelOpen) ClosePanel();
             StopMusic();
-            if (bookStartIndicator != null) bookStartIndicator.gameObject.SetActive(false);
+            BookStatuePresentation.SetRequired(bookStatue, false);
             SetPromptVisible(false);
             return;
         }
@@ -308,7 +307,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
             return;
         }
 
-        if (bookStartIndicator != null) bookStartIndicator.gameObject.SetActive(false);
+        BookStatuePresentation.SetRequired(bookStatue, false);
 
         if (promptLabel != null && promptLabel.text != doorPromptText) promptLabel.text = doorPromptText;
 
@@ -367,29 +366,6 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
     private void SetupBookStatue()
     {
         EnsureBookPedestalCollider();
-        if (bookStartIndicator != null) return;
-
-        var indicator = new GameObject("TruthTableChallengeStartIndicator", typeof(RectTransform),
-            typeof(TextMeshPro));
-        indicator.transform.SetParent(transform.root, true);
-        bookStartIndicator = indicator.GetComponent<TextMeshPro>();
-        if (questionText != null) bookStartIndicator.font = questionText.font;
-        bookStartIndicator.alignment = TextAlignmentOptions.Center;
-        bookStartIndicator.fontStyle = FontStyles.Bold;
-        bookStartIndicator.color = new Color(1f, 0.93f, 0.7f);
-        bookStartIndicator.fontSize = 10f;
-        bookStartIndicator.enableAutoSizing = false;
-        bookStartIndicator.textWrappingMode = TextWrappingModes.NoWrap;
-        bookStartIndicator.outlineColor = new Color32(0, 0, 0, 255);
-        bookStartIndicator.outlineWidth = 0.25f;
-        bookStartIndicator.rectTransform.pivot = new Vector2(0.5f, 0f);
-        bookStartIndicator.rectTransform.sizeDelta = new Vector2(44f, 12f);
-        indicator.transform.localScale = Vector3.one * 0.48f;
-
-        float top = bookStatue.position.y;
-        foreach (Renderer renderer in bookStatue.GetComponentsInChildren<Renderer>(true))
-            if (renderer.bounds.max.y > top) top = renderer.bounds.max.y;
-        bookIndicatorHeight = top - bookStatue.position.y + 1.2f;
         UpdateBookIndicator();
     }
 
@@ -432,16 +408,9 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
     private void UpdateBookIndicator()
     {
-        if (bookStartIndicator == null || bookStatue == null || stageClock == null) return;
-        bool visible = IsTruthTableActive && stageClock.IsWaitingForBook;
-        if (bookStartIndicator.gameObject.activeSelf != visible)
-            bookStartIndicator.gameObject.SetActive(visible);
-        if (!visible) return;
-        const string message = "Interact to start the game";
-        if (bookStartIndicator.text != message) bookStartIndicator.text = message;
-        bookStartIndicator.transform.position = bookStatue.position + Vector3.up * bookIndicatorHeight;
-        Camera view = Camera.main;
-        if (view != null) bookStartIndicator.transform.rotation = view.transform.rotation;
+        BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && IsTruthTableActive &&
+            stageClock != null && stageClock.IsWaitingForBook &&
+            (TruthTableControlsOnboarding.Active == null || !TruthTableControlsOnboarding.Active.IsActive));
     }
 
     private bool IsPlayerNearBook()
@@ -662,7 +631,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
     {
         StopMusic();
         if (feedbackSource != null) feedbackSource.Stop();
-        if (bookStartIndicator != null) bookStartIndicator.gameObject.SetActive(false);
+        BookStatuePresentation.SetRequired(bookStatue, false);
         ClosePanel();
         SetPromptVisible(false);
         if (gameInput != null) gameInput.OnInteractAction -= OnInteract;
@@ -679,8 +648,4 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
-    {
-        if (bookStartIndicator != null) Destroy(bookStartIndicator.gameObject);
-    }
 }

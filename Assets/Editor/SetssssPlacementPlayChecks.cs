@@ -67,6 +67,8 @@ public static class SetssssPlacementPlayChecks
         var help = UnityEngine.Object.FindFirstObjectByType<SetssssHelpUI>();
         yield return CheckHelpPages(help);
         help.CloseHelp();
+        yield return null;
+        stage.Introductions.Skip();
         var player = Player.LocalInstance;
         player.enabled = true;
         yield return null;
@@ -138,25 +140,8 @@ public static class SetssssPlacementPlayChecks
         yield return CompleteQuestions(stage);
         Check(stage.ChallengeNumber == 4 && !stage.Started, "Challenge 4 waits before explanation");
 
-        bool playerWasEnabled = player.enabled;
         yield return StartBook(stage, player, book, hand);
-        float pausedTime = stage.TimeRemaining;
-        Check(notice.IsIntroductionOpen && !stage.Started && stage.ActiveCondition == null, "explanation precedes Challenge 4 draw and countdown");
-        Check(Time.timeScale == 0f && GameInput.Instance.GameplayInputBlocked && !player.enabled, "modal pauses timer and gameplay input");
-        GameInput.Instance.MobileInteract(); stage.Submit(); stage.DeductTime(10f);
-        yield return new WaitForSecondsRealtime(.4f);
-        Check(stage.TimeRemaining == pausedTime && !stage.Started, "modal rejects gameplay, deduction, and repeated activation");
-        Check(GameObject.Find("A-B") != null && GameObject.Find("B-A") != null, "new difference regions visible for explanation");
-        Check(canvas.GetComponentsInChildren<Button>(true).Count(x => x.name == "Continue Challenge 4") == 1, "single Continue button");
-        yield return null; yield return new WaitForEndOfFrame();
-        CheckMobileUI(notice, canvas);
-        yield return Capture("Challenge4Introduction");
-        var scroll = Field<ScrollRect>(notice, "scroll"); scroll.verticalNormalizedPosition = 0f;
-        yield return null; yield return Capture("Challenge4Example");
-        Click(notice.ContinueButton); yield return null;
-        Check(stage.Started && Time.timeScale == 1f && !GameInput.Instance.GameplayInputBlocked && player.enabled == playerWasEnabled, "Continue restores previous controls and starts once");
-        float began = stage.TimeRemaining;
-        notice.Continue(); Check(stage.TimeRemaining == began, "duplicate Continue does not reset timer");
+        Check(stage.Started && !notice.IsIntroductionOpen && stage.Introductions.HasSeen(4), "new introduction finishes before the real Challenge 4 book start");
         yield return new WaitForSecondsRealtime(1.5f);
 
         // Three generations from the same spawner slot, using real hand/context input.
@@ -352,6 +337,8 @@ public static class SetssssPlacementPlayChecks
                 yield return null;
             yield return null;
         }
+        stage.Introductions.Skip();
+        yield return null;
         Check(seen.Count == 5, "challenge completes after exactly five distinct questions");
         Check(challenge == 5 ? stage.Complete : stage.ChallengeNumber == challenge + 1 && !stage.Started && stage.TimeRemaining == 1080f,
             "fifth question reaches final results or waits at next book with reset countdown");
@@ -440,6 +427,9 @@ public static class SetssssPlacementPlayChecks
 
     static IEnumerator StartBook(SetssssChallengeOne stage, Player player, Transform book, Button hand)
     {
+        yield return null;
+        stage.Introductions.Skip();
+        yield return null;
         Move(player, book.position + Vector3.back * 2f, Quaternion.identity);
         yield return new WaitForSecondsRealtime(.23f);
         Click(hand); yield return null;

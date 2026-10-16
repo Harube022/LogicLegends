@@ -105,9 +105,11 @@ namespace LogicLegends.Graph
             SetLesson(false);
             if (input != null) input.OnInteractAction -= OnInteract;
         }
-        private void OnDisable() => SetLesson(false);
+        private void OnDisable() { BookStatuePresentation.SetRequired(bookStatue, false); SetLesson(false); }
         private void LateUpdate()
         {
+            BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && Ready && !Moving &&
+                !TutorialActive && !lessonOpen && State == GraphStageState.WAITING_FOR_ACTIVATION);
             if (!Ready) return;
             if (State == GraphStageState.ACTIVE && !Moving && !lessonOpen && Time.timeScale > 0)
             {

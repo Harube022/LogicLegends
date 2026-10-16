@@ -34,7 +34,7 @@ namespace LogicLegends.Inference
         {
             var other = pool.Where(r => r != correct).Distinct().ToList();
             Shuffle(other, random);
-            var choices = other.Take(Mathf.Clamp(count, 4, 8) - 1).ToList();
+            var choices = other.Take(Mathf.Clamp(count, 4, 9) - 1).ToList();
             choices.Add(correct); Shuffle(choices, random); return choices.ToArray();
         }
         static void Shuffle<T>(List<T> values, System.Random random)
