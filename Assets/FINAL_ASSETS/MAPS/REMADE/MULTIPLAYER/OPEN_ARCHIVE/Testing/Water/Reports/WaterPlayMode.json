@@ -1,0 +1,142 @@
+{
+    "checkedUtc": "2026-10-19T05:52:46.8300991Z",
+    "scope": "Offline Unity Editor. Uses the enabled original Player, original CharacterController, GameInput mobile movement and MobileJump events. No simulated vertical movement or replacement controller. Multiplayer clients and Android hardware not exercised.",
+    "passed": true,
+    "checks": [
+        {
+            "name": "Original dry movement speed",
+            "detail": "13.00m/s",
+            "passed": true
+        },
+        {
+            "name": "Water slows the real player by 15 percent",
+            "detail": "11.05m/s versus dry 13.00",
+            "passed": true
+        },
+        {
+            "name": "Disabling water releases its speed modifier",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Pond 0 real jump entry creates splash, ripple and sound",
+            "detail": "jump=True, droplets=True, ripple=True, sound=True",
+            "passed": true
+        },
+        {
+            "name": "Pond 0 no repeated landing splash while stationary",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Pond 0 walk from deep water up to the shore shelf",
+            "detail": "(14.55, -0.96, 25.20)",
+            "passed": true
+        },
+        {
+            "name": "Pond 0 original jump exits water onto ground",
+            "detail": "jump=True, feetY=0.08, arrived=True",
+            "passed": true
+        },
+        {
+            "name": "Pond 1 real jump entry creates splash, ripple and sound",
+            "detail": "jump=True, droplets=True, ripple=True, sound=True",
+            "passed": true
+        },
+        {
+            "name": "Pond 1 no repeated landing splash while stationary",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Pond 1 walk from deep water up to the shore shelf",
+            "detail": "(25.79, -0.94, -14.89)",
+            "passed": true
+        },
+        {
+            "name": "Pond 1 original jump exits water onto ground",
+            "detail": "jump=True, feetY=0.08, arrived=True",
+            "passed": true
+        },
+        {
+            "name": "Pond 2 real jump entry creates splash, ripple and sound",
+            "detail": "jump=True, droplets=True, ripple=True, sound=True",
+            "passed": true
+        },
+        {
+            "name": "Pond 2 no repeated landing splash while stationary",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Pond 2 walk from deep water up to the shore shelf",
+            "detail": "(-15.33, -0.96, -26.56)",
+            "passed": true
+        },
+        {
+            "name": "Pond 2 original jump exits water onto ground",
+            "detail": "jump=True, feetY=0.08, arrived=True",
+            "passed": true
+        },
+        {
+            "name": "Pond 3 real jump entry creates splash, ripple and sound",
+            "detail": "jump=True, droplets=True, ripple=True, sound=True",
+            "passed": true
+        },
+        {
+            "name": "Pond 3 no repeated landing splash while stationary",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Pond 3 walk from deep water up to the shore shelf",
+            "detail": "(-25.94, -0.95, 14.98)",
+            "passed": true
+        },
+        {
+            "name": "Pond 3 original jump exits water onto ground",
+            "detail": "jump=True, feetY=0.08, arrived=True",
+            "passed": true
+        },
+        {
+            "name": "Bridge 0 actual player walks underneath without hitting deck",
+            "detail": "arrived=True, under deck=True, head clearance=0.72m",
+            "passed": true
+        },
+        {
+            "name": "Bridge 1 actual player walks underneath without hitting deck",
+            "detail": "arrived=True, under deck=True, head clearance=0.72m",
+            "passed": true
+        },
+        {
+            "name": "Bridge 2 actual player walks underneath without hitting deck",
+            "detail": "arrived=True, under deck=True, head clearance=0.72m",
+            "passed": true
+        },
+        {
+            "name": "Bridge 3 actual player walks underneath without hitting deck",
+            "detail": "arrived=True, under deck=True, head clearance=0.72m",
+            "passed": true
+        },
+        {
+            "name": "Standing on bridge above water keeps full land speed",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Dry teleport restores speed without a fake splash",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Water audio uses the existing sound effects mixer",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Serialized walk speed remains unchanged",
+            "detail": "",
+            "passed": true
+        }
+    ]
+}

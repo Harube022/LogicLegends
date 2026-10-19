@@ -1,0 +1,49 @@
+SHARED RAJANG / KHEZU ENCOUNTER TEST
+
+Open OpenArchive_MonsterEncounter_Test.unity in this folder, or use:
+Tools > Logic Legends > Monster Encounter Test > Open Saved Test Scene.
+The saved default monster is Rajang. The separate R1 animation-only scene remains available.
+
+Enter Play Mode. Use the collapsible panel on the upper left:
+- Awaken Rajang / Awaken Khezu: request all four awakening stages, then begin hunting.
+- Start / Resume: awaken if needed and pursue an eligible player.
+- Return to sleep: stop the current test hunt and reset awakening.
+- Reset hunt: stop the current pursuit.
+- Clear rotation: explicitly clear the development hunting history.
+- Swap to Khezu / Swap to Rajang: change the active monster and reset it to Sleep in the nest.
+- Preview POV (offline): preview that monster's two-second jumpscare without fabricating a capture or outcome.
+- Reduced motion: use the existing accessibility option.
+
+Let the monster catch the player to test the complete encounter:
+capture -> two-second POV with sound/shake -> mathematical barrier.
+Rajang uses orange walls, rings, runes, ground seal and particles; Khezu stays crimson.
+Each monster's Inspector profile selects a reusable barrier style. Shape, visibility,
+formation/dissolve timing and all challenge rules are identical for both colors.
+The captured player remains movement-locked until SUCCESS or FAILED resolves.
+SUCCESS releases the player, returns the monster to the nest and starts the existing
+30-second sleep. FAILED releases the player, deducts exactly one heart, plays the
+selected monster's original Attack clip and resumes the existing target rotation.
+Rajang uses its original Capture, Jumpscare, Barrier_Cast, Chase, Attack and sleep clips.
+The current shared designed sound cues are reused; no new Rajang-specific recording was added.
+
+Only one Animator, awakening driver, hunting controller, capture controller and
+Photon synchronizer run on Active_Test_Monster. The selector swaps the original
+visual rig, Avatar, Animator Controller, clips, body dimensions and POV face anchors.
+Both original monster prefab/model/animation assets remain unchanged.
+Health, capture serials and the no-repeat hunting history stay with the same owner.
+Rajang uses a separately baked navigation profile (7.2 m radius, 12.3 m height)
+suited to its own body proportions. Khezu keeps its original navigation data.
+
+Swapping is an offline development control. Online rooms use the saved Rajang
+configuration and cannot switch models locally. Swap is also blocked throughout
+captures, challenges, return-to-nest, success sleep and attack recovery. It cannot
+bypass an outcome, heal the player or erase the hunting rotation.
+The scene was not added to release build settings. Live multi-client transport
+and Android device performance need separate testing.
+
+The original Khezu barrier end-to-end Play Mode checks can be rerun against this
+shared scene with a separate report folder through KhezuBarrierPlayChecks.Begin(folder).
+Reports/Rajang contains actual navigation/capture, input lock, challenge button,
+health, return-to-nest and real 30-second sleep verification results.
+The successful run uses raycast-validated Unity EventSystem pointer fixtures for
+outcome clicks; native OS mouse/touch input was not verified without desktop focus.

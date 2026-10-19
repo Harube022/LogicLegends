@@ -44,7 +44,7 @@ public class GameInput : MonoBehaviour
 
     private void Jump_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
-        if (GameplayInputBlocked) return;
+        if (GameplayInputBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
         if (DirectProofsGuide.Active != null && !DirectProofsGuide.Active.AllowsJump) return;
         if (ProofsControlsOnboarding.Active != null && !ProofsControlsOnboarding.Active.AllowsJump) return;
         if (FunctionsRelationsControlsOnboarding.Active != null && !FunctionsRelationsControlsOnboarding.Active.AllowsJump) return;
@@ -84,7 +84,7 @@ public class GameInput : MonoBehaviour
 
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
-        if (GameplayInputBlocked) return;
+        if (GameplayInputBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
         if (DirectProofsGuide.Active != null)
         { DirectProofsGuide.Active.TryPracticeInteraction(); return; }
         if (ProofsControlsOnboarding.Active != null)
@@ -133,7 +133,7 @@ public class GameInput : MonoBehaviour
 
     public Vector2 GetMovementVectorNormalized(float deadZone)
     {
-        if (GameplayInputBlocked) return Vector2.zero;
+        if (GameplayInputBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return Vector2.zero;
         if (DirectProofsGuide.Active != null && DirectProofsGuide.Active.TryGetMovementOverride(out Vector2 directMovement)) return directMovement;
         if (ProofsControlsOnboarding.Active != null && ProofsControlsOnboarding.Active.TryGetMovementOverride(out Vector2 proofsMovement)) return proofsMovement;
         if (FunctionsRelationsControlsOnboarding.Active != null &&
@@ -171,7 +171,7 @@ public class GameInput : MonoBehaviour
 
     public void MobileJump()
     {
-        if (GameplayInputBlocked) return;
+        if (GameplayInputBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
         if (DirectProofsGuide.Active != null && !DirectProofsGuide.Active.AllowsJump) return;
         if (ProofsControlsOnboarding.Active != null && !ProofsControlsOnboarding.Active.AllowsJump) return;
         if (FunctionsRelationsControlsOnboarding.Active != null && !FunctionsRelationsControlsOnboarding.Active.AllowsJump) return;
@@ -211,7 +211,7 @@ public class GameInput : MonoBehaviour
 
     public void MobileInteract()
     {
-        if (GameplayInputBlocked) return;
+        if (GameplayInputBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
         if (DirectProofsGuide.Active != null)
         { DirectProofsGuide.Active.TryPracticeInteraction(); return; }
         if (ProofsControlsOnboarding.Active != null)

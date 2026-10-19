@@ -1,0 +1,92 @@
+{
+    "checkedUtc": "2026-10-19T04:43:10.5584003Z",
+    "scope": "Offline Unity Editor: original enabled Player, CharacterController, GameInput movement/jump events, eight edge directions. Android and live multiplayer not exercised.",
+    "passed": true,
+    "checks": [
+        {
+            "name": "Edge 0: outward walking is blocked",
+            "detail": "maxLocalRadius=97.688, minY=1.079999",
+            "passed": true
+        },
+        {
+            "name": "Edge 0: running jump cannot cross the cliff boundary",
+            "detail": "maxLocalRadius=97.688, jumpRise=3.784255, running=True",
+            "passed": true
+        },
+        {
+            "name": "Edge 45: outward walking is blocked",
+            "detail": "maxLocalRadius=97.35844, minY=1.079999",
+            "passed": true
+        },
+        {
+            "name": "Edge 45: running jump cannot cross the cliff boundary",
+            "detail": "maxLocalRadius=97.7033, jumpRise=3.514312, running=True",
+            "passed": true
+        },
+        {
+            "name": "Edge 90: outward walking is blocked",
+            "detail": "maxLocalRadius=97.688, minY=1.079999",
+            "passed": true
+        },
+        {
+            "name": "Edge 90: running jump cannot cross the cliff boundary",
+            "detail": "maxLocalRadius=97.688, jumpRise=3.76683, running=True",
+            "passed": true
+        },
+        {
+            "name": "Edge 135: outward walking is blocked",
+            "detail": "maxLocalRadius=97.29105, minY=1.079999",
+            "passed": true
+        },
+        {
+            "name": "Edge 135: running jump cannot cross the cliff boundary",
+            "detail": "maxLocalRadius=97.29105, jumpRise=3.526639, running=True",
+            "passed": true
+        },
+        {
+            "name": "Edge 180: outward walking is blocked",
+            "detail": "maxLocalRadius=97.29922, minY=1.079999",
+            "passed": true
+        },
+        {
+            "name": "Edge 180: running jump cannot cross the cliff boundary",
+            "detail": "maxLocalRadius=97.688, jumpRise=3.767434, running=True",
+            "passed": true
+        },
+        {
+            "name": "Edge 225: outward walking is blocked",
+            "detail": "maxLocalRadius=97.60557, minY=1.079999",
+            "passed": true
+        },
+        {
+            "name": "Edge 225: running jump cannot cross the cliff boundary",
+            "detail": "maxLocalRadius=97.68805, jumpRise=3.567575, running=True",
+            "passed": true
+        },
+        {
+            "name": "Edge 270: outward walking is blocked",
+            "detail": "maxLocalRadius=96.87606, minY=1.079999",
+            "passed": true
+        },
+        {
+            "name": "Edge 270: running jump cannot cross the cliff boundary",
+            "detail": "maxLocalRadius=97.688, jumpRise=4.484154, running=True",
+            "passed": true
+        },
+        {
+            "name": "Edge 315: outward walking is blocked",
+            "detail": "maxLocalRadius=96.8988, minY=1.079999",
+            "passed": true
+        },
+        {
+            "name": "Edge 315: running jump cannot cross the cliff boundary",
+            "detail": "maxLocalRadius=97.68804, jumpRise=3.618832, running=True",
+            "passed": true
+        },
+        {
+            "name": "Original controls remain enabled",
+            "detail": "",
+            "passed": true
+        }
+    ]
+}

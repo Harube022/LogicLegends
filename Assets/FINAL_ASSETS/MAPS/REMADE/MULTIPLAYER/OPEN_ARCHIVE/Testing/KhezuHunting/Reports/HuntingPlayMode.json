@@ -1,0 +1,112 @@
+{
+    "checkedUtc": "2026-10-16T14:27:57.8181976Z",
+    "passed": true,
+    "checks": [
+        {
+            "name": "Automatic Sleep in nest",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "On-screen control is reachable: Hunt_ForceFour",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "On-screen control is reachable: Hunt_Start",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "On-screen control is reachable: Hunt_Reset",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "On-screen control is reachable: Hunt_ClearRotation",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "On-screen control is reachable: Hunt_Sleep",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Four shared mistakes recorded",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "No movement before Full_Awaken completes",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Crossfade checkpoints retain destination state for host recovery",
+            "detail": "504 samples",
+            "passed": true
+        },
+        {
+            "name": "Eligible local target selected once",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Duplicate Start does not choose again",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Actually leaves nest and follows player",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Same selected target is followed after changing location",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Existing Chase animation used",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Navigation advances without normal chase teleport",
+            "detail": "Maximum observed movement speed 21.25338",
+            "passed": true
+        },
+        {
+            "name": "Catch stops navigation and records target",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Catch notification fires only once",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Restoring a caught checkpoint does not replay capture",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Return to Sleep preserves rotation",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Explicit full reset clears rotation",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Verification completed",
+            "detail": "",
+            "passed": true
+        }
+    ],
+    "limits": "Editor single-process tests only. Rotation uses simulated 2/3/4-actor rosters; these are not live multiplayer sessions. Photon remote interpolation, late joins and Master handover require separate connected clients. Android device performance is not verified."
+}

@@ -1,0 +1,92 @@
+{
+    "passed": true,
+    "acceptedRemoteCommands": 15,
+    "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+    "checks": [
+        {
+            "name": "Two independent clients share an invisible private room",
+            "passed": true
+        },
+        {
+            "name": "Existing network player owns the local exploration controls",
+            "passed": true
+        },
+        {
+            "name": "All ten adapted topics initialize on the authority",
+            "passed": true
+        },
+        {
+            "name": "Host starts one shared Truth Table challenge",
+            "passed": true
+        },
+        {
+            "name": "Guest replica retains independent ownership and cannot consume host input",
+            "passed": true
+        },
+        {
+            "name": "Forged actor field cannot change the Photon sender's mistake attribution",
+            "passed": true
+        },
+        {
+            "name": "Wrong answer retains shared work and charges exactly one actor",
+            "passed": true
+        },
+        {
+            "name": "Attributed mistake uses the existing monster awakening controller",
+            "passed": true
+        },
+        {
+            "name": "Replayed sequence cannot double-charge a mistake",
+            "passed": true
+        },
+        {
+            "name": "Late join preserves filled rows and the original mistake actor",
+            "passed": true
+        },
+        {
+            "name": "Another player completes the same shared answer without erasing the mistake record",
+            "passed": true
+        },
+        {
+            "name": "Distant guest cannot start or edit a topic",
+            "passed": true
+        },
+        {
+            "name": "Non-authority snapshot is ignored by host and independent observer",
+            "passed": true
+        },
+        {
+            "name": "Actual master change preserves trusted team progress and attribution",
+            "passed": true
+        },
+        {
+            "name": "Two real actors can carry independent copies of a replenishing truth token",
+            "passed": true
+        },
+        {
+            "name": "Departure returns only the disconnected player's carried item",
+            "passed": true
+        },
+        {
+            "name": "Mistake identity and saved name survive disconnect",
+            "passed": true
+        },
+        {
+            "name": "Captured guest cannot work while the uninvolved host stays free",
+            "passed": true
+        },
+        {
+            "name": "Captured actor's real network edit is rejected",
+            "passed": true
+        },
+        {
+            "name": "Topic validation leaves the uninvolved player's health intact",
+            "passed": true
+        },
+        {
+            "name": "Cleanup releases test capture without changing player systems",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

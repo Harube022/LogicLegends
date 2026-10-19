@@ -1,0 +1,21 @@
+{
+    "passed": [
+        "Uncaught actor fixture leaves local camera and controls unchanged",
+        "Observer fixture receives the quick world Jumpscare by 0.3 seconds",
+        "Late capture checkpoint resumes elapsed time",
+        "Late checkpoint does not stack an expired roar cue",
+        "Resumed capture completes one host barrier and local handoff",
+        "New capture starts a fresh local sequence",
+        "Host sleep/reset during cinematic restores original camera and controls",
+        "Interrupted encounter emits no barrier or challenge",
+        "Disconnect callback cleans up local presentation",
+        "Disconnected encounter cannot activate a later barrier",
+        "Completed checkpoint opens local handoff without replay or duplicate host barrier",
+        "Host release rejects wrong actor and stale capture serial",
+        "Matching host-owned challenge handoff can release encounter",
+        "Reduced motion removes lunge translation and camera shake",
+        "Encounter component disable also cleans up explicit preview"
+    ],
+    "failed": [],
+    "scope": "Offline snapshot fixtures and disconnect callback; not a live multiplayer test"
+}

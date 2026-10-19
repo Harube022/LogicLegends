@@ -1,0 +1,67 @@
+{
+    "passed": true,
+    "checkedUtc": "2026-10-16T14:20:56.3404430Z",
+    "checks": [
+        {
+            "name": "Photon offline room created without external connection",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Existing PlayerSpawner creates one owned network avatar",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Offline character disabled, existing controls rebound",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Only one scene Khezu",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Host selects Photon ActorNumber after awakening",
+            "detail": "Actor 1",
+            "passed": true
+        },
+        {
+            "name": "Host navigation and catch use network avatar",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "PUN room checkpoint stores state, actor and rotation",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Eliminated Photon actor excluded",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Unavailable Photon actor excluded without clearing history",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Returning eligible actor resumes a waiting hunt",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Sleep retains Photon actor rotation",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Offline smoke test completed",
+            "detail": "",
+            "passed": true
+        }
+    ],
+    "limits": "One Photon OfflineMode room and one actor. This verifies PUN spawning, actor targeting and room checkpoint storage locally. It does not test live network transport, remote interpolation, real multi-client targets, late joining or Master migration."
+}

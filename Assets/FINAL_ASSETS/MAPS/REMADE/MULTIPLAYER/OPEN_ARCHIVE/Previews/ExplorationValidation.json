@@ -1,0 +1,62 @@
+{
+    "passed": true,
+    "generatedUtc": "2026-10-16T12:35:36.9026729Z",
+    "checks": [
+        {
+            "name": "Visible local player at spawn",
+            "passed": true,
+            "detail": "(-5.000, 1.455, -202.500)"
+        },
+        {
+            "name": "Shared joystick moves actual CharacterController",
+            "passed": true,
+            "detail": "Travelled 5.99m."
+        },
+        {
+            "name": "Releasing joystick stops input",
+            "passed": true,
+            "detail": "Existing MobileInputUI pointer-up callback."
+        },
+        {
+            "name": "Shared jump button triggers jump physics",
+            "passed": true,
+            "detail": "Peak rise 3.87m."
+        },
+        {
+            "name": "Shared look drag rotates camera target",
+            "passed": true,
+            "detail": "Yaw changed 24.0 degrees."
+        },
+        {
+            "name": "Shared settings opens pause",
+            "passed": true,
+            "detail": "Existing LevelMenu pause handling."
+        },
+        {
+            "name": "Shared resume restores input",
+            "passed": true,
+            "detail": "Existing LevelMenu resume handling."
+        },
+        {
+            "name": "Return-to-spawn test utility",
+            "passed": true,
+            "detail": "(-5.000, 1.455, -202.500)"
+        },
+        {
+            "name": "Falling off island recovers to spawn",
+            "passed": true,
+            "detail": "(-5.000, 1.455, -202.500)"
+        },
+        {
+            "name": "Shared camera pinch-zoom script present",
+            "passed": true,
+            "detail": "Original CM_ThirdPersonCam prefab, original sensitivity and pinch limits."
+        },
+        {
+            "name": "One output camera and listener",
+            "passed": true,
+            "detail": "Environment preview camera disabled in test copy."
+        }
+    ],
+    "limits": "Editor Play-mode checks use UI pointer events and existing player physics. Physical Android multitouch and multiplayer were not tested."
+}

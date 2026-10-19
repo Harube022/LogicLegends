@@ -1,0 +1,56 @@
+RAJANG / PRIMAL AXIOM - PHASE R1
+
+Open in Unity:
+Tools > Logic Legends > Rajang R1 > Open Saved Test Scene
+Scene: OpenArchive_RajangR1_Test.unity in this folder.
+
+1. Select R1_Monster_Selection in the Hierarchy and enter Play Mode.
+2. Rajang_Test starts in Sleep at the existing MonsterSpawnPoint.
+3. Use the Inspector's Mistake 1, 2, 3 and 4 buttons in order.
+   Sleep -> Wake_01 -> Wake_02 -> Wake_03 -> Full_Awaken -> Idle.
+   Rapid inputs queue each stage; they do not skip the earlier reactions.
+4. Reset Rajang / Play Sleep resets the count and blends back to Sleep.
+5. Play Idle, or choose an existing animation in the preview dropdown.
+6. Select Khezu / Select Rajang switches the local test monster. The other
+   instance and its animation driver are inactive before the selected one runs.
+   Selection starts the newly selected monster in Sleep.
+
+The ordinary exploration player and its existing controls are preserved.
+Test controls are in the Inspector; no additional screen overlay was added.
+In Edit Mode, changing the selection is a scene edit. The saved R1 default is Rajang.
+
+AVAILABLE ORIGINAL CLIPS (13)
+Sleep (loop), Wake_01, Wake_02, Wake_03, Full_Awaken, Idle (loop),
+Chase (loop), Capture, Jumpscare, Barrier_Cast, Attack,
+Return_To_Sleep, Stunned.
+
+Run maps to the existing Chase clip. There is no standalone Walk or Roar clip.
+Full_Awaken includes a roar while rising; it is not a separate stationary roar.
+Original animation names, rig, prefab, controller and material assets are reused.
+Wake_01/02/03 hold their final poses. The original Animator automatically takes
+Full_Awaken to Idle and Return_To_Sleep to Sleep. The shared Khezu awakening
+test driver supplies the same mistake queue and 0.25-second crossfades.
+
+Rajang inherits the environment's uniform 2.5x arena scale, faces the south
+entrance, and rests just above the visible sleeping bed. Root motion is disabled.
+The assembly stays anchored during every animation preview, including Chase.
+
+REPEATABLE VERIFICATION
+Enter Play Mode, then choose:
+Tools > Logic Legends > Rajang R1 > Run Play Mode Verification
+This checks sleeping, each stage, queued mistakes, all animation previews,
+selection exclusivity, original Animator/materials, and stationary placement.
+It returns Rajang to Sleep. It does not advance the Animator clock manually.
+
+Reports/AssetInspection.json: fresh samples of all clips at their 30 fps rate,
+including skin deformation, bindings, loop endpoints and skeleton-root motion.
+Reports/Setup.json: placement, four entrances and environment preservation.
+Reports/PlayModeVerification.json: actual runtime progression and preview checks.
+Reports/ProtectedFiles.json: hashes for original assets, scenes and gameplay code.
+Previews/: rendered R1 Sleep, Wake_01/02/03, Full_Awaken and Idle poses.
+
+R1 has no hunting, navigation, capture, cinematic or barrier gameplay controllers.
+Extra clips can be previewed only as stationary animation states. No Phase R2
+gameplay or multiplayer selection protocol was added. The R1 scene was not added
+to release build settings. Android device performance and multiplayer sessions
+were not tested in this phase.

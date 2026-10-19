@@ -5,7 +5,7 @@ using Photon.Pun;
 
 // This forces Unity to automatically add a CharacterController if one is missing!
 [RequireComponent(typeof(CharacterController))]
-public class Player : MonoBehaviourPun 
+public partial class Player : MonoBehaviourPun
 {
     // ---> ADD THIS SINGLETON INSTANCE TRACKING <---
     public static Player LocalInstance { get; private set; }
@@ -15,6 +15,26 @@ public class Player : MonoBehaviourPun
     private GrabbableObject heldObject;
 
     [SerializeField] public float moveSpeed = 8f;
+    // Scene-owned movement effects never overwrite the serialized walk speed or jump physics.
+    private readonly Dictionary<Object, float> movementSpeedModifiers = new Dictionary<Object, float>();
+    public float MovementSpeedMultiplier
+    {
+        get
+        {
+            float multiplier = 1f;
+            foreach (var modifier in movementSpeedModifiers)
+                if (modifier.Key != null) multiplier = Mathf.Min(multiplier, modifier.Value);
+            return multiplier;
+        }
+    }
+    public void SetMovementSpeedModifier(Object owner, float multiplier)
+    {
+        if (owner != null) movementSpeedModifiers[owner] = Mathf.Clamp01(multiplier);
+    }
+    public void RemoveMovementSpeedModifier(Object owner)
+    {
+        if (!ReferenceEquals(owner, null)) movementSpeedModifiers.Remove(owner);
+    }
     [Header("Optional running")]
     [SerializeField, Min(0f)] private float walkSecondsBeforeRun = 3f;
     [SerializeField, Min(1f)] private float runSpeedMultiplier = 1.5f;
@@ -107,14 +127,14 @@ public class Player : MonoBehaviourPun
 
     private void GameInput_OnJumpAction(object sender, System.EventArgs e)
     {
-        if (!enabled || isGuidedMovementActive || Time.timeScale <= 0f ||
+        if (!enabled || IsMovementLocked || isGuidedMovementActive || Time.timeScale <= 0f ||
             (gameInput != null && gameInput.GameplayInputBlocked)) return;
         jumpBufferTimer = jumpBufferTime;
     }
 
     private void GameInput_OnInteractAction(object sender, System.EventArgs e)
     {
-        if (!enabled || isGuidedMovementActive) return; // Event subscriptions still fire on disabled behaviours.
+        if (!enabled || IsMovementLocked || isGuidedMovementActive) return; // Event subscriptions still fire on disabled behaviours.
         if (LogicLegends.Induction.InductionStageManager.Instance != null &&
             LogicLegends.Induction.InductionStageManager.Instance.TryHandleInteraction()) return;
         // Setssss uses these same hand/E inputs for its book and numbered blocks.
@@ -228,6 +248,7 @@ public class Player : MonoBehaviourPun
 
     private void Update()
     {
+        if (IsMovementLocked) { NoteRejectedMovement(); EnforceMovementLock(); return; }
         if (!ownsLocalInput || controller == null || !controller.enabled)
         {
             OffRun();
@@ -266,7 +287,7 @@ public class Player : MonoBehaviourPun
 
     public void OnRun()
     {
-        if (!runningEnabled || !enabled || isGuidedMovementActive ||
+        if (!runningEnabled || !enabled || IsMovementLocked || isGuidedMovementActive ||
             controller == null || !controller.enabled ||
             gameInput == null || gameInput.GameplayInputBlocked || !isWalking)
             return;
@@ -372,7 +393,7 @@ public class Player : MonoBehaviourPun
 
         // The serialized moveSpeed stays the normal walk speed. Multiplying only
         // the current movement prevents repeated activation from stacking speed.
-        Vector3 finalMovement = (moveDir * moveSpeed * (isRunning ? runSpeedMultiplier : 1f)) +
+        Vector3 finalMovement = (moveDir * moveSpeed * MovementSpeedMultiplier * (isRunning ? runSpeedMultiplier : 1f)) +
                                 (Vector3.up * verticalVelocity);
         controller.Move(finalMovement * Time.deltaTime);
 
@@ -427,7 +448,7 @@ public class Player : MonoBehaviourPun
 
     public void BeginGuidedMovement(Transform target, float speed, float stoppingDistance = 0.2f)
     {
-        if (!IsLocalPlayer() || target == null) return;
+        if (!IsLocalPlayer() || IsMovementLocked || target == null) return;
 
         OffRun();
 

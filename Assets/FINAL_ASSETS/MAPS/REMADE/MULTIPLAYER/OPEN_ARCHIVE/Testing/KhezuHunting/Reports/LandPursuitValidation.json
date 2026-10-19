@@ -1,0 +1,29 @@
+{
+  "checkedUtc": "2026-10-18T12:33:22.71214Z",
+  "baselineFiles": 447,
+  "changedProtectedFiles": [
+    "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Hunting/KhezuHuntingController.cs",
+    "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Prefabs/Architecture/UniversalMonsterNest_Den.prefab",
+    "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Prefabs/Architecture/UniversalMonsterNest.prefab"
+  ],
+  "expectedChanges": "Hunting controller and two nest prefab decoration transforms only. New approach/test/Editor helper files, builder defaults, five scene layouts and shared navigation recorded separately.",
+  "checks": [
+    {
+      "report": "LandApproachPlayMode.json",
+      "passed": true,
+      "checks": 16
+    },
+    {
+      "report": "NavigationAndRotation.json",
+      "passed": true,
+      "checks": 40
+    },
+    {
+      "report": "WaterPursuitPlayMode.json",
+      "passed": true,
+      "checks": 35
+    }
+  ],
+  "totalChecks": 91,
+  "liveMultiplayerVerified": false
+}
