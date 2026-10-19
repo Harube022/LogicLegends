@@ -8,6 +8,7 @@ public class PayMongoTestTopUp : MonoBehaviour
 {
     [SerializeField] private UnityEngine.UI.Button buyButton;
     [SerializeField] private TMP_Text statusText;
+    [SerializeField] private bool hideWalletBalanceStatus;
     private bool busy;
     private bool paymentsEnabled;
     private float nextCheck;
@@ -92,5 +93,11 @@ public class PayMongoTestTopUp : MonoBehaviour
         finally { if (Current(version)) SetBusy(false); }
     }
     private void SetBusy(bool value) { busy = value; if (buyButton != null) buyButton.interactable = !value && paymentsEnabled && (!CommerceClient.Sandbox || Application.isEditor || Debug.isDebugBuild); }
-    private void SetStatus(string value) { if (statusText != null) statusText.text = value; }
+    private void SetStatus(string value)
+    {
+        if (hideWalletBalanceStatus && value != null &&
+            (value.StartsWith("Your gems:", StringComparison.Ordinal) ||
+             value.StartsWith("Sandbox gems:", StringComparison.Ordinal))) value = "";
+        if (statusText != null) statusText.text = value;
+    }
 }
