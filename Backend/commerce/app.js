@@ -1,8 +1,5 @@
 const express = require('express');
 const crypto = require('node:crypto');
-const { initializeApp, getApps, cert } = require('firebase-admin/app');
-const { getAuth } = require('firebase-admin/auth');
-const { getDatabase } = require('firebase-admin/database');
 const { catalog, fail, signature, validatePayment, grant, buy, present, mutate } = require('./wallet');
 
 function createApp(env = process.env, integrations = {}) {
@@ -17,6 +14,11 @@ function createApp(env = process.env, integrations = {}) {
     setup.use((req, res) => res.status(503).json({ code: 'SHOP_SETUP', error: 'Purchases are not available yet.' }));
     return setup;
   }
+  // Setup mode must open its health-check port without loading the Admin SDK.
+  // Load payment/database dependencies only when commerce is actually enabled.
+  const { initializeApp, getApps, cert } = require('firebase-admin/app');
+  const { getAuth } = require('firebase-admin/auth');
+  const { getDatabase } = require('firebase-admin/database');
   const sandbox = env.STORAGE_MODE === 'emulator';
   const live = env.PAYMENT_MODE === 'live';
   // Pausing new checkouts must not stop fulfillment of already-paid orders.

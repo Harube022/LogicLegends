@@ -56,6 +56,8 @@ Use a host that supports Node.js 22 or Docker. Build/start this **Backend/commer
 
 For the **first deployment**, set only `NODE_VERSION=22` and `COMMERCE_ENABLED=false`, and use `/health` as the health-check path. This starts a setup service without Firebase or PayMongo credentials. Its health response is `{"mode":"setup","paymentsEnabled":false}`; all account/payment endpoints return 503. This allows you to obtain the permanent HTTPS URL and configure secrets before accepting payments. Keep the switch false until the launch requirements below are complete. This mode needs no database emulator.
 
+Setup mode does not load Firebase Admin. On Render, the server binds `0.0.0.0` and the platform's `PORT`. Startup logs show `Commerce starting`, then `Commerce routes ready`, then `Commerce setup service listening ...; payments disabled`. If Render reports no open port, check which startup message was reached, confirm the start command is `node server.js`, and keep `COMMERCE_ENABLED=false` while diagnosing it. Do not remove `/health` or enable payments to bypass a failed deployment.
+
 Store configuration privately on that host:
 
 ```text
