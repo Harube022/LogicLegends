@@ -40,6 +40,7 @@ namespace LogicLegends.Inference
         public UnityEvent onChallengeCompleted = new UnityEvent();
         public event Action<int> onRoundCompleted;
         public event Action<int> onBookStarted;
+        public event Action onBoardClosed;
         public bool PuzzleCompleted { get; private set; }
         public bool HasStarted { get; private set; }
         public bool IsBoardOpen { get; private set; }
@@ -48,7 +49,7 @@ namespace LogicLegends.Inference
         public InferencePuzzleStage Stage { get; private set; }
         public IReadOnlyList<InferenceCrystal> Crystals => crystals;
         public InferenceCrystal PlacedCrystal => placed;
-        [Range(4, 8)] public int ruleDiamondCount = 4;
+        [Range(4, 9)] public int ruleDiamondCount = 4;
         public GameObject diamondPlacementMarker;
 
         readonly List<TMP_InputField> fields = new List<TMP_InputField>();
@@ -77,6 +78,7 @@ namespace LogicLegends.Inference
                 stageQuestions = InferenceStageQuestions.Select(rules, Guid.NewGuid().GetHashCode());
                 var access = gameObject.AddComponent<InferenceAltarAccess>(); access.Build();
                 var interaction = gameObject.AddComponent<InferenceCrystalInteraction>(); interaction.Initialize(this);
+                if (GetComponent<InferenceCrystalQuiz>() == null) gameObject.AddComponent<InferenceCrystalQuiz>();
             }
             placeButton.onClick.AddListener(PlaceHeldCrystal);
             validateButton.onClick.AddListener(ValidateBoard);
@@ -208,12 +210,17 @@ namespace LogicLegends.Inference
             pausedCameraInputs.Clear();
             Cursor.lockState = previousCursorLock; Cursor.visible = previousCursorVisible;
             IsBoardOpen = false;
+            if (roundSolved && !PuzzleCompleted)
+            {
+                ClearCrystals(); Question = null; roundSolved = false;
+            }
+            onBoardClosed?.Invoke();
         }
 
         public void NextChallenge()
         {
             // Every new round must be started through the book statue.
-            if (!HasStarted || !IsBoardOpen || !roundSolved || PuzzleCompleted) return;
+            if (!IsBoardOpen || !roundSolved) return;
             CloseBoard();
         }
 
@@ -262,9 +269,13 @@ namespace LogicLegends.Inference
 
         void SpawnRuleDiamonds()
         {
-            int count = Mathf.Clamp(ruleDiamondCount, 4, pillarCrystalPrefab != null ? 8 : 5);
+            bool nineTowers = gameObject.scene.name == "RulesOfInference" && pillarCrystalPrefab != null;
+            int count = nineTowers ? 9 : Mathf.Clamp(ruleDiamondCount, 4, pillarCrystalPrefab != null ? 9 : 5);
             if (crystalSpawns.Length < count) throw new InvalidOperationException("Not enough rule diamond spawn points.");
-            var choices = RuleDiamond.Choose(Question.Rule, rules, count, new System.Random(Guid.NewGuid().GetHashCode()));
+            // Standalone towers have permanent rule identities, separate from pickup quiz topics.
+            string[] codes = { "MP", "MT", "HS", "DS", "CD", "SIMP", "CONJ", "ADD", "DN" };
+            var choices = nineTowers ? codes.Select(code => rules.Single(r => r.abbreviation == code)).ToArray()
+                : RuleDiamond.Choose(Question.Rule, rules, count, new System.Random(Guid.NewGuid().GetHashCode()));
             for (int i = 0; i < choices.Length; i++)
             {
                 var rule = choices[i];
@@ -287,6 +298,7 @@ namespace LogicLegends.Inference
                 ConfigureCrystalPickup(crystal);
                 crystal.Configure(Question.Id, rule.ruleName + " (" + rule.abbreviation + ")", transform);
                 crystal.gameObject.AddComponent<RuleDiamond>().Configure(rule);
+                if (pillarCrystalPrefab != null) crystal.ConfigureTowerLabel(spawn.parent);
                 crystals.Add(crystal);
             }
         }
@@ -456,7 +468,8 @@ namespace LogicLegends.Inference
             roundSolved = true; SolvedRounds++;
             foreach (var field in fields) field.readOnly = true;
             placeButton.interactable = validateButton.interactable = false;
-            nextButton.gameObject.SetActive(false);
+            nextButton.gameObject.SetActive(IsBoardOpen);
+            nextButton.GetComponentInChildren<TMP_Text>().text = "Continue";
             bool newlyCompleted = !PuzzleCompleted && SolvedRounds >= requiredRounds;
             if (newlyCompleted)
             {
@@ -470,9 +483,9 @@ namespace LogicLegends.Inference
             // Leave the solved board and wait for a fresh book interaction. The next
             // question is drawn only when the player opens the board after that start.
             HasStarted = false;
-            ClearCrystals();
-            Question = null;
-            roundSolved = false;
+            // Retain the solved argument, placed crystal and revealed conclusion until
+            // Back/Continue. Only the next real book interaction prepares another round.
+            if (!IsBoardOpen) { ClearCrystals(); Question = null; roundSolved = false; }
             onRoundCompleted?.Invoke(SolvedRounds);
         }
 

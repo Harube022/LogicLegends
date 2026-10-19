@@ -27,6 +27,8 @@ public class CustomizationManager : MonoBehaviour
     [Header("Loading Transition")]
     [SerializeField] private UnityEngine.UI.ScrollRect itemsScroll;
     [SerializeField] private CanvasGroup[] revealGroups = new CanvasGroup[0];
+    [SerializeField] private CanvasGroup scrollbarLoadingGate;
+    [SerializeField] private CharacterInspectView inspection;
     private const string LoadingText = "Loading your character and equipped skin...";
     private bool pendingLoadingFeedback;
     private float loadingMessageShownAt = -1f;
@@ -40,6 +42,7 @@ public class CustomizationManager : MonoBehaviour
     private string equippedPet = "";
     private int requestVersion;
     private bool dataLoaded;
+    private bool usingSandboxInventory;
 
     [Header("Equipment Save Feedback")]
     [SerializeField] private float saveFeedbackDelay = 0.2f;
@@ -53,6 +56,7 @@ public class CustomizationManager : MonoBehaviour
         requestVersion++;
         StopAllCoroutines();
         dataLoaded = false;
+        usingSandboxInventory = false;
         saving = false;
         revealing = false;
         HideContent();
@@ -62,6 +66,8 @@ public class CustomizationManager : MonoBehaviour
     private void HideContent()
     {
         SetReveal(0f, false);
+        if (inspection != null) inspection.Clear();
+        SetScrollbarReveal(false);
         if (itemsScroll != null)
         {
             itemsScroll.StopMovement();
@@ -94,6 +100,7 @@ public class CustomizationManager : MonoBehaviour
         StopAllCoroutines();
         int version = ++requestVersion;
         dataLoaded = false;
+        usingSandboxInventory = false;
         revealing = false;
         playerBaseCharacter = equippedClothes = equippedPet = "";
         ownedItems.Clear();
@@ -138,30 +145,27 @@ public class CustomizationManager : MonoBehaviour
                 Status("Choose your character before customizing it.", true);
                 return;
             }
-            ownedItems.Clear();
-            foreach (var item in snapshot.Child("inventory").Children)
-                if (item.Value != null && item.Value.ToString().ToLowerInvariant() == "true")
-                    ownedItems.Add(item.Key);
-            equippedClothes = snapshot.Child("equipped/clothes").Value?.ToString() ?? "";
+            // Real inventory and owned equipment remain usable even when the
+            // payment host is disabled or unreachable.
+            foreach (var child in snapshot.Child("inventory").Children)
+                if (child.Value is bool owned && owned) ownedItems.Add(child.Key);
+            equippedClothes = snapshot.Child("equipped/clothes").Value?.ToString();
+            if (string.IsNullOrEmpty(equippedClothes)) equippedClothes = playerBaseCharacter == "Female_Character" ? "female_default" : "male_default";
             equippedPet = snapshot.Child("equipped/pets").Value?.ToString() ?? "";
-            if (string.IsNullOrEmpty(equippedClothes))
-                equippedClothes = playerBaseCharacter == "Female_Character" ? "female_default" : "male_default";
-            // Do not substitute a different skin when a saved equipped skin cannot be displayed.
-            if (!HasClothesModel(equippedClothes))
-            {
-                Status("Your equipped skin couldn't be loaded. Please retry.", true);
-                return;
-            }
+            if (!HasClothesModel(equippedClothes)) { Status("Your equipped skin couldn't be loaded. Please retry.", true); return; }
             dataLoaded = true;
             revealing = true;
             UpdateUIAndMannequin();
-            pendingLoadingFeedback = false;
             StartCoroutine(RevealLoadedContent(version));
+            if (CommerceClient.Sandbox) LoadCommerceInventory(version);
         });
         deadline = Time.realtimeSinceStartup + 20f;
         while (!request.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
         if (!request.IsCompleted && IsCurrent(version))
-            Status("Your connection is taking longer. You can wait or retry.", true);
+        {
+            Status("Couldn't load your saved character. Check your connection and retry.", true);
+            requestVersion++;
+        }
     }
 
     private bool IsCurrent(int version)
@@ -169,6 +173,24 @@ public class CustomizationManager : MonoBehaviour
         return this != null && isActiveAndEnabled && version == requestVersion &&
             FirebaseManager.IsReady && FirebaseAuth.DefaultInstance.CurrentUser != null &&
             FirebaseAuth.DefaultInstance.CurrentUser.UserId == userId;
+    }
+
+    private async void LoadCommerceInventory(int version)
+    {
+        int equipmentVersion = saveFeedbackVersion;
+        try
+        {
+            var account = await CommerceClient.LoadAccount(playerBaseCharacter);
+            if (!IsCurrent(version) || saving || saveFeedbackVersion != equipmentVersion) return;
+            usingSandboxInventory = true;
+            ownedItems.Clear();
+            if (account.inventory != null) foreach (var id in account.inventory) ownedItems.Add(id);
+            equippedClothes = account.equippedClothes;
+            equippedPet = account.equippedPet;
+            if (!HasClothesModel(equippedClothes)) { Status("Your equipped skin couldn't be loaded. Please retry.", true); return; }
+            UpdateUIAndMannequin();
+        }
+        catch (System.Exception) { /* Saved Firebase equipment is already visible. */ }
     }
 
     private IEnumerator DelayedLoadingFeedback(int version)
@@ -223,6 +245,25 @@ public class CustomizationManager : MonoBehaviour
         SetReveal(1f, true);
         if (itemsScroll != null) itemsScroll.enabled = true;
         revealing = false;
+        RefreshScrollbarVisibility();
+    }
+
+    private void LateUpdate() => RefreshScrollbarVisibility();
+
+    private void RefreshScrollbarVisibility()
+    {
+        if (itemsScroll == null || itemsScroll.content == null) return;
+        var viewport = itemsScroll.viewport != null ? itemsScroll.viewport : (RectTransform)itemsScroll.transform;
+        SetScrollbarReveal(isActiveAndEnabled && dataLoaded && !revealing &&
+            itemsScroll.content.rect.height > viewport.rect.height + 1f);
+    }
+
+    private void SetScrollbarReveal(bool visible)
+    {
+        if (scrollbarLoadingGate == null) return;
+        scrollbarLoadingGate.alpha = visible ? 1f : 0f;
+        scrollbarLoadingGate.interactable = visible;
+        scrollbarLoadingGate.blocksRaycasts = visible;
     }
 
     private bool Fits(CustomizationItem item)
@@ -241,7 +282,7 @@ public class CustomizationManager : MonoBehaviour
         return false;
     }
 
-    public void EquipItem(CustomizationItem itemToEquip)
+    public async void EquipItem(CustomizationItem itemToEquip)
     {
         if (!dataLoaded || revealing || saving || !IsCurrent(requestVersion) || itemToEquip == null || !Fits(itemToEquip) ||
             (!itemToEquip.IsDefault && !ownedItems.Contains(itemToEquip.ItemID))) return;
@@ -251,25 +292,43 @@ public class CustomizationManager : MonoBehaviour
         int feedbackVersion = ++saveFeedbackVersion;
         Status("", false);
         StartCoroutine(DelayedSavingFeedback(version, feedbackVersion));
-        dbRef.Child("users").Child(userId).Child("equipped")
-            .Child(itemToEquip.Type.ToString().ToLowerInvariant()).SetValueAsync(itemToEquip.ItemID)
-            .ContinueWithOnMainThread(task =>
+        try
+        {
+            if (!usingSandboxInventory)
             {
+                string field = itemToEquip.Type == CustomizationItem.ItemType.Clothes ? "clothes" : "pets";
+                await CommerceClient.WithTimeout(SaveOwnedEquipment(field, itemToEquip.ItemID));
                 if (!IsCurrent(version)) return;
+                if (field == "clothes") equippedClothes = itemToEquip.ItemID; else equippedPet = itemToEquip.ItemID;
                 saving = false;
-                if (task.IsFaulted || task.IsCanceled)
-                {
-                    dataLoaded = false;
-                    HideContent();
-                    Status("Couldn't save your equipment. Retry to reload it.", true);
-                    return;
-                }
-                if (itemToEquip.Type == CustomizationItem.ItemType.Clothes) equippedClothes = itemToEquip.ItemID;
-                else equippedPet = itemToEquip.ItemID;
                 UpdateUIAndMannequin();
                 Status("Equipment saved.", false);
                 StartCoroutine(ClearSavedFeedback(version, feedbackVersion));
-            });
+                return;
+            }
+                var account = await CommerceClient.EquipItem(itemToEquip.ItemID);
+                if (!IsCurrent(version)) return;
+                saving = false;
+                equippedClothes = account.equippedClothes;
+                equippedPet = account.equippedPet;
+                UpdateUIAndMannequin();
+                Status(account.sandbox ? "Equipment saved in sandbox." : "Equipment saved.", false);
+                StartCoroutine(ClearSavedFeedback(version, feedbackVersion));
+        }
+        catch (System.Exception error)
+        {
+            if (!IsCurrent(version)) return;
+            saving = false;
+            Status(error.Message, true);
+        }
+    }
+
+    private async System.Threading.Tasks.Task<bool> SaveOwnedEquipment(string field, string itemId)
+    {
+        // The protected database rules check ownership and character, even if
+        // a modified client skips the local UI checks.
+        await dbRef.Child("users").Child(userId).Child("equipped").Child(field).SetValueAsync(itemId);
+        return true;
     }
 
     private IEnumerator DelayedSavingFeedback(int version, int feedbackVersion)
@@ -297,6 +356,11 @@ public class CustomizationManager : MonoBehaviour
                     (entry.itemID == equippedClothes || entry.itemID == equippedPet));
         if (maleMannequin != null) maleMannequin.SetActive(body == maleMannequin);
         if (femaleMannequin != null) femaleMannequin.SetActive(body == femaleMannequin);
+        if (inspection != null)
+            foreach (var entry in mannequinModels)
+                if (entry != null && entry.model != null && entry.itemID == equippedClothes && body != null &&
+                    entry.model.transform.IsChildOf(body.transform))
+                { inspection.ShowCharacter(body.transform,entry.model.transform); break; }
         foreach (var item in allUIItems)
         {
             if (item == null) continue;

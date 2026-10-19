@@ -196,7 +196,12 @@ namespace LogicLegends.Inference
             UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)transform);
         }
 
-        public bool CheckPremises() => ArgumentValidator.PremisesMatch(Puzzle, zones.Select(z => z.Value).ToArray());
+        public bool CheckPremises()
+        {
+            for (int i = 0; i < zones.Count; i++)
+                zones[i].SetFeedback(string.Equals(zones[i].Value, Puzzle.CorrectPlacements[i], System.StringComparison.Ordinal));
+            return ArgumentValidator.PremisesMatch(Puzzle, zones.Select(z => z.Value).ToArray());
+        }
 
         public void LockPremises()
         {

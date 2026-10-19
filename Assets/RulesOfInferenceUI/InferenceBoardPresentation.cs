@@ -31,7 +31,6 @@ namespace LogicLegends.RulesOfInferenceUI
         sealed class HiddenHud { public CanvasGroup group; public float alpha; public bool interactable, blocksRaycasts; }
         readonly List<HiddenHud> hiddenHud = new List<HiddenHud>();
         int lastStep = -1;
-        string lastFeedback;
         TMP_Text[] timers;
         sealed class TimerOverlay
         {
@@ -50,7 +49,6 @@ namespace LogicLegends.RulesOfInferenceUI
             transform.localScale = Vector3.one;
             GetComponent<Image>().enabled = false;
             runtimeOverlay = true;
-            challenge.validateButton.onClick.AddListener(ShowBlankFeedback);
             FitToScreen();
         }
 
@@ -166,8 +164,13 @@ namespace LogicLegends.RulesOfInferenceUI
             grid.cellSize = new Vector2(160, 100); grid.spacing = new Vector2(20,12);
             grid.childAlignment = TextAnchor.UpperCenter;
             grid.padding = new RectOffset(5,5,4,4);
-            bankStatus = Label(bank, "Theme_BankStatus", "", 28, Pale);
-            Box(bankStatus.rectTransform, 28, 122, 338, 266);
+            bankStatus = Label(bank, "Theme_BankStatus", "", 27, Pale);
+            Box(bankStatus.rectTransform, 26, 80, 342, 306);
+            bankStatus.enableAutoSizing = true;
+            bankStatus.fontSizeMin = 24; bankStatus.fontSizeMax = 27;
+            bankStatus.textWrappingMode = TextWrappingModes.Normal;
+            bankStatus.alignment = TextAlignmentOptions.TopLeft;
+            bankStatus.paragraphSpacing = 2;
             bankStatus.gameObject.SetActive(false);
             b.ruleChoices.gameObject.SetActive(false);
             var oldRuleTitle = bank.GetComponentsInChildren<TMP_Text>(true).FirstOrDefault(t => t.text == "SELECT A RULE");
@@ -292,16 +295,6 @@ namespace LogicLegends.RulesOfInferenceUI
             if (bankViewport != null) bankViewport.GetComponent<ScrollRect>().verticalNormalizedPosition=1;
         }
 
-        void ShowBlankFeedback()
-        {
-            var b=challenge.dragPuzzle;
-            if (challenge.Stage!=InferencePuzzleStage.CompletingPremises || b.Puzzle==null) return;
-            for(int i=0;i<b.Zones.Count;i++)
-            {
-                var z=b.Zones[i]; var v=z.GetComponent<InferenceTilePresentation>();
-                if(v!=null) v.MarkInvalid(!string.Equals(z.Value,b.Puzzle.CorrectPlacements[i],System.StringComparison.OrdinalIgnoreCase));
-            }
-        }
         void RefreshStates()
         {
             if (steps == null) return;
@@ -316,25 +309,14 @@ namespace LogicLegends.RulesOfInferenceUI
                 }
                 lastStep = stage;
             }
-            if (lastFeedback != challenge.feedback.text)
-            {
-                lastFeedback = challenge.feedback.text;
-                if (lastFeedback == "Some blanks are incorrect." && challenge.dragPuzzle.Puzzle != null)
-                {
-                    for (int i=0;i<challenge.dragPuzzle.Zones.Count;i++)
-                    {
-                        var z=challenge.dragPuzzle.Zones[i];
-                        var v=z.GetComponent<InferenceTilePresentation>();
-                        if(v!=null) v.MarkInvalid(!string.Equals(z.Value,challenge.dragPuzzle.Puzzle.CorrectPlacements[i],System.StringComparison.OrdinalIgnoreCase));
-                    }
-                }
-            }
             bool searching = challenge.Stage == InferencePuzzleStage.FindingDiamond;
             bool solved = challenge.Stage == InferencePuzzleStage.Solved;
             bankViewport.gameObject.SetActive(!searching && !solved);
+            challenge.wordBank.gameObject.SetActive(!searching && !solved);
             bankStatus.gameObject.SetActive(searching || solved);
-            bankStatus.text = solved ? "ARGUMENT COMPLETE\n\nThe conclusion is revealed.\n\nTry another argument, or return to the island."
-                : "PREMISES COMPLETE\n\nCollect the Rule Crystal whose label fits your reasoning pattern.\n\nBring it back to the altar.";
+            bankStatus.text = solved ? "Read the revealed conclusion.\n\nPress Back or Continue.\n\n" +
+                (challenge.PuzzleCompleted ? "View your stage results." : "Use the book to start the next challenge.")
+                : "1. Find the matching Rule Crystal.\n\n2. Answer its quiz, then collect it.\nIncorrect answer: −10 seconds.\n\n3. Bring the crystal to the altar to submit.";
             var hint = content.Find("PuzzleWorkspace/WordBankWorkspace/Theme_BankHint");
             hint.gameObject.SetActive(!searching && !solved);
             

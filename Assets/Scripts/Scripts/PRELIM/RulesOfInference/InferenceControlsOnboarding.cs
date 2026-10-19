@@ -10,7 +10,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
 {
     private enum Step { Movement, Jump, Interaction, Book, Timer, Minimap,
         BoardOverview, BoardApproach, BoardPremises, BoardDiamond, BoardConclusion,
-        BoardBack, CrystalTower, Confirm }
+        BoardBack, CrystalTower, CrystalQuiz, Confirm }
 
     [SerializeField, Range(0.15f, 0.8f)] private float joystickDeadZone = 0.3f;
     [SerializeField, Min(0.1f)] private float movementDistance = 0.35f;
@@ -589,7 +589,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         CreatePracticeCrystal();
         FocusCamera(practiceCrystal.transform, crystalCameraOffset);
         SetWorldStep(Step.CrystalTower,
-            "A Rule Crystal represents a specific inference rule, identified by its label. Collect the rule that fits your premises. During gameplay, use Collect Rule Crystal or the hand button when in range. Try either button with this practice crystal.",
+            "A Rule Crystal represents the inference rule on its label. Use Collect Rule Crystal or the hand button to try a practice pickup quiz. Answer A–D, read the feedback, then Continue. In gameplay, either answer allows collection, but an incorrect quiz subtracts 10 seconds. Practice costs no time.",
             practiceCrystal.transform, false);
     }
 
@@ -661,8 +661,15 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         if (step == Step.Book) { TryTutorialBookInteraction(); return; }
         if (step == Step.CrystalTower)
         {
-            DestroyPracticeCrystal();
-            BeginConfirmation();
+            var quiz = FindFirstObjectByType<LogicLegends.Inference.InferenceCrystalQuiz>();
+            if (quiz == null) return;
+            if (quiz.Open(() => { DestroyPracticeCrystal(); BeginConfirmation(); }, true, skipButton, BeginCrystalTower))
+            {
+                step = Step.CrystalQuiz;
+                instructions.gameObject.SetActive(false);
+                highlight.gameObject.SetActive(false);
+                worldAnchor.gameObject.SetActive(false);
+            }
             return;
         }
         if (step != Step.Interaction || practiceTarget == null || player == null) return;
@@ -680,6 +687,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     public void SkipTutorial()
     {
         if (!IsActive) return;
+        FindFirstObjectByType<LogicLegends.Inference.InferenceCrystalQuiz>()?.Close();
         DestroyPracticeTarget();
         DestroyPracticeCrystal();
         BeginConfirmation();
@@ -719,6 +727,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
 
     private void Cleanup()
     {
+        FindFirstObjectByType<LogicLegends.Inference.InferenceCrystalQuiz>()?.Close();
         DestroyPracticeTarget();
         DestroyPracticeCrystal();
         RestoreGameplayCamera();

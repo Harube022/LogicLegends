@@ -179,6 +179,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     private void OnDisable()
     {
+        BookStatuePresentation.SetRequired(bookStatue, false);
         bool wasReading = readingControlsCaptured;
         informationBoardView?.RestoreImmediately(false);
         RestoreReadingControls();
@@ -271,6 +272,8 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     private void Update()
     {
+        BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && !GameplayPaused &&
+            state == FunctionsRelationsState.WAITING_FOR_ACTIVATION);
         if (input == null) BindInput();
         if (player == null) player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
         if (GameplayPaused) { RefreshTimer(); return; }

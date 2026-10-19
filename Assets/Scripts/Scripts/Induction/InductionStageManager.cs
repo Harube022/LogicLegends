@@ -103,8 +103,11 @@ namespace LogicLegends.Induction
             if (Reading) CloseReading();
             if (Instance == this) Instance = null;
         }
+        void OnDisable() { BookStatuePresentation.SetRequired(book, false); }
         void Update()
         {
+            BookStatuePresentation.SetRequired(book, isActiveAndEnabled && Ready && State == InductionState.WaitingForBook &&
+                (help == null || !help.OnboardingPending && !help.IsOpen) && (onboarding == null || !onboarding.IsActive), bookPrompt);
             if (!Ready) return;
             if (State == InductionState.Active && CanAct) timer.Tick(Time.deltaTime);
             RefreshTarget(); ui.Refresh();

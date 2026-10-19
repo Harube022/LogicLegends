@@ -1,8 +1,5 @@
 using UnityEngine;
 using Photon.Pun;
-using Firebase.Auth;
-using Firebase.Database;
-using Firebase.Extensions;
 
 public class Coin : MonoBehaviourPun
 {
@@ -90,20 +87,7 @@ public class Coin : MonoBehaviourPun
 
     private void UpdateFirebaseCoins(int amount)
     {
-        if (FirebaseAuth.DefaultInstance == null || FirebaseAuth.DefaultInstance.CurrentUser == null) return;
-
-        string userId = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
-        DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
-
-        dbRef.Child("users").Child(userId).Child("coins").GetValueAsync().ContinueWithOnMainThread(task =>
-        {
-            if (task.IsCompleted && task.Result.Exists)
-            {
-                int currentCoins = int.Parse(task.Result.Value.ToString());
-                dbRef.Child("users").Child(userId).Child("coins").SetValueAsync(currentCoins + amount);
-                Debug.Log($"Picked up {amount} coins! Total is now: {currentCoins + amount}");
-            }
-        });
+        StageCompleteManager.AwardCoins(amount);
     }
 
     [PunRPC]

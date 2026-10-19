@@ -11,8 +11,7 @@ public sealed class ShopPreviewUI : MonoBehaviour
     [SerializeField] private GameObject overlay;
     [SerializeField] private RectTransform card;
     [SerializeField] private RawImage characterImage;
-    [Tooltip("Zooms only the shop image, leaving the customization camera unchanged.")]
-    [Range(1f, 2f)] [SerializeField] private float previewZoom = 1.5f;
+    [SerializeField] private CharacterInspectView inspection;
     [SerializeField] private TMP_Text title, itemName, price, balance, message;
     [Header("Preview Presentation")]
     [SerializeField] private TMP_Text currencyUnit, afterPurchase, feedbackHeading;
@@ -55,8 +54,8 @@ public sealed class ShopPreviewUI : MonoBehaviour
     private void ApplyPreviewZoom()
     {
         if (characterImage == null) return;
-        float visible = 1f / Mathf.Clamp(previewZoom, 1f, 2f);
-        characterImage.uvRect = new Rect((1f - visible) * .5f, (1f - visible) * .5f, visible, visible);
+        // Camera fitting keeps the whole outfit visible; cropping the texture can cut off shoes.
+        characterImage.uvRect = new Rect(0,0,1,1);
     }
 
     private void Remember(GameObject value)
@@ -87,6 +86,11 @@ public sealed class ShopPreviewUI : MonoBehaviour
         overlay.SetActive(true);
         overlay.transform.SetAsLastSibling();
         FitCard();
+        if (inspection != null && previewAvailable)
+            foreach (var model in models)
+                if (model != null && model.model != null && model.model.activeSelf && model.itemID == item.ItemID &&
+                    model.model.transform.IsChildOf(body.transform))
+                { inspection.ShowCharacter(body.transform,model.model.transform); break; }
         itemName.text = item.DisplayName;
         price.text = currencyUnit == null ? "Price: " + item.Price.ToString("N0") + " " + item.CurrencyType : item.Price.ToString("N0");
         if (currencyUnit != null) currencyUnit.text = item.CurrencyType.ToString().ToUpperInvariant();
@@ -127,6 +131,15 @@ public sealed class ShopPreviewUI : MonoBehaviour
         primary.interactable = currentBalance >= item.Price;
         secondaryLabel.text = "CANCEL";
         secondary.interactable = true;
+    }
+
+    public void ShowPurchasesUnavailable(string text = null)
+    {
+        if (!IsOpen || owned) return;
+        confirming = false;
+        primary.interactable = false;
+        primaryLabel.text = "UNAVAILABLE";
+        SetFeedback(text ?? "You can preview this outfit. Reconnect to the shop before buying.", "PURCHASES UNAVAILABLE", Warning);
     }
 
     public void ShowSaving()
@@ -216,6 +229,7 @@ public sealed class ShopPreviewUI : MonoBehaviour
     public void Close()
     {
         if (reveal != null) { StopCoroutine(reveal); reveal = null; }
+        if (inspection != null) inspection.Clear();
         if (overlay != null) overlay.SetActive(false);
         // Hide both bodies before restoring children so no outfit/gender can flash.
         if (previousStates.Count > 0)

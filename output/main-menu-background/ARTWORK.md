@@ -1,0 +1,17 @@
+# Daytime Main Menu background preview
+
+Output: `MainMenu_Daytime_Background.png`.
+
+Created using the built-in image_gen tool on 2026-10-18. Preview only: saved outside Assets, not imported into Unity, not assigned to any scene, prefab or material. The original background remains unchanged.
+
+Reference: `Assets/Assets/Interface_Sprites/background/background(2).png`, inspected before generation. Direction follows root artstyle.md: friendly fantasy learning adventure, original illustrated woodland shapes and soft painted shading. The new composition uses daylight, green foliage, warm sunlight, an open central clearing and a stone path, without UI or baked text.
+
+Final generation prompt:
+
++ Use case: stylized-concept.
+ Asset type: Logic Legends Android game's Main Menu background illustration, background only, preview not implemented.
+ Primary request: Create a NEW DAYTIME enchanted forest background that belongs to the same game as the provided original Main Menu artwork. Use the supplied original background as the visual authority for illustration style, soft painted shading, friendly fantasy shapes, depth, foliage density and visual simplicity. Follow this art direction from artstyle.md: Logic Legends is a friendly fantasy learning adventure with illustrated warm wood/parchment UI, stylized gardens, ruins and magical nature. Background should harmonize with the game's existing wooden signs and cream/colored menu buttons.
+ Reference image: Assets/Assets/Interface_Sprites/background/background(2).png, style and game-world reference only. Make a new daytime composition inspired by it, not a night scene or a simple blue-to-green recolor.
+ Scene: a welcoming sunlit woodland glade, tall gently curving old trees and leafy branches framing the sides and upper edges, an inviting mossy stone footpath leading from the lower center toward a softly hazed forest opening in the distance. Lush emerald, sage and mint-green foliage with restrained turquoise accents, a few small violet and golden wildflowers and delicate fern shapes near the outer foreground. Warm natural brown trunks, soft blue sky and a few pale clouds visible through the canopy. Fresh morning/late-morning daylight, warm soft sunlight filtering through leaves, gentle dappled light on the ground, cool green shadows with readable detail. A subtle sense of magic through whimsical plant shapes, without nighttime glow. Deep but softly painted atmospheric layers.
+ Composition: landscape widescreen 16:9, full-bleed edge-to-edge artwork, no letterboxing, no frame. Keep the central 45 percent calm and relatively open, with broad simple low-contrast shapes and the path beneath, so the game's existing title at upper center and stacked menu buttons in the middle/lower center will remain legible. Put richer botanical detail and strongest accents toward the side edges; preserve generous center space and crop-safe margins for wide Android screens. Match the supplied hand-painted game illustration, softly defined chunky shapes, restrained texture and friendly accessible fantasy mood; not photorealistic and not a 3D render.
+ Text: NONE. No logo, lettering, UI, buttons, boards, parchment, currency, profile icon, border, watermark or mockup device. No characters, pets, companions or foreground creatures. No moon, stars, night sky, firefly lights, glowing mushrooms, neon bloom, harsh sun glare or dark night vignette. Render only the finished daytime forest background.

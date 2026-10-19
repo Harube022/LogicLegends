@@ -158,6 +158,7 @@ public static class ShopPreviewSetup
                 if(existing!=text&&existing.name!="ItemPrice"&&!string.IsNullOrWhiteSpace(existing.text))existing.text=label;
         }
         overlay.gameObject.SetActive(false);
+        MainMenuCharacterInspectSetup.Apply();
         EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);
         Debug.Log("Main Menu shop preview and purchase confirmation saved. No gameplay scenes or prefab assets changed.");
     }

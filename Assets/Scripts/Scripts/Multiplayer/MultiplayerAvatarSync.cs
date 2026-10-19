@@ -10,6 +10,7 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
     private Vector3 targetPosition;
     private Quaternion targetRotation;
     private bool received, walking, jumping, running;
+    public float AnimationMovementSpeed { get; private set; }
 
     private void Awake()
     {
@@ -35,7 +36,12 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
     private void Update()
     {
         if (photonView.IsMine || !received) return;
-        if (player!=null && player.IsMovementLocked) {targetPosition=player.MovementLockPosition;walking=jumping=running=false;}
+        if (player != null && player.IsMovementLocked)
+        {
+            targetPosition = player.MovementLockPosition;
+            walking = jumping = running = false;
+            AnimationMovementSpeed = 0f;
+        }
         float blend = 1f - Mathf.Exp(-15f * Time.unscaledDeltaTime);
         transform.position = Vector3.Distance(transform.position, targetPosition) > 12f
             ? targetPosition : Vector3.Lerp(transform.position, targetPosition, blend);
@@ -57,22 +63,37 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
         if (!stream.IsWriting && info.Sender != photonView.Owner) return;
         if (stream.IsWriting)
         {
-            if(player!=null && player.IsMovementLocked)player.EnforceMovementLock();
+            if (player != null && player.IsMovementLocked) player.EnforceMovementLock();
+            var controller = GetComponent<CharacterController>();
+            bool canMove = player != null && player.enabled && !player.IsMovementLocked && controller != null && controller.enabled && Time.timeScale > 0;
+            Vector3 velocity = canMove ? controller.velocity : Vector3.zero;
+            velocity.y = 0f;
+            bool moving = canMove && player.IsWalking() && velocity.sqrMagnitude > .0025f;
             stream.SendNext(transform.position); stream.SendNext(transform.rotation);
-            stream.SendNext(player != null && player.IsWalking());
-            stream.SendNext(player != null && player.IsJumping());
-            stream.SendNext(player != null && player.IsRunning());
+            stream.SendNext(moving);
+            stream.SendNext(canMove && player.IsJumping());
+            stream.SendNext(moving && player.IsRunning());
+            stream.SendNext(velocity.magnitude);
         }
         else
         {
             targetPosition = (Vector3)stream.ReceiveNext(); targetRotation = (Quaternion)stream.ReceiveNext();
             walking = (bool)stream.ReceiveNext(); jumping = (bool)stream.ReceiveNext(); running = (bool)stream.ReceiveNext();
-            // The Master-confirmed capture anchor overrides owner prediction and stale/forged
-            // movement packets while a lock is active. The existing five-field stream is retained.
-            if(player!=null && player.IsMovementLocked){targetPosition=player.MovementLockPosition;walking=jumping=running=false;player.EnforceMovementLock();}
+            AnimationMovementSpeed = (float)stream.ReceiveNext();
+            // Consume the full packet before applying the Master-confirmed capture anchor.
+            if (player != null && player.IsMovementLocked)
+            {
+                targetPosition = player.MovementLockPosition;
+                walking = jumping = running = false;
+                AnimationMovementSpeed = 0f;
+                player.EnforceMovementLock();
+            }
             if (!received) transform.SetPositionAndRotation(targetPosition, targetRotation);
             received = true;
         }
     }
-    private void LateUpdate(){if(player!=null && player.IsMovementLocked)player.EnforceMovementLock();}
+    private void LateUpdate()
+    {
+        if (player != null && player.IsMovementLocked) player.EnforceMovementLock();
+    }
 }

@@ -1,6 +1,3 @@
-using Firebase.Auth;
-using Firebase.Database;
-using Firebase.Extensions;
 using UnityEngine;
 
 namespace LogicLegends.Graph
@@ -9,7 +6,9 @@ namespace LogicLegends.Graph
     public sealed class GraphCompletion : MonoBehaviour
     {
         public int stageNumber = 9;
-        public int baseCoins = 500, baseGems = 40;
+        public int baseCoins = 500;
+        // Legacy scenes may still serialize 40 here. This value is never granted.
+        [HideInInspector] public int baseGems = 0;
         private bool completed;
 #if UNITY_EDITOR
         public static bool SuppressPersistenceForValidation { get; set; }
@@ -21,28 +20,11 @@ namespace LogicLegends.Graph
 #if UNITY_EDITOR
             if (SuppressPersistenceForValidation) return;
 #endif
-            var auth = FirebaseAuth.DefaultInstance;
-            if (auth == null || auth.CurrentUser == null) return;
-            var user = FirebaseDatabase.DefaultInstance.RootReference.Child("users").Child(auth.CurrentUser.UserId);
             int coins = Mathf.Max(0, baseCoins - mistakes * 50);
-            int gems = Mathf.Max(0, baseGems - mistakes * 5);
-            // Match the existing account schema and update rewards/progression atomically.
-            user.RunTransaction(data =>
-            {
-                if (data.Value == null) return TransactionResult.Abort();
-                long currentCoins = Number(data.Child("coins").Value);
-                long currentGems = Number(data.Child("gems").Value);
-                long unlocked = Number(data.Child("unlockedStage").Value);
-                data.Child("coins").Value = currentCoins + coins;
-                data.Child("gems").Value = currentGems + gems;
-                data.Child("unlockedStage").Value = System.Math.Max(unlocked, Mathf.Min(stageNumber + 1, StageSelectionState.LastStage));
-                return TransactionResult.Success(data);
-            }).ContinueWithOnMainThread(task =>
-            {
-                if (task.IsFaulted || task.IsCanceled) Debug.LogWarning("Graph progress could not be saved.");
-            });
+            // Update only the permitted gameplay fields. A whole-account
+            // transaction would also attempt to rewrite server-owned gems.
+            StageCompleteManager.AwardCoins(coins);
+            StageCompleteManager.UnlockStage(Mathf.Min(stageNumber + 1, StageSelectionState.LastStage));
         }
-        private static long Number(object value)
-        { long result; return value != null && long.TryParse(value.ToString(), out result) ? result : 0; }
     }
 }

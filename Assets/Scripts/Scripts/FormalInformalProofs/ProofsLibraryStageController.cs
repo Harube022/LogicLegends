@@ -127,6 +127,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
 
     private void OnDisable()
     {
+        BookStatuePresentation.SetRequired(bookStatue, false);
         if (input != null) input.OnInteractAction -= OnInteract;
         UnlockGameplay();
     }
@@ -142,6 +143,8 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
 
     private void Update()
     {
+        BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && !InputSuppressed && !started &&
+            !finished && !transitioning && secondsLeft > 0f);
         if (input == null) BindInput();
         if (player == null) player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
         if (started && !finished && !GameplayPaused)
