@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using LogicLegends.Inference;
 using TMPro;
 using UnityEngine;
@@ -12,8 +12,10 @@ public sealed class StageJourneyUI : MonoBehaviour
     public static StageJourneyUI Instance { get; private set; }
     [SerializeField, Min(60)] private float inferenceTimeLimit = 18 * 60;
     private RectTransform safeArea, hud, modal, card;
-    private RectTransform propositionalHelp, truthHelp, settingsDock;
+    public RectTransform HudPanel => hud;
+    private RectTransform propositionalHelp, truthHelp, settingsDock, inferenceAdmin;
     private const float HudWidth = 580f, HudHeight = 164f;
+    private const float PropositionalHudWidth = 500f, PropositionalHudHeight = 136f;
     private readonly Vector3[] dockCorners = new Vector3[4];
     private TMP_Text stageLabel, clockLabel, progressLabel, resultTitle, resultBody, resultStage;
     private Button primaryButton, secondaryButton, extraButton, inferenceHelp;
@@ -22,6 +24,7 @@ public sealed class StageJourneyUI : MonoBehaviour
     private Button tutorialBack, tutorialNext;
     private LevelTimerManager propositionalClock;
     private TruthTableStageClock truthClock;
+    private TruthTableMinimap truthMap;
     private PropositionalLogicTutorial propositionalTutorial;
     private TruthTableTutorial truthTutorial;
     private readonly System.Collections.Generic.List<Behaviour> pausedCameraInputs = new System.Collections.Generic.List<Behaviour>();
@@ -31,8 +34,8 @@ public sealed class StageJourneyUI : MonoBehaviour
     private bool inferenceFirstGuidePending = true;
     private float inferenceRemaining;
     private bool inferenceQuizOpen, inferenceCompletionPending;
-    private int inferenceWaitingNotice;
     private TMP_Text inferenceDeduction;
+    private TMP_Text inferenceModalClock;
     private float inferenceDeductionAt = -10;
     public float InferenceRemainingSeconds => inferenceRemaining;
     public bool InferenceQuizOpen => inferenceQuizOpen;
@@ -43,14 +46,14 @@ public sealed class StageJourneyUI : MonoBehaviour
     private int tutorialIndex;
     private readonly string[] tutorialTitles = { "Start and explore", "Premises", "Rules of inference", "Rule Crystals", "Crystal pickup quiz", "Conclusions", "Five challenges", "Time and feedback" };
     private readonly string[] tutorialBodies = {
-        "Use the joystick to move and the jump button to jump. Interact with the Book Statue to start each challenge. Walk up the altar stairs and tap View Board. Complete the premises, identify their reasoning pattern, collect its Rule Crystal, and return to validate the answer.",
+        "Use the joystick to move and the jump button to jump. Approach the Book Statue and tap the hand button to start each challenge. Walk up the altar stairs and tap View Board. Complete the premises, identify their reasoning pattern, collect its Rule Crystal, and return to validate the answer.",
         "Premises are statements accepted as true and used to support a conclusion. Read the whole argument. Drag the supplied words into its blanks, then tap Check argument. Incorrect blanks stay editable; correct premises unlock the crystal search.",
         "A rule of inference is a valid reasoning pattern used to derive a conclusion from premises. Look at how the statements connect, including and, or, if/then, and negation. Choose the rule that fits that structure, rather than guessing from a crystal's appearance.",
-        "A Rule Crystal is a collectible representing a specific inference rule. Its label identifies the rule. Choose the one that fits the completed premises. Near an available crystal, tap Collect Rule Crystal or use the hand button. You can carry one crystal at a time.",
+        "A Rule Crystal is a collectible representing a specific inference rule. Its label identifies the rule. Choose the one that fits the completed premises. Near an available crystal, tap the hand button. Its white thought bubble expands to show the hand icon. You can carry one crystal at a time.",
         "Before collecting a crystal, answer one multiple-choice question about logical equivalence. Choose A–D, read Correct or Incorrect feedback, then tap Collect Rule Crystal. Either answer allows collection. An incorrect answer subtracts 10 seconds once. These quiz topics are separate from the nine inference rules on the crystals.",
-        "A conclusion is the statement that logically follows from the premises using the selected rule. Carry your Rule Crystal back and tap Submit to Altar to open the board. Then tap Place Rule Crystal to check it. A correct match reveals the conclusion. Read it, then press Back or Continue. A wrong crystal is rejected.",
+        "A conclusion is the statement that logically follows from the premises using the selected rule. Carry your Rule Crystal back and tap Submit to Altar to open the board. Then tap Place Rule Crystal to check it. A correct match reveals the conclusion. Read it, then press Back or Continue. A wrong crystal is rejected and subtracts 10 seconds.",
         "Complete five questions total: one randomly selected from each challenge's bank of ten. Tasks progress from direct facts to conditionals, negation, reasoning chains, and compound dilemmas. Correct rules never repeat in one playthrough. Return to the book to start each new challenge.",
-        "The shared 18-minute timer starts through the book. It pauses during Help, practice, board viewing, pickup quizzes, and between challenges. An incorrect pickup quiz subtracts 10 seconds even while paused; incorrect premise or crystal submissions show feedback. The book resumes the remaining time for the next challenge. Five successes complete the stage." };
+        "The shared 18-minute timer starts through the book. It pauses during Help, practice, board viewing, pickup quizzes, and between challenges. An incorrect pickup quiz subtracts 10 seconds even while paused; incorrect crystal submissions also subtract 10 seconds. Incorrect premises show feedback for correction. The book resumes the remaining time for the next challenge. Five successes complete the stage." };
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() { Instance = null; }
@@ -90,6 +93,7 @@ public sealed class StageJourneyUI : MonoBehaviour
     {
         propositionalClock = FindFirstObjectByType<LevelTimerManager>(FindObjectsInactive.Include);
         truthClock = FindFirstObjectByType<TruthTableStageClock>(FindObjectsInactive.Include);
+        truthMap = FindFirstObjectByType<TruthTableMinimap>(FindObjectsInactive.Include);
         propositionalTutorial = FindFirstObjectByType<PropositionalLogicTutorial>(FindObjectsInactive.Include);
         truthTutorial = FindFirstObjectByType<TruthTableTutorial>(FindObjectsInactive.Include);
         foreach (var canvas in FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -120,11 +124,15 @@ public sealed class StageJourneyUI : MonoBehaviour
             settingsDock = gameplayCanvas.transform.Find("SafeArea/Gameplay_Interface/SettingsButton") as RectTransform;
         }
         LayoutHudDock();
+        if (StageSelectionState.SelectedStage == 1)
+            FindFirstObjectByType<QuizManager>()?.DockCompletionNotice(hud);
+        else if (StageSelectionState.SelectedStage == 2) truthClock?.DockCompletionNotice(hud);
         if (SceneManager.GetActiveScene().name == "RulesOfInference")
         {
             StageSelectionState.Select(3);
             inference = FindFirstObjectByType<InferenceChallenge>(FindObjectsInactive.Include);
             inferenceNotice = PrelimChallengeCompletionNotice.GetOrCreate(safeArea, progressLabel);
+            inferenceNotice.FollowHud(hud);inferenceNotice.SetHudTextSize(16,18);
             if (inference != null)
             {
                 inference.onChallengeCompleted.AddListener(OnInferenceComplete);
@@ -147,13 +155,16 @@ public sealed class StageJourneyUI : MonoBehaviour
     private void Update()
     {
         int stage = SceneManager.GetActiveScene().name == "RulesOfInference" ? 3 : StageSelectionState.SelectedStage;
-        hud.gameObject.SetActive(!resultOpen && !tutorialOpen &&
+        hud.gameObject.SetActive(!resultOpen && !tutorialOpen && ExpandableMinimap.OpenMap == null &&
+            !(stage==3&&inferenceQuizOpen) &&
+            !(stage == 2 && truthClock != null && truthClock.IsQuizOpen) &&
+            !(stage == 2 && TruthTableControlsOnboarding.Active != null && TruthTableControlsOnboarding.Active.IsPracticeQuizOpen) &&
             !(stage == 2 && truthClock != null && truthClock.IsPlayerAtBoard) &&
             !(inference != null && inference.IsBoardOpen) &&
             !(inferenceOnboarding != null && inferenceOnboarding.IsPracticeBoardOpen) &&
             !(propositionalTutorial != null && propositionalTutorial.IsOpen) &&
             !(truthTutorial != null && truthTutorial.IsOpen));
-        stageLabel.text = "STAGE " + stage + "  /  " + StageName(stage).ToUpperInvariant();
+        stageLabel.text = TrialCatalog.Get(stage).Title;
         if (stage == 1 && propositionalClock != null)
         {
             clockLabel.text = FormatTime(propositionalClock.RemainingTime);
@@ -162,7 +173,7 @@ public sealed class StageJourneyUI : MonoBehaviour
         else if (stage == 2 && truthClock != null)
         {
             clockLabel.text = FormatTime(truthClock.RemainingSeconds);
-            progressLabel.text = "CHALLENGE " + truthClock.CurrentChallengeNumber + "  /  " + truthClock.ProgressSummary;
+            progressLabel.text = "CHALLENGE " + truthClock.CurrentChallengeNumber + " OF 3\n" + truthClock.ProgressSummary;
         }
         else if (stage == 3)
         {
@@ -180,13 +191,16 @@ public sealed class StageJourneyUI : MonoBehaviour
                 (inferenceOnboarding == null || !inferenceOnboarding.IsActive) &&
                 !(inference != null && inference.IsBoardOpen));
         }
-        if (stage == 2 && truthClock != null && truthClock.TimeAdjustmentVisible)
-            progressLabel.text += "\n" + truthClock.TimeAdjustmentText;
         if (inferenceDeduction != null)
         {
             float age = Time.unscaledTime - inferenceDeductionAt;
             inferenceDeduction.gameObject.SetActive(age < 2.2f && !resultOpen && !tutorialOpen);
             var color = inferenceDeduction.color; color.a = 1f - Mathf.Clamp01((age - 1.2f) / 1f); inferenceDeduction.color = color;
+        }
+        if(inferenceModalClock!=null)
+        {
+            inferenceModalClock.gameObject.SetActive(!resultOpen&&!tutorialOpen&&(inferenceQuizOpen||(inference!=null&&inference.IsBoardOpen)));
+            inferenceModalClock.text=FormatTime(inferenceRemaining);
         }
     }
 
@@ -203,7 +217,13 @@ public sealed class StageJourneyUI : MonoBehaviour
         inferenceRemaining = Mathf.Max(0, inferenceRemaining - seconds);
         if (inferenceDeduction == null)
         {
-            inferenceDeduction = StageUITheme.Text("InferenceTimeDeduction", hud, "", 32, true);
+            var overlay=StageUITheme.Rect("Inference Time Feedback",safeArea);
+            StageUITheme.Stretch(overlay,Vector2.zero,Vector2.one);
+            var canvas=overlay.gameObject.AddComponent<Canvas>();canvas.overrideSorting=true;canvas.sortingOrder=350;
+            inferenceModalClock=StageUITheme.Text("Inference Paused Countdown",overlay,"",26);
+            inferenceModalClock.outlineColor=Color.black;inferenceModalClock.outlineWidth=.2f;
+            inferenceDeduction = StageUITheme.Text("InferenceTimeDeduction", overlay, "", 30, true);
+            inferenceDeduction.outlineColor=Color.black;inferenceDeduction.outlineWidth=.2f;
             var rect = inferenceDeduction.rectTransform;
             rect.anchorMin = rect.anchorMax = new Vector2(.18f, .07f); rect.pivot = new Vector2(.5f, 1);
             rect.anchoredPosition = new Vector2(0, -4); rect.sizeDelta = new Vector2(140, 40);
@@ -217,6 +237,24 @@ public sealed class StageJourneyUI : MonoBehaviour
         if (penaltyCanvas == null) penaltyCanvas = inferenceDeduction.gameObject.AddComponent<Canvas>();
         penaltyCanvas.overrideSorting = true; penaltyCanvas.sortingOrder = 305;
         clockLabel.text = FormatTime(inferenceRemaining);
+        LayoutInferenceTimeFeedback();
+    }
+    void LayoutInferenceTimeFeedback()
+    {
+        if(inferenceDeduction==null)return;
+        var rect=inferenceDeduction.rectTransform;
+        rect.anchorMin=rect.anchorMax=rect.pivot=Vector2.one;rect.sizeDelta=new Vector2(140,42);
+        if(inferenceQuizOpen||(inference!=null&&inference.IsBoardOpen))
+        {
+            var clock=inferenceModalClock.rectTransform;
+            clock.anchorMin=clock.anchorMax=clock.pivot=Vector2.one;clock.sizeDelta=new Vector2(200,46);clock.anchoredPosition=new Vector2(-24,-24);
+            rect.anchoredPosition=new Vector2(-24,-76);
+        }
+        else
+        {
+            clockLabel.rectTransform.GetWorldCorners(dockCorners);
+            rect.position=new Vector3(dockCorners[0].x-8,dockCorners[2].y,dockCorners[0].z);
+        }
     }
 
     public static string StageName(int stage) => stage == 1 ? "Propositional Logic" : stage == 2 ? "Truth Table" : "Rules of Inference";
@@ -248,13 +286,70 @@ public sealed class StageJourneyUI : MonoBehaviour
         if (safeArea == null || hud == null || safeArea.rect.height <= 0f) return;
         int stage = SceneManager.GetActiveScene().name == "RulesOfInference" ? 3 : StageSelectionState.SelectedStage;
         // Keep the larger HUD readable while reserving the left settings/help pair.
-        hud.anchorMin = hud.anchorMax = new Vector2(stage == 1 ? 1f : 0.5f, 1f);
-        hud.pivot = new Vector2(stage == 1 ? 1f : 0.5f, 1f);
-        hud.localScale = Vector3.one * Mathf.Min(1f, (safeArea.rect.width - 48f) / HudWidth);
-        hud.anchoredPosition = new Vector2(stage == 1 ? -24f : 0f, -24f);
+        bool rightDock = stage <= 3 || Screen.height > Screen.width;
+        bool compact = rightDock;
+        float width = compact ? PropositionalHudWidth : HudWidth;
+        hud.sizeDelta = new Vector2(width, compact ? PropositionalHudHeight : HudHeight);
+        stageLabel.fontSizeMin = compact ? 22f : 25f; stageLabel.fontSizeMax = compact ? 26f : 30f;
+        clockLabel.fontSize = compact ? 40f : 48f;
+        progressLabel.fontSizeMin = compact ? 22f : 23f; progressLabel.fontSizeMax = compact ? 24f : 28f;
+        hud.anchorMin = hud.anchorMax = new Vector2(rightDock ? 1f : 0.5f, 1f);
+        hud.pivot = new Vector2(rightDock ? 1f : 0.5f, 1f);
+        hud.localScale = Vector3.one * Mathf.Min(1f, (safeArea.rect.width - 48f) / width);
+        hud.anchoredPosition = new Vector2(rightDock ? -24f : 0f, -24f);
+        if ((stage == 2||stage==3) && truthMap != null && ExpandableMinimap.OpenMap == null)
+        {
+            if(stage==2)
+            {
+                if (truthClock == null) truthClock = FindFirstObjectByType<TruthTableStageClock>(FindObjectsInactive.Include);
+                truthClock?.DockCompletionNotice(hud);
+            }
+            truthMap.Panel.GetWorldCorners(dockCorners);
+            // Match the minimap's physical width even though the canvases scale differently.
+            float mapWidth=Vector3.Distance(dockCorners[0],dockCorners[3]);
+            hud.localScale=Vector3.one;
+            float dockWidth=mapWidth/hud.parent.lossyScale.x;
+            stageLabel.fontSizeMin=stageLabel.fontSizeMax=stageLabel.fontSize=18;
+            stageLabel.textWrappingMode=stage==3?TextWrappingModes.Normal:TextWrappingModes.NoWrap;
+            clockLabel.fontSize=26;progressLabel.fontSizeMin=progressLabel.fontSizeMax=progressLabel.fontSize=18;
+            float contentWidth=dockWidth-24,top=12;
+            foreach(var label in new[]{stageLabel,clockLabel,progressLabel})
+            {
+                float height=label.GetPreferredValues(label.text,contentWidth,0).y;
+                var rect=label.rectTransform;rect.anchorMin=rect.anchorMax=rect.pivot=new Vector2(.5f,1);
+                rect.anchoredPosition=new Vector2(0,-top);rect.sizeDelta=new Vector2(contentWidth,height+1);top+=height+1;
+            }
+            hud.sizeDelta=new Vector2(dockWidth,Mathf.Ceil(top+12));
+            hud.position = dockCorners[3] - Vector3.up * (8f * hud.lossyScale.y);
+            if(stage==2)truthClock?.LayoutTimeFeedback(hud);
+        }
+        else
+        {
+            StageUITheme.Stretch(stageLabel.rectTransform,new Vector2(.06f,.62f),new Vector2(.94f,.86f));
+            StageUITheme.Stretch(clockLabel.rectTransform,new Vector2(.06f,.18f),new Vector2(.31f,.57f));
+            StageUITheme.Stretch(progressLabel.rectTransform,new Vector2(.32f,.08f),new Vector2(.94f,.6f));
+        }
+        if (stage == 1) PrelimUIPresentation.CompactHud(hud, safeArea, stageLabel, clockLabel, progressLabel);
+        if(stage==3)LayoutInferenceTimeFeedback();
         PlaceHelp(propositionalHelp);
         PlaceHelp(truthHelp);
         if (inferenceHelp != null) PlaceHelp((RectTransform)inferenceHelp.transform);
+        if(stage==3&&inferenceHelp!=null)LayoutInferenceAdmin();
+    }
+    void LayoutInferenceAdmin()
+    {
+        if(inferenceAdmin==null)
+            foreach(var button in FindObjectsByType<Button>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+                if(button.name=="AdminButton"){inferenceAdmin=(RectTransform)button.transform;break;}
+        if(inferenceAdmin==null)return;
+        var help=(RectTransform)inferenceHelp.transform;
+        help.GetWorldCorners(dockCorners);
+        float scale=help.lossyScale.x;
+        inferenceAdmin.anchorMin=inferenceAdmin.anchorMax=inferenceAdmin.pivot=new Vector2(0,1);
+        inferenceAdmin.sizeDelta=new Vector2(200,74);
+        inferenceAdmin.localScale=Vector3.one*scale/Mathf.Max(.001f,inferenceAdmin.parent.lossyScale.x);
+        inferenceAdmin.position=Screen.height>Screen.width?dockCorners[0]-Vector3.up*18*scale:
+            dockCorners[2]+Vector3.right*24*scale;
     }
 
     private void PlaceHelp(RectTransform rect)
@@ -271,6 +366,12 @@ public sealed class StageJourneyUI : MonoBehaviour
         float uiScale = settingsDock.parent.lossyScale.x;
         rect.localScale = Vector3.one * uiScale / Mathf.Max(0.001f, rect.parent.lossyScale.x);
         settingsDock.GetWorldCorners(dockCorners);
+        if (Screen.height > Screen.width)
+        {
+            rect.sizeDelta = new Vector2(220f, 74f);
+            rect.position = dockCorners[0] - Vector3.up * (18f * uiScale);
+            return;
+        }
         rect.position = new Vector3(dockCorners[2].x + 35f * uiScale,
             (dockCorners[0].y + dockCorners[1].y) * 0.5f + 44f * uiScale, dockCorners[1].z);
     }
@@ -320,7 +421,7 @@ public sealed class StageJourneyUI : MonoBehaviour
     private void ShowResult(int stage, string title, string summary, string action, UnityEngine.Events.UnityAction callback)
     {
         Pause(); resultOpen = true; navigating = false;
-        resultStage.text = "STAGE " + stage + "  /  " + StageName(stage).ToUpperInvariant();
+        resultStage.text = TrialCatalog.Get(stage).Title;
         resultTitle.text = title; resultBody.text = summary;
         primaryButton.GetComponentInChildren<TMP_Text>().text = action;
         StageUITheme.Stretch((RectTransform)primaryButton.transform, new Vector2(0.12f, 0.17f), new Vector2(0.48f, 0.29f));
@@ -399,23 +500,18 @@ public sealed class StageJourneyUI : MonoBehaviour
 
     private void OnInferenceRoundCompleted(int completedChallenge)
     {
-        if (inference != null && inference.IsBoardOpen) { inferenceWaitingNotice = completedChallenge; return; }
-        inferenceNotice?.ShowWaiting(completedChallenge, completedChallenge + 1);
+        inference?.ShowBookWaitingPrompt();
     }
 
     private void OnInferenceBoardClosed()
     {
+        if(inferenceRemaining<=0&&!inferenceFinished&&!resultOpen)
+        {ShowFailure(3,"The exploration timer ran out.",RestartInference);return;}
         if (inferenceCompletionPending) { inferenceCompletionPending = false; OnInferenceComplete(); }
-        else if (inferenceWaitingNotice > 0)
-        {
-            inferenceNotice?.ShowWaiting(inferenceWaitingNotice, inferenceWaitingNotice + 1);
-            inferenceWaitingNotice = 0;
-        }
     }
 
     private void OnInferenceBookStarted(int challengeNumber)
     {
-        inferenceWaitingNotice = 0;
         inferenceNotice?.Hide();
         inferenceNotice?.ShowStart();
     }
@@ -424,7 +520,7 @@ public sealed class StageJourneyUI : MonoBehaviour
     {
         RectTransform inner;
         inferenceTutorial = MakeModal("InferenceTutorialOverlay", out inner).gameObject;
-        var section = StageUITheme.Text("SectionLabel", inner, "STAGE 3  /  FIELD GUIDE", 25);
+        var section = StageUITheme.Text("SectionLabel", inner, "Trial 3 / Field Guide", 25);
         StageUITheme.Stretch(section.rectTransform, new Vector2(0.08f, 0.78f), new Vector2(0.92f, 0.88f));
         tutorialTitle = StageUITheme.Text("PageTitle", inner, "", 52);
         StageUITheme.Stretch(tutorialTitle.rectTransform, new Vector2(0.08f, 0.63f), new Vector2(0.92f, 0.78f));

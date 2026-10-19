@@ -86,8 +86,9 @@ namespace LogicLegends.Graph
             objective = Text(objectivePanel, "Objective text", "", 23, true);
             objective.fontSizeMin = 19;
             Inset(objective.rectTransform, 20, 16);
-            var mapPanel = Panel("Graph minimap", root, Vector2.one, new Vector2(-30, -24), new Vector2(270, 270), Vector2.one, true);
-            var mapTitle = Text(mapPanel, "Map title", "GRAPH MAP", 18, false);
+            var mapPanel = Panel("Graph minimap", root, Vector2.one, new Vector2(-30, -24), new Vector2(240, 240), Vector2.one, true);
+            ExpandableMinimap.Attach(mapPanel);
+            var mapTitle = Text(mapPanel, "Map title", TrialCatalog.ForScene("Graph").Title, 18, false);
             Place(mapTitle.rectTransform, new Vector2(.5f, 1), new Vector2(0, -24), new Vector2(190, 26), new Vector2(.5f, .5f));
             map = StageUITheme.Rect("Map", mapPanel);
             Inset(map, 36, 20); map.offsetMax = new Vector2(-36, -46);
@@ -105,7 +106,7 @@ namespace LogicLegends.Graph
             route = Text(routePanel, "Route", stage.Challenge.start, 23, true); route.font = routeFont; Inset(route.rectTransform, 20, 10);
             var feedbackPanel = Panel("Feedback", root, new Vector2(0, 1), new Vector2(30, -400), new Vector2(360, 100), new Vector2(0, 1));
             feedback = Text(feedbackPanel, "Feedback text", "", 22, true); Inset(feedback.rectTransform, 20, 10);
-            confirm = Action("Confirm", root, "INTERACT", () => { if (stage.TutorialActive) stage.controlsTutorial.PracticeConfirm(); else if (stage.State == GraphStageState.WAITING_FOR_ACTIVATION) stage.InteractBook(); else stage.Confirm(); }, new Vector2(0, 160));
+            confirm = Action("Confirm", root, "CONFIRM", () => { if (stage.TutorialActive) { if (stage.controlsTutorial.CurrentStep != GraphTutorialStep.Book) stage.controlsTutorial.PracticeConfirm(); } else if (stage.State == GraphStageState.ACTIVE) stage.Confirm(); }, new Vector2(0, 160));
             retry = Action("Retry", root, "RETRY ROUTE", () => { if (stage.TutorialActive) stage.controlsTutorial.PracticeRetry(); else if (stage.Challenge.type == GraphChallengeType.Degree) stage.ClearSelection(); else stage.RetryRoute(); }, new Vector2(0, 65));
             lessonButton = Action("Lesson", root, "HELP", () => stage.SetLesson(true), new Vector2(0, 70));
             Place((RectTransform)lessonButton.transform,new Vector2(0,1),new Vector2(210,-91),new Vector2(140,72),new Vector2(0,.5f));
@@ -140,8 +141,8 @@ namespace LogicLegends.Graph
         private void BuildHelp()
         {
             helpPages.Add(new HelpPage("Your graph journey", "Complete " + stage.ChallengeCount + " challenges selected at random from a bank of " + stage.catalog.challenges.Count + ". Graphs use letters or numbers for their vertices. Read the objective for your current graph: your run may include travel, degree, path, directed-path, or cycle tasks. Your selection stays the same through retries and Help."));
-            helpPages.Add(new HelpPage("Start at the book", "Approach the Book Statue and tap the hand button, the keyboard interaction key, or INTERACT. Each challenge begins at its starting vertex. Closing Help only restores your controls; it does not activate the book or start the timer. After each correct challenge, interact with the book again to start the next one."));
-            helpPages.Add(new HelpPage("Move and read the map", "Move with the joystick or WASD, and use the jump button or keyboard jump control. Platforms are vertices; bridges are edges. The minimap shows the graph, arrows, and your position. Cross a connecting bridge completely to record a move. Available bridges glow orange; crossed bridges turn blue. The ROUTE label lists your recorded vertices."));
+            helpPages.Add(new HelpPage("Start at the book", "Approach the Book Statue and tap the hand button. Each challenge begins at its starting vertex. Closing Help only restores your controls; it does not activate the book or start the timer. After each correct challenge, interact with the book again to start the next one."));
+            helpPages.Add(new HelpPage("Move and read the map", "Move with the joystick or WASD, and use the jump button or keyboard jump control. Platforms are vertices; bridges are edges. The minimap shows the graph, arrows, and your position. Tap it to inspect the full graph in a centered panel; Close returns to the minimap. Cross a connecting bridge completely to record a move. Available bridges glow orange; crossed bridges turn blue. The ROUTE label lists your recorded vertices."));
             helpPages.Add(new HelpPage("Vertices and edges", "A vertex is a point in a graph. An edge joins two vertices. For a travel task, start at the vertex named in the objective, cross its connecting bridge, and reach the required destination. Stop on the destination platform and tap CONFIRM. Follow the visible bridges rather than jumping between unconnected platforms."));
             helpPages.Add(new HelpPage("Vertex degree", "The degree of a vertex counts the edges meeting it. Find the vertex named in the objective, inspect its incident edges, then select a number from the on-screen choices and tap CONFIRM. Movement alone does not answer a degree question. CLEAR SELECTION removes your selected number so you can choose again."));
             helpPages.Add(new HelpPage("Find a path", "Follow connecting edges from the starting vertex to the destination named in the objective. A simple path must not repeat a vertex. Your full recorded route is checked, so tap CONFIRM at the destination rather than backtracking to the book. If you need a fresh route, use RETRY ROUTE to return to the start."));
@@ -268,8 +269,9 @@ namespace LogicLegends.Graph
             route.text = stage.Challenge.type == GraphChallengeType.Degree ? "SELECTED DEGREE: " + (stage.Answer.HasValue ? stage.Answer.Value.ToString() : "—") : "ROUTE   " + string.Join(" → ", stage.Tracker.Route);
             feedback.text = stage.Feedback;
             clock.text = StageJourneyUI.FormatTime(stage.timer.Remaining) + (stage.timer.Running ? "" : "  PAUSED");
-            confirm.GetComponentInChildren<TMP_Text>().text = active ? "CONFIRM" : "INTERACT";
-            confirm.interactable = stage.CanAct && (active || (stage.State == GraphStageState.WAITING_FOR_ACTIVATION && stage.NearBook));
+            confirm.GetComponentInChildren<TMP_Text>().text = "CONFIRM";
+            confirm.gameObject.SetActive(active);
+            confirm.interactable = stage.CanAct && active;
             retry.interactable = stage.CanAct && active;
             retry.GetComponentInChildren<TMP_Text>().text = stage.Challenge.type == GraphChallengeType.Degree ? "CLEAR SELECTION" : "RETRY ROUTE";
             lessonButton.interactable = stage.CanAct && (active || stage.State == GraphStageState.WAITING_FOR_ACTIVATION);
@@ -361,7 +363,7 @@ namespace LogicLegends.Graph
             HideAnnouncement();
             lesson.SetActive(false); result.SetActive(true); result.transform.SetAsLastSibling();
             if (gameplayControls != null) gameplayControls.SetActive(false);
-            resultCard.Stage.text = "STAGE 9  /  GRAPHS";
+            resultCard.Stage.text = TrialCatalog.ForScene("Graph").Title;
             resultCard.Heading.text = success ? "STAGE COMPLETE" : "TIME'S UP";
             resultText.text = "Time Played: " + StageJourneyUI.FormatTime(stage.timer.ActiveSeconds) + "\nCorrect: " + stage.Correct + "\nMistakes: " + stage.Mistakes;
             resultCard.Primary.GetComponentInChildren<TMP_Text>().text = success ? "Play Next Stage" : "Play Again";
@@ -473,7 +475,8 @@ namespace LogicLegends.Graph
                 : "PRACTICE ROUTE: " + string.Join(" → ", tutorial.PracticeRoute);
             feedback.text = tutorial.PracticeFeedback;
             clock.text = StageJourneyUI.FormatTime(stage.countdownSeconds) + "  PAUSED";
-            confirm.GetComponentInChildren<TMP_Text>().text = tutorial.CurrentStep == GraphTutorialStep.Book ? "INTERACT" : "CONFIRM";
+            confirm.GetComponentInChildren<TMP_Text>().text = "CONFIRM";
+            confirm.gameObject.SetActive(tutorial.CurrentStep != GraphTutorialStep.Book && tutorial.CanPracticeConfirm);
             confirm.interactable = tutorial.CanPracticeConfirm;
             retry.GetComponentInChildren<TMP_Text>().text = tutorial.CurrentStep == GraphTutorialStep.Degree ? "CLEAR SELECTION" : "RETRY ROUTE";
             retry.interactable = tutorial.CurrentStep == GraphTutorialStep.Degree || tutorial.CurrentStep == GraphTutorialStep.Retry;

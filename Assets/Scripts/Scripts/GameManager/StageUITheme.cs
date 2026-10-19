@@ -99,6 +99,8 @@ public static class StageUITheme
             }
         }
         foreach (var button in canvas.GetComponentsInChildren<Button>(true))
+            if (button.name == "ReadBook_BTN") { button.gameObject.SetActive(false); button.interactable = false; button.onClick.RemoveAllListeners(); }
+            else
             if (HasAncestor(button.transform, "QuizPanel") || HasAncestor(button.transform, "TruthTableDoorPanel") ||
                 button.name == "TruthTableSubmitColumnButton") SkinButton(button);
     }
@@ -200,8 +202,8 @@ public static class StageUITheme
         Stretch((RectTransform)heading, new Vector2(0.54f, 0.68f), new Vector2(0.92f, 0.78f));
         Stretch((RectTransform)notes, new Vector2(0.54f, 0.30f), new Vector2(0.92f, 0.65f));
         var body = notes.GetComponent<TMP_Text>(); body.alignment = TextAlignmentOptions.TopLeft;
-        body.text = stage == 1 ? "MOVE\nJoystick or WASD\n\nREAD\nUse the book statue to start.\n\nCHOOSE\nStand on the pad at your door.\n\nFinish five challenges using one shared countdown."
-            : stage == 2 ? "YOUR ROUTE\nBook / Houses / Truth table\n\nCollect True and False blocks. Fill four rows, then submit the column.\n\nComplete three columns at Easy, Medium and Hard.\n\nThe clock pauses at the table."
+        body.text = stage == 1 ? "MOVE\nJoystick or WASD\n\nSTART\nTap the hand button at the book.\n\nCHOOSE\nStand on the pad at your door.\n\nFinish five challenges using one shared countdown."
+            : stage == 2 ? "YOUR ROUTE\nBook / Houses / Truth Table\n\nCollect True and False blocks. Fill four rows, then submit the column.\n\nComplete three columns at Easy, Medium and Hard.\n\nThe clock pauses at the table."
             : "ROUND CHECKLIST\n1. Complete the premises.\n2. Find a rule crystal.\n3. Place and validate it.\n\nThe conclusion appears after correct validation.\n\nThe exploration timer pauses at the board.";
     }
 

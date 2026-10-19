@@ -14,6 +14,25 @@ using UnityEngine.UI;
 public static class SetssssPlacementPlayChecks
 {
     const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
+    public static void Begin()
+    {
+        if(EditorApplication.isPlayingOrWillChangePlaymode||SceneManager.GetActiveScene().name!="Setssss")throw new InvalidOperationException("Open Setssss outside Play Mode.");
+        SessionState.SetBool("Sets.RunChecks",true);SessionState.SetBool("Sets.HudOnly",false);SessionState.SetInt("Sets.CheckSize",12);
+        System.IO.File.WriteAllText("Library/SetssssPlacementChecks.txt","Sets layout, two-question progression and placement checks\n");
+        EditorApplication.isPlaying=true;
+    }
+    static IEnumerator Guard(IEnumerator run)
+    {
+        var stack=new Stack<IEnumerator>();stack.Push(run);
+        while(stack.Count>0)
+        {
+            object next;
+            try{var step=stack.Peek();if(!step.MoveNext()){stack.Pop();continue;}next=step.Current;}
+            catch(Exception e){System.IO.File.AppendAllText("Library/SetssssPlacementChecks.txt","FAIL "+e+"\n");Debug.LogException(e);EditorApplication.isPlaying=false;yield break;}
+            if(next is IEnumerator child)stack.Push(child);else yield return next;
+        }
+        System.IO.File.AppendAllText("Library/SetssssPlacementChecks.txt","ALL SETS CHECKS PASSED\n");EditorApplication.isPlaying=false;
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Bootstrap()
@@ -51,7 +70,7 @@ public static class SetssssPlacementPlayChecks
         var book = Field<Transform>(stage, "bookStatue");
         PrelimTeleportTransition.MovePlayerImmediately(avatar, book.position + Vector3.back * 2f, Quaternion.identity);
         avatar.GetComponent<Player>().enabled = true;
-        new GameObject("Sets QA Runner").AddComponent<SetssssPlayCheckRunner>().StartCoroutine(Run(stage));
+        new GameObject("Sets QA Runner").AddComponent<SetssssPlayCheckRunner>().StartCoroutine(Guard(Run(stage)));
     }
 
     static IEnumerator Run(SetssssChallengeOne stage)
@@ -75,6 +94,7 @@ public static class SetssssPlacementPlayChecks
         Check(stage.TimeRemaining == 1080f && !stage.Started, "help close does not start challenge");
         CheckQuestionSampling(stage);
         var canvas = GameObject.Find("Canvas 1").GetComponent<Canvas>();
+        yield return CheckMobileActions(stage,canvas);
         var hand = canvas.GetComponentsInChildren<Button>(true).Single(b => b.name == "InteractButton");
         var pickup = Field<Button>(stage, "pickUpBlockButton");
         var submit = Field<Button>(stage, "submitButton");
@@ -125,15 +145,15 @@ public static class SetssssPlacementPlayChecks
         yield return new WaitForSecondsRealtime(1.4f);
         Check(required.GetComponent<SetssssNumberedBlock>().PlacementCorrectness == null, "next condition resets number feedback");
         CheckHud(stage, canvas);
-        Check(Field<TextMeshPro>(stage, "boardText").text.Contains("Question 2 of 5"), "question counter remains on board and follows correct answer");
+        Check(Field<TextMeshPro>(stage, "boardText").text.Contains("Question 2 of 2"), "question counter remains on board and follows correct answer");
 
         // Preserve all existing challenge gates, without writing final-stage rewards.
         yield return CompleteQuestions(stage);
         Check(stage.ChallengeNumber == 2 && !stage.Started, "Challenge 2 waits for book");
-        Check(NoticeText(stage) == "Challenge 1 completed! Interact with the book statue to start Challenge 2.", "continue notification uses exact completed/next numbers");
+        Check(!NoticeVisible(stage)&&Field<TextMeshPro>(stage,"boardText").text.IndexOf("book",StringComparison.OrdinalIgnoreCase)>=0,"completion instructions stay on the board without a redundant HUD notice");
         yield return Capture("ContinueNotification");
         yield return new WaitForSecondsRealtime(1.8f);
-        Check(NoticeVisible(stage) && stage.TimeRemaining == 1080f, "continue notice persists with paused waiting timer");
+        Check(!NoticeVisible(stage) && stage.TimeRemaining == 1080f, "waiting timer stays paused without a completion notice");
         yield return StartBook(stage, player, book, hand);
         yield return CompleteQuestions(stage);
         yield return StartBook(stage, player, book, hand);
@@ -254,20 +274,59 @@ public static class SetssssPlacementPlayChecks
         Check(stage.Started && stage.ChallengeNumber == 5, "complement still uses existing start flow");
         yield return null;
         CheckHud(stage, canvas);
-        Check(Field<TextMeshPro>(stage, "boardText").text.Contains("Question 1 of 5") && stage.CurrentProblem.StartsWith("U = {"), "complement board preserves actual universe and five-question total");
+        Check(Field<TextMeshPro>(stage, "boardText").text.Contains("Question 1 of 2") && stage.CurrentProblem.StartsWith("U = {"), "complement board preserves actual universe and two-question total");
         yield return CompleteQuestions(stage);
-        Check(stage.Complete && GameObject.Find("Setssss Stage Complete") != null, "five questions complete the final stage with existing results");
+        Check(stage.Complete && GameObject.Find("Setssss Stage Complete") != null, "two questions complete the final stage with existing results");
         UnityEngine.Object.Destroy(GameObject.Find("Setssss Stage Complete"));
         stage.RestartChallenge(); yield return null;
         Check(!stage.Started && stage.ChallengeNumber == 1 && Field<HashSet<GrabbableObject>>(stage, "releasedBlocks").Count == 0, "restart clears physical answers and timer notifications");
         // Test interrupted explanation cleanup without starting a challenge.
         Set(stage, "challengeNumber", 4);
-        yield return StartBook(stage, player, book, hand);
-        Check(notice.IsIntroductionOpen, "new attempt gets explanation");
+        yield return null;yield return null;
+        Check(stage.Introductions.IsOpen, "new attempt gets challenge introduction");
         stage.enabled = false; yield return null;
-        Check(!notice.IsIntroductionOpen && Time.timeScale == 1f && !GameInput.Instance.GameplayInputBlocked && !stage.Started, "interruption restores state without starting challenge");
+        Check(!stage.Introductions.IsOpen && Time.timeScale == 1f && !GameInput.Instance.GameplayInputBlocked && !stage.Started, "interruption restores state without starting challenge");
         stage.enabled = true; stage.RestartChallenge();
-        Debug.Log("SETSSSS_PLACEMENT_PLAY_CHECKS_PASS " + Screen.width + "x" + Screen.height + " timer/challenge-only HUD, two tutorial targets, five distinct questions for all challenges, final results, timing, tumbling labels, replenishment, all five difference questions, and mobile UI");
+        Debug.Log("SETSSSS_PLACEMENT_PLAY_CHECKS_PASS " + Screen.width + "x" + Screen.height + " PRELIM HUD, centered styled actions, two distinct questions per challenge, final results, timing, tumbling labels, replenishment, and mobile UI");
+    }
+
+    static IEnumerator CheckMobileActions(SetssssChallengeOne stage,Canvas canvas)
+    {
+        var type=typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView");var window=EditorWindow.GetWindow(type);
+        var property=type.GetProperty("selectedSizeIndex",BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic);
+        int original=(int)property.GetValue(window);
+        var safe=(RectTransform)canvas.transform.Find("SafeArea");
+        var view=safe.Find("ViewBoardButton").GetComponent<Button>();
+        var submit=Field<Button>(stage,"submitButton");var pickup=Field<Button>(stage,"pickUpBlockButton");var returns=Field<Button>(stage,"returnBlockButton");
+        var actions=new[]{view,submit,pickup,returns};var visibility=actions.Select(b=>b.gameObject.activeSelf).ToArray();
+        foreach(int size in new[]{6,12,3})
+        {
+            property.SetValue(window,size);window.Focus();Crystal.SafeArea.Sim=size==12?Crystal.SafeArea.SimDevice.Pixel3XL_LSR:size==3?Crystal.SafeArea.SimDevice.iPhoneX:Crystal.SafeArea.SimDevice.None;
+            yield return null;yield return null;yield return new WaitForEndOfFrame();
+            CheckHud(stage,canvas);
+            foreach(var mode in new[]{new[]{true,false,false,false},new[]{false,true,false,false},new[]{true,true,false,false},new[]{true,true,true,false},new[]{true,true,false,true}})
+            {
+                for(int i=0;i<actions.Length;i++)actions[i].gameObject.SetActive(mode[i]);
+                Invoke(stage,"AdjustControlLayout");Canvas.ForceUpdateCanvases();
+                var safeRect=ScreenRect(safe);var active=actions.Where(b=>b.gameObject.activeInHierarchy).ToArray();
+                var main=active.Where(b=>b==view||b==submit).Select(b=>ScreenRect((RectTransform)b.transform)).ToArray();
+                Check(Mathf.Abs((main.Min(r=>r.xMin)+main.Max(r=>r.xMax))*.5f-safeRect.center.x)<2,"action group centered in safe area");
+                foreach(var b in active)
+                {
+                    var rect=ScreenRect((RectTransform)b.transform);
+                    Check(safeRect.Contains(rect.min)&&safeRect.Contains(rect.max),"action stays in safe area: "+b.name);
+                    Check(b.image.sprite==StageUITheme.ButtonArt&&b.image.pixelsPerUnitMultiplier==4.5f&&b.GetComponent<StageButtonFeedback>()!=null,"action uses artstyle artwork/multiplier/feedback");
+                    foreach(var other in active)if(b!=other)Check(!rect.Overlaps(ScreenRect((RectTransform)other.transform)),"actions do not overlap");
+                    foreach(var control in safe.GetComponentsInChildren<RectTransform>().Where(r=>r.name=="Joystick"||r.name=="InteractButton"||r.name=="JumpButton"))Check(!rect.Overlaps(ScreenRect(control)),"actions clear "+control.name);
+                    foreach(var label in b.GetComponentsInChildren<TMP_Text>()){label.ForceMeshUpdate();Check(!label.isTextOverflowing,"action label fits: "+b.name);}
+                }
+            }
+            for(int i=0;i<actions.Length;i++)actions[i].gameObject.SetActive(visibility[i]);
+            yield return Capture("ResponsiveLayout");
+        }
+        property.SetValue(window,original);Crystal.SafeArea.Sim=original==12?Crystal.SafeArea.SimDevice.Pixel3XL_LSR:Crystal.SafeArea.SimDevice.None;
+        yield return null;
+        System.IO.File.AppendAllText("Library/SetssssPlacementChecks.txt","PASS desktop, wide mobile and portrait: PRELIM HUD and centered actions, artwork, readable text, safe-area and touch-control clearance.\n");
     }
 
     static IEnumerator CheckHelpPages(SetssssHelpUI help)
@@ -288,7 +347,7 @@ public static class SetssssPlacementPlayChecks
             if (page == 0) yield return Capture("HelpElements");
             if (page < count - 1) Click(next);
         }
-        Check(seen.ToString().Contains("five distinct questions") && seen.ToString().Contains("elements of a set") && seen.ToString().Contains("complement"), "Help teaches question count and correct set terminology");
+        Check(seen.ToString().Contains("two distinct questions") && seen.ToString().Contains("elements of a set") && seen.ToString().Contains("complement"), "Help teaches question count and correct set terminology");
         Click(previous); yield return null; Click(next); yield return null;
     }
 
@@ -309,7 +368,7 @@ public static class SetssssPlacementPlayChecks
                 for (int attempt = 0; attempt < 100; attempt++)
                 {
                     Invoke(stage, "ShuffleUnansweredEntries");
-                    Check(stage.QuestionCount == 5 && pool.Count == 5 && pool.Distinct().Count() == 5 && pool.All(x => x >= 0 && x < bankSize), "five distinct questions sampled within existing bank");
+                    Check(stage.QuestionCount == 2 && pool.Count == 2 && pool.Distinct().Count() == 2 && pool.All(x => x >= 0 && x < bankSize), "two distinct questions sampled within existing bank");
                     covered.UnionWith(pool); orders.Add(string.Join(",", pool));
                 }
                 Check(covered.Count == bankSize && orders.Count > 1, "whole bank remains eligible with randomized selections/order");
@@ -330,7 +389,7 @@ public static class SetssssPlacementPlayChecks
         {
             Check(stage.Started && stage.ChallengeNumber == challenge && stage.QuestionIndex == question, "challenge stays active through question " + (question + 1));
             Check(seen.Add(stage.SelectedEntryIndices[question]), "no repeated question in one challenge");
-            Check(Field<TextMeshPro>(stage, "boardText").text.Contains("Question " + (question + 1) + " of 5"), "Information Board tracks all five questions");
+            Check(Field<TextMeshPro>(stage, "boardText").text.Contains("Question " + (question + 1) + " of 2"), "Information Board tracks both questions");
             Check(stage.DebugClearCurrentCondition(), "existing correct-answer progression accepts question");
             float until = Time.unscaledTime + 10f;
             while (stage.ChallengeNumber == challenge && stage.QuestionIndex == question && !stage.Complete && Time.unscaledTime < until)
@@ -339,9 +398,9 @@ public static class SetssssPlacementPlayChecks
         }
         stage.Introductions.Skip();
         yield return null;
-        Check(seen.Count == 5, "challenge completes after exactly five distinct questions");
+        Check(seen.Count == 2, "challenge completes after exactly two distinct questions");
         Check(challenge == 5 ? stage.Complete : stage.ChallengeNumber == challenge + 1 && !stage.Started && stage.TimeRemaining == 1080f,
-            "fifth question reaches final results or waits at next book with reset countdown");
+            "second question reaches final results or waits at next book with reset countdown");
     }
 
     static IEnumerator CheckCompactHud(SetssssChallengeOne stage, Canvas canvas, Player player, Transform book, Button hand)
@@ -349,7 +408,7 @@ public static class SetssssPlacementPlayChecks
         var hud = stage.Hud;
         float normalHeight = hud.Hud.rect.height;
         Check(hud.Hud.rect.width <= 560f && hud.Hud.rect.width * normalHeight < 740f * 320f * .6f, "HUD occupies substantially less screen space");
-        Check(hud.Hud.GetComponentsInChildren<TMP_Text>().Length == 2 && hud.Hud.rect.width <= 440f && normalHeight <= 76f, "compact HUD contains only time and challenge progress");
+        Check(hud.Hud.GetComponentsInChildren<TMP_Text>().Length == 3 && hud.Hud.rect.width <= 500f && normalHeight <= 136f, "compact PRELIM HUD contains title, time, and challenge progress");
 
         var safe = Field<RectTransform>(hud, "safeArea");
         var maps = Field<RectTransform[]>(hud, "minimaps");
@@ -384,10 +443,10 @@ public static class SetssssPlacementPlayChecks
         stage.DebugClearCurrentChallenge(); yield return null; yield return new WaitForEndOfFrame();
         CheckHud(stage, canvas);
         Check(stage.ChallengeNumber == 2 && !stage.Started && stage.TimeRemaining == 1080f, "next challenge waits for book with paused timer");
-        Check(NoticeText(stage) == "Challenge 1 completed! Interact with the book statue to start Challenge 2.", "completion notification preserved");
+        Check(!NoticeVisible(stage), "completion notification removed from Sets HUD");
         yield return Capture("CompactContinue");
         yield return new WaitForSecondsRealtime(1.6f);
-        Check(NoticeVisible(stage) && stage.TimeRemaining == 1080f, "completion notification remains while waiting");
+        Check(!NoticeVisible(stage) && stage.TimeRemaining == 1080f, "waiting state remains paused without notification");
         stage.RestartChallenge();
         Debug.Log("SETSSSS_COMPACT_HUD_PASS " + Screen.width + "x" + Screen.height + " safe-area layout, simplified HUD, two tutorial targets, minimap avoidance, deductions, and book progression");
     }

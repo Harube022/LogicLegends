@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -14,7 +15,7 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
     [SerializeField, Min(0.1f)] private float movementDistance = 0.35f;
     [SerializeField, Min(1f)] private float practiceRange = 2.5f;
     [Header("Guided camera")]
-    [SerializeField, Min(0.1f)] private float cameraTransitionSeconds = 0.7f;
+    [SerializeField, Min(0.1f)] private float cameraTransitionSeconds = PrelimUIPresentation.CameraTransitionSeconds;
     [SerializeField, Min(2f)] private float bookViewDistance = 5.5f;
     [SerializeField, Min(3f)] private float hintBoardViewDistance = 10f;
 
@@ -55,7 +56,6 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
     private TopicChallenge room;
     private BookInteract roomBook;
     private Button bookButton;
-    private bool originalBookButtonVisible;
     private bool originalJoystickVisible;
     private bool originalJumpVisible;
     private bool originalHandVisible;
@@ -191,15 +191,7 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
 
     private static void AddBorder(RectTransform target)
     {
-        Color color = new Color(1f, 0.86f, 0.22f, 0.95f);
-        CreateBorderEdge("Top", target, new Vector2(0f, 1f), new Vector2(1f, 1f),
-            new Vector2(0f, 7f), color);
-        CreateBorderEdge("Bottom", target, Vector2.zero, new Vector2(1f, 0f),
-            new Vector2(0f, 7f), color);
-        CreateBorderEdge("Left", target, Vector2.zero, new Vector2(0f, 1f),
-            new Vector2(7f, 0f), color);
-        CreateBorderEdge("Right", target, new Vector2(1f, 0f), Vector2.one,
-            new Vector2(7f, 0f), color);
+        PrelimUIPresentation.Highlight(target);
     }
 
     private static void CreateBorderEdge(string name, RectTransform parent, Vector2 min,
@@ -228,16 +220,7 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
 
     private static Button MakeButton(Transform parent, string label, Vector2 position, UnityEngine.Events.UnityAction action)
     {
-        RectTransform rect = MakeRect(label + " Button", parent, new Vector2(0.5f, 0.5f),
-            new Vector2(0.5f, 0.5f), position, new Vector2(250f, 92f));
-        Image image = rect.gameObject.AddComponent<Image>();
-        image.color = new Color(0.12f, 0.48f, 0.43f);
-        Button button = rect.gameObject.AddComponent<Button>();
-        button.onClick.AddListener(action);
-        TextMeshProUGUI text = MakeText(label, rect, 40, TextAlignmentOptions.Center);
-        text.text = label;
-        Stretch(text.rectTransform, 8f);
-        return button;
+        return PrelimUIPresentation.TutorialButton(parent, label, position, action);
     }
 
     private void BeginMovement()
@@ -282,7 +265,14 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         worldTargets.Clear();
         worldHighlight.gameObject.SetActive(false);
         instructions.gameObject.SetActive(true);
-        instructionBlockers = ControlTutorialLayout.FindBlockers();
+        // Hidden controls and empty legacy labels have no visible area to reserve.
+        // The joystick's container stays active after its visible child is hidden.
+        instructionBlockers = ControlTutorialLayout.FindBlockers().Where(rect =>
+        {
+            if (rect.name == "Joystick" && joystick != null && !joystick.gameObject.activeInHierarchy) return false;
+            var label = rect.GetComponent<TMP_Text>();
+            return label == null || label.enabled && !string.IsNullOrWhiteSpace(label.text);
+        }).ToArray();
         confirmation.SetActive(false);
         LayoutInstruction();
     }
@@ -406,13 +396,10 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         }
         CreateDemonstrationCamera();
         AimAtBookAndDoors(false);
-        SetWorldInstruction("Interact with this book statue to start the game.", false,
+        SetWorldInstruction("Use the hand button to interact with this book statue and start each challenge. Try it now; this is practice only.", false,
             roomBook.GetComponentsInChildren<Renderer>(true));
-        if (bookButton != null)
-        {
-            bookButton.gameObject.SetActive(true);
-            bookButton.onClick.AddListener(OnBookButtonClicked);
-        }
+        if (bookButton != null) bookButton.gameObject.SetActive(false);
+        handButton.gameObject.SetActive(true);
     }
 
     private void SnapshotDemonstrationUI()
@@ -421,7 +408,6 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         Transform canvas = safeArea.root.Find("Canvas 1");
         if (canvas == null) canvas = GameObject.Find("Canvas 1").transform;
         bookButton = canvas.Find("ReadBook_BTN")?.GetComponent<Button>();
-        originalBookButtonVisible = bookButton != null && bookButton.gameObject.activeSelf;
         originalJoystickVisible = joystick.gameObject.activeSelf;
         originalJumpVisible = jumpButton.gameObject.activeSelf;
         originalHandVisible = handButton.gameObject.activeSelf;
@@ -442,11 +428,6 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         doorTexts = room.roomChoiceCanvas.GetComponentsInChildren<TextMeshProUGUI>(true);
         originalDoorTexts = new string[doorTexts.Length];
         for (int i = 0; i < doorTexts.Length; i++) originalDoorTexts[i] = doorTexts[i].text;
-    }
-
-    private void OnBookButtonClicked()
-    {
-        TryTutorialInteraction();
     }
 
     private void BeginTimerDemo()
@@ -638,8 +619,7 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         }
         if (bookButton != null)
         {
-            bookButton.onClick.RemoveListener(OnBookButtonClicked);
-            bookButton.gameObject.SetActive(originalBookButtonVisible);
+            bookButton.gameObject.SetActive(false);
             bookButton = null;
         }
         if (timerText != null)

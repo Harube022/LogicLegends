@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>World-space tablet selection and numbered proof slots for challenges 3–5.</summary>
 [DisallowMultipleComponent]
-public sealed class ProofWorldBoardController : MonoBehaviour
+public sealed partial class ProofWorldBoardController : MonoBehaviour
 {
     [SerializeField] private ProofWorldPedestal[] statementTablets = new ProofWorldPedestal[0];
     [SerializeField] private ProofWorldPedestal[] ruleTablets = new ProofWorldPedestal[0];
@@ -34,6 +34,7 @@ public sealed class ProofWorldBoardController : MonoBehaviour
         SetActive(ruleTablets, 0);
         SetActive(statementSlots, 0);
         SetActive(ruleSlots, 0);
+        carryChanged?.Invoke();
     }
 
     public void Configure(ProofChallengeData data)
@@ -68,17 +69,12 @@ public sealed class ProofWorldBoardController : MonoBehaviour
         for (int display = 0; display < stepCount; display++)
         {
             int id = optionToStep[display];
-            ProofStepData step = data.steps[id];
-            string body = data.kind == ProofChallengeKind.OrderSteps ?
-                step.statement + "\n" + step.justification : step.statement;
-            statementTablets[display].SetContent("STATEMENT " + (char)('A' + display), body);
+            statementTablets[display].SetContent("STATEMENT " + (char)('A' + display), SourceContent(false, id));
         }
         for (int display = 0; display < ruleCount; display++)
         {
             int id = optionToRule[display];
-            string body = data.kind == ProofChallengeKind.MissingRule ?
-                data.ruleOptions[id] : data.steps[id].justification + "\nfor " + data.steps[id].statement;
-            ruleTablets[display].SetContent("RULE " + (char)('A' + display), body);
+            ruleTablets[display].SetContent("RULE " + (char)('A' + display), SourceContent(true, id));
         }
         Refresh();
     }
@@ -168,14 +164,14 @@ public sealed class ProofWorldBoardController : MonoBehaviour
     {
         if (station == null) return "Approach a proof pedestal.";
         if (IndexOf(statementTablets, station) >= 0 || IndexOf(ruleTablets, station) >= 0)
-            return "INTERACT  •  Select " + station.Heading;
+            return selected < 0 ? "INTERACT  •  Read " + station.Heading : "Place or return your carried scroll first.";
         int slot = IndexOf(statementSlots, station);
         bool rule = slot < 0;
         if (rule) slot = IndexOf(ruleSlots, station);
         if (slot < 0) return "Approach a proof pedestal.";
         int assigned = rule ? assignedRules[slot] : assignedSteps[slot];
         if (selected >= 0 && selectedRule == rule)
-            return "INTERACT  •  Place selected tablet in slot " + (slot + 1);
+            return "INTERACT  •  Place carried scroll in slot " + (slot + 1);
         if (selected >= 0)
             return "Select a " + (rule ? "rule" : "statement") + " tablet for slot " + (slot + 1) + ".";
         return assigned >= 0 ? "INTERACT  •  Remove tablet from slot " + (slot + 1) :
@@ -186,9 +182,9 @@ public sealed class ProofWorldBoardController : MonoBehaviour
     {
         if (challenge == null || station == null || !station.gameObject.activeInHierarchy || feedback != 0) return;
         int index = IndexOf(statementTablets, station);
-        if (index >= 0) { if (!station.TabletVisible) return; selected = optionToStep[index]; selectedRule = false; Refresh(); return; }
+        if (index >= 0) { if (TryReadScroll(station, out _, out _)) readRequested?.Invoke(station); return; }
         index = IndexOf(ruleTablets, station);
-        if (index >= 0) { if (!station.TabletVisible) return; selected = optionToRule[index]; selectedRule = true; Refresh(); return; }
+        if (index >= 0) { if (TryReadScroll(station, out _, out _)) readRequested?.Invoke(station); return; }
         index = IndexOf(statementSlots, station);
         if (index >= 0) { Assign(index, false); return; }
         index = IndexOf(ruleSlots, station);
@@ -298,6 +294,7 @@ public sealed class ProofWorldBoardController : MonoBehaviour
                 challenge.steps[id].justification);
             station.SetState(State(id >= 0));
         }
+        carryChanged?.Invoke();
     }
 
     private ProofWorldPedestal.VisualState State(bool active)

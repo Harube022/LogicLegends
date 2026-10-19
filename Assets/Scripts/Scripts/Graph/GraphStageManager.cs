@@ -40,7 +40,7 @@ namespace LogicLegends.Graph
         public Player LocalPlayer { get; private set; }
         public bool Ready { get; private set; }
         public bool Moving { get; private set; }
-        public string Feedback { get; private set; } = "Approach the Book Statue and tap INTERACT to begin.";
+        public string Feedback { get; private set; } = "Approach the Book Statue and tap the hand button.";
         private readonly List<GraphEdge> bridges = new List<GraphEdge>();
         private readonly List<GraphVertex> vertices = new List<GraphVertex>();
         private GameInput input;
@@ -95,6 +95,7 @@ namespace LogicLegends.Graph
             PrelimTeleportTransition.MovePlayerImmediately(LocalPlayer.gameObject, spawnPoint.position, spawnPoint.rotation);
             ResetTracker(arena.InverseTransformPoint(LocalPlayer.transform.position));
             Ready = true;
+            BookStatuePresentation.BindHand(bookStatue, () => isActiveAndEnabled && CanAct && NearBook && (State == GraphStageState.WAITING_FOR_ACTIVATION || State == GraphStageState.ACTIVE), InteractBook);
             // Wait for the shared spawn fade and any existing pause to finish.
             // Opening Help is separate from book activation and never resumes the clock.
             while (!CanAct) yield return null;

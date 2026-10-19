@@ -139,6 +139,7 @@ public static class SetssssIntroductionPlayChecks
             MoveToBook(stage, player); yield return new WaitForSecondsRealtime(.25f);
             GameInput.Instance.MobileInteract(); yield return null;
             Check(stage.Started, "real book starts challenge " + challenge);
+            if(challenge==4)CheckLabels(stage);
             Check(stage.DebugClearCurrentCondition(), "normal question advancement available");
             yield return new WaitForSecondsRealtime(1.4f);
             Check(stage.ChallengeNumber == challenge && stage.QuestionIndex == 1 && !intro.IsOpen, "introduction does not repeat before another question");
@@ -193,14 +194,27 @@ public static class SetssssIntroductionPlayChecks
     static void CheckLabels(SetssssChallengeOne stage)
     {
         var root = GameObject.Find("Sets Diagram Region Labels");
-        var labels = root.GetComponentsInChildren<TextMeshPro>();
-        Check(labels.Select(l => l.text).OrderBy(s => s).SequenceEqual(new[] { "A", "A ∩ B", "B", "U — Universal Set" }.OrderBy(s => s)), "four unique world-space region names");
+        var labels = root.GetComponentsInChildren<TextMeshPro>(true);
+        var names=new List<string>{"A","A ∩ B","B","U — Universal Set","A − B","B − A"};
+        Check(labels.Select(l => l.text).OrderBy(s => s).SequenceEqual(names.OrderBy(s => s)), "unique active world-space region names");
+        var player=Player.LocalInstance;var previous=player.transform.position;var rotation=player.transform.rotation;
         foreach (var label in labels)
         {
+            bool difference=label.text=="A − B"||label.text=="B − A";
+            if(difference&&!Field<GameObject>(stage,label.text=="A − B"?"aMinusBRegion":"bMinusARegion").activeInHierarchy){Check(!label.gameObject.activeInHierarchy,"inactive difference region hides its caption");continue;}
             label.ForceMeshUpdate(); Check(!label.isTextOverflowing, "full world label fits: " + label.text);
+            Check(label.fontSize>=12&&(label.fontStyle&FontStyles.Bold)!=0&&label.outlineWidth>.1f,"heavy high-contrast region label");
+            var focus=label.text=="A"?SetssssChallengeIntroductions.Focus.A:label.text=="B"?SetssssChallengeIntroductions.Focus.B:label.text=="A ∩ B"?SetssssChallengeIntroductions.Focus.Intersection:label.text=="A − B"?SetssssChallengeIntroductions.Focus.AMinusB:label.text=="B − A"?SetssssChallengeIntroductions.Focus.BMinusA:SetssssChallengeIntroductions.Focus.Universe;
+            var bounds=(Bounds)Invoke(stage,"IntroductionBounds",focus);var point=label.transform.position;
+            PrelimTeleportTransition.MovePlayerImmediately(player.gameObject,bounds.center+Vector3.up*2,rotation);
+            Invoke(stage.GetComponent<SetssssDiagramLabels>(),"LateUpdate");point=label.transform.position;
+            Check(label.gameObject.activeInHierarchy,"nearby region reveals its anchored caption");
+            Check(point.x>=bounds.min.x&&point.x<=bounds.max.x&&point.z>=bounds.min.z&&point.z<=bounds.max.z,"label anchored within its own region footprint: "+label.text);
             Check(Vector3.Dot(label.transform.forward, (label.transform.position - Camera.main.transform.position).normalized) > .999f, "label faces gameplay camera");
         }
         Check(labels.First(l => l.text == "A").transform.position.x < labels.First(l => l.text == "A ∩ B").transform.position.x && labels.First(l => l.text == "B").transform.position.x > labels.First(l => l.text == "A ∩ B").transform.position.x, "A, intersection, B ordered over actual meshes");
+        PrelimTeleportTransition.MovePlayerImmediately(player.gameObject,previous,rotation);
+        Invoke(stage.GetComponent<SetssssDiagramLabels>(),"LateUpdate");
     }
     static bool Contains(Rect outside, Rect inside) => outside.Contains(inside.min + Vector2.one * .5f) && outside.Contains(inside.max - Vector2.one * .5f);
     static Rect ScreenRect(RectTransform rect)
@@ -236,7 +250,7 @@ public static class SetssssIntroductionPlayChecks
     }
     static T Field<T>(object obj, string name) => (T)obj.GetType().GetField(name, Private).GetValue(obj);
     static void Set(object obj, string name, object value) => obj.GetType().GetField(name, Private).SetValue(obj, value);
-    static object Invoke(object obj, string name) => obj.GetType().GetMethod(name, Private).Invoke(obj, null);
+    static object Invoke(object obj, string name, params object[] args) => obj.GetType().GetMethod(name, Private).Invoke(obj, args);
     static void Check(bool okay, string message) { if (!okay) throw new InvalidOperationException(message); }
 }
 public sealed class SetsIntroductionCheckRunner : MonoBehaviour { }

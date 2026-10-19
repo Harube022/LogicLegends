@@ -88,23 +88,33 @@ public sealed class ProofsBoardView : MonoBehaviour
         BoardBounds = bounds;
         Vector3 forward = boardInstructions.transform.forward.normalized;
         Vector3 up = informationBoard.up.normalized, right = Vector3.Cross(up, forward).normalized;
+        if (view.aspect < 1f)
+        {
+            // Raise portrait shots above the Book Statue in the central aisle.
+            forward = Quaternion.AngleAxis(14f, right) * forward;
+            up = Vector3.Cross(forward, right).normalized;
+        }
         float height = ProjectExtent(bounds.extents, up), width = ProjectExtent(bounds.extents, right);
         float depth = ProjectExtent(bounds.extents, forward);
-        float tangent = Mathf.Tan(boardFieldOfView * Mathf.Deg2Rad * .5f);
+        float framingFov = view.aspect < 1f ? Mathf.Max(boardFieldOfView, 55f) : boardFieldOfView;
+        float tangent = Mathf.Tan(framingFov * Mathf.Deg2Rad * .5f);
         // Back sits beside the board; fit its full reading frame inside the mobile safe area.
         framedAspect = view.aspect; framedSafeArea = CurrentSafeArea();
+        // A side-by-side tutorial view pushes a portrait camera through the
+        // chamber's front wall. Stack the board above its explanation instead.
+        Rect frameArea = framedAspect < 1f && readingArea.width < .8f ? new Rect(.05f, .43f, .9f, .5f) : readingArea;
         // Game view resizing can report the previous safe rectangle for several frames.
         var safe = Rect.MinMaxRect(Mathf.Clamp(framedSafeArea.xMin, 0f, Screen.width), Mathf.Clamp(framedSafeArea.yMin, 0f, Screen.height),
             Mathf.Clamp(framedSafeArea.xMax, 0f, Screen.width), Mathf.Clamp(framedSafeArea.yMax, 0f, Screen.height));
         if (safe.width < 1f || safe.height < 1f) safe = new Rect(0f, 0f, Screen.width, Screen.height);
         float safeHeight = Mathf.Clamp(safe.height / Mathf.Max(1f, Screen.height), .5f, 1f);
         float safeWidth = Mathf.Clamp(safe.width / Mathf.Max(1f, Screen.width), .5f, 1f);
-        float distance = Mathf.Max(height / (safeHeight * readingArea.height), width / (framedAspect * safeWidth * readingArea.width)) / tangent * framingPadding + depth;
-        float centerY = (safe.yMin + safe.height * readingArea.center.y) / Mathf.Max(1f, Screen.height) - .5f;
-        float centerX = (safe.xMin + safe.width * readingArea.center.x) / Mathf.Max(1f, Screen.width) - .5f;
+        float distance = Mathf.Max(height / (safeHeight * frameArea.height), width / (framedAspect * safeWidth * frameArea.width)) / tangent * framingPadding + depth;
+        float centerY = (safe.yMin + safe.height * frameArea.center.y) / Mathf.Max(1f, Screen.height) - .5f;
+        float centerX = (safe.xMin + safe.width * frameArea.center.x) / Mathf.Max(1f, Screen.width) - .5f;
         Vector3 position = bounds.center - forward * distance - up * (distance * tangent * 2f * centerY) -
             right * (distance * tangent * framedAspect * 2f * centerX);
-        StartBlend(position, Quaternion.LookRotation(forward, up), boardFieldOfView, false);
+        StartBlend(position, Quaternion.LookRotation(forward, up), framingFov, false);
     }
 
     private static float ProjectExtent(Vector3 extent, Vector3 axis) =>

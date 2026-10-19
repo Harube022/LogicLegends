@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,29 +21,42 @@ public sealed class TruthTableTutorial : MonoBehaviour
 
     private readonly (string title, string body)[] pages =
     {
-        ("Start at the book",
-            "Walk to Book_Statue and tap Interact to start each challenge. The house doors stay locked until you start. Closing this guide does not start the challenge."),
-        ("Three challenges",
-            "Finish Easy, then Medium, then Hard. Each challenge has three randomly chosen truth-table expressions, one for each TRUTIBOL column. Read the expression on the board and fill its four P/Q rows."),
-        ("Open the houses",
-            "Approach a closed house door and tap INTERACT WITH DOOR, or press E on a keyboard. Choose one of four quiz answers. Either answer opens that door. A wrong answer costs 10 seconds; a correct answer gives no extra time."),
-        ("Collect the blocks",
-            "Use the on-screen joystick to search the houses. Near a True or False block, tap Interact to collect it. Tap its inventory slot to select it. On a keyboard, use WASD to move and E to interact."),
-        ("Place each row",
-            "Check the P and Q values for the highlighted row. Face and line up with the current TRUTIBOL column, then tap Interact while holding the selected block to drop it into the highlighted slot. Place the four rows in board order."),
-        ("Submit your column",
-            "After placing all four blocks, tap Submit Column. A correct column moves you forward. A wrong column costs 20 seconds and returns those four blocks to your inventory so you can retry the same expression."),
-        ("New columns, new houses",
-            "After a correct column, new blocks appear at house spawn points. All six doors close and their quizzes change. A wrong submission keeps the doors as they are and gives the placed blocks back to your inventory. An invalid placement still returns that one block to a house."),
-        ("Watch the clock",
-            "Each challenge starts with 18:00. The clock pauses while a door quiz is open or while you stand in the marked area in front of TRUTIBOL. Wrong-answer penalties still count while paused. At 00:00, the stage ends in Game Over."),
-        ("Start the next challenge",
-            "After three correct columns, the next challenge waits at 18:00. Return to Book_Statue and tap Interact to begin it. After Hard's third column, choose NEXT STAGE or MAIN MENU on the completion screen."),
-        ("Move and retry",
-            "Keep holding the joystick in a direction for 3 seconds to run at 1.5 times walking speed. Releasing it resets the run. On a keyboard, hold WASD. If time runs out, tap Restart to begin again at Easy, then use the book to start the clock.")
+        ("What is a Truth Table?",
+            "A Truth Table lists every combination of truth values for statements and shows whether a logical expression is True or False. P and Q represent statements. In this stage, evaluate each expression, collect the matching True/False element blocks, and complete the required column."),
+        ("Read the operators",
+            "AND (∧) is True only when both inputs are True. Inclusive OR (∨) is True when at least one input is True. Exclusive OR (⊕) is True when exactly one input is True. NOT (~ or ¬) reverses a truth value; it also appears in house quizzes."),
+        ("Conditionals and brackets",
+            "Implication (P → Q) is False only when P is True and Q is False. Biconditional (P ↔ Q) is True when both truth values match. Evaluate expressions inside brackets first. Medium and Hard combine these operators, so work through the expression one part at a time."),
+        ("Rows, inputs and answers",
+            "The four numbered rows organize the P/Q combinations: True/True, True/False, False/True, and False/False. Row numbers identify positions, not separate challenges. A True or False element block represents the expression's output for that row. Read the P/Q values and expression on the Truth Table board."),
+        ("Start and explore",
+            "Approach the Book Statue and tap the hand button to start a challenge. Then explore the six houses. A small white bubble marks an available interaction and expands to show the hand icon when you are nearby. The doors stay locked before book activation; closing Help never starts the timer."),
+        ("Answer the house quizzes",
+            "At a closed house door, tap the hand button and choose one of four quiz answers. These quizzes check your understanding of logic; they are separate from the board's rows. Either answer opens that door. An incorrect answer costs 10 seconds and shows the correct answer before the quiz closes. Correct answers give no extra time."),
+        ("Collect element blocks",
+            "Once a house door is open, enter and look for True/False element blocks. Their interaction bubbles appear only while that house is open and the blocks can be collected. Approach a block and tap the hand button. The existing inventory groups True and False blocks; tap a stack to select the type you need."),
+        ("Fill and submit a column",
+            "Read the highlighted row's P/Q values. Face and line up with the required Truth Table column, then use the hand button while holding the selected element block to drop it into the highlighted slot. Fill all four rows in order, then tap Submit Column. Submit checks the entire column, not just the last block."),
+        ("Correct mistakes",
+            "An incorrect column costs 20 seconds and returns its four element blocks to your inventory. Retry the same expression; the doors stay as they are. An invalid placement returns that element block to a house and resets the doors and their quizzes. It does not itself deduct time. Select the needed stack and try again."),
+        ("Three challenges, nine columns",
+            "Complete Easy, Medium, and Hard in order. Each challenge selects three distinct expressions from its question bank: three columns of four rows. After a correct column, the houses receive new blocks and all doors close with new quizzes. After three correct columns, return to the book to start the next challenge. Completing Hard finishes the stage."),
+        ("Time and retries",
+            "Each challenge starts with 18:00. Time pauses during Help, tutorial practice, door quizzes, and while you stand in the marked board area. Penalties still apply while paused: −10 seconds for an incorrect door quiz and −20 for an incorrect column. Red time deductions appear beside the timer and fade out. At 00:00, Restart begins again at Easy."),
+        ("Move and read",
+            "Use the joystick to move, the jump button to jump, and the hand button for nearby interactions. Hold a movement direction for 3 seconds to run at 1.5 times walking speed. On desktop, WASD, jump, and E remain available. Tap the minimap to inspect the whole stage; Close restores the compact view. The challenge and timer wait for the book between challenges.")
     };
 
     private int pageIndex;
+    readonly Dictionary<RectTransform, GuidePose> guidePoses=new Dictionary<RectTransform, GuidePose>();
+    RectTransform guideCard;
+    struct GuidePose
+    {
+        public Vector2 min,max,pivot,size,position;
+        public Vector3 scale;
+        public GuidePose(RectTransform rect){min=rect.anchorMin;max=rect.anchorMax;pivot=rect.pivot;size=rect.sizeDelta;position=rect.anchoredPosition;scale=rect.localScale;}
+        public void Restore(RectTransform rect){rect.anchorMin=min;rect.anchorMax=max;rect.pivot=pivot;rect.sizeDelta=size;rect.anchoredPosition=position;rect.localScale=scale;}
+    }
     private bool hasShownAutomatically;
     private bool isOpen;
     private bool startControlsOnClose;
@@ -205,6 +219,40 @@ public sealed class TruthTableTutorial : MonoBehaviour
         if (pageText != null) pageText.text = $"{pageIndex + 1} / {pages.Length}";
         if (backButton != null) backButton.interactable = pageIndex > 0;
         if (nextButton != null) nextButton.interactable = pageIndex < pages.Length - 1;
+        LayoutGuide();
+    }
+
+    private void LateUpdate(){if(isOpen)LayoutGuide();}
+    private void LayoutGuide()
+    {
+        if(titleText==null||bodyText==null)return;
+        if(guideCard==null)
+        {
+            guideCard=(RectTransform)titleText.transform.parent;
+            guidePoses[guideCard]=new GuidePose(guideCard);
+            foreach(Transform child in guideCard)if(child is RectTransform rect)guidePoses[rect]=new GuidePose(rect);
+        }
+        foreach(var saved in guidePoses)if(saved.Key!=null)saved.Value.Restore(saved.Key);
+        bool portrait=Screen.height>Screen.width;
+        foreach(var name in new[]{"RightReadingPage","BookSpine","FieldNotesHeading","FieldNotesBody"})
+        {var child=guideCard.Find(name);if(child!=null)child.gameObject.SetActive(!portrait);}
+        if(!portrait)
+        {
+            bodyText.fontSizeMin=24;bodyText.fontSizeMax=31;titleText.fontSizeMin=32;titleText.fontSizeMax=44;return;
+        }
+        StageUITheme.Stretch(guideCard,new Vector2(.02f,.04f),new Vector2(.98f,.96f));
+        var paper=guideCard.Find("LeftReadingPage") as RectTransform;
+        if(paper!=null)StageUITheme.Stretch(paper,new Vector2(.04f,.24f),new Vector2(.96f,.87f));
+        var section=guideCard.Find("SectionLabel") as RectTransform;
+        if(section!=null)StageUITheme.Stretch(section,new Vector2(.08f,.89f),new Vector2(.92f,.96f));
+        StageUITheme.Stretch(titleText.rectTransform,new Vector2(.09f,.75f),new Vector2(.91f,.84f));
+        StageUITheme.Stretch(bodyText.rectTransform,new Vector2(.09f,.28f),new Vector2(.91f,.73f));
+        bodyText.enableAutoSizing=true;bodyText.fontSizeMin=22;bodyText.fontSizeMax=27;
+        titleText.enableAutoSizing=true;titleText.fontSizeMin=26;titleText.fontSizeMax=36;
+        StageUITheme.Stretch((RectTransform)backButton.transform,new Vector2(.06f,.12f),new Vector2(.36f,.21f));
+        StageUITheme.Stretch(pageText.rectTransform,new Vector2(.39f,.12f),new Vector2(.61f,.21f));
+        StageUITheme.Stretch((RectTransform)nextButton.transform,new Vector2(.64f,.12f),new Vector2(.94f,.21f));
+        StageUITheme.Stretch((RectTransform)gotItButton.transform,new Vector2(.22f,.025f),new Vector2(.78f,.11f));
     }
 
     private void OnDisable()

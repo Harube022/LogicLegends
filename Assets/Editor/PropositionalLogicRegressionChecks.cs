@@ -82,9 +82,8 @@ public static class PropositionalLogicRegressionChecks
                 Call(book, "Start");
                 float carried = timer.RemainingTime;
                 Require(!timer.IsTimerRunning, "Entering challenge " + i + " must remain paused.");
-                Call(book, "OnTriggerEnter", collider);
-                Require(button.gameObject.activeSelf, "Paused challenge must offer Book activation.");
-                button.onClick.Invoke();
+                Require(!button.gameObject.activeSelf && !button.interactable, "Dedicated book button stays disabled.");
+                Call(book, "ActivateFromHand");
                 Require(quiz.IsQuizActive && timer.IsTimerRunning, "Book click must reveal quiz and resume timer.");
                 LogicQuestion currentQuestion = ReadCurrentQuestion(quiz);
                 Require(premiseText.enabled && currentQuestion != null &&
@@ -108,8 +107,7 @@ public static class PropositionalLogicRegressionChecks
                     carried = timer.RemainingTime;
                     // Exercise recovery while still inside the trigger, with no enter callback.
                     button.onClick.RemoveAllListeners();
-                    Call(book, "OnTriggerStay", collider);
-                    button.onClick.Invoke();
+                    Call(book, "ActivateFromHand");
                     Require(quiz.IsQuizActive && timer.IsTimerRunning, "Wrong-answer Book reactivation must work.");
                     Require(Mathf.Approximately(timer.RemainingTime, carried), "Repeated activation must not reset time.");
                     Require((int)Get(quiz, "currentTopicIndex") == i,
@@ -217,13 +215,13 @@ public static class PropositionalLogicRegressionChecks
             "All three Game Over actions must be available.");
 
         Require(timer.TryPrepareTryAgainState(), "The first Try Again must be accepted.");
-        Require(LevelTimerManager.TryAgainCount == 1 && Mathf.Approximately(timer.RemainingTime, 270f) &&
+            Require(LevelTimerManager.TryAgainCount == 1 && Mathf.Approximately(timer.RemainingTime, 240f) &&
             !timer.IsTimerRunning && LevelTimerManager.isRespawningFromFail,
-            "The first Try Again must prepare a paused 04:30 run.");
+                "The first Try Again must prepare a paused 04:00 run.");
         Require(timer.TryPrepareTryAgainState(), "The second Try Again must be accepted.");
-        Require(LevelTimerManager.TryAgainCount == 2 && Mathf.Approximately(timer.RemainingTime, 270f) &&
+            Require(LevelTimerManager.TryAgainCount == 2 && Mathf.Approximately(timer.RemainingTime, 240f) &&
             !timer.IsTimerRunning,
-            "The second Try Again must prepare a paused 04:30 run.");
+                "The second Try Again must prepare a paused 04:00 run.");
         Call(timer, "UpdateGameOverOptions");
         Require(middleLabel.text == "STUDY IN LOGIC GARDEN LIBRARY" && timer.IsStudyOptionAvailable,
             "After two retries, the middle action must change to the Logic Garden study option.");
@@ -232,10 +230,10 @@ public static class PropositionalLogicRegressionChecks
 
         timer.PrepareStartOverState();
         Call(timer, "UpdateGameOverOptions");
-        Require(LevelTimerManager.TryAgainCount == 0 && Mathf.Approximately(timer.RemainingTime, 540f) &&
-            Mathf.Approximately(LevelTimerManager.savedRemainingTime, 540f) && !timer.IsTimerRunning &&
+            Require(LevelTimerManager.TryAgainCount == 0 && Mathf.Approximately(timer.RemainingTime, 360f) &&
+                Mathf.Approximately(LevelTimerManager.savedRemainingTime, 360f) && !timer.IsTimerRunning &&
             !LevelTimerManager.isRespawningFromFail && middleLabel.text == "TRY AGAIN",
-            "Start Over must reset the session to a paused 09:00 run and restore Try Again.");
+                "Start Over must reset the session to a paused 06:00 run and restore Try Again.");
     }
 
     private static Button UiButton(GameObject parent, string name)

@@ -12,6 +12,7 @@ using TMPro;
 /// </summary>
 public partial class TruthTableDoorInteraction : MonoBehaviour
 {
+    public static TruthTableDoorInteraction Active { get; private set; }
     private const string DoorPromptText = "INTERACT WITH DOOR";
 
     private static int[] sessionQuestionIndices;
@@ -22,6 +23,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
     {
         sessionQuestionIndices = null;
         sessionAnswered = null;
+        Active = null;
     }
 
     public static void ClearSessionForRestart() { ResetSession(); }
@@ -99,6 +101,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         doorPromptText = DoorPromptText;
         if (promptLabel != null) promptLabel.text = doorPromptText;
         ConfigureAudio();
+        InitializePresentation();
         stageClock = GetComponent<TruthTableStageClock>();
         if (stageClock == null) stageClock = gameObject.AddComponent<TruthTableStageClock>();
         if (bookStatue == null) FindBookStatue();
@@ -208,6 +211,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         for (int i = 0; i < doors.Length; i++)
         {
             answered[i] = false;
+            doorOpened[i] = false;
             assignedQuestions[i] = questionBank.questions[sessionQuestionIndices[i]];
             if (hinges[i] != null) hinges[i].localRotation = closedRotations[i];
             foreach (Collider collider in doors[i].GetComponents<Collider>()) collider.enabled = true;
@@ -220,9 +224,15 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
     {
         hinges = new Transform[doors.Length];
         closedRotations = new Quaternion[doors.Length];
+        houseRoots = new Transform[doors.Length];
+        doorOpened = new bool[doors.Length];
+        doorBubblePositions = new Vector3[doors.Length];
         for (int i = 0; i < doors.Length; i++)
         {
             Transform door = doors[i].transform;
+            houseRoots[i] = door.parent;
+            var boundsInWorld = doors[i].bounds;
+            doorBubblePositions[i] = new Vector3(boundsInWorld.center.x,boundsInWorld.max.y+.7f,boundsInWorld.center.z);
             MeshFilter mesh = door.GetComponent<MeshFilter>();
             if (mesh == null || mesh.sharedMesh == null)
             {
@@ -240,6 +250,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
             closedRotations[i] = hinge.transform.localRotation;
             if (answered[i])
             {
+                doorOpened[i] = true;
                 foreach (Collider collider in door.GetComponents<Collider>()) collider.enabled = false;
                 hinge.transform.localRotation = closedRotations[i] * Quaternion.Euler(0f, openAngle, 0f);
             }
@@ -248,9 +259,10 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
     private void OnEnable()
     {
+        Active = this;
         if (interactionPrompt != null) interactionPrompt.SetActive(false);
         if (blankPanel != null) blankPanel.SetActive(false);
-        if (promptButton != null) promptButton.onClick.AddListener(ActivateFocusedInteraction);
+        if (promptButton != null) { promptButton.onClick.RemoveAllListeners(); promptButton.interactable = false; }
         if (closeButton != null) closeButton.onClick.AddListener(ClosePanel);
         if (answerButtons != null && answerButtons.Length == 4)
         {
@@ -286,8 +298,8 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         {
             UpdateBookIndicator();
             if (promptLabel != null && onboarding.WantsDedicatedInteractionPrompt)
-                promptLabel.text = onboarding.IsDemonstratingBook ? "INTERACT WITH BOOK" : DoorPromptText;
-            SetPromptVisible(onboarding.WantsDedicatedInteractionPrompt);
+                promptLabel.text = onboarding.IsDemonstratingBook ? BookStatuePresentation.HandPromptText : DoorPromptText;
+            SetPromptVisible(false);
             return;
         }
 
@@ -302,8 +314,8 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         {
             if (bookStatue == null) FindBookStatue();
             UpdateBookIndicator();
-            if (promptLabel != null) promptLabel.text = "Interact to start";
-            SetPromptVisible(IsPlayerNearBook());
+            if (promptLabel != null) promptLabel.text = BookStatuePresentation.HandPromptText;
+            SetPromptVisible(false);
             return;
         }
 
@@ -335,7 +347,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
                 }
             }
         }
-        SetPromptVisible(focusedDoor != null);
+        SetPromptVisible(false);
     }
 
     private void FindInput()
@@ -365,6 +377,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
     private void SetupBookStatue()
     {
+        BookStatuePresentation.BindHand(bookStatue, () => isActiveAndEnabled && IsTruthTableActive && stageClock != null && stageClock.IsWaitingForBook && !stageClock.IsTutorialOpen && !panelOpen && IsPlayerNearBook(), ActivateFocusedInteraction);
         EnsureBookPedestalCollider();
         UpdateBookIndicator();
     }
@@ -461,6 +474,8 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         TruthTableDoorQuestionBank.Question question = assignedQuestions[index];
         questionText.text = question.prompt;
         feedbackText.text = string.Empty;
+        correctAnswerText.text = string.Empty;
+        correctAnswerText.gameObject.SetActive(false);
         for (int i = 0; i < 4; i++)
         {
             answerTexts[i].text = ((char)('A' + i)) + ".  " + question.choices[i];
@@ -481,8 +496,10 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         previousCursorVisible = Cursor.visible;
         gameInput.SetGameplayInputBlocked(true);
         player.ToggleControl(false);
+        HideQuizControls();
         SetPromptVisible(false);
         blankPanel.SetActive(true);
+        LayoutQuiz();
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -499,7 +516,9 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         int index = currentDoorIndex;
         answered[index] = true;
         bool correct = choiceIndex == assignedQuestions[index].correctChoice;
-        feedbackText.text = correct ? "Correct" : "Incorrect, Try again";
+        feedbackText.text = correct ? "Correct" : "Incorrect";
+        correctAnswerText.text = correct ? "" : "Correct answer: " + assignedQuestions[index].choices[assignedQuestions[index].correctChoice];
+        correctAnswerText.gameObject.SetActive(!correct);
         feedbackText.color = correct ? new Color(0.25f, 0.95f, 0.35f) : new Color(1f, 0.27f, 0.27f);
         PlayAnswerFeedback(correct);
         foreach (Button button in answerButtons) button.interactable = false;
@@ -507,7 +526,8 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         if (!correct) stageClock.AdjustSeconds(-10);
         if (!IsStageRunning) return;
         OpenDoor(index);
-        StartCoroutine(CloseAfterFeedback());
+        LayoutQuiz();
+        feedbackCloseRoutine = StartCoroutine(CloseAfterFeedback(correct ? feedbackSeconds : Mathf.Max(5f,feedbackSeconds)));
     }
 
     private void OpenDoor(int index)
@@ -557,17 +577,27 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
             yield return null;
         }
         hinge.localRotation = end;
+        doorOpened[index] = true;
     }
 
-    private IEnumerator CloseAfterFeedback()
+    private IEnumerator CloseAfterFeedback(float duration)
     {
-        yield return new WaitForSecondsRealtime(feedbackSeconds);
+        float elapsed=0;
+        while(elapsed<duration)
+        {
+            // A nested Admin or pause menu must not consume the player's reading interval.
+            if(!stageClock.IsTutorialOpen&&Time.timeScale>0)elapsed+=Time.unscaledDeltaTime;
+            yield return null;
+        }
+        feedbackCloseRoutine = null;
         ClosePanel();
     }
 
     public void ClosePanel()
     {
         if (!panelOpen) return;
+        if (feedbackCloseRoutine != null) StopCoroutine(feedbackCloseRoutine);
+        feedbackCloseRoutine = null;
         panelOpen = false;
         if (stageClock != null) stageClock.SetQuizOpen(false);
         if (blankPanel != null) blankPanel.SetActive(false);
@@ -577,6 +607,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
             if (player != null) player.ToggleControl(playerWasEnabled);
         }
         if (minimap != null) minimap.enabled = minimapWasEnabled;
+        RestoreQuizControls();
         Cursor.lockState = previousCursorLock;
         Cursor.visible = previousCursorVisible;
         currentDoorIndex = -1;
@@ -621,6 +652,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
     private void SetPromptVisible(bool visible)
     {
+        visible = false; // Door and book actions use the shared hand button.
         if (promptButton != null && promptButton.interactable != visible)
             promptButton.interactable = visible;
         if (interactionPrompt != null && interactionPrompt.activeSelf != visible)
@@ -629,6 +661,8 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
     private void OnDisable()
     {
+        if (Active == this) Active = null;
+        HideDoorBubbles();
         StopMusic();
         if (feedbackSource != null) feedbackSource.Stop();
         BookStatuePresentation.SetRequired(bookStatue, false);

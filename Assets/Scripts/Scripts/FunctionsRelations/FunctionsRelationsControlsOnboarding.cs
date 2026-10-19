@@ -156,7 +156,7 @@ public sealed partial class FunctionsRelationsControlsOnboarding : MonoBehaviour
                 Vector3 delta = practice.transform.position - player.transform.position; delta.y = 0f;
                 if (delta.magnitude > 3.5f || Vector3.Dot(player.transform.forward, delta.normalized) < .25f) return false;
                 DestroyPracticeObject(); player.ToggleControl(false); StartCameraGuide(); Focus(Stage.BookTarget);
-                ShowStep(FunctionsRelationsTutorialStep.Book, "Interact with the book statue to start each challenge. Try the hand or the nearby interaction button. This is practice; the real timer stays paused.", null, false, Stage.BookTarget);
+                ShowStep(FunctionsRelationsTutorialStep.Book, "Interact with the book statue to start each challenge. Tap the hand button. This is practice; the real timer stays paused.", hand, false, Stage.BookTarget);
                 return true;
             case FunctionsRelationsTutorialStep.Book:
                 ShowStep(FunctionsRelationsTutorialStep.Timer, "The book starts or resumes the shared " + StageJourneyUI.FormatTime(Stage.StartingSeconds) + " countdown. Correct submissions pause it; it does not reset between challenges. Incorrect submissions subtract " + Stage.WrongAnswerPenalty.ToString("0.##") + " seconds.", timer, true);

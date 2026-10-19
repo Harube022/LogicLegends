@@ -30,7 +30,7 @@ public static class ConfigureFunctionsRelationsPresentation
         ui.stage = stage; ui.safeArea = safe;
         var hud = EnsureRect("CurrentStageHud", root); ui.hud = hud;
         StageUITheme.CompactSurface(Image(hud));
-        var heading = Label("CurrentStageLabel", hud, "STAGE 5 / FUNCTIONS & RELATIONS", 30f, true);
+        var heading = Label("CurrentStageLabel", hud, TrialCatalog.ForScene("Functions and Relations").Title, 30f, true);
         Stretch(heading.rectTransform, .06f, .62f, .94f, .86f);
         var clock = so.FindProperty("hudTimerText").objectReferenceValue as TMP_Text;
         clock.name = "StageCountdown"; clock.transform.SetParent(hud, false);

@@ -14,6 +14,8 @@ namespace LogicLegends.Inference
         private float lastSeenAt;
         private Button viewBoardButton;
         private TMP_Text viewBoardLabel;
+        private RectTransform[] mobileControls;
+        private readonly Vector3[] uiCorners=new Vector3[4];
         [SerializeField] private Transform altarVisual;
         [SerializeField, Min(0f)] private float labelHeight = 6f;
         [SerializeField, Min(0f)] private float indicatorHeight = 11.5f;
@@ -45,9 +47,28 @@ namespace LogicLegends.Inference
                 (tutorial == null || !tutorial.IsActive || tutorial.IsBoardApproach) &&
                 (GameInput.Instance == null || !GameInput.Instance.GameplayInputBlocked);
             viewBoardButton.gameObject.SetActive(available);
+            if(available)LayoutBoardButton();
             var held = nearbyPlayer != null ? nearbyPlayer.GetHeldObject() : null;
             bool carryingRule = held != null && held.GetComponent<RuleDiamond>() != null;
             viewBoardLabel.text = available && carryingRule ? "Submit to Altar" : "View Board";
+        }
+        private void LayoutBoardButton()
+        {
+            var rect=(RectTransform)viewBoardButton.transform;
+            rect.anchoredPosition=new Vector2(0,175);
+            rect.GetWorldCorners(uiCorners);
+            float left=uiCorners[0].x,right=uiCorners[2].x,bottom=uiCorners[0].y,required=bottom;
+            if(mobileControls==null)
+                mobileControls=System.Array.FindAll(FindObjectsByType<RectTransform>(FindObjectsInactive.Include,FindObjectsSortMode.None),
+                    r=>r.name=="JumpButton"||r.name=="InteractButton"||r.name=="Joystick");
+            foreach(var control in mobileControls)
+            {
+                if(control==null||!control.gameObject.activeInHierarchy)continue;
+                control.GetWorldCorners(uiCorners);
+                if(uiCorners[2].x>left&&uiCorners[0].x<right)
+                    required=Mathf.Max(required,uiCorners[2].y+16*rect.lossyScale.y);
+            }
+            rect.position+=Vector3.up*(required-bottom);
         }
 
         private void UpdateAltarLabels()

@@ -45,6 +45,7 @@ public class GameInput : MonoBehaviour
     private void Jump_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        if (DirectProofsGuide.Active != null && !DirectProofsGuide.Active.AllowsJump) return;
         if (ProofsControlsOnboarding.Active != null && !ProofsControlsOnboarding.Active.AllowsJump) return;
         if (FunctionsRelationsControlsOnboarding.Active != null && !FunctionsRelationsControlsOnboarding.Active.AllowsJump) return;
         if (LogicGardenControlsOnboarding.Active != null && !LogicGardenControlsOnboarding.Active.AllowsJump) return;
@@ -84,6 +85,8 @@ public class GameInput : MonoBehaviour
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         if (GameplayInputBlocked) return;
+        if (DirectProofsGuide.Active != null)
+        { DirectProofsGuide.Active.TryPracticeInteraction(); return; }
         if (ProofsControlsOnboarding.Active != null)
         { ProofsControlsOnboarding.Active.TryPracticeInteraction(); return; }
         if (FunctionsRelationsControlsOnboarding.Active != null)
@@ -118,6 +121,8 @@ public class GameInput : MonoBehaviour
             practice.TryPracticeInteraction();
             return;
         }
+        if (BookStatuePresentation.TryHandInteraction()) return;
+        if (TruthTableDoorInteraction.TryHandInteraction()) return;
         OnInteractAction?.Invoke(this, EventArgs.Empty);
     }
 
@@ -129,6 +134,7 @@ public class GameInput : MonoBehaviour
     public Vector2 GetMovementVectorNormalized(float deadZone)
     {
         if (GameplayInputBlocked) return Vector2.zero;
+        if (DirectProofsGuide.Active != null && DirectProofsGuide.Active.TryGetMovementOverride(out Vector2 directMovement)) return directMovement;
         if (ProofsControlsOnboarding.Active != null && ProofsControlsOnboarding.Active.TryGetMovementOverride(out Vector2 proofsMovement)) return proofsMovement;
         if (FunctionsRelationsControlsOnboarding.Active != null &&
             FunctionsRelationsControlsOnboarding.Active.TryGetMovementOverride(out Vector2 functionsMovement)) return functionsMovement;
@@ -166,6 +172,7 @@ public class GameInput : MonoBehaviour
     public void MobileJump()
     {
         if (GameplayInputBlocked) return;
+        if (DirectProofsGuide.Active != null && !DirectProofsGuide.Active.AllowsJump) return;
         if (ProofsControlsOnboarding.Active != null && !ProofsControlsOnboarding.Active.AllowsJump) return;
         if (FunctionsRelationsControlsOnboarding.Active != null && !FunctionsRelationsControlsOnboarding.Active.AllowsJump) return;
         if (LogicGardenControlsOnboarding.Active != null && !LogicGardenControlsOnboarding.Active.AllowsJump) return;
@@ -205,6 +212,8 @@ public class GameInput : MonoBehaviour
     public void MobileInteract()
     {
         if (GameplayInputBlocked) return;
+        if (DirectProofsGuide.Active != null)
+        { DirectProofsGuide.Active.TryPracticeInteraction(); return; }
         if (ProofsControlsOnboarding.Active != null)
         { ProofsControlsOnboarding.Active.TryPracticeInteraction(); return; }
         if (FunctionsRelationsControlsOnboarding.Active != null)
@@ -239,6 +248,8 @@ public class GameInput : MonoBehaviour
             practice.TryPracticeInteraction();
             return;
         }
+        if (BookStatuePresentation.TryHandInteraction()) return;
+        if (TruthTableDoorInteraction.TryHandInteraction()) return;
         // 1. FIRST CHECK: Do we have a block selected in our inventory? If so, drop it!
         if (InventoryManager.Instance != null && InventoryManager.Instance.HasBlockSelected())
         {
@@ -255,6 +266,7 @@ public class GameInput : MonoBehaviour
         {
             if (col.TryGetComponent(out TruthBlock block))
             {
+                if (!block.CanCollectNow) continue;
                 // Skip blocks that are already securely inside your inventory slots
                 if (block.TryGetComponent(out GrabbableObject grabbable) && grabbable.isStoredInInventory)
                     continue;

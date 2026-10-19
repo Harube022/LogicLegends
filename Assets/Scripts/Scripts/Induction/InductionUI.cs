@@ -37,10 +37,11 @@ namespace LogicLegends.Induction
             stage = owner; controls = host.Find("Gameplay_Interface").gameObject;
             Root = StageUITheme.Rect("Induction HUD", host); StageUITheme.Stretch(Root, Vector2.zero, Vector2.one);
             var hud = Panel("Induction Status", Root, new Vector2(.28f,.84f), new Vector2(.73f,.99f));statusHud=hud;
-            var title = Text("Stage Title", hud, "THE INDUCTION TOWER — STAIRWAY OF INFINITY", 28);
-            Place(title.rectTransform,.06f,.68f,.94f,.92f);
-            clock = Text("Shared Countdown",hud,"18:00",48); Place(clock.rectTransform,.05f,.12f,.27f,.66f);
-            progress = Text("Challenge Progress",hud,"Challenge 1 of 5\nWaiting for book",29); Place(progress.rectTransform,.3f,.12f,.94f,.66f);
+            var title = Text("Stage Title", hud, TrialCatalog.ForScene("Induction").Title, 28);
+            Place(title.rectTransform,.06f,.56f,.94f,.96f);
+            title.fontSizeMin=22;title.textWrappingMode=TextWrappingModes.Normal;
+            clock = Text("Shared Countdown",hud,"18:00",48); Place(clock.rectTransform,.05f,.12f,.27f,.52f);
+            progress = Text("Challenge Progress",hud,"Challenge 1 of 5\nWaiting for book",29); Place(progress.rectTransform,.3f,.12f,.94f,.52f);
             feedback = Text("Submission Feedback",Root,"",30,true); Place(feedback.rectTransform,.28f,.74f,.75f,.84f);
             var outline = feedback.gameObject.AddComponent<Outline>(); outline.effectColor=Color.black; outline.effectDistance=new Vector2(1,-1);
             carry = Text("Held Formula",Root,"",29,true); Place(carry.rectTransform,.40f,.43f,.80f,.52f);
@@ -160,7 +161,7 @@ namespace LogicLegends.Induction
             if(stage.onboarding!=null&&stage.onboarding.IsActive){RefreshPractice();return;}
             int seconds=Mathf.CeilToInt(stage.timer.Remaining);clock.text=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
             progress.text="Challenge "+(stage.ChallengeIndex+1)+" of 5\n"+(stage.State==InductionState.Active?stage.Challenge.title:stage.State==InductionState.WaitingForBook?"Waiting for book":stage.State==InductionState.StageComplete?"All completed":"Game Over");
-            InteractButton.gameObject.SetActive(stage.CanAct&&stage.Target!=null);
+            InteractButton.gameObject.SetActive(stage.CanAct&&stage.Target!=null&&stage.Target!=stage.book);
             InteractButton.GetComponentInChildren<TMP_Text>().text=stage.TargetAction;
             ViewBoardButton.gameObject.SetActive(stage.boardView.Available);
             SubmitButton.gameObject.SetActive(stage.CanSubmit);SubmitButton.interactable=stage.CanSubmit;
@@ -192,8 +193,8 @@ namespace LogicLegends.Induction
             var step=stage.onboarding.CurrentStep;
             statusHud.gameObject.SetActive(step==InductionTutorialStep.Timer||step==InductionTutorialStep.Progress);
             int seconds=Mathf.CeilToInt(stage.startingSeconds);clock.text=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");progress.text="Challenge 1 of 5\nPractice preview";
-            InteractButton.gameObject.SetActive(step==InductionTutorialStep.Book||step==InductionTutorialStep.Stand||step==InductionTutorialStep.Place||step==InductionTutorialStep.Replace);
-            InteractButton.GetComponentInChildren<TMP_Text>().text=step==InductionTutorialStep.Book?"Interact with Book":step==InductionTutorialStep.Stand?"Formula Scrolls":step==InductionTutorialStep.Replace?"Replace Scroll":"Place Scroll";
+            InteractButton.gameObject.SetActive(step==InductionTutorialStep.Stand||step==InductionTutorialStep.Place||step==InductionTutorialStep.Replace);
+            InteractButton.GetComponentInChildren<TMP_Text>().text=step==InductionTutorialStep.Stand?"Formula Scrolls":step==InductionTutorialStep.Replace?"Replace Scroll":"Place Scroll";
             ReturnButton.gameObject.SetActive(step==InductionTutorialStep.Rearrange);
             SubmitButton.gameObject.SetActive(step==InductionTutorialStep.Submit);SubmitButton.interactable=true;
             ViewBoardButton.gameObject.SetActive(step==InductionTutorialStep.ViewBoard);
@@ -226,7 +227,7 @@ namespace LogicLegends.Induction
         public void ShowResult(bool win)
         {
             announcement.gameObject.SetActive(false);controls.SetActive(false);Result.Root.gameObject.SetActive(true);Result.Root.SetAsLastSibling();
-            Result.Stage.text="THE INDUCTION TOWER — STAIRWAY OF INFINITY";Result.Heading.text=win?"STAGE COMPLETE!":"GAME OVER";
+            Result.Stage.text=TrialCatalog.ForScene("Induction").Title;Result.Heading.text=win?"STAGE COMPLETE!":"GAME OVER";
             int elapsed=Mathf.FloorToInt(stage.timer.ActiveSeconds);
             Result.Summary.text="Completion time: "+(elapsed/60).ToString("00")+":"+(elapsed%60).ToString("00")+"\nCorrect submissions: "+stage.Correct+" / 5    Mistakes: "+stage.Mistakes;
             bool hasNext=win&&!string.IsNullOrEmpty(stage.nextScene)&&UnityEngine.Application.CanStreamedLevelBeLoaded(stage.nextScene);

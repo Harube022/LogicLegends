@@ -331,7 +331,7 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
     private void BeginChallengeIndicator()
     {
         ShowStep(Step.ChallengeIndicator,
-            "This indicator shows your current challenge out of five. Answer five questions per challenge, then activate the book statue to begin the next one. Read each question and its required sets on the Information Board.",
+            "This indicator shows your current challenge out of five. Answer two questions per challenge, then activate the book statue to begin the next one. Read each question and its required sets on the Information Board.",
             challengeRect, null, true);
     }
 

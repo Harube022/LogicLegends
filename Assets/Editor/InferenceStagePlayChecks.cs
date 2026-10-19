@@ -89,7 +89,9 @@ public static class InferenceStagePlayChecks
         Click(Field<Button>(tutorial, "boardBackButton")); yield return null; yield return new WaitForEndOfFrame();
         Check(tutorial.IsCrystalPractice, "crystal lesson uses practice data");
         var interaction = stage.GetComponent<InferenceCrystalInteraction>();
-        yield return null; Click(interaction.CollectButton); yield return null;
+        yield return null; GameInput.Instance.MobileInteract(); yield return null;
+        var pickupQuiz=stage.GetComponent<InferenceCrystalQuiz>();
+        pickupQuiz.Answer(pickupQuiz.Current.CorrectChoice);pickupQuiz.CollectAnsweredCrystal();yield return null;
         Check(tutorial.CurrentStep == "Confirm" && !stage.HasStarted && stage.Question == null, "dedicated practice pickup does not start real challenge");
         tutorial.ConfirmYes(); yield return null;
         var correctRules = new HashSet<string>();
@@ -117,8 +119,9 @@ public static class InferenceStagePlayChecks
             // Stand at the pillar base within the configured pickup volume.
             Vector3 pickup = correct.PickupOrigin + Vector3.back * 2f; pickup.y = correct.PickupOrigin.y - 7.5f;
             Move(player, pickup, Quaternion.identity); yield return new WaitForSecondsRealtime(.3f);
-            Check(interaction.CollectButton.gameObject.activeInHierarchy, "nearby crystal has dedicated prompt");
-            if (challenge % 2 == 0) Click(interaction.CollectButton); else GameInput.Instance.MobileInteract();
+            Check(interaction.AvailableCrystal!=null, "nearby crystal is available through hand");
+            GameInput.Instance.MobileInteract();
+            pickupQuiz.Answer(pickupQuiz.Current.CorrectChoice);pickupQuiz.CollectAnsweredCrystal();
             yield return null;
             Check(player.GetHeldObject() != null && player.GetHeldObject().GetComponent<InferenceCrystal>() != null, "both pickup methods use the existing carry system");
             var held = player.GetHeldObject().GetComponent<InferenceCrystal>();

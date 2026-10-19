@@ -73,7 +73,7 @@ public sealed partial class ProofsControlsOnboarding
     {
         joystick.gameObject.SetActive(CurrentStep == ProofsTutorialStep.Movement);
         jump.gameObject.SetActive(CurrentStep == ProofsTutorialStep.Jump);
-        hand.gameObject.SetActive(CurrentStep == ProofsTutorialStep.Interaction || WantsInteraction);
+        hand.gameObject.SetActive(CurrentStep == ProofsTutorialStep.Interaction || CurrentStep == ProofsTutorialStep.Book || CurrentStep == ProofsTutorialStep.ConfirmBook || WantsInteraction);
         bool board = CurrentStep == ProofsTutorialStep.Board || CurrentStep == ProofsTutorialStep.BoardBack;
         ui.BackButton.gameObject.SetActive(board); ui.BackButton.interactable = CurrentStep == ProofsTutorialStep.BoardBack;
         ui.ViewButton.gameObject.SetActive(WantsViewBoard); ui.InteractionButton.gameObject.SetActive(WantsInteraction);
@@ -81,13 +81,13 @@ public sealed partial class ProofsControlsOnboarding
         ui.Hud.gameObject.SetActive(CurrentStep == ProofsTutorialStep.Timer || CurrentStep == ProofsTutorialStep.Progress);
         stage.PromptText.gameObject.SetActive(false); help.HelpButton.gameObject.SetActive(false);
         if (settings != null) settings.gameObject.SetActive(false);
-        string action = CurrentStep == ProofsTutorialStep.Book ? "Practice: Book" : CurrentStep == ProofsTutorialStep.ReadScroll ? "Read Practice Scroll" :
+        string action = CurrentStep == ProofsTutorialStep.Book ? BookStatuePresentation.HandPromptText : CurrentStep == ProofsTutorialStep.ReadScroll ? "Read Practice Scroll" :
             CurrentStep == ProofsTutorialStep.TakeBack ? "Take Back Scroll" : CurrentStep == ProofsTutorialStep.ConfirmBook ? "Confirm at Book" : "Place Scroll";
         ui.InteractionButton.GetComponentInChildren<TMP_Text>().text = action;
         if (CurrentStep == ProofsTutorialStep.Reader)
         {
             stage.CollectButton.interactable = Readable;
-            StageUITheme.Stretch((RectTransform)stage.ReaderPanel.transform, new Vector2(.43f, .13f), new Vector2(.97f, .84f));
+            ui.LayoutReader(true);
         }
         if (CurrentStep == ProofsTutorialStep.TakeBackPicker)
         {
@@ -116,6 +116,7 @@ public sealed partial class ProofsControlsOnboarding
         blockers.AddRange(new[] { ui.Hud, (RectTransform)ui.ViewButton.transform, (RectTransform)ui.InteractionButton.transform, (RectTransform)ui.BackButton.transform,
             (RectTransform)stage.ReaderPanel.transform, (RectTransform)stage.TakeBackPanel.transform });
         if (practiceLabel != null) blockers.Add(practiceLabel);
+        if (worldRect.gameObject.activeInHierarchy) blockers.Add(worldRect);
         var target = highlight.gameObject.activeSelf ? highlight.parent as RectTransform : worldRect.gameObject.activeSelf ? worldRect : null;
         ControlTutorialLayout.Place(instructions, instruction, (RectTransform)next.transform, safe, target, false, blockers.ToArray(), arrow.gameObject.activeSelf ? arrow : null);
         ((RectTransform)next.transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 88);
@@ -125,8 +126,25 @@ public sealed partial class ProofsControlsOnboarding
         var bounds = new Bounds(target.position, Vector3.one); bool found = false;
         foreach (var r in target.GetComponentsInChildren<Renderer>(true))
         {
-            if (!r.enabled || !r.gameObject.activeInHierarchy || r is LineRenderer || r.GetComponent<TMP_SubMesh>() != null || !includeText && r.GetComponent<TMP_Text>() != null) continue;
-            if (!found) { bounds = r.bounds; found = true; } else bounds.Encapsulate(r.bounds);
+            if (!r.enabled || !r.gameObject.activeInHierarchy || r is LineRenderer || r is SkinnedMeshRenderer || r.GetComponent<TMP_SubMesh>() != null) continue;
+            var text = r.GetComponent<TMP_Text>();
+            if (text != null && !includeText) continue;
+            Bounds local;
+            if (text != null) { text.ForceMeshUpdate(); local = text.textBounds; }
+            else
+            {
+                var mesh = r.GetComponent<MeshFilter>();
+                if (mesh == null || mesh.sharedMesh == null) continue;
+                local = mesh.sharedMesh.bounds;
+            }
+            // A skinned turning page can have huge transient renderer bounds.
+            // Frame the stable statue/tablet meshes and current label glyphs instead.
+            for (int i = 0; i < 8; i++)
+            {
+                var point = r.transform.TransformPoint(local.center + Vector3.Scale(local.extents,
+                    new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1)));
+                if (!found) { bounds = new Bounds(point, Vector3.zero); found = true; } else bounds.Encapsulate(point);
+            }
         }
         return bounds;
     }
@@ -160,10 +178,11 @@ public sealed partial class ProofsControlsOnboarding
         if (!guiding || target == null) return;
         forward.y = 0; forward.Normalize(); if (forward.sqrMagnitude < .1f) forward = Vector3.forward;
         var bounds = RenderBounds(target, true); var right = Vector3.Cross(Vector3.up, forward);
-        float tan = Mathf.Tan(42 * Mathf.Deg2Rad * .5f);
+        float tan = Mathf.Tan((guidedCamera.aspect < 1f ? 60f : 42f) * Mathf.Deg2Rad * .5f);
         float horizontal = Vector3.Dot(bounds.extents, new Vector3(Mathf.Abs(right.x), 0, Mathf.Abs(right.z)));
         float depth = Vector3.Dot(bounds.extents, new Vector3(Mathf.Abs(forward.x), 0, Mathf.Abs(forward.z)));
-        float distance = Mathf.Max(bounds.extents.y / .60f, horizontal / guidedCamera.aspect / .43f) / tan + depth;
+        float subjectWidth = guidedCamera.aspect < 1f ? .55f : .43f;
+        float distance = Mathf.Max(bounds.extents.y / .60f, horizontal / guidedCamera.aspect / subjectWidth) / tan + depth;
         distance = Mathf.Max(distance, 3);
         goalPosition = bounds.center - forward * distance - right * (distance * tan * guidedCamera.aspect * .37f);
         goalRotation = Quaternion.LookRotation(forward, Vector3.up);
@@ -174,7 +193,7 @@ public sealed partial class ProofsControlsOnboarding
         float amount = 1 - Mathf.Exp(-Time.unscaledDeltaTime * 7);
         guidedCamera.transform.position = Vector3.Lerp(guidedCamera.transform.position, goalPosition, amount);
         guidedCamera.transform.rotation = Quaternion.Slerp(guidedCamera.transform.rotation, goalRotation, amount);
-        guidedCamera.fieldOfView = Mathf.Lerp(guidedCamera.fieldOfView, 42, amount);
+        guidedCamera.fieldOfView = Mathf.Lerp(guidedCamera.fieldOfView, guidedCamera.aspect < 1f ? 60f : 42f, amount);
     }
     void RestoreCamera()
     {

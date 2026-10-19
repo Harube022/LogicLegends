@@ -61,6 +61,9 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
     private bool flashing;
     private bool transitioning;
     private int challengeIndex;
+    private int questionIndex;
+    public const int QuestionsPerChallenge = 2;
+    private readonly int[][] selectedVariants = new int[5][];
     private int correctCount;
     private int mistakeCount;
     private float activeGameplaySeconds;
@@ -73,7 +76,12 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
     public float SecondsLeft => secondsLeft;
     public int CarriedScroll => carriedScroll;
     public int ReadingScroll => readingScroll;
-    public int ChallengeNumber => challengeIndex + 1;
+    public int ChallengeNumber => Mathf.Min(challengeIndex + 1, ChallengeCount);
+    public int QuestionNumber => questionIndex + 1;
+    public int CompletedChallenges => Mathf.Min(challengeIndex, ChallengeCount);
+    public bool WaitingForBook => !started && !finished && !transitioning;
+    public bool IsSelectedVariant(int challenge, int variant) => challenge >= 0 && challenge < selectedVariants.Length &&
+        selectedVariants[challenge] != null && Array.IndexOf(selectedVariants[challenge], variant) >= 0;
     public int CorrectCount => correctCount;
     public int MistakeCount => mistakeCount;
     public float ActiveGameplaySeconds => activeGameplaySeconds;
@@ -98,6 +106,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
             return;
         }
         placements = new[] { -1, -1, -1, -1 };
+        SelectPlaythroughQuestions();
         secondsLeft = startingSeconds;
         boardText.text = "PROOFS LIBRARY\nActivate the Book Statue to reveal the challenge.";
         foreach (Transform scroll in scrolls) scroll.gameObject.SetActive(false);
@@ -121,19 +130,30 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         menuButton.onClick.AddListener(ReturnToMenu);
         Presentation = gameObject.AddComponent<ProofsStageUI>();
         Presentation.Initialize(this);
+        Introductions = gameObject.AddComponent<ProofsChallengeIntroductions>();
+        Introductions.Initialize(this, Presentation);
+        gameObject.AddComponent<ProofsPedestalIndicators>().Initialize(this);
     }
 
-    private void OnEnable() { BindInput(); }
+    private void OnEnable()
+    {
+        BindInput();
+        if (worldBoard != null) worldBoard.BindScrollInteraction(ReadWorldScroll, RefreshWorldCarryVisual);
+    }
 
     private void OnDisable()
     {
         BookStatuePresentation.SetRequired(bookStatue, false);
+        Introductions?.Cancel();
+        RestoreReaderInput();
+        if (worldBoard != null) worldBoard.BindScrollInteraction(null, null);
         if (input != null) input.OnInteractAction -= OnInteract;
         UnlockGameplay();
     }
 
     private void BindInput()
     {
+        BookStatuePresentation.BindHand(bookStatue, () => isActiveAndEnabled && !InputSuppressed && !finished && !transitioning && !HasReaderOpen && player != null && player.enabled && secondsLeft > 0 && NearestTarget() == 0, InteractNearby);
         GameInput current = GameInput.Instance != null ? GameInput.Instance : FindFirstObjectByType<GameInput>();
         if (current == input) return;
         if (input != null) input.OnInteractAction -= OnInteract;
@@ -163,10 +183,10 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         if (readerPanel.activeSelf || takeBackPanel.activeSelf || player == null) return;
         promptText.gameObject.SetActive(true);
         int target = NearestTarget();
-        if (transitioning) { promptText.text = "CHALLENGE COMPLETE"; return; }
+        if (transitioning) { promptText.text = QuestionNumber == QuestionsPerChallenge ? "CHALLENGE COMPLETE" : "QUESTION COMPLETE"; return; }
         if (target == 0) promptText.text = started ?
-            "INTERACT  •  Confirm Challenge " + ChallengeNumber :
-            "INTERACT  •  Activate Challenge " + ChallengeNumber;
+            "INTERACT  •  Confirm Question " + QuestionNumber + " of " + QuestionsPerChallenge :
+            BookStatuePresentation.HandPromptText;
         else if (target >= 1 && target <= 4 && Current.kind == ProofChallengeKind.SortScrolls) promptText.text =
             "INTERACT  •  Read Scroll " + Letter(target - 1);
         else if (target >= 5 && target <= 6 && Current.kind == ProofChallengeKind.SortScrolls) promptText.text = carriedScroll >= 0 ?
@@ -179,7 +199,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         else promptText.text = !started ? "Approach the Book Statue to begin." :
             carriedScroll >= 0 ? "Carry Scroll " + Letter(carriedScroll) + " to an altar." :
             Current.kind == ProofChallengeKind.SortScrolls ? "Read a scroll at its pedestal, then carry it to an altar." :
-            "Select a tablet, place it on a numbered pedestal, then confirm at the Book Statue.";
+            "Read a scroll, choose Get This Scroll, place it on a numbered pedestal, then confirm at the Book Statue.";
     }
 
     private int NearestTarget()
@@ -221,21 +241,30 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
 
     private static string Letter(int index) { return ((char)('A' + index)).ToString(); }
 
-    private ProofChallengeData Current => activeChallenge ?? catalog.challenges[challengeIndex];
+    private ProofChallengeData Current => activeChallenge ?? catalog.challenges[Mathf.Min(challengeIndex, catalog.challenges.Length - 1)];
+
+    // Draw once per run, without replacement in each bank. Opening Help/Admin never redraws.
+    private void SelectPlaythroughQuestions()
+    {
+        for (int c = 0; c < selectedVariants.Length; c++)
+        {
+            int count = catalog.variantSets[c].variants.Length;
+            if (count < QuestionsPerChallenge) throw new InvalidOperationException("Each proof challenge needs at least two questions.");
+            int previous = LastVariant[c] >= 0 ? LastVariant[c] : PlayerPrefs.GetInt("LogicLegends.ProofsLibrary.LastVariant." + c, -1);
+            int first = UnityEngine.Random.Range(0, count - (previous >= 0 && previous < count ? 1 : 0));
+            if (previous >= 0 && previous < count && first >= previous) first++;
+            int second = UnityEngine.Random.Range(0, count - 1);
+            if (second >= first) second++;
+            selectedVariants[c] = new[] { first, second };
+        }
+    }
 
     private void ChooseVariant()
     {
         ProofChallengeData[] variants = catalog.variantSets[challengeIndex].variants;
-        if (variants == null || variants.Length != 10)
-            throw new InvalidOperationException("Each Proofs Library challenge needs ten variants.");
         string historyKey = "LogicLegends.ProofsLibrary.LastVariant." + challengeIndex;
-        int previous = LastVariant[challengeIndex] >= 0 ? LastVariant[challengeIndex] :
-            PlayerPrefs.GetInt(historyKey, -1);
-        if (previous >= variants.Length) previous = -1;
-        int choice = UnityEngine.Random.Range(0, variants.Length - (previous >= 0 ? 1 : 0));
-        if (previous >= 0 && choice >= previous) choice++;
+        int choice = selectedVariants[challengeIndex][questionIndex];
         activeChallenge = variants[choice];
-        adminSelectedVariants[challengeIndex] = choice;
         LastVariant[challengeIndex] = choice;
         PlayerPrefs.SetInt(historyKey, choice);
         PlayerPrefs.Save();
@@ -325,6 +354,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         string context = Current.kind != ProofChallengeKind.SortScrolls && !string.IsNullOrEmpty(Current.context) ?
             "\n" + Current.context : "";
         boardText.text = "CHALLENGE " + ChallengeNumber + " — " + Current.title.ToUpperInvariant() +
+            "\nQuestion " + QuestionNumber + " of " + QuestionsPerChallenge +
             context + "\n" + Current.instructions + "\nConfirm at the Book Statue.";
     }
 
@@ -332,22 +362,28 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
     {
         if (Tutorial != null) { Tutorial.ReadPracticeScroll(); return; }
         if (InputSuppressed) return;
-        if (!started || finished || Current.kind != ProofChallengeKind.SortScrolls ||
+        if (!started || finished || readerPanel.activeSelf || takeBackPanel.activeSelf || Current.kind != ProofChallengeKind.SortScrolls ||
             index < 0 || index >= Current.scrolls.Length || carriedScroll >= 0 ||
             placements[index] >= 0 || !scrolls[index].gameObject.activeInHierarchy) return;
         readingScroll = index;
-        readerTitle.text = "SCROLL " + Letter(index);
+        readerTitle.text = "SCROLL " + Letter(index) + " — " + Current.scrolls[index].title;
         readerBody.text = Current.scrolls[index].content;
         promptText.gameObject.SetActive(false);
         readerPanel.SetActive(true);
-        LockGameplay();
+        Presentation?.RefreshReader(true);
+        HoldReaderInput();
     }
 
     public void CarryReadScroll()
     {
         if (Tutorial != null) { Tutorial.CollectPracticeScroll(); return; }
         if (InputSuppressed) return;
-        if (readingScroll < 0 || finished) return;
+        if (worldReadingSource != null)
+        {
+            if (started && !finished && readerPanel.activeSelf && worldBoard.CollectReadScroll(worldReadingSource)) CloseReader();
+            return;
+        }
+        if (readingScroll < 0 || finished || !readerPanel.activeSelf || carriedScroll >= 0 || placements[readingScroll] >= 0) return;
         int index = readingScroll;
         CloseReader();
         Carry(index);
@@ -375,9 +411,11 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
     {
         if (Tutorial != null) { Tutorial.ClosePracticeReader(); return; }
         readingScroll = -1;
+        worldReadingSource = null;
         readerPanel.SetActive(false);
-        promptText.gameObject.SetActive(true);
-        UnlockGameplay();
+        Presentation?.RefreshReader();
+        RestoreReaderInput();
+        promptText.gameObject.SetActive(!InputSuppressed && !finished);
     }
 
     private void LockGameplay()
@@ -582,6 +620,8 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         return count;
     }
 
+    public bool IsPedestalEmpty(int index) => index >= 0 && index < pedestals.Length && CountOnPedestal(index) == 0;
+
     public void Submit()
     {
         if (Tutorial != null) { Tutorial.ConfirmPracticeArrangement(); return; }
@@ -621,6 +661,9 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
     public bool DebugClearCurrentChallenge()
     {
         if (!CanDebugClearChallenge) return false;
+        // The existing Admin command clears the whole challenge, including remaining questions.
+        correctCount += QuestionsPerChallenge - QuestionNumber;
+        questionIndex = QuestionsPerChallenge - 1;
         CompleteCurrentChallenge();
         return true;
     }
@@ -630,7 +673,8 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         correctCount++;
         started = false;
         transitioning = true;
-        boardText.text = "CHALLENGE COMPLETE\n" + Current.title + " solved. The timer is paused.";
+        boardText.text = (QuestionNumber == QuestionsPerChallenge ? "CHALLENGE COMPLETE" : "QUESTION COMPLETE") +
+            "\n" + Current.title + " — Question " + QuestionNumber + " solved. The timer is paused.";
         TintPedestals(success);
         SetScrollSourceState(ProofWorldPedestal.VisualState.Correct);
         if (Current.kind != ProofChallengeKind.SortScrolls) worldBoard.SetFeedback(true);
@@ -662,13 +706,15 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         readingScroll = -1;
         worldBoard.Hide();
         editBoardButton.gameObject.SetActive(false);
-        challengeIndex++;
+        questionIndex++;
+        if (questionIndex >= QuestionsPerChallenge) { questionIndex = 0; challengeIndex++; }
         activeChallenge = null;
         transitioning = false;
         RestorePedestals();
         RefreshVisuals();
         if (challengeIndex >= catalog.challenges.Length) Finish(true);
-        else boardText.text = "CHALLENGE " + ChallengeNumber + " READY\nActivate the Book Statue to continue. The timer is paused.";
+        else boardText.text = "CHALLENGE " + ChallengeNumber + " — QUESTION " + QuestionNumber + " OF " + QuestionsPerChallenge +
+            " READY\nActivate the Book Statue to continue. The timer is paused.";
     }
 
     private IEnumerator ClearIncorrectFlash()
@@ -769,9 +815,9 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
             "TIME'S UP\nTry the Proofs Library again.";
         int seconds = Mathf.FloorToInt(activeGameplaySeconds);
         resultsText.text = won ? string.Format(
-            "FORMAL VS. INFORMAL PROOFS STAGE COMPLETE!\nTime Played: {0:00}:{1:00}\nCorrect: {2}\nMistakes: {3}",
+            "FORMAL VS. INFORMAL PROOFS STAGE COMPLETE!\nTime Played: {0:00}:{1:00}\nQuestions completed: {2}/10\nChallenges completed: 5/5\nMistakes: {3}",
             seconds / 60, seconds % 60, correctCount, mistakeCount) :
-            "TIME'S UP\nChallenges completed: " + correctCount + "/5\nMistakes: " + mistakeCount;
+            "TIME'S UP\nChallenges completed: " + CompletedChallenges + "/5\nQuestions completed: " + correctCount + "/10\nMistakes: " + mistakeCount;
         resultsPanel.SetActive(true);
         LockGameplay();
 #if UNITY_EDITOR

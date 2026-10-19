@@ -54,6 +54,11 @@ public class TermStageSelectionUI : MonoBehaviour
         foreach (StageCard stage in stages)
         {
             int number = stage.stageNumber;
+            foreach(var text in stage.button.GetComponentsInChildren<TMP_Text>(true))
+            {
+                if(text.name=="StageNumber")text.text="Trial "+TrialCatalog.Get(number).Number;
+                else if(text.name=="Topic")text.text=TrialCatalog.Get(number).Topic;
+            }
             stage.button.onClick.AddListener(() => menu.SelectStage(number));
         }
         backButton.onClick.AddListener(Back);

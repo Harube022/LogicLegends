@@ -1,7 +1,39 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class TruthBlock : MonoBehaviour
 {
+    static readonly List<TruthBlock> activeBlocks = new List<TruthBlock>();
+    public static IReadOnlyList<TruthBlock> ActiveBlocks => activeBlocks;
+    HandThoughtBubble pickupBubble;
+    public bool UsesHandBubble => TruthTableDoorInteraction.Active != null && TruthTableDoorInteraction.Active.UsesHandBubbles &&
+        (spawnOwner != null && spawnOwner.transform.IsChildOf(TruthTableDoorInteraction.Active.transform.root) ||
+         transform.IsChildOf(TruthTableDoorInteraction.Active.transform.root));
+    public bool CanCollectNow => !UsesHandBubble || TruthTableDoorInteraction.Active.IsBlockAvailable(this);
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetBlocks() { activeBlocks.Clear(); }
+    void OnEnable() { if(!activeBlocks.Contains(this))activeBlocks.Add(this); }
+    void OnDisable() { activeBlocks.Remove(this);if(pickupBubble!=null)pickupBubble.gameObject.SetActive(false); }
+    void LateUpdate()
+    {
+        if(!UsesHandBubble){if(pickupBubble!=null)pickupBubble.gameObject.SetActive(false);return;}
+        bool available=CanCollectNow;
+        if(pickupBubble==null&&available)
+        {
+            pickupBubble=HandThoughtBubble.Create(transform,"Element Interaction Bubble",yellowMarker:true);
+        }
+        if(pickupBubble==null)return;
+        var mesh=GetComponent<MeshRenderer>();
+        var at=mesh!=null?new Vector3(mesh.bounds.center.x,mesh.bounds.max.y+.7f,mesh.bounds.center.z):transform.position+Vector3.up*1.2f;
+        bool near=available&&TruthTableDoorInteraction.Active.NearestAvailableBlock()==this;
+        pickupBubble.Show(available,near,at);
+    }
+    public float InteractionDistanceSquared(Player player)
+    {
+        var center=player.transform.position+Vector3.up*1.5f;
+        var collider=GetComponent<Collider>();
+        return ((collider!=null&&collider.enabled?collider.ClosestPoint(center):transform.position)-center).sqrMagnitude;
+    }
     public bool value; // T = true, F = false
 
     private Vector3 originalPosition;
@@ -95,10 +127,9 @@ public class TruthBlock : MonoBehaviour
         if (col != null) col.enabled = false;
         if (rb != null)
         {
+            if(!rb.isKinematic){rb.linearVelocity=Vector3.zero;rb.angularVelocity=Vector3.zero;}
             rb.isKinematic = true;
             rb.useGravity = false;
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
         }
 
         ClearInventoryAndHand();
@@ -108,9 +139,9 @@ public class TruthBlock : MonoBehaviour
         if (TryGetComponent(out MeshRenderer renderer)) renderer.enabled = true;
         if (rb != null)
         {
+            rb.isKinematic = false;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            rb.isKinematic = false;
             rb.useGravity = true;
         }
         if (col != null) col.enabled = true;
@@ -132,6 +163,7 @@ public class TruthBlock : MonoBehaviour
     // Call this via a mobile interaction button or OnTriggerEnter
     public void CollectBlock()
     {
+        if (!CanCollectNow || InventoryManager.Instance == null) return;
         // Pass 'this' so the inventory slot can remember this specific block object
         int slotIndex = InventoryManager.Instance.TryPickupBlock(value, this);
 

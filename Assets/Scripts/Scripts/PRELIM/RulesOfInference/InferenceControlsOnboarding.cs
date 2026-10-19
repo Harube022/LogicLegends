@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -47,6 +47,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     private GameObject confirmation, practiceTarget;
     private TextMeshPro practiceLabel;
     private GameObject practiceCrystal;
+    private HandThoughtBubble practiceCrystalBubble;
     private TextMeshProUGUI crystalScreenLabel;
     private Transform worldTarget, bookTarget, altarTarget, crystalTarget;
     private Transform boardCameraFocus, boardHighlightTarget;
@@ -282,6 +283,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         if (IsActive && step != Step.Confirm)
         {
             UpdateWorldAnchor();
+            if(practiceCrystalBubble!=null)practiceCrystalBubble.Show(IsCrystalPractice,IsCrystalPractice,practiceCrystal.transform.position+Vector3.up*2);
             if (instructions.gameObject.activeSelf) LayoutInstruction();
             if (skipButton != null) skipButton.transform.SetAsLastSibling();
         }
@@ -404,7 +406,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     {
         worldTarget = null;
         FocusCamera(bookTarget, bookCameraOffset);
-        SetWorldStep(Step.Book, "Interact with this book statue to start the game.", bookTarget, false);
+        SetWorldStep(Step.Book, "Tap the hand button to interact with this book statue and start each challenge.", bookTarget, false);
     }
 
     public void TryTutorialBookInteraction()
@@ -425,7 +427,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     private void BeginMinimap()
     {
         SetInstruction(Step.Minimap,
-            "Use the minimap to navigate the stage and find important locations.",
+            "Use the minimap to navigate the stage and find important locations. Tap it for the full map, then Close to return.",
             minimapTarget, true);
     }
 
@@ -589,8 +591,9 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         CreatePracticeCrystal();
         FocusCamera(practiceCrystal.transform, crystalCameraOffset);
         SetWorldStep(Step.CrystalTower,
-            "A Rule Crystal represents the inference rule on its label. Use Collect Rule Crystal or the hand button to try a practice pickup quiz. Answer A–D, read the feedback, then Continue. In gameplay, either answer allows collection, but an incorrect quiz subtracts 10 seconds. Practice costs no time.",
+            "A Rule Crystal represents the inference rule on its label. Tap the hand button to try a practice pickup quiz. Answer A–D, read the feedback, then Continue. In gameplay, either answer allows collection, but an incorrect quiz or wrong crystal submission subtracts 10 seconds. Practice costs no time.",
             practiceCrystal.transform, false);
+        SetInstruction(Step.CrystalTower,instructionText.text,handButton,false);
     }
 
     private void CreatePracticeCrystal()
@@ -598,6 +601,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         DestroyPracticeCrystal();
         practiceCrystal = GameObject.CreatePrimitive(PrimitiveType.Cube);
         practiceCrystal.name = "Inference Tutorial Crystal";
+        practiceCrystalBubble=HandThoughtBubble.Create(practiceCrystal.transform,"Practice Rule Crystal Bubble",yellowMarker:true);
         var renderers = crystalTarget.GetComponentsInChildren<Renderer>(true);
         Bounds bounds = renderers.Length > 0 ? renderers[0].bounds :
             new Bounds(crystalTarget.position, Vector3.one);
@@ -615,7 +619,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     private void DestroyPracticeCrystal()
     {
         if (practiceCrystal != null) Destroy(practiceCrystal);
-        practiceCrystal = null;
+        practiceCrystal = null;practiceCrystalBubble=null;
     }
 
     private void CreatePracticeTarget()

@@ -86,10 +86,9 @@ public sealed partial class FunctionsRelationsControlsOnboarding
         ui.submit.gameObject.SetActive(CurrentStep == FunctionsRelationsTutorialStep.Submit);
         Stage.SubmitButton.interactable = true;
         ui.boardBack.gameObject.SetActive(board); Stage.BoardView.backButton.interactable = CurrentStep == FunctionsRelationsTutorialStep.BoardBack;
-        bool interact = CurrentStep == FunctionsRelationsTutorialStep.Book || CurrentStep == FunctionsRelationsTutorialStep.Domain || CurrentStep == FunctionsRelationsTutorialStep.Output;
+        bool interact = CurrentStep == FunctionsRelationsTutorialStep.Domain || CurrentStep == FunctionsRelationsTutorialStep.Output;
         ui.interaction.gameObject.SetActive(interact);
-        if (interact) Stage.InteractionButton.GetComponentInChildren<TMP_Text>().text = "PRACTICE: Interact with " +
-            (CurrentStep == FunctionsRelationsTutorialStep.Book ? "Book" : CurrentStep == FunctionsRelationsTutorialStep.Domain ? "Domain" : "Output");
+        if (interact) Stage.InteractionButton.GetComponentInChildren<TMP_Text>().text = "PRACTICE: Interact with " + (CurrentStep == FunctionsRelationsTutorialStep.Domain ? "Domain" : "Output");
         ui.domainPanel.gameObject.SetActive(CurrentStep == FunctionsRelationsTutorialStep.Input);
         ui.rangePanel.gameObject.SetActive(CurrentStep == FunctionsRelationsTutorialStep.OutputChoice || CurrentStep == FunctionsRelationsTutorialStep.Connection || CurrentStep == FunctionsRelationsTutorialStep.Undo);
         Stage.UndoButton.interactable = CurrentStep == FunctionsRelationsTutorialStep.Undo;
