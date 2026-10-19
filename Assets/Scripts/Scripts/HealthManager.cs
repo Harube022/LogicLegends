@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class HealthManager : MonoBehaviour
+public partial class HealthManager : MonoBehaviour
 {
     [Header("Health UI")]
     [SerializeField] private GameObject[] hearts; // Drag heart_1, heart_2, heart_3 here
@@ -12,12 +12,14 @@ public class HealthManager : MonoBehaviour
     private void Start()
     {
         // Set health to the number of hearts (3) and hide Game Over screen
-        currentHealth = hearts.Length;
-        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+        InitializeHealth();
+        if (gameOverPanel != null) gameOverPanel.SetActive(currentHealth<=0);
     }
 
     public void TakeDamage()
     {
+        InitializeHealth();
+        if(useAuthoritativeActorHealth){DamageAuthoritativeActor(LocalActor);return;}
         if (currentHealth > 0)
         {
             currentHealth--;
@@ -35,7 +37,7 @@ public class HealthManager : MonoBehaviour
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
         
         // Optional: Pause the game so they can't keep playing
-        Time.timeScale = 0f; 
+        if(pauseOnGameOver && !useAuthoritativeActorHealth)Time.timeScale = 0f;
     }
 
     // --- Button Functions ---

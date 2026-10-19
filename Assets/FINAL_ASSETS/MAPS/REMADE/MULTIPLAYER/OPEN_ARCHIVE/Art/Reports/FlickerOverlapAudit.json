@@ -1,0 +1,44 @@
+{
+  "checkedUtc": "2026-10-19T07:16:27.089830+00:00",
+  "passed": true,
+  "scope": "Visible mesh geometry with alternate LODs excluded; root-local coordinates, 0.0001-unit exact-vertex quantization and 0.003-unit horizontal plane tolerance. This is a geometric overlap check, not a GPU performance benchmark.",
+  "trianglesBefore": 305094,
+  "trianglesAfter": 304126,
+  "duplicateTrianglesBefore": [
+    {
+      "name": "Bridge_Railing_Module",
+      "orientation": "sameFacing",
+      "triangles": 5346
+    },
+    {
+      "name": "Ferns_Roots_And_Leaves",
+      "orientation": "oppositeFacing",
+      "triangles": 1568
+    }
+  ],
+  "duplicateTrianglesAfter": [
+    {
+      "name": "Ferns_Roots_And_Leaves",
+      "orientation": "oppositeFacing",
+      "triangles": 1035
+    }
+  ],
+  "significantHorizontalOverlapsAfter": [],
+  "remainingNumericalEdgeContacts": [
+    {
+      "a": "Environment/Terrain/Island_Grassland_WithRiverHoles",
+      "b": "Environment/Terrain/Island_Grassland_WithRiverHoles",
+      "area": 0.00010175956728585955,
+      "pairs": 1,
+      "maxHeightGap": 0.0
+    },
+    {
+      "a": "Environment/MainPaths/Continuous_Main_Ring_10m",
+      "b": "Environment/MainPaths/Continuous_Main_Ring_10m",
+      "area": 9.441607359063188e-05,
+      "pairs": 1,
+      "maxHeightGap": 0.0
+    }
+  ],
+  "note": "Opposite-facing leaf triangles are intentional two-sided foliage. Two unchanged submillimeter boundary contacts have projected areas below 0.00011 local square units."
+}

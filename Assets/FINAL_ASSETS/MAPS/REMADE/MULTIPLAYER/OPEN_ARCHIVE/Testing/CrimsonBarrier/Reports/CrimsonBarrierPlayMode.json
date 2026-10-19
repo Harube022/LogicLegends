@@ -1,0 +1,98 @@
+{
+    "checkedUtc": "2026-10-18T13:11:21.1218000Z",
+    "scope": "Offline Editor snapshot fixtures through the existing encounter adapter and real two-second cinematic. Tests VFX timing, deduplication, late checkpoints, animation, release fade, limits and cleanup. No Phase 3B gameplay/outcome controller exists in this checkout; movement lock, SUCCESS/FAILED, one-heart penalty, 30-second nest sleep, eligible-player handoff and live multiplayer cannot be verified here.",
+    "passed": true,
+    "checks": [
+        {
+            "name": "Saved scene reuses the existing encounter adapter",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "No barrier during cinematic POV",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "No early barrier before completed two-second jumpscare",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Barrier begins only at confirmed post-cinematic challenge",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Energy formation rises progressively",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Runes and opposing rings rotate",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "At most one instance per capture serial",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Particle counts obey the 32-particle ceiling",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Energy particles emit and rise above the ground",
+            "detail": "sparks=13, fragments=1",
+            "passed": true
+        },
+        {
+            "name": "Presentation adds no player or UI blockers",
+            "detail": "Existing scene restores controls at its Phase 3 handoff; an authoritative Phase 3B lock is absent and was not replaced.",
+            "passed": true
+        },
+        {
+            "name": "Visual presentation never moves authoritative Khezu",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Existing encounter release breaks and fades runes",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Dissolve releases all transient renderers and particles",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Late confirmed checkpoint resumes formed barrier",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Missing actor never produces a barrier on the local bystander",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Disconnect does not recreate stale capture VFX",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "New valid encounter can present again",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "No runtime or particle-configuration errors",
+            "detail": "",
+            "passed": true
+        }
+    ],
+    "runtimeErrors": []
+}

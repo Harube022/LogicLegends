@@ -1,0 +1,941 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a85fc328da289904f9128118aaa30453, type: 3}
+  m_Name: Archive_Topic_Catalog
+  m_EditorClassIdentifier: Assembly-CSharp::LogicLegends.OpenArchive.Topics.ArchiveTopicCatalog
+  propositions:
+  - title: Conjunction
+    questions:
+    - questionText: It is only true when both statements are true.
+      options:
+      - Exclusive OR
+      - Conjunction
+      - Biconditional
+      - Disjunction
+      correctOptionIndex: 1
+    - questionText: Both statements must be true for the whole statement to be true.
+      options:
+      - Conjunction
+      - Exclusive OR
+      - Biconditional
+      - Disjunction
+      correctOptionIndex: 0
+    - questionText: I combine two statements using the word AND.
+      options:
+      - Exclusive OR
+      - Biconditional
+      - Conjunction
+      - Disjunction
+      correctOptionIndex: 2
+    - questionText: If even one of the two statements is false, the entire statement
+        becomes false.
+      options:
+      - Exclusive OR
+      - Biconditional
+      - Disjunction
+      - Conjunction
+      correctOptionIndex: 3
+    - questionText: Given P and Q, I am true only when P is true and Q is true.
+      options:
+      - Exclusive OR
+      - Conjunction
+      - Biconditional
+      - Disjunction
+      correctOptionIndex: 1
+    - questionText: "My symbol is \u2227, and I require both sides to hold true."
+      options:
+      - Conjunction
+      - Exclusive OR
+      - Biconditional
+      - Disjunction
+      correctOptionIndex: 0
+    - questionText: P is true. Q is true. Therefore, P ___ Q is true. What operation
+        belongs between them?
+      options:
+      - Exclusive OR
+      - Biconditional
+      - Conjunction
+      - Disjunction
+      correctOptionIndex: 2
+    - questionText: 'Four possibilities exist: TT, TF, FT, and FF. Only TT gives
+        me a true result.'
+      options:
+      - Exclusive OR
+      - Biconditional
+      - Disjunction
+      - Conjunction
+      correctOptionIndex: 3
+    - questionText: The gate opens only if you possess the key AND activate the switch.
+        Which logical operation does this represent?
+      options:
+      - Exclusive OR
+      - Conjunction
+      - Biconditional
+      - Disjunction
+      correctOptionIndex: 1
+    - questionText: "Two conditions guard the path. Satisfying only one is not enough\u2014you
+        must satisfy both."
+      options:
+      - Conjunction
+      - Exclusive OR
+      - Biconditional
+      - Disjunction
+      correctOptionIndex: 0
+  - title: Disjunction
+    questions:
+    - questionText: It is true when at least one statement is true.
+      options:
+      - Conjunction
+      - Exclusive OR
+      - Disjunction
+      - Biconditional
+      correctOptionIndex: 2
+    - questionText: I combine two statements using the word OR.
+      options:
+      - Conjunction
+      - Exclusive OR
+      - Biconditional
+      - Disjunction
+      correctOptionIndex: 3
+    - questionText: I am false only when both statements are false.
+      options:
+      - Disjunction
+      - Conjunction
+      - Exclusive OR
+      - Biconditional
+      correctOptionIndex: 1
+    - questionText: Given P and Q, I am true if P is true, Q is true, or both are
+        true.
+      options:
+      - Conjunction
+      - Disjunction
+      - Exclusive OR
+      - Biconditional
+      correctOptionIndex: 1
+    - questionText: "My symbol is \u2228, and only one side needs to be true for
+        me to be true."
+      options:
+      - Conjunction
+      - Exclusive OR
+      - Disjunction
+      - Biconditional
+      correctOptionIndex: 2
+    - questionText: P is false, but Q is true. Even so, P ___ Q is true. What operation
+        belongs between them?
+      options:
+      - Conjunction
+      - Exclusive OR
+      - Biconditional
+      - Disjunction
+      correctOptionIndex: 3
+    - questionText: 'Four possibilities exist: TT, TF, FT, and FF. I am true in every
+        case except FF.'
+      options:
+      - Disjunction
+      - Conjunction
+      - Exclusive OR
+      - Biconditional
+      correctOptionIndex: 0
+    - questionText: The gate opens if you possess the key OR know the secret code.
+        Either condition is enough. Which logical operation does this represent?
+      options:
+      - Conjunction
+      - Disjunction
+      - Exclusive OR
+      - Biconditional
+      correctOptionIndex: 1
+    - questionText: Two paths can activate the mechanism. Either path may succeed,
+        and activating both also works.
+      options:
+      - Conjunction
+      - Exclusive OR
+      - Disjunction
+      - Biconditional
+      correctOptionIndex: 2
+    - questionText: You don't need both conditions to succeed. One true condition
+        is enough, but two true conditions work as well.
+      options:
+      - Conjunction
+      - Exclusive OR
+      - Biconditional
+      - Disjunction
+      correctOptionIndex: 3
+  - title: Exclusive OR
+    questions:
+    - questionText: It is true only when exactly one statement is true.
+      options:
+      - Disjunction
+      - Biconditional
+      - Conjunction
+      - Exclusive OR
+      correctOptionIndex: 3
+    - questionText: I become true when one statement is true and the other is false.
+      options:
+      - Exclusive OR
+      - Disjunction
+      - Biconditional
+      - Conjunction
+      correctOptionIndex: 0
+    - questionText: If both statements have the same truth value, I become false.
+      options:
+      - Disjunction
+      - Exclusive OR
+      - Biconditional
+      - Conjunction
+      correctOptionIndex: 1
+    - questionText: Given P and Q, I am true when P is true or Q is true, but not
+        both.
+      options:
+      - Disjunction
+      - Biconditional
+      - Exclusive OR
+      - Conjunction
+      correctOptionIndex: 2
+    - questionText: I require the two statements to have different truth values for
+        the result to be true.
+      options:
+      - Disjunction
+      - Biconditional
+      - Conjunction
+      - Exclusive OR
+      correctOptionIndex: 3
+    - questionText: P is true and Q is false. The resulting statement is true. But
+        if both become true, the result becomes false.
+      options:
+      - Exclusive OR
+      - Disjunction
+      - Biconditional
+      - Conjunction
+      correctOptionIndex: 0
+    - questionText: 'Four possibilities exist: TT, TF, FT, and FF. Only TF and FT
+        make me true.'
+      options:
+      - Disjunction
+      - Exclusive OR
+      - Biconditional
+      - Conjunction
+      correctOptionIndex: 1
+    - questionText: Two switches control the gate. Activate either one to open it,
+        but activating both will keep it closed.
+      options:
+      - Disjunction
+      - Biconditional
+      - Exclusive OR
+      - Conjunction
+      correctOptionIndex: 2
+    - questionText: You may choose the sword or the shield, but choosing both will
+        not satisfy the condition.
+      options:
+      - Disjunction
+      - Biconditional
+      - Conjunction
+      - Exclusive OR
+      correctOptionIndex: 3
+    - questionText: 'I resemble OR, but there is one important restriction: both
+        statements cannot be true at the same time.'
+      options:
+      - Exclusive OR
+      - Disjunction
+      - Biconditional
+      - Conjunction
+      correctOptionIndex: 0
+  - title: Conditional
+    questions:
+    - questionText: It is false only when the first statement is true and the second
+        statement is false
+      options:
+      - Conditional
+      - Conjunction
+      - Biconditional
+      - 'Exclusive OR '
+      correctOptionIndex: 0
+    - questionText: 'I connect two statements in the form: If P, then Q.'
+      options:
+      - Conjunction
+      - Conditional
+      - Biconditional
+      - 'Exclusive OR '
+      correctOptionIndex: 1
+    - questionText: 'I make a promise: whenever the first statement is true, the
+        second statement must also be true.'
+      options:
+      - Conjunction
+      - Biconditional
+      - Conditional
+      - 'Exclusive OR '
+      correctOptionIndex: 2
+    - questionText: "Given P and Q, I am written as P \u2192 Q."
+      options:
+      - Conjunction
+      - Biconditional
+      - 'Exclusive OR '
+      - Conditional
+      correctOptionIndex: 3
+    - questionText: When my first statement is true, but my second statement is false,
+        the entire statement becomes false.
+      options:
+      - Conditional
+      - Conjunction
+      - Biconditional
+      - 'Exclusive OR '
+      correctOptionIndex: 0
+    - questionText: 'Four possibilities exist: TT, TF, FT, and FF. Only TF makes
+        me false.'
+      options:
+      - Conjunction
+      - Conditional
+      - Biconditional
+      - 'Exclusive OR '
+      correctOptionIndex: 1
+    - questionText: P is true and Q is true, so 'If P, then Q' is satisfied. Which
+        logical operation does this represent?
+      options:
+      - Conjunction
+      - Biconditional
+      - Conditional
+      - 'Exclusive OR '
+      correctOptionIndex: 2
+    - questionText: If you defeat the guardian, then the gate will open. Which logical
+        operation describes this condition?
+      options:
+      - Conjunction
+      - Biconditional
+      - 'Exclusive OR '
+      - Conditional
+      correctOptionIndex: 3
+    - questionText: 'The rule says: If the torch is lit, then the hidden passage
+        will appear.'
+      options:
+      - Conditional
+      - Conjunction
+      - Biconditional
+      - 'Exclusive OR '
+      correctOptionIndex: 0
+    - questionText: "My symbol is \u2192. The statement before me is the condition,
+        while the statement after me is the consequence."
+      options:
+      - Conjunction
+      - Conditional
+      - Biconditional
+      - 'Exclusive OR '
+      correctOptionIndex: 1
+  - title: Biconditional
+    questions:
+    - questionText: It is true when both statements have the same truth value.
+      options:
+      - Biconditional
+      - Conjunction
+      - Conditional
+      - 'Exclusive OR '
+      correctOptionIndex: 0
+    - questionText: I am true when both statements are true or when both statements
+        are false.
+      options:
+      - Conjunction
+      - Biconditional
+      - Conditional
+      - 'Exclusive OR '
+      correctOptionIndex: 1
+    - questionText: I become false whenever the two statements have different truth
+        values.
+      options:
+      - Conjunction
+      - Conditional
+      - Biconditional
+      - 'Exclusive OR '
+      correctOptionIndex: 2
+    - questionText: "Given P and Q, I am written as P \u2194 Q."
+      options:
+      - Conjunction
+      - Conditional
+      - 'Exclusive OR '
+      - Biconditional
+      correctOptionIndex: 3
+    - questionText: I connect two statements where each one implies the other.
+      options:
+      - Biconditional
+      - Conjunction
+      - Conditional
+      - 'Exclusive OR '
+      correctOptionIndex: 0
+    - questionText: 'Four possibilities exist: TT, TF, FT, and FF. Only TT and FF
+        make me true.'
+      options:
+      - Conjunction
+      - Biconditional
+      - Conditional
+      - 'Exclusive OR '
+      correctOptionIndex: 1
+    - questionText: P is true and Q is true, so the statement is true. If both become
+        false, the statement remains true.
+      options:
+      - Conjunction
+      - Conditional
+      - Biconditional
+      - 'Exclusive OR '
+      correctOptionIndex: 2
+    - questionText: The gate opens if the two magical switches are either both activated
+        or both deactivated.
+      options:
+      - Conjunction
+      - Conditional
+      - 'Exclusive OR '
+      - Biconditional
+      correctOptionIndex: 3
+    - questionText: The two conditions must agree. If one is true while the other
+        is false, the condition fails.
+      options:
+      - Biconditional
+      - Conjunction
+      - Conditional
+      - 'Exclusive OR '
+      correctOptionIndex: 0
+    - questionText: "My symbol is \u2194, and I express that one statement is true
+        exactly when the other statement is true."
+      options:
+      - Conjunction
+      - Biconditional
+      - Conditional
+      - 'Exclusive OR '
+      correctOptionIndex: 1
+  inferenceRules:
+  - {fileID: 11400000, guid: 9f67f65cf358c26478a50243abf7f0da, type: 2}
+  - {fileID: 11400000, guid: 37b26e3faad42644fad15006fd1e003e, type: 2}
+  - {fileID: 11400000, guid: ab9b3a9f72a090948936c5dec0b18853, type: 2}
+  - {fileID: 11400000, guid: b59f8b5528ec05b4093b75554a20a955, type: 2}
+  - {fileID: 11400000, guid: ee58faf3aa212e1409353c0f6995a8a9, type: 2}
+  - {fileID: 11400000, guid: 23f80dbc5c535224eab62e27ab900b03, type: 2}
+  - {fileID: 11400000, guid: a59f741c2c230fe4c8df7107dd685a39, type: 2}
+  - {fileID: 11400000, guid: 2053d8d527bfcbf429279a40ac7e6c8e, type: 2}
+  - {fileID: 11400000, guid: 3edbbf7b9732b7843814043b441bfe1a, type: 2}
+  - {fileID: 11400000, guid: 124f00257d5b6234ca52165c1e23daa1, type: 2}
+  formalProofs: {fileID: 11400000, guid: 922770f499a7a0a4089a46e0b95d009c, type: 2}
+  proofMethods: {fileID: 11400000, guid: 21e88385fd98d7c458e77f4a6fe24d5f, type: 2}
+  mappings: {fileID: 11400000, guid: fe2ecf23f4891df4c94079d393f1ec81, type: 2}
+  graphs: {fileID: 11400000, guid: 37062e61c13a73b41aae4164c7d15967, type: 2}
+  trees: {fileID: 11400000, guid: 4cc6b98f70dc16b44bb3be04dffe1916, type: 2}
+  sets:
+  - questions:
+    - a:
+      - 47
+      b: []
+      universe: []
+      setName: A
+    - a:
+      - 12
+      b: []
+      universe: []
+      setName: A
+    - a:
+      - 83
+      b: []
+      universe: []
+      setName: A
+    - a:
+      - 5
+      b: []
+      universe: []
+      setName: A
+    - a:
+      - 71
+      b: []
+      universe: []
+      setName: A
+    - a: []
+      b:
+      - 29
+      universe: []
+      setName: A
+    - a:
+      - 94
+      b: []
+      universe: []
+      setName: A
+    - a:
+      - 36
+      b: []
+      universe: []
+      setName: A
+    - a:
+      - 58
+      b: []
+      universe: []
+      setName: A
+    - a:
+      - 16
+      b: []
+      universe: []
+      setName: A
+  - questions:
+    - a:
+      - 12
+      - 27
+      - 45
+      - 68
+      b:
+      - 31
+      - 54
+      - 76
+      - 89
+      universe: []
+      setName: A
+    - a:
+      - 7
+      - 23
+      - 51
+      - 84
+      b:
+      - 16
+      - 39
+      - 62
+      - 95
+      universe: []
+      setName: A
+    - a:
+      - 14
+      - 36
+      - 57
+      - 73
+      b:
+      - 21
+      - 48
+      - 69
+      - 91
+      universe: []
+      setName: A
+    - a:
+      - 5
+      - 28
+      - 44
+      - 82
+      b:
+      - 13
+      - 37
+      - 61
+      - 97
+      universe: []
+      setName: A
+    - a:
+      - 19
+      - 33
+      - 56
+      - 74
+      b:
+      - 8
+      - 42
+      - 67
+      - 88
+      universe: []
+      setName: A
+    - a:
+      - 3
+      - 25
+      - 47
+      - 79
+      b:
+      - 18
+      - 34
+      - 63
+      - 92
+      universe: []
+      setName: A
+    - a:
+      - 11
+      - 38
+      - 52
+      - 86
+      b:
+      - 24
+      - 49
+      - 71
+      - 98
+      universe: []
+      setName: A
+    - a:
+      - 6
+      - 29
+      - 53
+      - 77
+      b:
+      - 15
+      - 41
+      - 64
+      - 93
+      universe: []
+      setName: A
+    - a:
+      - 17
+      - 32
+      - 59
+      - 81
+      b:
+      - 9
+      - 26
+      - 68
+      - 96
+      universe: []
+      setName: A
+    - a:
+      - 22
+      - 43
+      - 65
+      - 87
+      b:
+      - 4
+      - 35
+      - 72
+      - 99
+      universe: []
+      setName: A
+  - questions:
+    - a:
+      - 12
+      - 27
+      - 45
+      - 68
+      b:
+      - 31
+      - 45
+      - 68
+      - 89
+      universe: []
+      setName: A
+    - a:
+      - 7
+      - 23
+      - 51
+      - 84
+      b:
+      - 16
+      - 23
+      - 62
+      - 84
+      universe: []
+      setName: A
+    - a:
+      - 14
+      - 36
+      - 57
+      - 73
+      b:
+      - 21
+      - 36
+      - 69
+      - 73
+      universe: []
+      setName: A
+    - a:
+      - 5
+      - 28
+      - 44
+      - 82
+      b:
+      - 13
+      - 44
+      - 61
+      - 82
+      universe: []
+      setName: A
+    - a:
+      - 19
+      - 33
+      - 56
+      - 74
+      b:
+      - 8
+      - 33
+      - 67
+      - 74
+      universe: []
+      setName: A
+    - a:
+      - 3
+      - 25
+      - 47
+      - 79
+      b:
+      - 18
+      - 47
+      - 63
+      - 79
+      universe: []
+      setName: A
+    - a:
+      - 11
+      - 38
+      - 52
+      - 86
+      b:
+      - 24
+      - 38
+      - 71
+      - 86
+      universe: []
+      setName: A
+    - a:
+      - 6
+      - 29
+      - 53
+      - 77
+      b:
+      - 15
+      - 53
+      - 64
+      - 77
+      universe: []
+      setName: A
+    - a:
+      - 17
+      - 32
+      - 59
+      - 81
+      b:
+      - 9
+      - 32
+      - 68
+      - 81
+      universe: []
+      setName: A
+    - a:
+      - 22
+      - 43
+      - 65
+      - 87
+      b:
+      - 4
+      - 43
+      - 72
+      - 87
+      universe: []
+      setName: A
+  - questions:
+    - a:
+      - 12
+      - 24
+      - 37
+      - 45
+      - 68
+      b:
+      - 12
+      - 37
+      - 56
+      - 79
+      universe: []
+      setName: A
+    - a:
+      - 7
+      - 18
+      - 32
+      - 54
+      - 91
+      b:
+      - 7
+      - 32
+      - 46
+      - 63
+      - 88
+      universe: []
+      setName: A
+    - a:
+      - 15
+      - 29
+      - 41
+      - 67
+      - 83
+      b:
+      - 22
+      - 29
+      - 67
+      - 74
+      - 96
+      universe: []
+      setName: A
+    - a:
+      - 4
+      - 26
+      - 39
+      - 58
+      - 72
+      b:
+      - 11
+      - 26
+      - 58
+      - 81
+      - 94
+      universe: []
+      setName: A
+    - a:
+      - 19
+      - 33
+      - 47
+      - 61
+      - 85
+      b:
+      - 19
+      - 47
+      - 53
+      - 76
+      - 99
+      universe: []
+      setName: A
+    - a:
+      - 8
+      - 21
+      - 44
+      - 65
+      - 93
+      b:
+      - 14
+      - 21
+      - 65
+      - 78
+      - 87
+      universe: []
+      setName: A
+    - a:
+      - 16
+      - 35
+      - 49
+      - 73
+      - 90
+      b:
+      - 16
+      - 49
+      - 62
+      - 77
+      - 98
+      universe: []
+      setName: A
+    - a:
+      - 5
+      - 28
+      - 43
+      - 57
+      - 82
+      b:
+      - 5
+      - 43
+      - 69
+      - 71
+      - 95
+      universe: []
+      setName: A
+    - a:
+      - 13
+      - 31
+      - 52
+      - 64
+      - 89
+      b:
+      - 20
+      - 31
+      - 52
+      - 75
+      - 97
+      universe: []
+      setName: A
+    - a:
+      - 23
+      - 36
+      - 48
+      - 70
+      - 86
+      b:
+      - 9
+      - 36
+      - 48
+      - 59
+      - 92
+      universe: []
+      setName: A
+  - questions:
+    - a:
+      - 1
+      - 2
+      b: []
+      universe:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      setName: A
+    - a: []
+      b:
+      - 12
+      - 37
+      - 61
+      universe:
+      - 5
+      - 12
+      - 24
+      - 37
+      - 48
+      - 61
+      - 73
+      - 86
+      - 99
+      setName: B
+    - a:
+      - 7
+      - 29
+      - 51
+      - 73
+      b: []
+      universe:
+      - 7
+      - 18
+      - 29
+      - 40
+      - 51
+      - 62
+      - 73
+      - 84
+      - 95
+      setName: A
+    - a: []
+      b:
+      - 14
+      - 36
+      - 58
+      - 80
+      universe:
+      - 3
+      - 14
+      - 25
+      - 36
+      - 47
+      - 58
+      - 69
+      - 80
+      - 91
+      setName: B
+    - a:
+      - 16
+      - 35
+      - 57
+      b: []
+      universe:
+      - 9
+      - 16
+      - 28
+      - 35
+      - 49
+      - 57
+      - 64
+      - 82
+      - 96
+      setName: A

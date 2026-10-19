@@ -1,0 +1,32 @@
+{
+  "checkedUtc": "2026-10-19T04:08:01.6136408Z",
+  "passed": true,
+  "scope": "Actual formerly missed wall-plinth position: production cinematic, owner challenge UI, anchored movement lock, SUCCESS release with unchanged hearts and return to nest.",
+  "capture": {
+    "state": "Caught",
+    "phase": "BarrierChallenge",
+    "locked": true,
+    "buttons": true,
+    "hearts": 3,
+    "player": "(-19.75, 6.53, -31.00)",
+    "anchor": "(-19.75, 6.53, -31.00)",
+    "monster": "(-30.88, 0.08, -36.68)",
+    "localChallenge": true
+  },
+  "release": {
+    "state": "Hunting",
+    "locked": false,
+    "hearts": 3
+  },
+  "liveMultiplayerRetested": false,
+  "successLifecycle": {
+    "resolvedOutcome": 1,
+    "releaseAt": 170.19531288006971,
+    "nestArrivedAt": 179.9844586026077,
+    "sleepEndsAt": 209.9844586026077,
+    "sleepDuration": 30.0,
+    "observedClock": 258.85024209892288,
+    "completedReturnAndThirtySecondSleep": true
+  },
+  "note": "The release snapshot was taken after the completed 30-second nest sleep; the monster had correctly resumed hunting by then."
+}

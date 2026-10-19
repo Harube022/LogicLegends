@@ -1,0 +1,1449 @@
+{
+    "passed": true,
+    "scene": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Scenes/MultiplayerGameplay.unity",
+    "generatedUtc": "2026-10-18T09:01:17.0706147Z",
+    "enabledNonTriggerColliders": 550,
+    "excludedAreaSources": 172,
+    "bridgeSources": 16,
+    "playerDataAttachedToScene": true,
+    "sceneAttachment": "Player NavMeshData assigned to this scene's legacy NavMeshSettings.m_NavMeshData. It auto-loads when the scene is saved and opened. The separately baked large-monster data is retained for future agent integration.",
+    "datasets": [
+        {
+            "name": "Player",
+            "asset": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Meshes/OpenArchive_PlayerNavMesh.asset",
+            "radius": 0.800000011920929,
+            "height": 5.5,
+            "maximumClimb": 0.699999988079071,
+            "maximumSlope": 40.0,
+            "voxelSize": 0.15000000596046449,
+            "sources": 550,
+            "navigationTriangles": -1,
+            "checksPassed": 63,
+            "checksFailed": 0,
+            "bridgesIncluded": true
+        },
+        {
+            "name": "LargeMonster",
+            "asset": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Meshes/OpenArchive_LargeMonsterNavMesh.asset",
+            "radius": 2.549999952316284,
+            "height": 5.5,
+            "maximumClimb": 0.699999988079071,
+            "maximumSlope": 40.0,
+            "voxelSize": 0.15000000596046449,
+            "sources": 550,
+            "navigationTriangles": -1,
+            "checksPassed": 63,
+            "checksFailed": 0,
+            "bridgesIncluded": true
+        },
+        {
+            "name": "Player_NoBridges",
+            "asset": "",
+            "radius": 0.800000011920929,
+            "height": 5.5,
+            "maximumClimb": 0.699999988079071,
+            "maximumSlope": 40.0,
+            "voxelSize": 0.15000000596046449,
+            "sources": 534,
+            "navigationTriangles": -1,
+            "checksPassed": 55,
+            "checksFailed": 0,
+            "bridgesIncluded": false
+        },
+        {
+            "name": "LargeMonster_NoBridges",
+            "asset": "",
+            "radius": 2.549999952316284,
+            "height": 5.5,
+            "maximumClimb": 0.699999988079071,
+            "maximumSlope": 40.0,
+            "voxelSize": 0.15000000596046449,
+            "sources": 534,
+            "navigationTriangles": -1,
+            "checksPassed": 55,
+            "checksFailed": 0,
+            "bridgesIncluded": false
+        }
+    ],
+    "checks": [
+        {
+            "name": "Nest: central position",
+            "passed": true,
+            "detail": "UniversalMonsterNest must be at island XZ origin."
+        },
+        {
+            "name": "Nest: exactly four primary entrance anchors",
+            "passed": true,
+            "detail": "Required cardinal anchors: North, South, East, West."
+        },
+        {
+            "name": "Nest: North anchor position and outward facing",
+            "passed": true,
+            "detail": "Anchor at radius 15, facing away from the nest."
+        },
+        {
+            "name": "Nest: South anchor position and outward facing",
+            "passed": true,
+            "detail": "Anchor at radius 15, facing away from the nest."
+        },
+        {
+            "name": "Nest: East anchor position and outward facing",
+            "passed": true,
+            "detail": "Anchor at radius 15, facing away from the nest."
+        },
+        {
+            "name": "Nest: West anchor position and outward facing",
+            "passed": true,
+            "detail": "Anchor at radius 15, facing away from the nest."
+        },
+        {
+            "name": "Nest: monster spawn anchor",
+            "passed": true,
+            "detail": "Empty MonsterSpawnPoint is available for future integration."
+        },
+        {
+            "name": "Slots: exactly ten empty anchors",
+            "passed": true,
+            "detail": "Each future structure anchor must be an empty Transform."
+        },
+        {
+            "name": "Slots: separated reserved areas",
+            "passed": true,
+            "detail": "All slot centres separated by at least 24 units, leaving space around 14 by 14 footprints."
+        },
+        {
+            "name": "Spawn: southern plaza and four anchors",
+            "passed": true,
+            "detail": "Southern plaza centred at (0, -83), with four PlayerSpawn transforms."
+        },
+        {
+            "name": "Spawn: non-overlapping four-player capsules",
+            "passed": true,
+            "detail": "Player collider diameter plus skin clearance is 1.6 units."
+        },
+        {
+            "name": "Footprint: StructureSlot_01 unobstructed flat 14x14",
+            "passed": true,
+            "detail": "225 ground samples and oriented obstacle queries passed; height range 0.000m."
+        },
+        {
+            "name": "Footprint: StructureSlot_02 unobstructed flat 14x14",
+            "passed": true,
+            "detail": "225 ground samples and oriented obstacle queries passed; height range 0.000m."
+        },
+        {
+            "name": "Footprint: StructureSlot_03 unobstructed flat 14x14",
+            "passed": true,
+            "detail": "225 ground samples and oriented obstacle queries passed; height range 0.000m."
+        },
+        {
+            "name": "Footprint: StructureSlot_04 unobstructed flat 14x14",
+            "passed": true,
+            "detail": "225 ground samples and oriented obstacle queries passed; height range 0.000m."
+        },
+        {
+            "name": "Footprint: StructureSlot_05 unobstructed flat 14x14",
+            "passed": true,
+            "detail": "225 ground samples and oriented obstacle queries passed; height range 0.000m."
+        },
+        {
+            "name": "Footprint: StructureSlot_06 unobstructed flat 14x14",
+            "passed": true,
+            "detail": "225 ground samples and oriented obstacle queries passed; height range 0.000m."
+        },
+        {
+            "name": "Footprint: StructureSlot_07 unobstructed flat 14x14",
+            "passed": true,
+            "detail": "225 ground samples and oriented obstacle queries passed; height range 0.000m."
+        },
+        {
+            "name": "Footprint: StructureSlot_08 unobstructed flat 14x14",
+            "passed": true,
+            "detail": "225 ground samples and oriented obstacle queries passed; height range 0.000m."
+        },
+        {
+            "name": "Footprint: StructureSlot_09 unobstructed flat 14x14",
+            "passed": true,
+            "detail": "225 ground samples and oriented obstacle queries passed; height range 0.000m."
+        },
+        {
+            "name": "Footprint: StructureSlot_10 unobstructed flat 14x14",
+            "passed": true,
+            "detail": "225 ground samples and oriented obstacle queries passed; height range 0.000m."
+        },
+        {
+            "name": "Dry corridor: North entrance and radial path",
+            "passed": true,
+            "detail": "Ground support across 9.4m of the 10m route, from nest ramps through the main ring."
+        },
+        {
+            "name": "Capsule clearance: Player North entrance and radial centreline",
+            "passed": true,
+            "detail": "119 true capsule queries passed: radius 0.80m, height5.5m. Ground below the sole is ignored."
+        },
+        {
+            "name": "Capsule clearance: LargeMonster North entrance and radial centreline",
+            "passed": true,
+            "detail": "119 true capsule queries passed: radius 2.55m, height5.5m. Ground below the sole is ignored."
+        },
+        {
+            "name": "Dry corridor: South entrance and radial path",
+            "passed": true,
+            "detail": "Ground support across 9.4m of the 10m route, from nest ramps through the main ring."
+        },
+        {
+            "name": "Capsule clearance: Player South entrance and radial centreline",
+            "passed": true,
+            "detail": "119 true capsule queries passed: radius 0.80m, height5.5m. Ground below the sole is ignored."
+        },
+        {
+            "name": "Capsule clearance: LargeMonster South entrance and radial centreline",
+            "passed": true,
+            "detail": "119 true capsule queries passed: radius 2.55m, height5.5m. Ground below the sole is ignored."
+        },
+        {
+            "name": "Dry corridor: East entrance and radial path",
+            "passed": true,
+            "detail": "Ground support across 9.4m of the 10m route, from nest ramps through the main ring."
+        },
+        {
+            "name": "Capsule clearance: Player East entrance and radial centreline",
+            "passed": true,
+            "detail": "119 true capsule queries passed: radius 0.80m, height5.5m. Ground below the sole is ignored."
+        },
+        {
+            "name": "Capsule clearance: LargeMonster East entrance and radial centreline",
+            "passed": true,
+            "detail": "119 true capsule queries passed: radius 2.55m, height5.5m. Ground below the sole is ignored."
+        },
+        {
+            "name": "Dry corridor: West entrance and radial path",
+            "passed": true,
+            "detail": "Ground support across 9.4m of the 10m route, from nest ramps through the main ring."
+        },
+        {
+            "name": "Capsule clearance: Player West entrance and radial centreline",
+            "passed": true,
+            "detail": "119 true capsule queries passed: radius 0.80m, height5.5m. Ground below the sole is ignored."
+        },
+        {
+            "name": "Capsule clearance: LargeMonster West entrance and radial centreline",
+            "passed": true,
+            "detail": "119 true capsule queries passed: radius 2.55m, height5.5m. Ground below the sole is ignored."
+        },
+        {
+            "name": "Dry main ring: continuous full-width support",
+            "passed": true,
+            "detail": "128 angular sections across the 10m-wide main path; failed support samples: 0."
+        },
+        {
+            "name": "Spawn: PlayerSpawn_01 existing collider clearance",
+            "passed": true,
+            "detail": "CharacterController bottom = rootY - 1; ground clearance 0.080m."
+        },
+        {
+            "name": "Spawn: PlayerSpawn_02 existing collider clearance",
+            "passed": true,
+            "detail": "CharacterController bottom = rootY - 1; ground clearance 0.080m."
+        },
+        {
+            "name": "Spawn: PlayerSpawn_03 existing collider clearance",
+            "passed": true,
+            "detail": "CharacterController bottom = rootY - 1; ground clearance 0.080m."
+        },
+        {
+            "name": "Spawn: PlayerSpawn_04 existing collider clearance",
+            "passed": true,
+            "detail": "CharacterController bottom = rootY - 1; ground clearance 0.080m."
+        },
+        {
+            "name": "Player: nonempty navigation",
+            "passed": true,
+            "detail": "6/6 independent samples found navigation at the nest, spawn, and four main-ring points. Triangle count unavailable; global triangulation is intentionally disabled."
+        },
+        {
+            "name": "Player: nest to North",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "Player: North independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "Player: North independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: nest to South",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "Player: South independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "Player: South independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: nest to East",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "Player: East independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "Player: East independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: nest to West",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "Player: West independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "Player: West independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: North through nest to South",
+            "passed": true,
+            "detail": "Complete path, 50.0m. Route passes within nest radius12."
+        },
+        {
+            "name": "Player: East through nest to West",
+            "passed": true,
+            "detail": "Complete path, 50.0m. Route passes within nest radius12."
+        },
+        {
+            "name": "Player: spawn to nest",
+            "passed": true,
+            "detail": "Complete path, 83.0m."
+        },
+        {
+            "name": "Player: spawn to StructureSlot_01",
+            "passed": true,
+            "detail": "Complete path, 157.0m."
+        },
+        {
+            "name": "Player: spawn to StructureSlot_02",
+            "passed": true,
+            "detail": "Complete path, 154.5m."
+        },
+        {
+            "name": "Player: spawn to StructureSlot_03",
+            "passed": true,
+            "detail": "Complete path, 126.0m."
+        },
+        {
+            "name": "Player: spawn to StructureSlot_04",
+            "passed": true,
+            "detail": "Complete path, 93.2m."
+        },
+        {
+            "name": "Player: spawn to StructureSlot_05",
+            "passed": true,
+            "detail": "Complete path, 45.0m."
+        },
+        {
+            "name": "Player: spawn to StructureSlot_06",
+            "passed": true,
+            "detail": "Complete path, 43.0m."
+        },
+        {
+            "name": "Player: spawn to StructureSlot_07",
+            "passed": true,
+            "detail": "Complete path, 81.5m."
+        },
+        {
+            "name": "Player: spawn to StructureSlot_08",
+            "passed": true,
+            "detail": "Complete path, 111.8m."
+        },
+        {
+            "name": "Player: spawn to StructureSlot_09",
+            "passed": true,
+            "detail": "Complete path, 137.1m."
+        },
+        {
+            "name": "Player: spawn to StructureSlot_10",
+            "passed": true,
+            "detail": "Complete path, 160.8m."
+        },
+        {
+            "name": "Player: bridge 1 inner bank to deck",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: bridge 1 deck to outer bank",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: bridge 2 inner bank to deck",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: bridge 2 deck to outer bank",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: bridge 3 inner bank to deck",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: bridge 3 deck to outer bank",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: bridge 4 inner bank to deck",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: bridge 4 deck to outer bank",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player: main ring segment 01",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 02",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 03",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 04",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 05",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 06",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 07",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 08",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 09",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 10",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 11",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 12",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 13",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 14",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 15",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: main ring segment 16",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player: 128 direct main-ring segments",
+            "passed": true,
+            "detail": "All short NavMesh rays connect along radius54, within the49–59m annulus. No outside detour is accepted."
+        },
+        {
+            "name": "Player: bypass nest segment 1",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player: bypass nest segment 2",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player: bypass nest segment 3",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player: bypass nest segment 4",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player: bypass nest segment 5",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player: bypass nest segment 6",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player: bypass nest segment 7",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player: bypass nest segment 8",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player: deep water excluded quadrant 1",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 30 degrees."
+        },
+        {
+            "name": "Player: deep water excluded quadrant 2",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 120 degrees."
+        },
+        {
+            "name": "Player: deep water excluded quadrant 3",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 210 degrees."
+        },
+        {
+            "name": "Player: deep water excluded quadrant 4",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 300 degrees."
+        },
+        {
+            "name": "LargeMonster: nonempty navigation",
+            "passed": true,
+            "detail": "6/6 independent samples found navigation at the nest, spawn, and four main-ring points. Triangle count unavailable; global triangulation is intentionally disabled."
+        },
+        {
+            "name": "LargeMonster: nest to North",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "LargeMonster: North independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "LargeMonster: North independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: nest to South",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "LargeMonster: South independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "LargeMonster: South independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: nest to East",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "LargeMonster: East independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "LargeMonster: East independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: nest to West",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "LargeMonster: West independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "LargeMonster: West independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: North through nest to South",
+            "passed": true,
+            "detail": "Complete path, 50.0m. Route passes within nest radius12."
+        },
+        {
+            "name": "LargeMonster: East through nest to West",
+            "passed": true,
+            "detail": "Complete path, 50.0m. Route passes within nest radius12."
+        },
+        {
+            "name": "LargeMonster: spawn to nest",
+            "passed": true,
+            "detail": "Complete path, 83.0m."
+        },
+        {
+            "name": "LargeMonster: spawn to StructureSlot_01",
+            "passed": true,
+            "detail": "Complete path, 157.0m."
+        },
+        {
+            "name": "LargeMonster: spawn to StructureSlot_02",
+            "passed": true,
+            "detail": "Complete path, 152.2m."
+        },
+        {
+            "name": "LargeMonster: spawn to StructureSlot_03",
+            "passed": true,
+            "detail": "Complete path, 130.1m."
+        },
+        {
+            "name": "LargeMonster: spawn to StructureSlot_04",
+            "passed": true,
+            "detail": "Complete path, 93.2m."
+        },
+        {
+            "name": "LargeMonster: spawn to StructureSlot_05",
+            "passed": true,
+            "detail": "Complete path, 55.1m."
+        },
+        {
+            "name": "LargeMonster: spawn to StructureSlot_06",
+            "passed": true,
+            "detail": "Complete path, 53.8m."
+        },
+        {
+            "name": "LargeMonster: spawn to StructureSlot_07",
+            "passed": true,
+            "detail": "Complete path, 83.3m."
+        },
+        {
+            "name": "LargeMonster: spawn to StructureSlot_08",
+            "passed": true,
+            "detail": "Complete path, 112.2m."
+        },
+        {
+            "name": "LargeMonster: spawn to StructureSlot_09",
+            "passed": true,
+            "detail": "Complete path, 137.7m."
+        },
+        {
+            "name": "LargeMonster: spawn to StructureSlot_10",
+            "passed": true,
+            "detail": "Complete path, 154.4m."
+        },
+        {
+            "name": "LargeMonster: bridge 1 inner bank to deck",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: bridge 1 deck to outer bank",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: bridge 2 inner bank to deck",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: bridge 2 deck to outer bank",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: bridge 3 inner bank to deck",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: bridge 3 deck to outer bank",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: bridge 4 inner bank to deck",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: bridge 4 deck to outer bank",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster: main ring segment 01",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 02",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 03",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 04",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 05",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 06",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 07",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 08",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 09",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 10",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 11",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 12",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 13",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 14",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 15",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: main ring segment 16",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster: 128 direct main-ring segments",
+            "passed": true,
+            "detail": "All short NavMesh rays connect along radius54, within the49–59m annulus. No outside detour is accepted."
+        },
+        {
+            "name": "LargeMonster: bypass nest segment 1",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster: bypass nest segment 2",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster: bypass nest segment 3",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster: bypass nest segment 4",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster: bypass nest segment 5",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster: bypass nest segment 6",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster: bypass nest segment 7",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster: bypass nest segment 8",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster: deep water excluded quadrant 1",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 30 degrees."
+        },
+        {
+            "name": "LargeMonster: deep water excluded quadrant 2",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 120 degrees."
+        },
+        {
+            "name": "LargeMonster: deep water excluded quadrant 3",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 210 degrees."
+        },
+        {
+            "name": "LargeMonster: deep water excluded quadrant 4",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 300 degrees."
+        },
+        {
+            "name": "Player_NoBridges: nonempty navigation",
+            "passed": true,
+            "detail": "6/6 independent samples found navigation at the nest, spawn, and four main-ring points. Triangle count unavailable; global triangulation is intentionally disabled."
+        },
+        {
+            "name": "Player_NoBridges: nest to North",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "Player_NoBridges: North independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "Player_NoBridges: North independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player_NoBridges: nest to South",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "Player_NoBridges: South independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "Player_NoBridges: South independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player_NoBridges: nest to East",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "Player_NoBridges: East independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "Player_NoBridges: East independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player_NoBridges: nest to West",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "Player_NoBridges: West independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "Player_NoBridges: West independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "Player_NoBridges: North through nest to South",
+            "passed": true,
+            "detail": "Complete path, 50.0m. Route passes within nest radius12."
+        },
+        {
+            "name": "Player_NoBridges: East through nest to West",
+            "passed": true,
+            "detail": "Complete path, 50.0m. Route passes within nest radius12."
+        },
+        {
+            "name": "Player_NoBridges: spawn to nest",
+            "passed": true,
+            "detail": "Complete path, 83.0m."
+        },
+        {
+            "name": "Player_NoBridges: spawn to StructureSlot_01",
+            "passed": true,
+            "detail": "Complete path, 157.0m."
+        },
+        {
+            "name": "Player_NoBridges: spawn to StructureSlot_02",
+            "passed": true,
+            "detail": "Complete path, 158.0m."
+        },
+        {
+            "name": "Player_NoBridges: spawn to StructureSlot_03",
+            "passed": true,
+            "detail": "Complete path, 126.4m."
+        },
+        {
+            "name": "Player_NoBridges: spawn to StructureSlot_04",
+            "passed": true,
+            "detail": "Complete path, 93.2m."
+        },
+        {
+            "name": "Player_NoBridges: spawn to StructureSlot_05",
+            "passed": true,
+            "detail": "Complete path, 45.0m."
+        },
+        {
+            "name": "Player_NoBridges: spawn to StructureSlot_06",
+            "passed": true,
+            "detail": "Complete path, 43.0m."
+        },
+        {
+            "name": "Player_NoBridges: spawn to StructureSlot_07",
+            "passed": true,
+            "detail": "Complete path, 81.5m."
+        },
+        {
+            "name": "Player_NoBridges: spawn to StructureSlot_08",
+            "passed": true,
+            "detail": "Complete path, 111.7m."
+        },
+        {
+            "name": "Player_NoBridges: spawn to StructureSlot_09",
+            "passed": true,
+            "detail": "Complete path, 137.1m."
+        },
+        {
+            "name": "Player_NoBridges: spawn to StructureSlot_10",
+            "passed": true,
+            "detail": "Complete path, 160.8m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 01",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 02",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 03",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 04",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 05",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 06",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 07",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 08",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 09",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 10",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 11",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 12",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 13",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 14",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 15",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: main ring segment 16",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "Player_NoBridges: 128 direct main-ring segments",
+            "passed": true,
+            "detail": "All short NavMesh rays connect along radius54, within the49–59m annulus. No outside detour is accepted."
+        },
+        {
+            "name": "Player_NoBridges: bypass nest segment 1",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player_NoBridges: bypass nest segment 2",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player_NoBridges: bypass nest segment 3",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player_NoBridges: bypass nest segment 4",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player_NoBridges: bypass nest segment 5",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player_NoBridges: bypass nest segment 6",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player_NoBridges: bypass nest segment 7",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player_NoBridges: bypass nest segment 8",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "Player_NoBridges: deep water excluded quadrant 1",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 30 degrees."
+        },
+        {
+            "name": "Player_NoBridges: deep water excluded quadrant 2",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 120 degrees."
+        },
+        {
+            "name": "Player_NoBridges: deep water excluded quadrant 3",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 210 degrees."
+        },
+        {
+            "name": "Player_NoBridges: deep water excluded quadrant 4",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 300 degrees."
+        },
+        {
+            "name": "LargeMonster_NoBridges: nonempty navigation",
+            "passed": true,
+            "detail": "6/6 independent samples found navigation at the nest, spawn, and four main-ring points. Triangle count unavailable; global triangulation is intentionally disabled."
+        },
+        {
+            "name": "LargeMonster_NoBridges: nest to North",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: North independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: North independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster_NoBridges: nest to South",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: South independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: South independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster_NoBridges: nest to East",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: East independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: East independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster_NoBridges: nest to West",
+            "passed": true,
+            "detail": "Complete path, 15.0m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: West independent exterior approach",
+            "passed": true,
+            "detail": "Complete path, 25.0m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: West independent entrance corridor",
+            "passed": true,
+            "detail": "Complete path remains within0.5m of this crossing centreline across height changes; an outside detour cannot satisfy this test."
+        },
+        {
+            "name": "LargeMonster_NoBridges: North through nest to South",
+            "passed": true,
+            "detail": "Complete path, 50.0m. Route passes within nest radius12."
+        },
+        {
+            "name": "LargeMonster_NoBridges: East through nest to West",
+            "passed": true,
+            "detail": "Complete path, 50.0m. Route passes within nest radius12."
+        },
+        {
+            "name": "LargeMonster_NoBridges: spawn to nest",
+            "passed": true,
+            "detail": "Complete path, 83.0m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: spawn to StructureSlot_01",
+            "passed": true,
+            "detail": "Complete path, 157.0m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: spawn to StructureSlot_02",
+            "passed": true,
+            "detail": "Complete path, 157.9m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: spawn to StructureSlot_03",
+            "passed": true,
+            "detail": "Complete path, 130.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: spawn to StructureSlot_04",
+            "passed": true,
+            "detail": "Complete path, 94.0m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: spawn to StructureSlot_05",
+            "passed": true,
+            "detail": "Complete path, 55.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: spawn to StructureSlot_06",
+            "passed": true,
+            "detail": "Complete path, 53.8m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: spawn to StructureSlot_07",
+            "passed": true,
+            "detail": "Complete path, 83.3m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: spawn to StructureSlot_08",
+            "passed": true,
+            "detail": "Complete path, 112.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: spawn to StructureSlot_09",
+            "passed": true,
+            "detail": "Complete path, 137.7m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: spawn to StructureSlot_10",
+            "passed": true,
+            "detail": "Complete path, 162.2m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 01",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 02",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 03",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 04",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 05",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 06",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 07",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 08",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 09",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 10",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 11",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 12",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 13",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 14",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 15",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: main ring segment 16",
+            "passed": true,
+            "detail": "Complete path, 21.1m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: 128 direct main-ring segments",
+            "passed": true,
+            "detail": "All short NavMesh rays connect along radius54, within the49–59m annulus. No outside detour is accepted."
+        },
+        {
+            "name": "LargeMonster_NoBridges: bypass nest segment 1",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: bypass nest segment 2",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: bypass nest segment 3",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: bypass nest segment 4",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: bypass nest segment 5",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: bypass nest segment 6",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: bypass nest segment 7",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: bypass nest segment 8",
+            "passed": true,
+            "detail": "Complete path, 18.4m."
+        },
+        {
+            "name": "LargeMonster_NoBridges: deep water excluded quadrant 1",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 30 degrees."
+        },
+        {
+            "name": "LargeMonster_NoBridges: deep water excluded quadrant 2",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 120 degrees."
+        },
+        {
+            "name": "LargeMonster_NoBridges: deep water excluded quadrant 3",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 210 degrees."
+        },
+        {
+            "name": "LargeMonster_NoBridges: deep water excluded quadrant 4",
+            "passed": true,
+            "detail": "Navigation absent at radius35, angle 300 degrees."
+        },
+        {
+            "name": "Scene: player navigation data attached",
+            "passed": true,
+            "detail": "Player NavMeshData assigned to this scene's legacy NavMeshSettings.m_NavMeshData. It auto-loads when the scene is saved and opened. The separately baked large-monster data is retained for future agent integration."
+        }
+    ],
+    "limitations": [
+        "Navigation triangle counts are unavailable (-1): global NavMesh.CalculateTriangulation is intentionally avoided because repeated Editor bakes exposed a Unity 6 native crash. Nonempty bakes are verified with isolated NavMesh.SamplePosition and complete/direct route queries.",
+        "Android hardware performance, networked play, and future monster animation/body clearance were not profiled by these Editor geometry checks."
+    ]
+}

@@ -1,0 +1,176 @@
+{
+    "checkedUtc": "2026-10-18T08:36:07.3611091Z",
+    "scope": "Offline Editor Play Mode: original CharacterController and original host hunting controller. Only the test player is repositioned; Khezu travels normally from the nest. All four bridges tested.",
+    "checks": [
+        {
+            "name": "Player bridge 0 inner loop -1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (10.38, 0.43, 22.08)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 0 deck -1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (17.30, 0.43, 17.30)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 0 inner loop 1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (22.08, 0.43, 10.38)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 0 deck 1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (38.13, 0.43, 38.13)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 1 inner loop -1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (22.08, 0.43, -10.38)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 1 deck -1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (17.31, 0.43, -17.31)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 1 inner loop 1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (10.37, 0.43, -22.09)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 1 deck 1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (38.14, 0.43, -38.14)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 2 inner loop -1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (-10.37, 0.43, -22.09)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 2 deck -1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (-17.30, 0.43, -17.30)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 2 inner loop 1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (-22.08, 0.43, -10.38)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 2 deck 1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (-38.13, 0.43, -38.13)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 3 inner loop -1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (-22.08, 0.43, 10.38)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 3 deck -1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (-17.30, 0.43, 17.30)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 3 inner loop 1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (-10.38, 0.43, 22.08)",
+            "passed": true
+        },
+        {
+            "name": "Player bridge 3 deck 1",
+            "detail": "Actual CharacterController, 19.5m/s; final position (-38.14, 0.43, 38.14)",
+            "passed": true
+        },
+        {
+            "name": "Awakens normally before traversal",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 0 approach",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=False, min source radius=0.00, max observed speed=26.59",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 0 inner loop",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=False, min source radius=22.91, max observed speed=24.38",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 0 outward crossing",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=True, min source radius=23.51, max observed speed=26.69",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 0 inward crossing and turn",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=True, min source radius=22.19, max observed speed=26.69",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 1 approach",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=False, min source radius=21.23, max observed speed=27.30",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 1 inner loop",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=False, min source radius=22.47, max observed speed=22.86",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 1 outward crossing",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=True, min source radius=23.44, max observed speed=26.69",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 1 inward crossing and turn",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=True, min source radius=22.70, max observed speed=26.69",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 2 approach",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=False, min source radius=21.38, max observed speed=27.18",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 2 inner loop",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=False, min source radius=22.43, max observed speed=23.06",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 2 outward crossing",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=True, min source radius=23.37, max observed speed=26.69",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 2 inward crossing and turn",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=True, min source radius=22.80, max observed speed=26.69",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 3 approach",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=False, min source radius=21.41, max observed speed=27.56",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 3 inner loop",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=False, min source radius=22.57, max observed speed=22.91",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 3 outward crossing",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=True, min source radius=23.41, max observed speed=26.69",
+            "passed": true
+        },
+        {
+            "name": "Khezu bridge 3 inward crossing and turn",
+            "detail": "caught=True, blocked=False, rail penetration=False, crossed deck=True, min source radius=22.89, max observed speed=26.69",
+            "passed": true
+        },
+        {
+            "name": "Existing Khezu size and navigation radius retained",
+            "detail": "",
+            "passed": true
+        }
+    ]
+}

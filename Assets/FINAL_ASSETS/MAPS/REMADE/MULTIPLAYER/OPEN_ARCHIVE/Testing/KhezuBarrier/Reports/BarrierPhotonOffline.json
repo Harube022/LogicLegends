@@ -1,0 +1,98 @@
+{
+    "passed": true,
+    "checkedUtc": "2026-10-18T14:51:51.5998644Z",
+    "scope": "One genuine PUN OfflineMode room and one spawned network owner. Confirmed-capture snapshots are explicit fixtures; outcome events use PUN RaiseEvent and its actual sender. Does not establish live 2–4-client transport, late joins, Master migration, remote latency or a physical Android device.",
+    "checks": [
+        {
+            "name": "Actual PUN offline room has an authoritative Master",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Existing spawner creates one real owned network character",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Existing TakeDamage and barrier outcomes share one authoritative heart count",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Master-confirmed capture locks the network owner and opens its UI",
+            "detail": "locked=True, ui=True, localChallenge=True, playerEnabled=True, capsuleEnabled=True, state=Caught, phase=BarrierChallenge, cinematic=False",
+            "passed": true
+        },
+        {
+            "name": "Authoritative avatar receiver clamps even an owner-authored escape packet",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Capture enforcement still holds when the movement script is disabled on a replica",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Existing five-field owner serialization sends the anchor and stopped animation flags",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Non-owner movement packets are ignored",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Actual sender event is rejected when host development testing is disabled",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "PUN dispatch rejects payload identity injection and stale serials",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Unknown sender fixture cannot resolve the captured player's encounter",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Real owner cannot resolve another actor's challenge",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "PUN-authenticated sender produces one accepted failure, rejecting duplicate/opposite results",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Network actor receives exactly one heart loss and regains movement",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Room checkpoint carries canonical anchor, processed outcome and absolute per-actor health",
+            "detail": "animation=Attack",
+            "passed": true
+        },
+        {
+            "name": "Checkpoint restoration cannot replay a heart penalty or relock the owner",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Disconnected owner releases the barrier token and hides the UI",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Offline transport checks completed",
+            "detail": "",
+            "passed": true
+        }
+    ],
+    "errors": []
+}
