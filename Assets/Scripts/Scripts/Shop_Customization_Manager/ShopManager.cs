@@ -5,6 +5,7 @@ using Firebase.Extensions;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using System;
 
 public class ShopManager : MonoBehaviour
 {
@@ -35,16 +36,24 @@ public class ShopManager : MonoBehaviour
     private readonly HashSet<string> ownedItems = new HashSet<string>();
     private int requestVersion;
     private bool dataLoaded;
+    private bool commerceReady;
+    private bool commercePaused;
+    private string commerceNotice;
 
     [Header("Purchase Feedback Timing")]
     [SerializeField] private float purchaseProgressDelay = 0.2f;
     [SerializeField] private float purchaseFeedbackDuration = 1.5f;
     private int purchaseFeedbackVersion;
     private bool purchasing;
+    private bool refreshingWallet;
+    private float nextWalletCheck;
+    private volatile bool walletDirty;
+    private int walletUpdateVersion;
 
-    private void OnEnable() { RetryLoad(); }
+    private void OnEnable() { CommerceClient.Changed += OnCommerceChanged; RetryLoad(); }
     private void OnDisable()
     {
+        CommerceClient.Changed -= OnCommerceChanged;
         if (previewUI != null) previewUI.Close();
         previewedItem = null;
         requestVersion++;
@@ -54,6 +63,79 @@ public class ShopManager : MonoBehaviour
         revealing = false;
         HideItems();
         if (itemsScroll != null) itemsScroll.enabled = true;
+    }
+
+    private void OnCommerceChanged() { walletDirty = true; }
+    private void Update()
+    {
+        if (!dataLoaded || !commerceReady || purchasing || refreshingWallet || !IsCurrent(requestVersion)) return;
+        if (!walletDirty && Time.unscaledTime < nextWalletCheck) return;
+        walletDirty = false;
+        nextWalletCheck = Time.unscaledTime + 8;
+        RefreshWallet(requestVersion);
+    }
+    private void OnApplicationFocus(bool focused) { if (focused) walletDirty = true; }
+    private async void RefreshWallet(int version)
+    {
+        refreshingWallet = true;
+        int walletVersion = walletUpdateVersion;
+        try
+        {
+            var account = await CommerceClient.Wallet();
+            if (!IsCurrent(version) || walletVersion != walletUpdateVersion) return;
+            if (account.sandbox)
+            {
+                var coins = await CommerceClient.WithTimeout(dbRef.Child("users").Child(userId).Child("coins").GetValueAsync());
+                if (!IsCurrent(version) || walletVersion != walletUpdateVersion) return;
+                if (coins.Value == null) currentCoins = 0;
+                else if (!int.TryParse(coins.Value.ToString(), out currentCoins) || currentCoins < 0)
+                    throw new InvalidOperationException("Couldn't read your coin balance.");
+            }
+            ApplyAccount(account);
+            commerceReady = true;
+            commerceNotice = "";
+            UpdateShopUI();
+        }
+        catch (Exception error) { if (IsCurrent(version)) CommerceUnavailable(error); }
+        finally { refreshingWallet = false; }
+    }
+    private void ApplyAccount(CommerceClient.Account account)
+    {
+        currentGems = account.gems;
+        // Sandbox commerce owns test gems only. Existing gameplay coins stay
+        // sourced from the real Firebase account, including after purchases.
+        if (!account.sandbox) currentCoins = account.coins;
+        ownedItems.Clear();
+        if (account.inventory != null) foreach (var item in account.inventory) ownedItems.Add(item);
+    }
+    private async void LoadCommerce(int version)
+    {
+        try
+        {
+            var account = await CommerceClient.LoadAccount(playerBaseCharacter);
+            if (!IsCurrent(version)) return;
+            ApplyAccount(account);
+            commerceReady = true;
+            commercePaused = false;
+            commerceNotice = "";
+            UpdateShopUI();
+            Status("", false);
+            if (previewUI != null && previewUI.IsOpen && previewedItem != null)
+                previewUI.Show(previewedItem, playerBaseCharacter, BalanceFor(previewedItem), ownedItems.Contains(previewedItem.ItemID));
+            // Poll while this panel is open. Avoid adding/detaching native
+            // database listeners on the project's current desktop Firebase SDK.
+        }
+        catch (Exception error) { if (IsCurrent(version)) CommerceUnavailable(error); }
+    }
+
+    private void CommerceUnavailable(Exception error)
+    {
+        commerceReady = false;
+        commercePaused = error is CommerceClient.ShopSetupException;
+        commerceNotice = commercePaused ? "" : "Couldn't connect to purchases. Your saved items are shown. Retry to reconnect.";
+        if (!revealing) Status(commerceNotice, !commercePaused);
+        if (previewUI != null && previewUI.IsOpen)
+            previewUI.ShowPurchasesUnavailable(commercePaused ? "Purchases aren't available yet. You can still preview outfits." : null);
     }
 
     private void HideItems()
@@ -84,11 +166,15 @@ public class ShopManager : MonoBehaviour
     public void RetryLoad()
     {
         if (!isActiveAndEnabled || purchasing) return;
+        walletUpdateVersion++;
         if (previewUI != null) previewUI.Close();
         previewedItem = null;
         StopAllCoroutines();
         int version = ++requestVersion;
         dataLoaded = false;
+        commerceReady = false;
+        commercePaused = false;
+        commerceNotice = "Connecting to the shop. You can browse while you wait.";
         revealing = false;
         playerBaseCharacter = "";
         ownedItems.Clear();
@@ -136,27 +222,29 @@ public class ShopManager : MonoBehaviour
                 Status("Choose your character before opening the shop.", true);
                 return;
             }
-            // Missing balances display as zero. Loading never writes zeros over saved currency.
-            if (!ReadBalance(snapshot, "coins", out currentCoins) ||
-                !ReadBalance(snapshot, "gems", out currentGems))
+            if (!ReadBalance(snapshot, "coins", out currentCoins))
             {
-                Status("Couldn't read your balances. Please retry.", true);
+                Status("Couldn't read your coin balance. Please retry.", true);
                 return;
             }
-            ownedItems.Clear();
-            foreach (var item in snapshot.Child("inventory").Children)
-                if (item.Value != null && item.Value.ToString().ToLowerInvariant() == "true")
-                    ownedItems.Add(item.Key);
+            // Show saved data before contacting the payment host. Reads never
+            // authorize purchases; every purchase still needs the backend.
+            if (!ReadBalance(snapshot, "gems", out currentGems)) currentGems = 0;
+            foreach (var child in snapshot.Child("inventory").Children)
+                if (child.Value is bool owned && owned) ownedItems.Add(child.Key);
             dataLoaded = true;
             revealing = true;
             UpdateShopUI();
-            pendingLoadingFeedback = false;
             StartCoroutine(RevealLoadedContent(version));
+            LoadCommerce(version);
         });
         deadline = Time.realtimeSinceStartup + 20f;
         while (!request.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
         if (!request.IsCompleted && IsCurrent(version))
-            Status("Your connection is taking longer. You can wait or retry.", true);
+        {
+            Status("Couldn't load your saved shop. Check your connection and retry.", true);
+            requestVersion++; // A late reply must not replace a newer retry/error.
+        }
     }
 
     private bool IsCurrent(int version)
@@ -218,6 +306,7 @@ public class ShopManager : MonoBehaviour
         SetReveal(1f, true);
         if (itemsScroll != null) itemsScroll.enabled = true;
         revealing = false;
+        if (!commerceReady) Status(commerceNotice, !commercePaused);
     }
 
     private static bool ReadBalance(DataSnapshot snapshot, string key, out int balance)
@@ -247,6 +336,7 @@ public class ShopManager : MonoBehaviour
         purchaseFeedbackVersion++; // Old result timers must not clear a different item's preview.
         Status("", false);
         previewUI.Show(itemToBuy, playerBaseCharacter, BalanceFor(itemToBuy), ownedItems.Contains(itemToBuy.ItemID));
+        if (!commerceReady) previewUI.ShowPurchasesUnavailable(commercePaused ? "Purchases aren't available yet. You can still preview outfits." : null);
     }
 
     // A failed purchase can keep its modal open for feedback/retry, even though
@@ -263,17 +353,17 @@ public class ShopManager : MonoBehaviour
 
     private bool CanPurchasePreview()
     {
+        if (!commerceReady) { if (!commercePaused) Status("Purchases are unavailable. Retry to reconnect.", true); return false; }
         return dataLoaded && IsPreviewCurrent && !revealing && !purchasing && previewUI != null && previewUI.IsOpen &&
             previewedItem != null && Fits(previewedItem) && previewedItem.Price >= 0 &&
             !ownedItems.Contains(previewedItem.ItemID);
     }
 
-    public void ConfirmPurchase()
+    public async void ConfirmPurchase()
     {
         // Only the second, explicit confirmation action can submit a purchase.
         if (!CanPurchasePreview() || !previewUI.IsConfirming) return;
         var itemToBuy = previewedItem;
-        bool coins = itemToBuy.CurrencyType == ShopItem.Currency.Coins;
         int balance = BalanceFor(itemToBuy);
         int version = requestVersion;
         int feedbackVersion = ++purchaseFeedbackVersion;
@@ -283,59 +373,29 @@ public class ShopManager : MonoBehaviour
             return;
         }
         purchasing = true;
+        walletUpdateVersion++;
         Status("", false);
         previewUI.ShowSaving();
         StartCoroutine(DelayedPurchaseFeedback(version, feedbackVersion));
-        string itemId = itemToBuy.ItemID;
-        int price = itemToBuy.Price;
-        string expectedCharacter = playerBaseCharacter;
-        string currency = coins ? "coins" : "gems";
-        string rejection = null;
-        // Recheck the server balance and ownership together, so stale previews or
-        // purchases from another device cannot charge twice or overwrite currency.
-        dbRef.Child("users").Child(userId).RunTransaction(data =>
+        try
         {
-            rejection = null;
-            int freshBalance;
-            var decision = ShopPurchaseRules.Evaluate(data.Value != null,
-                data.Child("base_character").Value?.ToString(), expectedCharacter,
-                data.Child("inventory").Child(itemId).Value?.ToString().ToLowerInvariant() == "true",
-                data.Child(currency).Value, price, out freshBalance);
-            // Firebase may first invoke this callback with an empty local cache.
-            // Submit the unchanged value so the server can supply the actual
-            // account and retry; do not confuse a cache miss with a changed body.
-            if (decision == ShopPurchaseDecision.WaitForServerData) return TransactionResult.Success(data);
-            if (decision != ShopPurchaseDecision.Ready)
-            {
-                rejection = ShopPurchaseRules.Feedback(decision, currency);
-                return TransactionResult.Abort();
-            }
-            data.Child(currency).Value = freshBalance - price;
-            data.Child("inventory").Child(itemId).Value = true;
-            return TransactionResult.Success(data);
-        }).ContinueWithOnMainThread(task =>
+            // Send only the ID: the server owns price, currency, character
+            // eligibility, balance checking and the atomic ownership grant.
+            var account = await CommerceClient.BuyItem(itemToBuy.ItemID);
+            if (!IsCurrent(version)) return;
+            purchasing = false;
+            ApplyAccount(account);
+            UpdateShopUI();
+            previewUI.ShowResult(account.sandbox ? "Purchased in sandbox shop." : "Purchase successful. Equip it in Customization.", true, BalanceFor(itemToBuy), true);
+            CommerceClient.NotifyChanged();
+            StartCoroutine(ClearPurchaseFeedback(version, feedbackVersion));
+        }
+        catch (Exception error)
         {
             if (!IsCurrent(version)) return;
             purchasing = false;
-            if (task.IsFaulted || task.IsCanceled || rejection != null)
-            {
-                ShowPurchaseFailure(rejection ?? "Couldn't complete the purchase. Retry to refresh your shop.");
-                return;
-            }
-            // An unchanged empty account is not a confirmed purchase.
-            if (task.Result == null || !task.Result.Exists ||
-                task.Result.Child("inventory").Child(itemId).Value?.ToString().ToLowerInvariant() != "true")
-            {
-                ShowPurchaseFailure("Couldn't confirm the purchase. Retry to refresh your shop.");
-                return;
-            }
-            ReadBalance(task.Result, "coins", out currentCoins);
-            ReadBalance(task.Result, "gems", out currentGems);
-            ownedItems.Add(itemId);
-            UpdateShopUI();
-            previewUI.ShowResult("Purchase successful. Equip it in Customization.", true, BalanceFor(itemToBuy), true);
-            StartCoroutine(ClearPurchaseFeedback(version, feedbackVersion));
-        });
+            ShowPurchaseFailure(error.Message);
+        }
     }
 
     private void ShowPurchaseFailure(string message)

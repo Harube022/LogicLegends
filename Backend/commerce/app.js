@@ -14,11 +14,14 @@ function createApp(env = process.env, integrations = {}) {
     setup.disable('x-powered-by');
     setup.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
     setup.get('/health', (req, res) => res.json({ mode: 'setup', paymentsEnabled: false }));
-    setup.use((req, res) => res.status(503).json({ error: 'The shop is being configured. Please try again later.' }));
+    setup.use((req, res) => res.status(503).json({ code: 'SHOP_SETUP', error: 'Purchases are not available yet.' }));
     return setup;
   }
   const sandbox = env.STORAGE_MODE === 'emulator';
   const live = env.PAYMENT_MODE === 'live';
+  // Pausing new checkouts must not stop fulfillment of already-paid orders.
+  // Live checkout requires a separate, explicit switch after wallet readiness.
+  const paymentsEnabled = () => sandbox ? env.CHECKOUT_ENABLED !== 'false' : env.CHECKOUT_ENABLED === 'true';
   if (!['emulator', 'firebase'].includes(env.STORAGE_MODE) || !['test', 'live'].includes(env.PAYMENT_MODE)) throw new Error('Configure storage and payment modes explicitly.');
   if ((sandbox && (live || env.FIREBASE_DATABASE_EMULATOR_HOST !== '127.0.0.1:9000')) ||
       (!sandbox && (!live || env.FIREBASE_DATABASE_EMULATOR_HOST)) || env.FIREBASE_AUTH_EMULATOR_HOST) {
@@ -26,7 +29,7 @@ function createApp(env = process.env, integrations = {}) {
   }
   const projectId = env.FIREBASE_PROJECT_ID;
   if (!projectId) throw new Error('FIREBASE_PROJECT_ID is required.');
-  if (!sandbox && env.LIVE_WALLET_READY !== 'true') throw new Error('Configure protected wallet rules and trusted gameplay rewards before enabling LIVE_WALLET_READY.');
+  if (!sandbox && env.LIVE_WALLET_READY !== 'true') throw new Error('Deploy protected gem and inventory rules and the zero-gem stage reward update before enabling LIVE_WALLET_READY.');
   const authApp = getApps().find(a => a.name === 'commerce-auth') || initializeApp({ projectId }, 'commerce-auth');
   const options = sandbox ? { projectId: 'demo-logic-legends', databaseURL: 'http://127.0.0.1:9000?ns=demo-logic-legends-default-rtdb' }
     : { projectId, databaseURL: env.FIREBASE_DATABASE_URL,
@@ -77,7 +80,7 @@ function createApp(env = process.env, integrations = {}) {
     if (!result.snapshot.child('paymentGrants/' + order.id).exists()) throw fail('Account is not ready. Please retry.', 409);
     await orders.child(order.id).update({ status: 'paid', paymentId: payment.id });
   }
-  app.get('/health', (req, res) => res.json({ sandbox, live, mode: sandbox ? 'sandbox' : 'live' }));
+  app.get('/health', (req, res) => res.json({ sandbox, live, paymentsEnabled: paymentsEnabled(), mode: sandbox ? 'sandbox' : 'live' }));
   app.get(['/success', '/cancel'], (req, res) => res.type('html').send('<!doctype html><meta name="viewport" content="width=device-width"><title>Logic Legends</title><h1>Return to Logic Legends</h1><p>Your game will verify the payment and refresh your gems.</p>'));
   app.post('/webhook', express.raw({ type: 'application/json', limit: '256kb' }), asyncRoute(async (req, res) => {
     if (!Buffer.isBuffer(req.body) || !signature(req.body, req.get('Paymongo-Signature'), env.PAYMONGO_WEBHOOK_SECRET, live)) throw fail('Invalid signature.', 401);
@@ -116,9 +119,9 @@ function createApp(env = process.env, integrations = {}) {
       }
       const account = (await userRef.get()).val();
       if (!account?.base_character) throw fail('Choose your character first.', 409);
-      return res.json(present(account, sandbox, live));
+      return res.json({ ...present(account, sandbox, live), paymentsEnabled: paymentsEnabled() });
     }
-    if (req.method === 'GET' && req.path === '/wallet') return res.json(present((await userRef.get()).val(), sandbox, live));
+    if (req.method === 'GET' && req.path === '/wallet') return res.json({ ...present((await userRef.get()).val(), sandbox, live), paymentsEnabled: paymentsEnabled() });
     if (req.method === 'POST' && req.path === '/equip') {
       const itemId = req.body?.itemId;
       if (typeof itemId !== 'string' || !/^[A-Za-z0-9_]+$/.test(itemId)) throw fail('Invalid outfit.');
@@ -141,6 +144,7 @@ function createApp(env = process.env, integrations = {}) {
       return res.json({ ...present(result.snapshot.val(), sandbox, live), itemId });
     }
     if (req.method === 'POST' && req.path === '/checkout') {
+      if (!paymentsEnabled()) throw fail('Top-ups are currently unavailable. Please try again later.', 503);
       const pack = catalog.packs.find(p => p.id === req.body?.productId);
       if (!pack || !/^[a-f0-9]{32}$/.test(req.body?.requestId || '')) throw fail('Invalid checkout request.');
       if (!(await userRef.child('base_character').get()).exists()) throw fail('Open the shop again before buying.', 409);

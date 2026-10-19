@@ -33,12 +33,18 @@ test('HTTP checkout, signed fulfillment, wallet, purchase and equip work togethe
       assert.equal((await fetch(base + '/wallet')).status, 401);
       const initial = await (await request('/account', { character: 'Male_Character', gems: 9999 })).json();
       assert.equal(initial.gems, 0);
+      env.CHECKOUT_ENABLED = 'false';
+      assert.equal((await (await request('/wallet')).json()).paymentsEnabled, false);
+      assert.equal((await request('/checkout', { productId: 'gems_5', requestId: crypto.randomBytes(16).toString('hex') })).status, 503);
+      assert.equal(sessions.size, 0);
       for (let n = 0; n < 2; n++) {
+        env.CHECKOUT_ENABLED = 'true';
         const input = { productId: 'gems_5', requestId: crypto.randomBytes(16).toString('hex'), amount: 1, gems: 9999 };
         const checkout = await (await request('/checkout', input)).json(); orders.push(checkout.orderId);
         const duplicate = await (await request('/checkout', input)).json();
         assert.equal(duplicate.orderId, checkout.orderId);
         assert.equal(sessions.size, n + 1);
+        env.CHECKOUT_ENABLED = 'false'; // Existing payments must still fulfill while checkout is paused.
         assert.equal((await request('/orders/' + checkout.orderId, null, 'someone-else')).status, 404);
         const session = sessions.get('cs_' + n);
         const body = JSON.stringify({ data: { attributes: { type: 'checkout_session.payment.paid', data: session } } });

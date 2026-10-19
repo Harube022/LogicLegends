@@ -7,6 +7,7 @@
         ".read": "auth != null && auth.uid === $uid",
         "username": { ".write": "auth != null && auth.uid === $uid", ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
         "base_character": { ".write": "auth != null && auth.uid === $uid && !data.exists()", ".validate": "newData.val() === 'Male_Character' || newData.val() === 'Female_Character'" },
+        "coins": { ".write": "auth != null && auth.uid === $uid && newData.exists()", ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 2147483647 && newData.val() % 1 === 0" },
         "equipped": {
           "clothes": {
             ".write": "auth != null && auth.uid === $uid",
@@ -17,7 +18,7 @@
             ".validate": "newData.isString() && root.child('users').child($uid).child('inventory').child(newData.val()).val() === true"
           }
         },
-        "unlockedStage": { ".write": "auth != null && auth.uid === $uid", ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9 && (!data.exists() || newData.val() >= data.val())" }
+        "unlockedStage": { ".write": "auth != null && auth.uid === $uid", ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10 && (!data.exists() || newData.val() >= data.val())" }
       }
     }
   }
