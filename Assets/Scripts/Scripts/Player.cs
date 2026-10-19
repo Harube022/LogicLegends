@@ -239,6 +239,7 @@ public partial class Player : MonoBehaviourPun
         {
             if (col.TryGetComponent(out GrabbableObject grabbable))
             {
+                if (grabbable.TryGetComponent<TruthBlock>(out var element) && !element.CanCollectNow) continue;
                 heldObject = grabbable;
                 grabbable.Grab(holdPoint); return; 
             }

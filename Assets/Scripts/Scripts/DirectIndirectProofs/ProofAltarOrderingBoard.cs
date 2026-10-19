@@ -19,6 +19,13 @@ public sealed class ProofAltarOrderingBoard : MonoBehaviour
     private int[] order;
     private bool open;
     private float reveal;
+    private System.Action practiceChanged, practiceClosed;
+    private System.Action<int> practiceStrategy;
+    private int practiceMethod = -1;
+    public bool IsPractice { get; private set; }
+    public Rect ViewArea { get; set; } = new Rect(.03f, .03f, .94f, .94f);
+    public RectTransform Panel => panel;
+    public int[] CurrentOrder => order == null ? new int[0] : (int[])order.Clone();
 
     public bool IsOpen => open;
 
@@ -32,15 +39,20 @@ public sealed class ProofAltarOrderingBoard : MonoBehaviour
 
     private void Update()
     {
-        if (!open || reveal >= 1f) return;
+        if (!open) return;
         reveal = Mathf.Min(1f, reveal + Time.unscaledDeltaTime * 5f);
         float eased = 1f - (1f - reveal) * (1f - reveal);
-        panel.localScale = Vector3.one * Mathf.Lerp(.78f, 1f, eased);
+        var area = (RectTransform)transform;
+        float scale = Mathf.Min(1, area.rect.width * ViewArea.width / 1150, area.rect.height * ViewArea.height / 900);
+        panel.localScale = Vector3.one * (scale * Mathf.Lerp(.78f, 1f, eased));
+        panel.anchoredPosition = new Vector2((ViewArea.center.x - .5f) * area.rect.width, (ViewArea.center.y - .5f) * area.rect.height);
         group.alpha = eased;
     }
 
     public void Show(DirectIndirectProofStageController owner, TrialProofChallenge challenge, int[] currentOrder, bool neutral)
     {
+        IsPractice = false; practiceChanged = practiceClosed = null; practiceStrategy = null;
+        ViewArea = new Rect(.03f, .03f, .94f, .94f);
         stage = owner;
         steps = challenge.tablets;
         order = currentOrder;
@@ -61,23 +73,35 @@ public sealed class ProofAltarOrderingBoard : MonoBehaviour
         panel.parent.gameObject.SetActive(true);
         panel.parent.SetAsLastSibling();
     }
+    public void ShowPractice(TrialProofChallenge example, System.Action changed, System.Action<int> strategy, System.Action closed)
+    {
+        Show(null, example, (int[])example.displayOrder.Clone(), true);
+        IsPractice = true; practiceChanged = changed; practiceStrategy = strategy; practiceClosed = closed; practiceMethod = -1;
+        heading.text = "PRACTICE ONLY · ARRANGE THE STEPS";
+        instruction.text = "Drag one row onto another to swap. This does not change your real answer.";
+        UpdateStrategy();
+    }
 
     public void Close()
     {
         if (!open) return;
         open = false;
         panel.parent.gameObject.SetActive(false);
-        if (stage != null) stage.CloseAltarBoard();
+        var closed = practiceClosed;
+        if (IsPractice) { ForceClose(); closed?.Invoke(); }
+        else if (stage != null) stage.CloseAltarBoard();
     }
 
     public void ForceClose()
     {
         open = false;
+        IsPractice = false; practiceChanged = practiceClosed = null; practiceStrategy = null;
         if (panel != null) panel.parent.gameObject.SetActive(false);
     }
 
     private void ChooseStrategy(int method)
     {
+        if (IsPractice) { practiceMethod = method; practiceStrategy?.Invoke(method); UpdateStrategy(); return; }
         if (stage == null) return;
         stage.SelectMethod(method);
         UpdateStrategy();
@@ -86,7 +110,7 @@ public sealed class ProofAltarOrderingBoard : MonoBehaviour
     private void UpdateStrategy()
     {
         for (int i = 0; i < strategyButtons.Length; i++)
-            strategyButtons[i].targetGraphic.color = stage != null && stage.SelectedMethod == i ?
+            strategyButtons[i].targetGraphic.color = (IsPractice ? practiceMethod == i : stage != null && stage.SelectedMethod == i) ?
                 new Color(.34f, .53f, .27f) : new Color(.17f, .29f, .39f);
     }
 
@@ -105,6 +129,7 @@ public sealed class ProofAltarOrderingBoard : MonoBehaviour
             order[from] = order[to];
             order[to] = id;
             if (stage != null) stage.OnAltarStepsReordered();
+            if (IsPractice) practiceChanged?.Invoke();
         }
         Render();
     }
@@ -180,6 +205,10 @@ public sealed class ProofAltarOrderingBoard : MonoBehaviour
         closeButton.onClick.AddListener(Close);
         Label("Close Label", closeRect, font, 31f, Vector2.zero,
             new Vector2(300f, 58f), Color.white).text = "BACK TO ROOM";
+        StageUITheme.CompactSurface(panel.GetComponent<Image>());
+        heading.font = StageUITheme.HeadingFont; instruction.font = StageUITheme.ReadingFont;
+        foreach (var button in strategyButtons) { StageUITheme.SkinButton(button); button.image.pixelsPerUnitMultiplier = 4.5f; }
+        StageUITheme.SkinButton(closeButton); closeButton.image.pixelsPerUnitMultiplier = 4.5f;
     }
 
     private static RectTransform Block(string name, Transform parent, Color color, Vector2 size, Vector2 position)
@@ -248,7 +277,7 @@ public sealed class ProofStepDragCard : MonoBehaviour, IBeginDragHandler, IDragH
     public void OnBeginDrag(PointerEventData eventData) { group.alpha = .78f; transform.SetAsLastSibling(); }
     public void OnDrag(PointerEventData eventData)
     {
-        rect.anchoredPosition += eventData.delta / Mathf.Max(.01f, canvas.scaleFactor);
+        rect.anchoredPosition += eventData.delta / Mathf.Max(.01f, rect.parent.lossyScale.x);
     }
     public void OnEndDrag(PointerEventData eventData)
     {

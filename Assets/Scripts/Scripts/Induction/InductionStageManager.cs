@@ -92,6 +92,7 @@ namespace LogicLegends.Induction
             help.Build(this, uiHost);
             while (Player.LocalInstance == null || GameInput.Instance == null) yield return null;
             Ready = true;
+            BookStatuePresentation.BindHand(book, CanUseBookHand, () => { TryHandleInteraction(); });
             if (help.showOnEntry)
             {
                 while (!CanAct) yield return null;
@@ -111,12 +112,7 @@ namespace LogicLegends.Induction
             if (!Ready) return;
             if (State == InductionState.Active && CanAct) timer.Tick(Time.deltaTime);
             RefreshTarget(); ui.Refresh();
-            if (bookPrompt != null && Camera.main != null)
-            {
-                bookPrompt.gameObject.SetActive(State == InductionState.WaitingForBook && !help.OnboardingPending);
-                bookPrompt.text = "Interact to start Challenge " + (ChallengeIndex + 1);
-                bookPrompt.transform.rotation = Quaternion.LookRotation(Camera.main.transform.forward, Camera.main.transform.up);
-            }
+            if (bookPrompt != null) bookPrompt.gameObject.SetActive(false);
         }
         void Prepare()
         {
@@ -168,7 +164,7 @@ namespace LogicLegends.Induction
                 float score = delta.magnitude + (1 - Vector3.Dot(p.transform.forward, delta.normalized)) * 2;
                 if (score < best) { best = score; Target = component; TargetAction = action; }
             };
-            if (State == InductionState.WaitingForBook && !help.OnboardingPending) candidate(book, book.position, "Start Challenge");
+            if (State == InductionState.WaitingForBook && !help.OnboardingPending) candidate(book, book.position, BookStatuePresentation.HandPromptText);
             candidate(scrollStand, scrollStand.position, "Formula Scrolls");
             if (State != InductionState.Active) return;
             if (Held != null)
@@ -195,6 +191,11 @@ namespace LogicLegends.Induction
             else if (Target is InductionSlot slot) Place(slot);
             else if (Target is InductionTablet tablet) PickUp(tablet);
             return true;
+        }
+        bool CanUseBookHand()
+        {
+            if (!isActiveAndEnabled || !CanAct || help.OnboardingPending || State != InductionState.WaitingForBook) return false;
+            RefreshTarget(); return Target == book;
         }
         public void InteractBook()
         {

@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -105,8 +105,8 @@ public static class InferencePickupPlayChecks
         var tutorial = InferenceControlsOnboarding.Active;
         Invoke(tutorial, "BeginCrystalTower"); yield return new WaitForSecondsRealtime(1.4f);
         var interaction = stage.GetComponent<InferenceCrystalInteraction>();
-        Click(interaction.CollectButton); yield return null;
-        Check(quiz.IsOpen && quiz.IsPractice && tutorial.CurrentStep == "CrystalQuiz", "dedicated pickup opens practice quiz");
+        GameInput.Instance.MobileInteract(); yield return null;
+        Check(quiz.IsOpen && quiz.IsPractice && tutorial.CurrentStep == "CrystalQuiz", "hand pickup opens practice quiz");
         float before = journey.InferenceRemainingSeconds;
         Click(quiz.AnswerButtons[(quiz.Current.CorrectChoice + 1) % 4]);
         quiz.Answer(quiz.Current.CorrectChoice);
@@ -139,11 +139,13 @@ public static class InferencePickupPlayChecks
             yield return new WaitForSecondsRealtime(.2f);
             GameInput.Instance.MobileInteract(); yield return null;
             Check(stage.HasStarted && stage.SolvedRounds == challenge, "real book starts challenge " + (challenge + 1));
+            if(challenge==0)yield return CheckHud(journey);
             stage.OpenBoard(player); yield return BoardReady(stage);
             FillPremises(stage);
             yield return CheckPartialFeedback(stage);
             Click(stage.validateButton); yield return null;
             Check(stage.Crystals.Count == 9 && stage.Crystals.Select(c => c.GetComponent<RuleDiamond>().Abbreviation).SequenceEqual(codes), "every tower receives its intended crystal");
+            Check(stage.Crystals.All(c=>!c.PickupQuizCompleted),"new challenge resets every crystal's pickup quiz requirement");
             foreach (int size in challenge == 0 ? new[] { 6, 12, 3 } : new[] { 12 })
             {
                 SetSize(size); yield return null; yield return new WaitForEndOfFrame();
@@ -154,6 +156,8 @@ public static class InferencePickupPlayChecks
                 if (challenge == 0) yield return Capture("CrystalSearch");
             }
             Click(stage.exploreButton); yield return null;
+            if(challenge==0)yield return CheckCrystalCycles(stage);
+            if(challenge==0)yield return CheckTowerDetection(stage);
             var altar = UnityEngine.Object.FindFirstObjectByType<InferenceAltarTrigger>();
             Move(player, altar.transform.position); yield return new WaitForSecondsRealtime(.3f);
             var altarButton = Field<Button>(altar, "viewBoardButton");
@@ -165,6 +169,13 @@ public static class InferencePickupPlayChecks
             {
                 MoveToCrystal(player, crystal);
                 yield return new WaitForSecondsRealtime(.25f);
+                typeof(InferenceCrystal).GetField("nameCycleElapsed",Private).SetValue(crystal,45f);
+                typeof(InferenceCrystal).GetField("nameVisibility",Private).SetValue(crystal,0f);crystal.label.alpha=0;
+                typeof(InferenceCrystal).GetField("bubbleCycleElapsed",Private).SetValue(crystal,45f);
+                typeof(InferenceCrystal).GetField("bubbleVisibility",Private).SetValue(crystal,0f);
+                typeof(InferenceCrystal).GetMethod("UpdateInteractionPresentation",Private).Invoke(crystal,new object[]{1f});
+                Check(crystal.label.alpha==1&&(float)typeof(InferenceCrystal).GetField("nameCycleElapsed",Private).GetValue(crystal)==45,"nearby name stays visible and pauses cycle");
+                Check(crystal.InteractionBubble.GetComponent<CanvasGroup>().alpha==1&&(float)typeof(InferenceCrystal).GetField("bubbleCycleElapsed",Private).GetValue(crystal)==45,"nearby bubble stays visible and pauses its own cycle");
                 yield return new WaitForEndOfFrame();
                 var tower = stage.crystalSpawns[stage.Crystals.ToList().IndexOf(crystal)].parent;
                 var towerRenderers = tower.GetComponentsInChildren<MeshRenderer>(true);
@@ -172,18 +183,25 @@ public static class InferencePickupPlayChecks
                 foreach (var renderer in towerRenderers) towerBounds.Encapsulate(renderer.bounds);
                 crystal.label.ForceMeshUpdate();
                 Check(!towerBounds.Contains(crystal.label.transform.position) && !crystal.label.isTextOverflowing, "rule name outside complete tower geometry: " + crystal.name);
+                var crystalBounds=crystal.transform.Find("CrystalMesh").GetComponent<Renderer>().bounds;
+                Check(crystal.label.transform.position.y>crystalBounds.max.y&&crystal.label.transform.position.y-crystalBounds.max.y<2f,"name sits just above the collectible, below tower roof");
+                Check(crystal.label.font==StageUITheme.HeadingFont&&crystal.label.color.r>.95f&&crystal.label.fontSharedMaterial.GetFloat("_OutlineWidth")>=.12f,"heavy high-contrast outlined rule name");
                 var outward = Camera.main.transform.position - towerBounds.center; outward.y = 0; outward.Normalize();
                 float edge = Mathf.Abs(outward.x) * towerBounds.extents.x + Mathf.Abs(outward.z) * towerBounds.extents.z;
                 var corners = new Vector3[4]; crystal.label.rectTransform.GetWorldCorners(corners);
-                Check(corners.All(p => Vector3.Dot(p - towerBounds.center, outward) > edge), "entire rule label clears the tower face");
+                Check(corners.All(p => Vector3.Dot(p - towerBounds.center, outward) > edge), "entire rule label clears the tower face: "+crystal.name+" minimum="+corners.Min(p=>Vector3.Dot(p-towerBounds.center,outward))+" face="+edge);
                 var toLabel = (crystal.label.transform.position - Camera.main.transform.position).normalized;
                 Check(Vector3.Dot(crystal.label.transform.forward, toLabel) > .999f, "rule label faces gameplay camera");
                 if (challenge == 0) yield return CheckTowerFraming(crystal, towerBounds);
-                Check(interaction.AvailableCrystal == crystal && interaction.CollectButton.gameObject.activeInHierarchy, "reachable pickup prompt at " + crystal.name);
+                float expansionDeadline=Time.unscaledTime+1f;
+                while(crystal.InteractionBubble.Expansion<1&&Time.unscaledTime<expansionDeadline)yield return null;
+                Check(interaction.AvailableCrystal == crystal && crystal.InteractionBubble!=null && crystal.InteractionBubble.gameObject.activeInHierarchy && crystal.InteractionBubble.Expansion>.5f, "reachable pickup prompt at " + crystal.name);
+                Check(crystal.InteractionBubble.Instruction.alpha>.99f&&crystal.InteractionBubble.GetComponentsInChildren<TMP_Text>().Any(t=>t.text=="Use the")&&crystal.InteractionBubble.GetComponentsInChildren<TMP_Text>().Any(t=>t.text=="button to interact."),"expanded bubble has fully visible hand instruction");
+                Check(crystal.InteractionBubble.HandIcon.sprite==UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).First(b=>b.name=="InteractButton").image.sprite,"bubble uses actual hand-button icon");
                 bool wrong = challenge == 0 && Array.IndexOf(toVisit, crystal) % 2 == 1;
-                if (wrong) GameInput.Instance.MobileInteract(); else Click(interaction.CollectButton);
+                GameInput.Instance.MobileInteract();
                 yield return null;
-                Check(quiz.IsOpen && player.GetHeldObject() == null && !player.enabled && GameInput.Instance.GameplayInputBlocked, "both pickup methods require quiz before inventory");
+                Check(quiz.IsOpen && player.GetHeldObject() == null && !player.enabled && GameInput.Instance.GameplayInputBlocked, "hand pickup requires quiz before inventory");
                 Check(quiz.FeedbackLabel.text == "", "removed countdown helper sentence");
                 Check(questionIds.Add(quiz.Current.Question.Id), "no question repeats before exhausting bank");
                 float time = journey.InferenceRemainingSeconds;
@@ -205,30 +223,63 @@ public static class InferencePickupPlayChecks
                     Check(!minus.gameObject.activeSelf && journey.InferenceRemainingSeconds == time - 10, "penalty fades while quiz remains paused");
                 }
                 yield return CheckLayout(quiz);
+                if(challenge==0&&Array.IndexOf(toVisit,crystal)==0)
+                    foreach(int size in new[]{6,12,3})
+                    {SetSize(size);yield return new WaitForSecondsRealtime(.3f);yield return CheckLayout(quiz);yield return Capture("QuizLayout");}
                 Click(quiz.CollectButton); yield return null;
                 Check(player.GetHeldObject() == crystal.GetComponent<GrabbableObject>() && player.enabled && !journey.InferenceQuizOpen && !GameInput.Instance.GameplayInputBlocked,
                     "answered quiz gives exact crystal and restores gameplay");
+                Check(crystal.PickupQuizCompleted,"successful first collection remembers quiz completion for either answer");
+                Check(!crystal.InteractionBubble.gameObject.activeInHierarchy,"pickup bubble is hidden while carried");
+                typeof(InferenceCrystal).GetField("nameVisibility",Private).SetValue(crystal,0f);
+                typeof(InferenceCrystal).GetMethod("UpdateInteractionPresentation",Private).Invoke(crystal,new object[]{1f});
+                Check(crystal.label.alpha==1,"carried crystal name stays visible");
                 if (challenge == 0)
                 {
                     GameInput.Instance.MobileInteract(); yield return null;
                     Check(player.GetHeldObject() == null && !quiz.IsOpen && !crystal.GetComponent<SphereCollider>().isTrigger, "dropping uses existing accessible collision, not another pickup quiz");
+                    for(int attempt=0;attempt<2;attempt++)
+                    {
+                        // Approach the actual dropped collider, including gems settling on raised rocks.
+                        // The pillar-base helper can otherwise put the avatar below its pickup range.
+                        var dropped=crystal.GetComponent<SphereCollider>();
+                        var bodyOffset=player.GetComponent<CharacterController>().bounds.center-player.transform.position;
+                        PrelimTeleportTransition.MovePlayerImmediately(player.gameObject,dropped.bounds.center+Vector3.back*(dropped.bounds.extents.z+1f)-bodyOffset,Quaternion.identity);
+                        yield return new WaitForSecondsRealtime(.1f);
+                        Check(interaction.IsWithinRange(crystal),"recollection fixture is within the actual dropped-collider range");
+                        float timeBefore=journey.InferenceRemainingSeconds;string drawBefore=quiz.Current.Question.Id;
+                        GameInput.Instance.MobileInteract();
+                        Check(!quiz.IsOpen&&player.GetHeldObject()==crystal.GetComponent<GrabbableObject>(),"dropped crystal recollects without another quiz: "+crystal.name+" attempt="+attempt+" completed="+crystal.PickupQuizCompleted+" quiz="+quiz.IsOpen+" held="+(player.GetHeldObject()!=null?player.GetHeldObject().name:"none")+" available="+(interaction.AvailableCrystal!=null?interaction.AvailableCrystal.name:"none")+" inRange="+interaction.IsWithinRange(crystal)+" player="+player.transform.position+" gem="+crystal.transform.position+" bounds="+crystal.GetComponent<SphereCollider>().bounds);
+                        Check(journey.InferenceRemainingSeconds==timeBefore&&quiz.Current.Question.Id==drawBefore,"recollection does not consume a question or charge another penalty");
+                        yield return null;
+                        Check(!crystal.InteractionBubble.gameObject.activeInHierarchy&&crystal.label.gameObject.activeInHierarchy,"held crystal keeps its independent rule label, without pickup prompt");
+                        GameInput.Instance.MobileInteract();yield return null;
+                    }
                     crystal.ReturnToOrigin();
+                    Check(crystal.PickupQuizCompleted,"returning to the tower preserves answered status");
                 }
             }
             if (challenge == 0)
             {
-                File.AppendAllText(Report, "PASS all nine towers: correct rule/label/pickup, both inputs, distinct quiz draws, correct/incorrect collection, single penalties and fading −10s.\n");
+                File.AppendAllText(Report, "PASS all nine towers: first-pickup quizzes, correct/incorrect answers, two quiz-free drop/recollect attempts per crystal, no repeated questions or penalties, hidden carried prompts and visible carried names.\n");
+                yield return CheckWaterRecovery(stage,toVisit[0]);
+                var wrongCrystal=stage.Crystals.First(c=>c.GetComponent<RuleDiamond>().Abbreviation!=stage.Question.Rule.abbreviation);
+                MoveToCrystal(player,wrongCrystal);yield return new WaitForSecondsRealtime(.35f);
+                GameInput.Instance.MobileInteract();yield return null;
+                Check(!quiz.IsOpen&&player.GetHeldObject()==wrongCrystal.GetComponent<GrabbableObject>(),"previously collected wrong crystal requires no repeat quiz");
+                stage.OpenBoard(player);yield return BoardReady(stage);
+                float wrongTime=journey.InferenceRemainingSeconds;int rounds=stage.SolvedRounds;
+                stage.PlaceHeldCrystal();stage.PlaceHeldCrystal();
+                Check(journey.InferenceRemainingSeconds==wrongTime-10&&stage.SolvedRounds==rounds&&stage.IsBoardOpen,"incorrect altar submission deducts exactly once and keeps board open");
+                var penalty=Field<TMP_Text>(journey,"inferenceDeduction");
+                Check(penalty.text=="−10s"&&penalty.gameObject.activeInHierarchy&&penalty.color.r>penalty.color.g*2,"altar −10s visible while HUD is hidden");
+                yield return Capture("WrongAltarPenalty");
+                stage.CloseBoard();yield return null;
+                File.AppendAllText(Report,"PASS wrong altar crystal: separate single ten-second penalty, red visible deduction, unchanged progress and open board.\n");
                 var correct = stage.Crystals.First(c => c.GetComponent<RuleDiamond>().Abbreviation == stage.Question.Rule.abbreviation);
                 MoveToCrystal(player, correct); yield return new WaitForSecondsRealtime(.2f);
-                Click(interaction.CollectButton); yield return null;
-                // Check desktop and both mobile orientations using this same live panel.
-                foreach (int size in new[] { 6, 12, 3 })
-                {
-                    SetSize(size); yield return new WaitForSecondsRealtime(.25f);
-                    yield return CheckLayout(quiz); yield return Capture("QuizLayout");
-                }
-                Click(quiz.AnswerButtons[quiz.Current.CorrectChoice]); yield return null;
-                Click(quiz.CollectButton); yield return null;
+                GameInput.Instance.MobileInteract(); yield return null;
+                Check(!quiz.IsOpen&&player.GetHeldObject()==correct.GetComponent<GrabbableObject>(),"previously collected correct crystal requires no repeat quiz");
             }
             Move(player, altar.transform.position); yield return new WaitForSecondsRealtime(.3f);
             Check(altarButton.GetComponentInChildren<TMP_Text>().text == "Submit to Altar", "carried Rule Crystal changes altar label");
@@ -242,7 +293,7 @@ public static class InferencePickupPlayChecks
             Click(stage.placeButton); yield return null;
             Check(stage.SolvedRounds == challenge + 1 && stage.IsBoardOpen && stage.board.activeSelf && stage.dragPuzzle.conclusion.Revealed,
                 "submission keeps solved board open: challenge " + (challenge + 1));
-            Check(stage.dragPuzzle.conclusion.label.text.Contains(conclusion) && stage.feedback.text.Contains("Correct"), "revealed conclusion and result remain readable");
+            Check(stage.dragPuzzle.conclusion.label.text.Contains(conclusion) && (stage.feedback.text.Contains("Correct")||stage.feedback.text.Contains("completed!")), "revealed conclusion and completion prompt remain readable");
             float completedTime = journey.InferenceRemainingSeconds;
             stage.PlaceHeldCrystal(); yield return new WaitForSecondsRealtime(.7f);
             Check(stage.SolvedRounds == challenge + 1 && journey.InferenceRemainingSeconds == completedTime && !Field<bool>(journey, "resultOpen"), "no duplicate progress or automatic board exit");
@@ -257,6 +308,7 @@ public static class InferencePickupPlayChecks
             Click(challenge % 2 == 0 ? stage.nextButton : stage.exploreButton); yield return null;
             Check(!stage.IsBoardOpen, "Back and Continue both leave solved board");
             if (challenge < 4) Check(!stage.HasStarted && stage.Question == null && player.enabled, "next question waits for real book interaction");
+            if(challenge==0)yield return CheckNotice(journey);
         }
         Check(Field<bool>(journey, "resultOpen"), "completion UI appears only after final board acknowledgement");
         yield return Capture("StageComplete");
@@ -363,7 +415,7 @@ public static class InferencePickupPlayChecks
     static void MoveToCrystal(Player player, InferenceCrystal crystal)
     {
         var stage = UnityEngine.Object.FindFirstObjectByType<InferenceChallenge>();
-        int index = stage.Crystals.ToList().IndexOf(crystal);
+        int index=Enumerable.Range(0,stage.crystalSpawns.Length).OrderBy(i=>(stage.crystalSpawns[i].position-crystal.PickupOrigin).sqrMagnitude).First();
         var tower = stage.crystalSpawns[index].parent;
         var direction = crystal.PickupOrigin - tower.position; direction.y = 0; direction.Normalize();
         Move(player, tower.position + direction * 7.3f);
@@ -387,10 +439,27 @@ public static class InferencePickupPlayChecks
             var target = crystal.PickupOrigin + Vector3.up * 2f;
             camera.transform.position = new Vector3(tower.center.x, target.y + 2f, tower.center.z) + outward * 45f;
             camera.transform.LookAt(target);
-            yield return null; yield return new WaitForEndOfFrame();
+            yield return new WaitForSecondsRealtime(.3f); yield return new WaitForEndOfFrame();
             var corners = new Vector3[4]; crystal.label.rectTransform.GetWorldCorners(corners);
             Check(corners.Select(p => camera.WorldToViewportPoint(p)).All(p => p.z > 0 && p.x > .02f && p.x < .98f && p.y > .02f && p.y < .98f), "full rule label fits gameplay camera frame");
             yield return Capture("TowerLabel_" + crystal.GetComponent<RuleDiamond>().Abbreviation);
+            if(crystal==UnityEngine.Object.FindFirstObjectByType<InferenceChallenge>().Crystals[0])
+                foreach(int mobileSize in new[]{12,3})
+                {
+                    SetSize(mobileSize);yield return new WaitForSecondsRealtime(.35f);yield return new WaitForEndOfFrame();
+                    crystal.InteractionBubble.Rect.GetWorldCorners(corners);
+                    Check(corners.Select(p=>camera.WorldToViewportPoint(p)).All(p=>p.z>0&&p.x>=0&&p.x<=1&&p.y>=0&&p.y<=1),"expanded mobile bubble remains on screen");
+                    Check(crystal.InteractionBubble.GetComponentsInChildren<TMP_Text>().All(t=>!t.isTextOverflowing),"mobile hand instruction is readable without text overflow");
+                    var first=camera.WorldToScreenPoint(corners[0]);var last=camera.WorldToScreenPoint(corners[2]);
+                    var prompt=Rect.MinMaxRect(first.x,first.y,last.x,last.y);
+                    yield return Capture("ExpandedCrystalPrompt");
+                    foreach(var button in UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None))
+                    {
+                        var canvas=button.GetComponentInParent<Canvas>();
+                        if(canvas!=null&&canvas.rootCanvas.renderMode==RenderMode.ScreenSpaceOverlay)
+                            Check(!prompt.Overlaps(ScreenRect((RectTransform)button.transform)),"mobile prompt avoids "+button.name+" prompt="+prompt+" control="+ScreenRect((RectTransform)button.transform));
+                    }
+                }
         }
         finally
         {
@@ -411,6 +480,169 @@ public static class InferencePickupPlayChecks
         PrelimTeleportTransition.MovePlayerImmediately(player.gameObject, point, Quaternion.identity);
     }
     static void Click(Button button) { Canvas.ForceUpdateCanvases(); Check(button != null && button.interactable && button.gameObject.activeInHierarchy, "button available " + button?.name); var data = CheckRaycast(button); ExecuteEvents.Execute(button.gameObject, data, ExecuteEvents.pointerClickHandler); }
+    static IEnumerator CheckHud(StageJourneyUI journey)
+    {
+        var map=UnityEngine.Object.FindFirstObjectByType<TruthTableMinimap>().Panel;
+        var hud=journey.HudPanel;
+        var jump=(RectTransform)UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).First(b=>b.name=="JumpButton").transform;
+        foreach(int size in new[]{6,12,3})
+        {
+            SetSize(size);yield return new WaitForSecondsRealtime(.3f);yield return new WaitForEndOfFrame();
+            var m=ScreenRect(map);var h=ScreenRect(hud);
+            Check(Mathf.Abs(m.width-h.width)<2&&h.yMax<m.yMin&&Mathf.Abs(m.xMax-h.xMax)<2,"matching minimap and HUD width/alignment");
+            Check(!h.Overlaps(ScreenRect(jump)),"compact HUD clears jump");
+            var admin=UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).First(b=>b.name=="AdminButton");
+            Check(!h.Overlaps(ScreenRect((RectTransform)admin.transform)),"HUD clears Admin button");
+            foreach(var text in hud.GetComponentsInChildren<TMP_Text>()){text.ForceMeshUpdate();Check(!text.isTextOverflowing,"compact HUD text fits: "+text.name);}
+            yield return Capture("CompactHud");
+        }
+        File.AppendAllText(Report,"PASS map/HUD matching width, vertical safe-area dock, readable title/timer/progress, clear jump at three resolutions.\n");
+    }
+    static IEnumerator CheckCrystalCycles(InferenceChallenge stage)
+    {
+        var method=typeof(InferenceCrystal).GetMethod("UpdateInteractionPresentation",Private);
+        foreach(var crystal in stage.Crystals)
+        {
+            typeof(InferenceCrystal).GetField("nameCycleElapsed",Private).SetValue(crystal,0f);
+            typeof(InferenceCrystal).GetField("nameVisibility",Private).SetValue(crystal,1f);
+            typeof(InferenceCrystal).GetField("bubbleCycleElapsed",Private).SetValue(crystal,0f);
+            typeof(InferenceCrystal).GetField("bubbleVisibility",Private).SetValue(crystal,1f);
+            for(int frame=1;frame<=288;frame++)
+            {
+                method.Invoke(crystal,new object[]{.5f});float phase=frame*.5f%72;
+                Check(phase<=10?crystal.label.alpha==1:phase>=11&&phase<=71?crystal.label.alpha==0:crystal.label.alpha>0&&crystal.label.alpha<1,"ten visible/sixty hidden name cycle: "+crystal.name);
+                float bubble=crystal.InteractionBubble.GetComponent<CanvasGroup>().alpha;
+                Check(phase<=10?bubble==1:phase>=11&&phase<=71?bubble==0:bubble>0&&bubble<1,"ten visible/sixty hidden bubble cycle: "+crystal.name);
+            }
+            Check(crystal.InteractionBubble!=null&&crystal.InteractionBubble.Marker.font==StageUITheme.ReadingFont,"readable yellow crystal bubble exists");
+            Check(crystal.label.text.Contains(crystal.GetComponent<RuleDiamond>().DisplayName)&&!crystal.label.transform.IsChildOf(crystal.InteractionBubble.transform),"correct rule name is separate from its bubble");
+            typeof(InferenceCrystal).GetField("bubbleCycleElapsed",Private).SetValue(crystal,45f);
+            typeof(InferenceCrystal).GetField("bubbleVisibility",Private).SetValue(crystal,0f);
+            method.Invoke(crystal,new object[]{0f});
+            Check(crystal.label.gameObject.activeInHierarchy&&crystal.label.alpha==1&&crystal.InteractionBubble.GetComponent<CanvasGroup>().alpha==0,"hiding bubble leaves the name label visible");
+            typeof(InferenceCrystal).GetField("bubbleCycleElapsed",Private).SetValue(crystal,0f);
+            typeof(InferenceCrystal).GetField("bubbleVisibility",Private).SetValue(crystal,1f);
+            typeof(InferenceCrystal).GetField("nameCycleElapsed",Private).SetValue(crystal,45f);
+            typeof(InferenceCrystal).GetField("nameVisibility",Private).SetValue(crystal,0f);
+            method.Invoke(crystal,new object[]{0f});
+            Check(crystal.label.alpha==0&&crystal.InteractionBubble.GetComponent<CanvasGroup>().alpha==1,"name cycle does not hide the bubble");
+            typeof(InferenceCrystal).GetField("nameCycleElapsed",Private).SetValue(crystal,0f);
+            typeof(InferenceCrystal).GetField("nameVisibility",Private).SetValue(crystal,1f);
+            method.Invoke(crystal,new object[]{0f});
+        }
+        Check(UnityEngine.Object.FindObjectsByType<Button>(FindObjectsInactive.Include,FindObjectsSortMode.None).All(b=>b.name!="CollectRuleCrystalButton"),"no dedicated world pickup button");
+        yield return null;
+        File.AppendAllText(Report,"PASS all nine independent name/bubble cycles: ten seconds visible, smooth fades, sixty seconds hidden; actual rule labels restored.\n");
+    }
+    static IEnumerator CheckNotice(StageJourneyUI journey)
+    {
+        var notice=Field<PrelimChallengeCompletionNotice>(journey,"inferenceNotice");
+        var panel=typeof(PrelimChallengeCompletionNotice).GetField("panel",Private).GetValue(notice) as RectTransform;
+        var stage=UnityEngine.Object.FindFirstObjectByType<InferenceChallenge>();
+        int solved=stage.SolvedRounds;float seconds=journey.InferenceRemainingSeconds;
+        Check(!panel.gameObject.activeInHierarchy,"waiting prompt is on the board, not below the HUD");
+        stage.OpenBoard(Player.LocalInstance);yield return BoardReady(stage);
+        foreach(int size in new[]{6,12,3})
+        {
+            SetSize(size);yield return new WaitForSecondsRealtime(.3f);yield return new WaitForEndOfFrame();
+            Check(stage.feedback.text=="Challenge "+solved+" completed! Interact with the book statue to start Challenge "+(solved+1)+".","board uses exact completed/next numbers");
+            Check(stage.feedback.font==stage.completionPromptFont&&stage.completionPromptFont==StageUITheme.HeadingFont,"completion uses the inspected Setssss board font");
+            stage.feedback.ForceMeshUpdate();Check(!stage.feedback.isTextOverflowing,"completion board text fits on mobile");
+            Check(!stage.HasStarted&&stage.SolvedRounds==solved&&journey.InferenceRemainingSeconds==seconds,"reading completion prompt cannot resume time or change progression");
+            yield return Capture("CompletionNotice");
+        }
+        stage.CloseBoard();yield return null;
+        File.AppendAllText(Report,"PASS exact board-only completion prompt with Setssss's IMPACT font at three sizes, paused timer, unchanged progression.\n");
+    }
+    static IEnumerator CheckTowerDetection(InferenceChallenge stage)
+    {
+        var player=Player.LocalInstance;var interaction=stage.GetComponent<InferenceCrystalInteraction>();
+        var method=typeof(InferenceCrystal).GetMethod("UpdateInteractionPresentation",Private);
+        foreach(var crystal in stage.Crystals)
+        {
+            var collider=crystal.GetComponent<SphereCollider>();
+            var offset=player.GetComponent<CharacterController>().bounds.center-player.transform.position;
+            var point=collider.bounds.center+Vector3.right*(collider.bounds.extents.x+interaction.interactionRange+2f)-offset;
+            PrelimTeleportTransition.MovePlayerImmediately(player.gameObject,point,Quaternion.identity);
+            typeof(InferenceCrystal).GetField("bubbleCycleElapsed",Private).SetValue(crystal,45f);
+            typeof(InferenceCrystal).GetField("bubbleVisibility",Private).SetValue(crystal,0f);
+            typeof(InferenceCrystal).GetField("nameCycleElapsed",Private).SetValue(crystal,45f);
+            typeof(InferenceCrystal).GetField("nameVisibility",Private).SetValue(crystal,0f);
+            crystal.InteractionBubble.SetExpansion(0);
+            method.Invoke(crystal,new object[]{0f});
+            Check(interaction.IsWithinDetectionRange(crystal)&&!interaction.IsWithinRange(crystal),"detection area is wider than pickup range");
+            Check(crystal.InteractionBubble.GetComponent<CanvasGroup>().alpha==1&&crystal.InteractionBubble.Marker.alpha==1,"detection immediately restores the yellow !, even during hidden phase");
+            Check(crystal.label.alpha==1&&Field<float>(crystal,"nameCycleElapsed")==45f,"detection immediately reveals the rule name and holds its cycle");
+            PrelimTeleportTransition.MovePlayerImmediately(player.gameObject,point+Vector3.right*20,Quaternion.identity);
+            method.Invoke(crystal,new object[]{1f});
+            Check(crystal.InteractionBubble.GetComponent<CanvasGroup>().alpha==0,"departing detection resumes the paused visibility cycle");
+            Check(crystal.label.alpha==0,"departing detection resumes the independent name cycle");
+        }
+        Move(player,UnityEngine.Object.FindFirstObjectByType<InferenceBookStart>().transform.position+Vector3.forward*3);
+        yield return null;
+        File.AppendAllText(Report,"PASS all nine tower detection overrides: immediate ! outside pickup range, resumed cycle on exit, full hand text/icon in pickup range.\n");
+    }
+    static IEnumerator CheckWaterRecovery(InferenceChallenge stage,InferenceCrystal crystal)
+    {
+        var water=GameObject.Find("Ocean50x50W750H750").GetComponent<Renderer>();
+        var player=Player.LocalInstance;var quiz=stage.GetComponent<InferenceCrystalQuiz>();
+        var body=crystal.GetComponent<Rigidbody>();var collider=crystal.GetComponent<SphereCollider>();
+        int id=crystal.GetInstanceID(),count=stage.Crystals.Count;
+        string question=crystal.QuestionId,answer=crystal.Answer;
+        bool completed=crystal.PickupQuizCompleted;
+        var solid=typeof(InferenceCrystal).GetMethod("RestoreSolidCollider",Private);
+        var tick=typeof(InferenceCrystal).GetMethod("UpdateWaterRecovery",Private);
+        var waterPoint=water.bounds.center+Vector3.right*40;
+        solid.Invoke(crystal,null);collider.enabled=true;
+        crystal.transform.rotation=Quaternion.identity;
+        crystal.transform.position=new Vector3(waterPoint.x,water.bounds.max.y+collider.radius-.15f,waterPoint.z);
+        body.isKinematic=false;body.useGravity=true;body.linearVelocity=Vector3.down;
+        Physics.SyncTransforms();
+        yield return null;yield return null;
+        Check(crystal.IsRecovering,"submerged crystal starts an upward/outward recovery hop");
+        Check(!collider.enabled&&!stage.GetComponent<InferenceCrystalInteraction>().CanShowBubble(crystal),"recovery hides pickup prompt and prevents mid-flight grabs");
+        var start=crystal.transform.position;
+        yield return new WaitForSecondsRealtime(.3f);
+        Check(crystal.transform.position.y>start.y,"water ejection rises above the water");
+        yield return new WaitForSecondsRealtime(.8f);
+        Check(!crystal.IsRecovering&&collider.enabled&&!collider.isTrigger&&collider.bounds.min.y>water.bounds.max.y,"recovered crystal rests above dry ground");
+        Check((bool)typeof(InferenceCrystal).GetMethod("SupportedLanding",Private).Invoke(crystal,new object[]{crystal.transform.position}),"landing has full ground support and clear scenery");
+        int recoveries=Field<int>(crystal,"waterRecoveryCount");var landed=crystal.transform.position;
+        yield return new WaitForSecondsRealtime(2.2f);
+        Check(Field<int>(crystal,"waterRecoveryCount")==recoveries&&Vector3.Distance(landed,crystal.transform.position)<.01f,"landed crystal does not drift back or repeatedly recover");
+        Check(crystal.GetInstanceID()==id&&stage.Crystals.Count==count&&crystal.QuestionId==question&&crystal.Answer==answer&&crystal.PickupQuizCompleted==completed,"water recovery preserves instance, identity and completed quiz");
+        var offset=player.GetComponent<CharacterController>().bounds.center-player.transform.position;
+        PrelimTeleportTransition.MovePlayerImmediately(player.gameObject,collider.bounds.center+Vector3.back*(collider.bounds.extents.z+1)-offset,Quaternion.identity);
+        yield return new WaitForSecondsRealtime(.1f);
+        float seconds=StageJourneyUI.Instance.InferenceRemainingSeconds;
+        GameInput.Instance.MobileInteract();
+        Check(!quiz.IsOpen&&player.GetHeldObject()==crystal.GetComponent<GrabbableObject>()&&StageJourneyUI.Instance.InferenceRemainingSeconds==seconds,"recovered answered crystal recollects without another quiz or penalty");
+        // Exercise an intentional hand drop while standing in the pond as well.
+        Move(player,waterPoint);yield return null;
+        GameInput.Instance.MobileInteract();
+        var dropPosition=crystal.transform.position;
+        float dropDeadline=Time.unscaledTime+1f;
+        while(Field<int>(crystal,"waterRecoveryCount")==recoveries&&Time.unscaledTime<dropDeadline)yield return null;
+        Check(player.GetHeldObject()==null&&Field<int>(crystal,"waterRecoveryCount")==recoveries+1,"intentional water drop also triggers recovery once: held="+(player.GetHeldObject()!=null)+" count="+Field<int>(crystal,"waterRecoveryCount")+" expected="+(recoveries+1)+" drop="+dropPosition+" now="+crystal.transform.position+" player="+player.transform.position+" kinematic="+body.isKinematic+" enabled="+collider.enabled);
+        yield return new WaitForSecondsRealtime(1f);
+        Check(!crystal.IsRecovering&&collider.enabled&&crystal.PickupQuizCompleted==completed,"intentional recovery remains collectible and remembers its quiz");
+        // Block every nearby landing in the fixture to check the tower fallback.
+        var blocker=GameObject.CreatePrimitive(PrimitiveType.Cube);blocker.name="QA Shore Blocker";
+        blocker.transform.position=waterPoint;blocker.transform.localScale=new Vector3(70,100,70);
+        try
+        {
+            typeof(InferenceCrystal).GetField("recoveryCooldown",Private).SetValue(crystal,0f);
+            solid.Invoke(crystal,null);collider.enabled=true;
+            crystal.transform.position=new Vector3(waterPoint.x,water.bounds.max.y-1,waterPoint.z);
+            body.isKinematic=false;Physics.SyncTransforms();tick.Invoke(crystal,new object[]{0f});
+            Check(!crystal.IsRecovering&&Vector3.Distance(crystal.transform.position,crystal.PickupOrigin)<.01f&&collider.enabled&&collider.isTrigger,"no clear shore returns the same crystal to its original tower pickup");
+            Check(crystal.PickupQuizCompleted==completed&&crystal.GetInstanceID()==id,"tower fallback preserves quiz completion and identity");
+        }
+        finally{UnityEngine.Object.Destroy(blocker);}
+        yield return null;
+        File.AppendAllText(Report,"PASS accidental and intentional water drops: upward/outward hop, supported dry landing, no repeated recovery, same identity/quiz state, quiz-free recollection, and blocked-shore tower fallback.\n");
+    }
+    static Rect ScreenRect(RectTransform rect){var corners=new Vector3[4];rect.GetWorldCorners(corners);return Rect.MinMaxRect(corners[0].x,corners[0].y,corners[2].x,corners[2].y);}
     static PointerEventData CheckRaycast(Button button)
     {
         var canvas = button.GetComponentInParent<Canvas>();

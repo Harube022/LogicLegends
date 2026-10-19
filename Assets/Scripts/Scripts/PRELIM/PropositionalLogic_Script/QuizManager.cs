@@ -60,6 +60,7 @@ public partial class QuizManager : MonoBehaviour
     private TextMeshProUGUI answerFeedbackText;
     private Coroutine answerFeedbackCoroutine;
     private PrelimChallengeCompletionNotice completionNotice;
+    public void DockCompletionNotice(RectTransform hud) => completionNotice?.FollowHud(hud);
     private BookInteract indicatorBook;
 
     [Header("Challenge Sequence")]

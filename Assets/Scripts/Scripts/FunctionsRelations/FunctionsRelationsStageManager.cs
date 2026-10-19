@@ -263,6 +263,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     private void BindInput()
     {
+        BookStatuePresentation.BindHand(bookStatue, () => isActiveAndEnabled && !GameplayPaused && !boardOpen && player != null && player.enabled && state == FunctionsRelationsState.WAITING_FOR_ACTIVATION && BookDistance() <= bookUseDistance, InteractNearby);
         GameInput current = GameInput.Instance != null ? GameInput.Instance : FindFirstObjectByType<GameInput>();
         if (current == input) return;
         if (input != null) input.OnInteractAction -= OnInteract;
@@ -511,7 +512,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
                 prompt = (CurrentChallenge.questionKind == MappingQuestionKind.SelectProperties ? "Toggle " : "Select ") +
                     PedestalName(pedestal, CurrentChallenge.questionKind);
             else if (state == FunctionsRelationsState.WAITING_FOR_ACTIVATION && bookDistance <= bookUseDistance)
-                prompt = "Interact with Book\nStart challenge";
+                prompt = null; // The book uses the shared hand bubble, not this station button.
             else if (state == FunctionsRelationsState.ACTIVE && CurrentChallenge.questionKind == MappingQuestionKind.BuildExactRelation)
             {
                 int side = NearestDiamondSide();

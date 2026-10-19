@@ -21,7 +21,7 @@ namespace LogicLegends.Trees
         public int Correct {get;private set;}
         public int Mistakes {get;private set;}
         public int? Answer {get;private set;}
-        public string Feedback {get;private set;}="Approach the Book Statue and tap INTERACT to begin.";
+        public string Feedback {get;private set;}="Approach the Book Statue and tap the hand button.";
         TreeChallengeData activeChallenge;
         public int ActiveVariantIndex {get;private set;}=-1;
         public TreeChallengeData Challenge=>activeChallenge??catalog.challenges[ChallengeIndex];
@@ -48,6 +48,7 @@ namespace LogicLegends.Trees
             PrelimTeleportTransition.MovePlayerImmediately(LocalPlayer.gameObject,spawnPoint.position,spawnPoint.rotation);
             var look=LocalPlayer.GetComponentInChildren<CameraTargetController>();if(look!=null)look.SetViewAngles(18,0);
             Ready=true;
+            BookStatuePresentation.BindHand(bookStatue, () => isActiveAndEnabled && CanAct && !BoardOpen && NearBook && (State == TreeStageState.WAITING_FOR_ACTIVATION || State == TreeStageState.ACTIVE), InteractBook);
         }
         void OnDestroy(){if(input!=null){input.OnInteractAction-=OnInteract;if(BoardOpen)input.SetGameplayInputBlocked(inputBeforeBoard);}if(boardFocus!=null)boardFocus.Exit();}
         void OnInteract(object sender,EventArgs args){InteractBook();}

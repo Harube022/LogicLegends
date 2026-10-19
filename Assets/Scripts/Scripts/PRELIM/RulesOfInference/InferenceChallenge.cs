@@ -41,6 +41,8 @@ namespace LogicLegends.Inference
         public event Action<int> onRoundCompleted;
         public event Action<int> onBookStarted;
         public event Action onBoardClosed;
+        [Tooltip("Assigned from Setssss's actual board text component.")]
+        public TMP_FontAsset completionPromptFont;
         public bool PuzzleCompleted { get; private set; }
         public bool HasStarted { get; private set; }
         public bool IsBoardOpen { get; private set; }
@@ -116,6 +118,8 @@ namespace LogicLegends.Inference
             if (!isActiveAndEnabled || HasStarted || PuzzleCompleted || IsBoardOpen ||
                 (InferenceControlsOnboarding.Active != null && InferenceControlsOnboarding.Active.IsActive)) return false;
             HasStarted = true;
+            feedback.font=font;
+            feedback.text="";
             onBookStarted?.Invoke(SolvedRounds + 1);
             return true;
         }
@@ -188,6 +192,17 @@ namespace LogicLegends.Inference
             }
             feedback.text = "Board preview. Interact with the Book Statue to start the game.";
             feedback.color = new Color(0.8f, 0.88f, 0.88f);
+            ShowBookWaitingPrompt();
+        }
+
+        public void ShowBookWaitingPrompt()
+        {
+            if(HasStarted||PuzzleCompleted||SolvedRounds<=0||SolvedRounds>=requiredRounds)return;
+            if(completionPromptFont!=null)feedback.font=completionPromptFont;
+            feedback.text="Challenge "+SolvedRounds+" completed! Interact with the book statue to start Challenge "+(SolvedRounds+1)+".";
+            feedback.color=new Color(1f,.94f,.76f);
+            feedback.textWrappingMode=TextWrappingModes.Normal;
+            feedback.overflowMode=TextOverflowModes.Overflow;
         }
 
         void EnableBoardInput()
@@ -376,6 +391,8 @@ namespace LogicLegends.Inference
                 diamond.ShowLabel();
                 if (diamond.RuleType != dragPuzzle.Puzzle.RuleType)
                 {
+                    // The held crystal is consumed/returned below before another tap can submit it.
+                    if(gameObject.scene.name=="RulesOfInference")StageJourneyUI.Instance?.DeductInferenceSeconds(10);
                     if (pillarCrystalPrefab != null)
                     {
                         RemoveWrongPillarCrystal();
@@ -459,7 +476,7 @@ namespace LogicLegends.Inference
             Stage = InferencePuzzleStage.FindingDiamond;
             RefreshStageButtons();
             WorldStageAudio.PlayAnswerFeedback(false);
-            Feedback("Incorrect rule. The crystal is gone. Find another crystal at the pillars.", false);
+            Feedback("Incorrect rule. −10 seconds. The crystal is gone. Find another crystal at the pillars.", false);
         }
 
         void CompleteRound()
@@ -487,10 +504,12 @@ namespace LogicLegends.Inference
             // Back/Continue. Only the next real book interaction prepares another round.
             if (!IsBoardOpen) { ClearCrystals(); Question = null; roundSolved = false; }
             onRoundCompleted?.Invoke(SolvedRounds);
+            ShowBookWaitingPrompt();
         }
 
         void Feedback(string message, bool good)
         {
+            if(!HasStarted&&!PuzzleCompleted&&SolvedRounds>0){ShowBookWaitingPrompt();return;}
             feedback.text = message;
             feedback.color = good ? new Color(0.55f, 1f, 0.78f) : new Color(1f, 0.72f, 0.57f);
         }

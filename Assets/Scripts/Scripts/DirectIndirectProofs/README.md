@@ -1,17 +1,107 @@
-# Direct and Indirect Proofs stage
+# Direct and indirect proofs
 
-The `Direct&Indirect` scene contains a configured `DirectIndirectProofStageManager` and a `TrialOfProofs` hierarchy. The challenge content is editable in `Assets/Resources/DirectIndirectProofChallenges.asset`; each authored sequence is validated by `TrialProofChallenge.IsCorrect`. Add entries to `acceptedOrders` if another complete ordering should be accepted.
+The configured scene contains `DirectIndirectProofStageManager` and `TrialOfProofs`.
+Author question content in `Assets/Resources/DirectIndirectProofChallenges.asset`.
+`TrialProofChallenge.IsCorrect` is unchanged; add another complete sequence to
+`acceptedOrders` when a second proof ordering should be accepted.
 
-The scene reuses the existing player, `GameInput`, `MobileInputUI`, joystick, jump and Interact buttons, Book Statue, proof altars, sound clips, and `StageCompleteManager` progression. Challenge 1 shows the problem on the central board; the player selects the Direct or Indirect altar, which gains a yellow circle around its base, then confirms at the Book. A correct selection changes the circle to green; an incorrect selection flashes the Book red without exposing an answer in advance. Challenges 2 and 3 use the respective Direct and Indirect altars. Interacting opens a focused, mobile-readable board; the player drags one of five steps onto another row to swap their order, closes the board, and confirms at the Book. The old statement racks are hidden, and the physical proof tablets and step pedestals are inactive in these first three challenges. Challenges 4 and 5 retain their previous physical tablet/strategy gameplay. The Book activates and confirms each challenge. The central information board displays the current problem, and interacting with it opens the full problem panel. The explanation is displayed only after a correct submission.
+`DirectIndirectProofStageController` retains the five existing tasks and their
+ten-entry banks. At run initialization it selects two distinct bank indices for
+each challenge. Each of the ten questions requires a fresh Book Statue activation;
+only completing both questions advances the challenge. Retry reloads a new schedule.
+The Admin answer viewer marks both selected questions using that same schedule.
 
-At runtime the shared ten-minute timer starts on Book activation, pauses on a correct proof, and resumes only when the next challenge is activated. An incorrect confirmation costs ten seconds, flashes the active stations red, briefly blocks movement, and retains the selected strategy and placed tablets. Source pedestals show their assigned slot so the player can rearrange them. Victory unlocks stage 6; timeout shows Game Over. `SuppressProgressionForValidation` exists only in the Unity Editor for Play-mode validation without changing account progression.
+Challenge 1 classifies a supplied argument at the Direct or Indirect altar.
+Challenges 2–4 order direct, contrapositive, and contradiction arguments on the
+active altar's drag-and-swap board. Challenge 5 also selects a proof strategy.
+Back keeps the order; the book confirms the entire answer. There is no scroll
+collection requirement in the active scene's altar-based gameplay.
 
-To inspect the scene wiring, select `DirectIndirectProofStageManager` in the Inspector. Its serialized fields reference the challenge catalog, Book, board, three method pedestals, five source tablets, five step slots, HUD, sounds, and station markers. `LevelSpawner/Trial Player Spawn` is the spawn point. The editor menu `Logic Legends > Configure Direct and Indirect Proofs Stage` is a one-time builder and refuses to run if `TrialOfProofs` already exists, protecting the configured scene.
+The shared 600-second countdown, normal reading/ordering time, validation, retained
+wrong arrangements, and 10-second validated-answer penalty are preserved. Correct
+answers pause time until another book interaction. CorrectCount now counts ten
+questions; the HUD, board, full-problem reader, results, and Help distinguish question
+progress from the five challenges.
 
-The room layout is saved in `Direct&Indirect.unity`. The Book and information board are centered; the blue Direct altar is on the player's left and the red Indirect altar on the right. Five paired source/step positions now sit inside the active half of the chamber, with a walkable aisle between them and a clear central route to the Book. The three strategy pedestals form a separate row behind the player start, clear of the fifth tablet pair. The active tablets and slots move to the relevant side for each challenge. Two lightweight banners and two non-lighting wall torches frame the board. The spare unnumbered `BlueAltar` remains as an inactive prefab instance. `Logic Legends > Organize Direct and Indirect Proofs Room` reapplies the layout and collider fitting without replacing existing scene references.
+`DirectProofsGuide` provides the PRELIM-themed first-entry/reopenable Help, isolated
+interactive practice, and one introduction per challenge per run. Movement uses
+PRELIM's 0.3 joystick dead zone, 0.7 seconds of intentional movement, and 1.5 meters
+of actual travel. Jump practice observes the player's successful jump and ascent.
+Practice interaction uses a visible cloned stand and the existing hand button.
+Classification and actual drag-card practice use a separate cord-length example;
+`ProofAltarOrderingBoard.ShowPractice` owns a cloned order and never calls the real
+stage selection, start, or validation methods.
 
-`Admin Debug` uses the shared `AdminDebugController` and the Trial of Proofs HUD. In its Inspector, `Admin Button Enabled` toggles the mobile button, and `Allow In Player Builds` controls availability outside the Unity Editor. The button sits below the timer; its panel pauses the stage and can clear the current active challenge. It stays unavailable while the proof reader, validation feedback, or result panel is open.
+Tutorials share `PrelimTutorialSkipControl`. Initial Skip opens the same Yes/No
+confirmation; challenge-introduction Skip returns directly to the waiting book.
+Help and all tutorials suspend the real countdown. The guide restores prior input,
+cursor, control visibility, camera input drivers, and time scale. A temporary Cinemachine camera smoothly hands control back to the existing gameplay camera; the guide never writes the rendered camera transform or disables its Brain. Practice
+content and event handlers are removed on completion, Skip, cancellation, or disable.
 
-The chamber floor uses a lightweight MeshCollider. The Book has a fitted BoxCollider; altars, board, racks, proof pedestals, and physical sign meshes also have non-trigger colliders. Floating text and screen UI are visual labels rather than physical obstacles. The intended S2L5 `Stage.fbx` source is currently missing from the working tree (its Git entry is an LFS pointer), so the scene retains its existing Induction chamber mesh. The layout follows the supplied reference using the available models.
+Introductions begin with a bird's-eye view, then an altar close-up and the book.
+Named ceiling renderers preserve their prior enabled states. This room's main
+ceiling is part of one combined Stage mesh, so `Resources/DirectProofs/ChamberCutaway`
+temporarily clips only its upper visual geometry using runtime materials. The
+original material references are restored afterward; mesh and collision never
+change. Gameplay camera settings are not permanently modified.
 
-Play-mode validation completed: mobile Interact activated the Book and selected a strategy; tablets were read and placed on both sides of the room; a tablet was removed and rearranged; all five authored answers reached the victory panel; wrong method and order each deducted exactly ten seconds without resetting the answer; the timer remained paused between challenges; Retry reset the stage; zero time opened Game Over. The player's CharacterController stopped at the Book collider. The relocated first and fifth source/step pairs resolve to their intended interaction targets from reachable standing positions. The Admin panel opens, pauses, enables Clear Challenge only during an active challenge, and restores time scale on close. Validate on a target mobile device for final text scale and performance.
+The guide uses the existing Canvas, fonts, artwork, safe-area handling, and hand,
+jump, and joystick controls. Portrait touch geometry is fitted for this stage and
+restored on landscape/exit. Highlights remain children of their actual targets.
+Long Help and problem text can scroll; the proof ordering panel scales within its
+view area without changing the authored row coordinates used by drag validation.
+
+## PRELIM presentation reuse
+
+`Resources/StageUI/PrelimHelpBook` and `PrelimHelpButton` are reusable visual
+prefabs extracted from Propositional Logic's existing Help UI. They retain its
+wood, parchment, fonts, green Begin button, page indicator, and responsive book
+layout. Runtime callbacks and Direct-specific explanations are bound by the guide;
+there are no retained Propositional scene references or duplicate Help panels.
+Long pages use a masked scrolling reading area with the original typography.
+
+`PrelimUIPresentation` is shared with Propositional Logic for the 500-by-136
+safe-area HUD, control tutorial buttons, and yellow borders. Direct retains its
+Trial 5 title, live timer, challenge counter, and two-question counter. Tutorial
+instructions use PRELIM's translucent navy panels, target-bound arrows,
+`ControlTutorialLayout`, centered Yes/No confirmation, and existing shared Skip.
+
+`PrelimTutorialCameraRig` uses PRELIM's 0.7-second transition timing and exponential
+movement. Cinemachine's Brain stays enabled and owns the rendered camera. Blends
+use unscaled time during paused introductions; original blend settings are restored
+after returning. Ceiling and avatar visuals restore after the return blend, with
+immediate cleanup if the guide is disabled or the scene is unloaded.
+
+## Preserved scene wiring and authoring
+
+The manager's Inspector retains its catalog, Book, board, method pedestals, source
+tablets, slots, altars, sounds, markers, reader, and results references. The old
+physical tablet/rack components remain wired for compatibility; the current five
+tasks use the altar interactions described above. `Trial Player Spawn` remains the
+spawn reference on `LevelSpawner`. No scene objects or gameplay colliders are
+replaced by this onboarding update.
+
+`Logic Legends > Configure Direct and Indirect Proofs Stage` remains a one-time
+builder that refuses to run if `TrialOfProofs` exists. The existing room organizer
+and label-restoration tools remain separate; do not rerun builders to install the
+runtime guide. The chamber's lightweight floor MeshCollider, fitted Book box, and
+existing altar/board/scenery colliders are preserved. Floating text stays visual.
+
+`Admin Debug` retains the shared `AdminDebugController`, its visibility preference,
+and player-build setting. Clearing an active question uses the same completion
+path as an accepted answer; two completed questions are still required per challenge.
+The read-only answer viewer shows the actual active question, full banks, methods,
+accepted orders, and both preselected questions per challenge. Victory continues
+through the existing `StageCompleteManager` unlock path.
+
+## Offline Play Mode checks
+
+Open `Assets/Scenes/Direct&Indirect.unity` outside Play Mode and invoke
+`DirectProofsGuidePlayChecks.Begin(size)` through the existing Editor C# tool.
+GameView indices used here: `6` desktop, `2` compact landscape, `5` portrait.
+The opt-in runner spawns an offline avatar, suppresses account progression writes,
+and restores GameView/safe-area settings on exit. It checks intentional controls,
+practice isolation, Skip/No/Yes, scrolling/readers, actual raycast access to Skip and
+Back, roof/material/camera cleanup, all ten submissions, both distinct questions,
+and exact penalties with retained method/order. Reports go to
+`Library/DirectProofsGuideChecks.txt`; screenshots go to `Temp/DirectProofsQA/`.

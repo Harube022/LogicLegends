@@ -1,6 +1,4 @@
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace LogicLegends.Inference
 {
@@ -9,13 +7,10 @@ namespace LogicLegends.Inference
     {
         [SerializeField] private InferenceChallenge challenge;
         [SerializeField, Min(1f)] private float interactionRange = 4f;
-        [SerializeField] private string promptText = "Interact to start the game";
 
         private GameInput subscribedInput;
-        private TextMeshPro prompt;
-        private Button interactButton;
-        private Bounds bookBounds;
-        private bool boundsReady;
+
+        private void OnEnable() { BookStatuePresentation.BindHand(transform, CanInteract, () => { TryStartFromInteraction(); }); }
 
         private void Update()
         {
@@ -26,62 +21,9 @@ namespace LogicLegends.Inference
                 subscribedInput = GameInput.Instance;
                 if (subscribedInput != null) subscribedInput.OnInteractAction += OnInteract;
             }
-            EnsurePrompt();
-            EnsureButton();
             bool waiting = challenge != null && challenge.isActiveAndEnabled && !challenge.HasStarted &&
                 !challenge.PuzzleCompleted && (StageJourneyUI.Instance == null || !StageJourneyUI.Instance.InferenceEnded);
-            BookStatuePresentation.SetRequired(transform, waiting, prompt);
-            if (interactButton != null) interactButton.gameObject.SetActive(CanInteract());
-            if (prompt != null)
-            {
-                prompt.gameObject.SetActive(waiting);
-                if (prompt.gameObject.activeSelf)
-                {
-                    prompt.transform.position = new Vector3(bookBounds.center.x, bookBounds.max.y + .8f, bookBounds.center.z);
-                    if (Camera.main != null) prompt.transform.rotation = Camera.main.transform.rotation;
-                }
-            }
-        }
-
-        private void EnsureButton()
-        {
-            if (interactButton != null) return;
-            GameObject canvas = GameObject.Find("Canvas 1");
-            Transform safeArea = canvas != null ? canvas.transform.Find("SafeArea") : null;
-            if (safeArea == null) return;
-            interactButton = StageUITheme.Button("InferenceInteractBookButton", safeArea,
-                "Interact with Book", () => TryStartFromInteraction());
-            RectTransform rect = (RectTransform)interactButton.transform;
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
-            rect.pivot = new Vector2(0.5f, 0f);
-            rect.anchoredPosition = new Vector2(0f, 175f);
-            rect.sizeDelta = new Vector2(300f, 86f);
-            interactButton.gameObject.SetActive(false);
-        }
-
-        private void EnsurePrompt()
-        {
-            if (prompt != null) return;
-            // Cache only the statue's geometry; including our labels makes bounds grow every frame.
-            if (!boundsReady)
-            {
-                bookBounds = new Bounds(transform.position, Vector3.zero);
-                foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
-                    if (renderer.GetComponent<TMP_Text>() == null && renderer.GetComponent<TMP_SubMesh>() == null)
-                        bookBounds.Encapsulate(renderer.bounds);
-                boundsReady = true;
-            }
-            GameObject label = new GameObject("Inference Book Start Prompt", typeof(TextMeshPro));
-            prompt = label.GetComponent<TextMeshPro>();
-            prompt.text = promptText;
-            prompt.font = StageUITheme.HeadingFont;
-            prompt.fontSize = 4f;
-            prompt.alignment = TextAlignmentOptions.Center;
-            prompt.color = StageUITheme.Gold;
-            prompt.outlineColor = Color.black;
-            prompt.outlineWidth = 0.25f;
-            prompt.rectTransform.sizeDelta = new Vector2(26f, 5f);
-            prompt.transform.localScale = Vector3.one * 0.75f;
+            BookStatuePresentation.SetRequired(transform, waiting);
 
         }
 
@@ -101,6 +43,7 @@ namespace LogicLegends.Inference
 
         private bool CanInteract()
         {
+            if (!isActiveAndEnabled) return false;
             var tutorial = InferenceControlsOnboarding.Active;
             if (tutorial != null && tutorial.IsActive) return tutorial.IsBookStep;
             if (challenge == null || !challenge.isActiveAndEnabled || subscribedInput == null ||
@@ -124,11 +67,7 @@ namespace LogicLegends.Inference
         {
             if (subscribedInput != null) subscribedInput.OnInteractAction -= OnInteract;
             subscribedInput = null;
-            if (prompt != null) Destroy(prompt.gameObject);
-            prompt = null;
             BookStatuePresentation.SetRequired(transform, false);
-            if (interactButton != null) Destroy(interactButton.gameObject);
-            interactButton = null;
         }
     }
 }

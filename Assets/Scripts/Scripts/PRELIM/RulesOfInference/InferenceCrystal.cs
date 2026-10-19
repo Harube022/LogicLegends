@@ -5,13 +5,15 @@ namespace LogicLegends.Inference
 {
     [RequireComponent(typeof(GrabbableObject))]
     [DefaultExecutionOrder(1500)] // Billboard after the gameplay camera has moved.
-    public class InferenceCrystal : MonoBehaviour
+    public partial class InferenceCrystal : MonoBehaviour
     {
         public TMP_Text label;
         public string QuestionId { get; private set; }
         public string Answer { get; private set; }
         public bool IsPlaced { get; private set; }
+        public bool PickupQuizCompleted { get; private set; }
         Vector3 origin;
+        Quaternion originRotation;
         Transform owner;
         GrabbableObject grabbable;
         SphereCollider pickupCollider;
@@ -24,6 +26,11 @@ namespace LogicLegends.Inference
         bool hasTowerLabel;
         Vector3 originalLabelScale;
         float trappedSince = -1f;
+        HandThoughtBubble interactionBubble;
+        CanvasGroup bubbleOpacity;
+        float nameCycleElapsed, nameVisibility=1;
+        float bubbleCycleElapsed, bubbleVisibility=1;
+        public HandThoughtBubble InteractionBubble => interactionBubble;
         public Vector3 PickupOrigin => origin;
 
         public void ConfigureTowerLabel(Transform tower)
@@ -34,8 +41,15 @@ namespace LogicLegends.Inference
             foreach (var renderer in renderers) towerBounds.Encapsulate(renderer.bounds);
             hasTowerLabel = true;
             originalLabelScale = label.transform.localScale;
-            label.rectTransform.sizeDelta = new Vector2(24f, 5f);
-            label.textWrappingMode = TextWrappingModes.Normal;
+            label.font = StageUITheme.HeadingFont;
+            label.fontSharedMaterial = Resources.Load<Material>("StageUI/RuleCrystalName");
+            label.color = new Color(1f, .95f, .8f);
+            label.fontStyle = FontStyles.Normal; // Impact already supplies a heavy face.
+            label.enableAutoSizing = false;
+            label.extraPadding = true;
+            label.UpdateMeshPadding();
+            label.textWrappingMode = TextWrappingModes.NoWrap;
+            label.rectTransform.sizeDelta = new Vector2(label.preferredWidth + .5f, label.preferredHeight + .35f);
             label.overflowMode = TextOverflowModes.Overflow;
         }
 
@@ -116,11 +130,17 @@ namespace LogicLegends.Inference
         public void Configure(string questionId, string answer, Transform parent)
         {
             QuestionId = questionId; Answer = answer; owner = parent;
+            // Configure starts a new challenge instance; dropping/returning never resets this latch.
+            PickupQuizCompleted=false;
+            nameCycleElapsed=bubbleCycleElapsed=0;
+            nameVisibility=bubbleVisibility=1;
             origin = transform.position;
+            originRotation=transform.rotation;
             grabbable = GetComponent<GrabbableObject>();
-            label.text = answer;
+            label.text = answer;label.enabled=true;label.alpha=1;
             ReturnToOrigin();
         }
+        internal void MarkPickupQuizCompleted(){PickupQuizCompleted=true;}
 
         public void Place(Transform socket)
         {
@@ -132,6 +152,7 @@ namespace LogicLegends.Inference
 
         public void ReturnToOrigin()
         {
+            IsRecovering=false;
             IsPlaced = false;
             label.gameObject.SetActive(true);
             grabbable.ConfigureInventoryState(false, null, false);
@@ -139,12 +160,14 @@ namespace LogicLegends.Inference
             body.isKinematic = true; body.useGravity = false;
             trappedSince = -1f;
             SetPillarPickupCollider();
+            if(pickupCollider!=null)pickupCollider.enabled=true;
             transform.SetParent(owner, true);
-            transform.position = origin;
+            transform.SetPositionAndRotation(origin,originRotation);
         }
 
         void LateUpdate()
         {
+            UpdateWaterRecovery(Time.deltaTime);
             // A released crystal needs its original solid collider to land on the ground.
             // Returning it to a pillar restores the extended, nonblocking pickup trigger.
             if (hasPillarPickup && !IsPlaced && pickupCollider != null)
@@ -165,30 +188,34 @@ namespace LogicLegends.Inference
                     if (!found) { visual = renderer.bounds; found = true; } else visual.Encapsulate(renderer.bounds);
                 }
                 if (found) label.transform.position = new Vector3(visual.center.x, visual.max.y + .8f, visual.center.z);
-                // Put the name on the camera-facing side of the whole tower's
-                // bounds, rather than inside its frame or high above its roof.
-                if (hasTowerLabel && !IsPlaced && grabbable != null && !grabbable.IsHeld &&
-                    (transform.position - origin).sqrMagnitude < .01f)
+                if (hasTowerLabel && found)
                 {
-                    Vector3 towardCamera = Camera.main.transform.position - towerBounds.center;
-                    towardCamera.y = 0f;
-                    if (towardCamera.sqrMagnitude < .01f) towardCamera = Vector3.back;
-                    towardCamera.Normalize();
-                    float edge = Mathf.Abs(towardCamera.x) * towerBounds.extents.x + Mathf.Abs(towardCamera.z) * towerBounds.extents.z;
-                    Vector3 position = towerBounds.center + towardCamera * (edge + 3f);
-                    position.y = visual.max.y + 1.5f;
-                    label.transform.position = position;
+                    Vector3 position = visual.center;
+                    // Keep the name at crystal height. Only move its plane forward
+                    // enough to clear the tower; never anchor it to the tower roof.
+                    if (!IsPlaced && !grabbable.IsHeld && (transform.position - origin).sqrMagnitude < .01f)
+                    {
+                        Vector3 towardCamera = Camera.main.transform.position - towerBounds.center;
+                        towardCamera.y = 0f;
+                        if (towardCamera.sqrMagnitude < .01f) towardCamera = Vector3.back;
+                        towardCamera.Normalize();
+                        float edge = Mathf.Abs(towardCamera.x) * towerBounds.extents.x + Mathf.Abs(towardCamera.z) * towerBounds.extents.z;
+                        float clearance = edge + 1f - Vector3.Dot(position - towerBounds.center, towardCamera);
+                        position += towardCamera * Mathf.Max(0f, clearance);
+                    }
                     float distance = Vector3.Distance(position, Camera.main.transform.position);
-                    label.transform.localScale = originalLabelScale * Mathf.Clamp(distance * .045f, .3f, 1f);
+                    label.transform.localScale = originalLabelScale * Mathf.Clamp(distance * .035f, .12f, 1.5f);
+                    position.y = visual.max.y + .35f + label.preferredHeight * Mathf.Abs(label.transform.lossyScale.y) * .5f;
+                    label.transform.position = position;
                     label.transform.rotation = distance > .01f
                         ? Quaternion.LookRotation(position - Camera.main.transform.position, Vector3.up)
                         : Camera.main.transform.rotation;
                 }
-                else if (hasTowerLabel) label.transform.localScale = originalLabelScale;
             }
+            UpdateInteractionPresentation(Time.unscaledDeltaTime);
             // A dropped answer must remain recoverable, including if it falls off the island.
-            if (!IsPlaced && transform.position.y < origin.y - 12f) ReturnToOrigin();
-            if (hasPillarPickup && !IsPlaced && grabbable != null && !grabbable.IsHeld && body != null && !body.isKinematic)
+            if (!IsPlaced && !IsRecovering && body!=null && !body.isKinematic && transform.position.y < origin.y - 12f && !AboveWater(transform.position)) ReturnToOrigin();
+            if (hasPillarPickup && !IsPlaced && !IsRecovering && grabbable != null && !grabbable.IsHeld && body != null && !body.isKinematic)
             {
                 bool trapped = IsEmbedded(transform.position, originalColliderRadius * .3f);
                 if (!trapped) trappedSince = -1f;
@@ -196,5 +223,55 @@ namespace LogicLegends.Inference
                 else if (Time.unscaledTime - trappedSince > .7f) ReturnToOrigin();
             }
         }
+        void UpdateInteractionPresentation(float delta)
+        {
+            var interaction=InferenceCrystalInteraction.Active;
+            // Legacy conclusion crystals in other scenes retain their existing presentation.
+            if(owner==null||owner.gameObject.scene.name!="RulesOfInference"||interaction==null)return;
+            bool detected=interaction.IsWithinDetectionRange(this);
+            bool held=grabbable!=null&&grabbable.IsHeld;
+            // Board/quiz reading must not use up the first visible interval off-screen.
+            bool advance=Time.timeScale>0&&!interaction.Challenge.IsBoardOpen&&
+                (StageJourneyUI.Instance==null||!StageJourneyUI.Instance.InferenceQuizOpen);
+            float nameAlpha=CycleOpacity(ref nameCycleElapsed,ref nameVisibility,detected||held||IsPlaced||IsRecovering,advance,delta);
+            if(detected||held){nameVisibility=1;nameAlpha=1;}
+            if(label!=null)
+            {
+                // The rule name is a sibling of the bubble, never a child of its fading CanvasGroup.
+                if(!IsPlaced&&!label.gameObject.activeSelf)label.gameObject.SetActive(true);
+                label.enabled=true;label.alpha=nameAlpha;
+            }
+            bool available=interaction.CanShowBubble(this);
+            if(interactionBubble==null&&available)
+            {
+                interactionBubble=HandThoughtBubble.Create(transform,"Rule Crystal Interaction Bubble",yellowMarker:true);
+                bubbleOpacity=interactionBubble.gameObject.AddComponent<CanvasGroup>();
+                bubbleOpacity.blocksRaycasts=false;bubbleOpacity.interactable=false;
+            }
+            float bubbleAlpha=CycleOpacity(ref bubbleCycleElapsed,ref bubbleVisibility,detected,advance&&available,delta);
+            if(detected){bubbleVisibility=1;bubbleAlpha=1;}
+            if(interactionBubble!=null)
+            {
+                var at=label!=null?label.transform.position:transform.position+Vector3.up*2;
+                if(label!=null)at.y+=label.rectTransform.rect.height*Mathf.Abs(label.transform.lossyScale.y)*.5f+.7f;
+                interactionBubble.Show(available,available&&interaction.AvailableCrystal==this,at);
+                bubbleOpacity.alpha=bubbleAlpha;
+                if(available&&detected)interactionBubble.KeepInView(label);
+            }
+        }
+        static float CycleOpacity(ref float elapsed,ref float visibility,bool holdVisible,bool advance,float delta)
+        {
+            float target=1;
+            if(!holdVisible)
+            {
+                if(advance)elapsed=(elapsed+delta)%72f;
+                if(elapsed>10&&elapsed<=11)target=11-elapsed;
+                else if(elapsed>11&&elapsed<=71)target=0;
+                else if(elapsed>71)target=elapsed-71;
+            }
+            visibility=Mathf.MoveTowards(visibility,target,delta);
+            return Mathf.SmoothStep(0,1,visibility);
+        }
+        void OnDisable(){if(interactionBubble!=null)interactionBubble.gameObject.SetActive(false);}
     }
 }

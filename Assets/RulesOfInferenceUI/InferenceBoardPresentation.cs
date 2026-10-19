@@ -28,6 +28,7 @@ namespace LogicLegends.RulesOfInferenceUI
         TMP_Text[] steps;
         RuleOfInferencePuzzle styledPuzzle;
         bool runtimeOverlay, presentationReady;
+        bool completionPreviewLayout;
         sealed class HiddenHud { public CanvasGroup group; public float alpha; public bool interactable, blocksRaycasts; }
         readonly List<HiddenHud> hiddenHud = new List<HiddenHud>();
         int lastStep = -1;
@@ -201,6 +202,32 @@ namespace LogicLegends.RulesOfInferenceUI
             RefreshStates();
             if (styledPuzzle != challenge.dragPuzzle.Puzzle) { StylePuzzle(); styledPuzzle = challenge.dragPuzzle.Puzzle; }
             ArrangeActions();
+            LayoutCompletionPreview();
+        }
+
+        void LayoutCompletionPreview()
+        {
+            bool preview=!challenge.HasStarted&&!challenge.PuzzleCompleted&&challenge.SolvedRounds>0&&!challenge.conclusionLabel.gameObject.activeSelf;
+            if(preview)
+            {
+                content.Find("PuzzleWorkspace").gameObject.SetActive(false);
+                content.Find("Theme_FeedbackFrame").gameObject.SetActive(false);
+                Box(challenge.feedback.rectTransform,60,210,1416,280);
+                challenge.feedback.fontSizeMin=52;challenge.feedback.fontSizeMax=72;
+                challenge.feedback.alignment=TextAlignmentOptions.Center;
+                completionPreviewLayout=true;
+            }
+            else RestoreCompletionPreview();
+        }
+        void RestoreCompletionPreview()
+        {
+            if(!completionPreviewLayout||content==null)return;
+            content.Find("PuzzleWorkspace").gameObject.SetActive(true);
+            content.Find("Theme_FeedbackFrame").gameObject.SetActive(true);
+            Box(challenge.feedback.rectTransform,46,598,1440,62);
+            challenge.feedback.fontSizeMin=24;challenge.feedback.fontSizeMax=29;
+            challenge.feedback.alignment=TextAlignmentOptions.Left;
+            completionPreviewLayout=false;
         }
 
         void RaiseActiveTimers()
@@ -225,6 +252,7 @@ namespace LogicLegends.RulesOfInferenceUI
         }
         void OnDisable()
         {
+            RestoreCompletionPreview();
             StopAllCoroutines(); presentationReady=false;
             foreach(var hud in hiddenHud)
             {

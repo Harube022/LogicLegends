@@ -6,13 +6,14 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class SetssssHudView : MonoBehaviour
 {
-    private const float CompactWidth = 440f, MinimumHeight = 76f;
-    private const float EdgeMargin = 16f, Padding = 16f, HeaderHeight = 64f;
+    private const float CompactWidth = 500f, MinimumHeight = 136f;
+    private const float EdgeMargin = 24f, Padding = 16f, HeaderHeight = 136f;
     public RectTransform Hud { get; private set; }
     public RectTransform NoticeDock { get; private set; }
     public RectTransform DeductionArea { get; private set; }
     public TMP_Text Timer { get; private set; }
     public TMP_Text Challenge { get; private set; }
+    public TMP_Text Title { get; private set; }
     public PrelimChallengeCompletionNotice Notice { get; private set; }
     private SetssssChallengeOne stage;
     private SetssssChallengePresentation presentation;
@@ -35,11 +36,13 @@ public sealed class SetssssHudView : MonoBehaviour
         Hud.GetComponent<Image>().raycastTarget = false;
         Timer = clock;
         Timer.transform.SetParent(Hud, false);
-        Style(Timer, false, 34f, 38f);
+        Style(Timer, false, 40f, 40f);
         Timer.color = StageUITheme.Gold;
         Timer.gameObject.SetActive(true);
         Challenge = StageUITheme.Text("StageProgress", Hud, "", 26f, true);
-        Style(Challenge, true, 24f, 26f);
+        Style(Challenge, true, 22f, 24f);
+        Title = StageUITheme.Text("CurrentStageLabel", Hud, TrialCatalog.ForScene("Setssss").Title, 26f);
+        Style(Title, false, 22f, 26f);
         // The legacy reminder duplicates the Information Board. Retain its
         // serialized reference, but never show it as another problem display.
         if (problem != null) problem.gameObject.SetActive(false);
@@ -47,6 +50,7 @@ public sealed class SetssssHudView : MonoBehaviour
         NoticeDock = StageUITheme.Rect("Setssss Notification Dock", safeArea);
         NoticeDock.anchorMin = NoticeDock.anchorMax = NoticeDock.pivot = Vector2.one;
         Notice = PrelimChallengeCompletionNotice.GetOrCreate(NoticeDock, Timer, feedback as TextMeshProUGUI);
+        Notice.SuppressWaitingMessages = true;
         Notice.UseHostBounds();
         jump = safeArea.Find("Gameplay_Interface/JumpButton") as RectTransform;
         hand = safeArea.Find("Gameplay_Interface/InteractButton") as RectTransform;
@@ -164,8 +168,9 @@ public sealed class SetssssHudView : MonoBehaviour
     {
         if (presentation == null) presentation = stage.GetComponent<SetssssChallengePresentation>();
         float deductionHeight = presentation != null && presentation.HasVisibleDeductions ? 28f : 0f;
-        TopRect(Timer.rectTransform, Padding, 12f, 112f, 44f);
-        TopRect(Challenge.rectTransform, Padding + 132f, 14f, width - Padding * 2f - 132f, 40f);
+        TopRect(Title.rectTransform, width * .06f, MinimumHeight * .14f, width * .88f, MinimumHeight * .24f);
+        TopRect(Timer.rectTransform, width * .06f, MinimumHeight * .43f, width * .25f, MinimumHeight * .39f);
+        TopRect(Challenge.rectTransform, width * .32f, MinimumHeight * .40f, width * .62f, MinimumHeight * .52f);
         TopRect(DeductionArea, Padding, HeaderHeight, width - Padding * 2f, 24f);
         return deductionHeight > 0f ? HeaderHeight + deductionHeight + Padding : MinimumHeight;
     }

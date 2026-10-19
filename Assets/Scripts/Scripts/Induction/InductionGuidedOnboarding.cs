@@ -98,7 +98,7 @@ namespace LogicLegends.Induction
         void BookStep()
         {
             var models=Models(stage.book);Frame(models,bookViewDirection,tutorialFieldOfView);
-            GuideStep(InductionTutorialStep.Book,"Interact with the book statue to start each challenge. Try the hand button or Interact with Book. This is practice; the real countdown stays paused.",null,models,false);
+            GuideStep(InductionTutorialStep.Book,"Interact with the book statue to start each challenge. Tap the hand button. This is practice; the real countdown stays paused.",hand,models,false);
         }
         void GuideStep(InductionTutorialStep step,string text,RectTransform target,Renderer[] models,bool next)
         {

@@ -54,7 +54,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
     [SerializeField] private UnityEvent onChallengeCompleted;
 
     private const int BlocksPerCondition = 10;
-    public const int QuestionsPerChallenge = 5;
+    public const int QuestionsPerChallenge = 2;
     // Entry 6 is the supplied B = {29}; every other Challenge 1 entry is A-only.
     private static readonly SetsConditionData[] challengeOneBank =
     {
@@ -242,7 +242,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         if (interactWithBookButton != null)
         {
             interactWithBookButton.onClick.RemoveListener(UseExistingInteraction);
-            interactWithBookButton.onClick.AddListener(UseExistingInteraction);
+
         }
         if (pickUpBlockButton != null)
         {
@@ -258,6 +258,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
 
     private void Start()
     {
+        BookStatuePresentation.BindHand(bookStatue, () => isActiveAndEnabled && !started && !complete && !gameOverTriggered && !advancing && input != null && !input.GameplayInputBlocked && player != null && player.enabled && player.GetHeldObject() == null && (introductions == null || !introductions.MustIntroduceCurrentChallenge) && (boardView == null || !boardView.IsViewingBoard) && IsBookTargeted(), () => { TryHandleInteraction(); });
         ConfigureTimerDisplay();
         hud = GetComponent<SetssssHudView>();
         if (hud == null) hud = gameObject.AddComponent<SetssssHudView>();
@@ -282,11 +283,13 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
             submitButton.gameObject.SetActive(false);
         }
         ConfigureContextButton(interactWithBookButton);
+        if (interactWithBookButton != null) { interactWithBookButton.onClick.RemoveAllListeners(); interactWithBookButton.interactable = false; interactWithBookButton.gameObject.SetActive(false); }
         ConfigureContextButton(pickUpBlockButton);
         ConfigureContextButton(returnBlockButton);
         if (pickUpBlockButton != null) pickUpBlockButton.GetComponentInChildren<TMP_Text>(true).text = "Pick Up Element";
         if (returnBlockButton != null) returnBlockButton.GetComponentInChildren<TMP_Text>(true).text = "Return Element";
-        if (interactWithBookButton != null) interactWithBookButton.onClick.AddListener(UseExistingInteraction);
+        ConfigureActionArtwork();
+
         if (pickUpBlockButton != null) pickUpBlockButton.onClick.AddListener(UseExistingInteraction);
         if (returnBlockButton != null) returnBlockButton.onClick.AddListener(ReturnHeldBlock);
 
@@ -476,8 +479,8 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
             challengeNumber == 1 ? challengeOneBank.Length : challengeNumber == 2 ? challengeTwoBank.Length :
             challengeNumber == 3 ? challengeThreeBank.Length : challengeFourBank.Length;
         if (bankSize < QuestionsPerChallenge)
-            throw new InvalidOperationException("Each challenge needs at least five distinct questions.");
-        // Shuffle the entire bank before taking five, so later bank entries
+            throw new InvalidOperationException("Each challenge needs at least two distinct questions.");
+        // Shuffle the entire bank before taking two, so later bank entries
         // remain eligible. A correct answer consumes one entry; retries keep it.
         for (int i = 0; i < bankSize; i++) unansweredEntries.Add(i);
         for (int i = unansweredEntries.Count - 1; i > 0; i--)
@@ -649,8 +652,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
     private void UpdateBookPrompt()
     {
         if (bookPrompt == null) return;
-        bookPrompt.text = "Interact to start Challenge " + challengeNumber;
-        bookPrompt.gameObject.SetActive(!started && !complete && !gameOverTriggered);
+        bookPrompt.gameObject.SetActive(false);
     }
 
     // The Game Over Retry button repeats the timed-out challenge; a deliberate
@@ -905,7 +907,6 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
             !advancing && (introductions == null || !introductions.MustIntroduceCurrentChallenge) &&
             (SetssssControlsOnboarding.Active == null || !SetssssControlsOnboarding.Active.IsActive), bookPrompt);
         TickTimer();
-        AdjustControlLayout();
         if (input == null) BindInput();
         if (player == null) player = Player.LocalInstance;
         if (player == null) return;
@@ -927,7 +928,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         bool holdingNumber = GetBlockNumber(currentHeld) > 0;
         bool tutorialBook = SetssssControlsOnboarding.Active != null &&
                             SetssssControlsOnboarding.Active.IsBookPractice;
-        SetVisible(interactWithBookButton, tutorialBook || controlsAvailable && !started && !complete && IsBookTargeted());
+        SetVisible(interactWithBookButton, false);
         SetVisible(pickUpBlockButton, controlsAvailable && started && !complete && !advancing &&
                                       !holdingNumber && FindTargetedBlock() != null);
         SetVisible(returnBlockButton, controlsAvailable && started && !complete && !advancing && holdingNumber);
@@ -940,32 +941,79 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         previouslyHeld = held != null && GetBlockNumber(held) > 0 ? held : null;
     }
 
-    // Landscape tablets have less room between the anchored joystick and hand
-    // control than phones. Lift the center actions above those controls there.
-    private void AdjustControlLayout()
+    private RectTransform actionSafeArea;
+    private readonly List<RectTransform> actionControls = new List<RectTransform>();
+    private readonly List<RectTransform> visibleActions = new List<RectTransform>();
+
+    private void ConfigureActionArtwork()
     {
-        float safeHeight = Mathf.Max(1f, Screen.safeArea.height);
-        bool narrow = Screen.safeArea.width / safeHeight < 1.6f;
-        Vector2 viewPosition = narrow ? new Vector2(-175f, 610f) : new Vector2(-175f, 38f);
-        Vector2 submitPosition = narrow ? new Vector2(105f, 610f) : new Vector2(105f, 38f);
-        Vector2 contextPosition = narrow ? new Vector2(0f, 745f) : new Vector2(0f, 165f);
-        if (viewBoardRect != null && viewBoardRect.anchoredPosition != viewPosition)
-            viewBoardRect.anchoredPosition = viewPosition;
-        if (submitButton != null)
+        actionSafeArea = submitButton != null ? submitButton.transform.parent as RectTransform : null;
+        if (actionSafeArea == null) return;
+        foreach (var rect in actionSafeArea.GetComponentsInChildren<RectTransform>(true))
+            if (rect.name == "Joystick" || rect.name == "InteractButton" || rect.name == "JumpButton") actionControls.Add(rect);
+        var back=actionSafeArea.Find("BoardBackButton")?.GetComponent<Button>();
+        foreach (var button in new[] { viewBoardRect != null ? viewBoardRect.GetComponent<Button>() : null, submitButton, pickUpBlockButton, returnBlockButton, back })
         {
-            RectTransform rect = submitButton.GetComponent<RectTransform>();
-            if (rect.anchoredPosition != submitPosition) rect.anchoredPosition = submitPosition;
+            if (button == null) continue;
+            StageUITheme.SkinButton(button);
+            button.image.pixelsPerUnitMultiplier = 4.5f;
+            var rect = (RectTransform)button.transform;
+            rect.localScale = Vector3.one;
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(button==back?0f:.5f, 0f);
+            rect.sizeDelta = new Vector2(button==back?220f:280f, 88f);
+            foreach (var label in button.GetComponentsInChildren<TMP_Text>(true))
+            {
+                StageUITheme.Stretch(label.rectTransform, Vector2.zero, Vector2.one);
+                label.rectTransform.offsetMin = new Vector2(24, 10);
+                label.rectTransform.offsetMax = new Vector2(-24, -10);
+                label.textWrappingMode = TextWrappingModes.NoWrap;
+            }
         }
-        SetContextPosition(interactWithBookButton, contextPosition);
-        SetContextPosition(pickUpBlockButton, contextPosition);
-        SetContextPosition(returnBlockButton, contextPosition);
     }
 
-    private static void SetContextPosition(Button button, Vector2 position)
+    private void LateUpdate() { AdjustControlLayout(); }
+
+    // Center the visible actions as a group, then lift only as far as the
+    // actual touch-control bounds require. No aspect-ratio-specific offsets.
+    private void AdjustControlLayout()
     {
-        if (button == null) return;
-        RectTransform rect = button.GetComponent<RectTransform>();
-        if (rect.anchoredPosition != position) rect.anchoredPosition = position;
+        if (actionSafeArea == null || actionSafeArea.rect.width <= 0) return;
+        visibleActions.Clear();
+        if (viewBoardRect != null && viewBoardRect.gameObject.activeInHierarchy) visibleActions.Add(viewBoardRect);
+        if (submitButton != null && submitButton.gameObject.activeInHierarchy) visibleActions.Add((RectTransform)submitButton.transform);
+        bool stack = actionSafeArea.rect.width < 624f;
+        for (int i = 0; i < visibleActions.Count; i++)
+        {
+            float x = stack ? 0f : (i - (visibleActions.Count - 1) * .5f) * 296f;
+            visibleActions[i].anchoredPosition = new Vector2(x, stack ? i * 100f : 0);
+        }
+        float contextY = visibleActions.Count == 0 ? 0 : stack ? visibleActions.Count * 100f : 100f;
+        foreach (var button in new[] { pickUpBlockButton, returnBlockButton })
+            if (button != null && button.gameObject.activeInHierarchy)
+            {
+                var rect = (RectTransform)button.transform;
+                rect.anchoredPosition = new Vector2(0, contextY); visibleActions.Add(rect);
+            }
+        float bottom = 24f;
+        for (int pass = 0; pass < 8; pass++)
+        {
+            float next = bottom;
+            foreach (var action in visibleActions)
+            {
+                var position = action.anchoredPosition;
+                var candidate = new Rect(actionSafeArea.rect.center.x + position.x - action.rect.width * .5f,
+                    actionSafeArea.rect.yMin + position.y + bottom, action.rect.width, action.rect.height);
+                foreach (var control in actionControls)
+                {
+                    if (control == null || !control.gameObject.activeInHierarchy) continue;
+                    Rect blocked = SetssssHudView.RelativeBounds(control, actionSafeArea);
+                    if (candidate.Overlaps(blocked)) next = Mathf.Max(next, blocked.yMax - actionSafeArea.rect.yMin + 12f - position.y);
+                }
+            }
+            if (Mathf.Approximately(next, bottom)) break;
+            bottom = next;
+        }
+        foreach (var action in visibleActions) action.anchoredPosition += Vector2.up * bottom;
     }
 
     private static void SetVisible(Button button, bool visible)

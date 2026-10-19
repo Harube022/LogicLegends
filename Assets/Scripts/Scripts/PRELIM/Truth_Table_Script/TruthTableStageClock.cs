@@ -30,12 +30,15 @@ public sealed class TruthTableStageClock : MonoBehaviour
     private TextMeshProUGUI resultLabel;
     private UnityEngine.UI.Button restartButton;
     private Coroutine adjustmentRoutine;
+    private RectTransform timeFeedback;
+    private TMP_Text quizClockLabel;
 
     public bool IsWaitingForBook => state == StageState.WaitingForBook;
     public bool IsRunning => state == StageState.Running;
     public bool IsGameOver => state == StageState.GameOver;
     public bool IsCompleted => state == StageState.Completed;
     public bool IsTutorialOpen => tutorialOpen;
+    public bool IsQuizOpen => quizOpen;
     public bool IsPlayerAtBoard => playerAtBoard;
     public bool IsCountdownPaused => state != StageState.Running || quizOpen || playerAtBoard || tutorialOpen || Time.timeScale <= 0f;
     public float RemainingSeconds => remainingSeconds;
@@ -44,6 +47,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
     public bool TimeAdjustmentVisible => adjustmentLabel != null && adjustmentLabel.gameObject.activeSelf;
     public string TimeAdjustmentText => adjustmentLabel != null ? adjustmentLabel.text : string.Empty;
     public static float LastCompletedRemainingSeconds { get; private set; }
+    public void DockCompletionNotice(RectTransform hud) { completionNotice?.FollowHud(hud); completionNotice?.SetHudTextSize(18,20); }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetCompletedTime() { LastCompletedRemainingSeconds = 0f; }
@@ -75,6 +79,9 @@ public sealed class TruthTableStageClock : MonoBehaviour
         if (hudRoot == null) return;
         hudRoot.gameObject.SetActive(StageSelectionState.SelectedStage == 2 && StageJourneyUI.Instance == null);
         if (hudRoot.gameObject.activeSelf) UpdateHudLayout();
+        if(timeFeedback!=null)timeFeedback.gameObject.SetActive(StageSelectionState.SelectedStage==2);
+        if(quizClockLabel!=null){quizClockLabel.gameObject.SetActive(quizOpen);quizClockLabel.text=FormatTime(remainingSeconds);}
+        if(StageJourneyUI.Instance==null)LayoutTimeFeedback(hudRoot);
     }
 
     private void Update()
@@ -192,7 +199,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
     private void ShowAdjustment(int amount)
     {
         if (adjustmentRoutine != null) StopCoroutine(adjustmentRoutine);
-        adjustmentLabel.text = (amount > 0 ? "+" : "") + amount + "s";
+        adjustmentLabel.text = (amount > 0 ? "+" : "−") + Mathf.Abs(amount) + "s";
         adjustmentLabel.color = amount > 0 ? new Color(0.25f, 0.95f, 0.35f) :
                                             new Color(1f, 0.27f, 0.27f);
         adjustmentLabel.gameObject.SetActive(true);
@@ -201,7 +208,13 @@ public sealed class TruthTableStageClock : MonoBehaviour
 
     private IEnumerator HideAdjustment()
     {
-        yield return new WaitForSecondsRealtime(1.8f);
+        float elapsed=0;
+        while(elapsed<2.2f)
+        {
+            elapsed+=Time.unscaledDeltaTime;
+            var color=adjustmentLabel.color;color.a=1-Mathf.Clamp01((elapsed-1.1f)/1.1f);adjustmentLabel.color=color;
+            yield return null;
+        }
         adjustmentLabel.gameObject.SetActive(false);
         adjustmentRoutine = null;
     }
@@ -268,7 +281,15 @@ public sealed class TruthTableStageClock : MonoBehaviour
         challengeLabel.text = "Challenge 1 — Easy";
         columnLabel = CreateHudText("TruthTableColumnProgress", style, 25f, 31f);
         columnLabel.text = "Column 1 of 3";
-        adjustmentLabel = CreateHudText("TruthTableTimeAdjustment", style, 27f, 30f);
+        var overlay=new GameObject("Truth Table Time Feedback",typeof(RectTransform),typeof(Canvas),typeof(UnityEngine.UI.CanvasScaler));
+        var overlayCanvas=overlay.GetComponent<Canvas>();overlayCanvas.renderMode=RenderMode.ScreenSpaceOverlay;overlayCanvas.sortingOrder=350;
+        var scaler=overlay.GetComponent<UnityEngine.UI.CanvasScaler>();scaler.uiScaleMode=UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution=new Vector2(1920,1080);scaler.matchWidthOrHeight=.5f;
+        timeFeedback=StageUITheme.Rect("Time feedback safe area",overlay.transform);StageUITheme.Stretch(timeFeedback,Vector2.zero,Vector2.one);timeFeedback.gameObject.AddComponent<Crystal.SafeArea>();
+        quizClockLabel=StageUITheme.Text("Paused quiz timer",timeFeedback,"18:00",32);quizClockLabel.gameObject.SetActive(false);
+        quizClockLabel.outlineWidth=.2f;quizClockLabel.outlineColor=Color.black;
+        adjustmentLabel = CreateText("TruthTableTimeAdjustment",timeFeedback,style,30);
+        adjustmentLabel.outlineWidth=.2f;adjustmentLabel.outlineColor=Color.black;
         adjustmentLabel.gameObject.SetActive(false);
         hudRoot.gameObject.SetActive(StageSelectionState.SelectedStage == 2);
 
@@ -336,6 +357,23 @@ public sealed class TruthTableStageClock : MonoBehaviour
             hudRoot.sizeDelta = new Vector2(width, 150f);
     }
 
+    public void LayoutTimeFeedback(RectTransform gameplayHud)
+    {
+        if(timeFeedback==null||gameplayHud==null)return;
+        if(quizOpen)
+        {
+            Place(quizClockLabel.rectTransform,Vector2.one,new Vector2(-24,-24),new Vector2(200,46));quizClockLabel.rectTransform.pivot=Vector2.one;
+            Place(adjustmentLabel.rectTransform,Vector2.one,new Vector2(-24,-76),new Vector2(200,42));adjustmentLabel.rectTransform.pivot=Vector2.one;
+        }
+        else
+        {
+            var corners=new Vector3[4];gameplayHud.GetWorldCorners(corners);
+            adjustmentLabel.rectTransform.anchorMin=adjustmentLabel.rectTransform.anchorMax=Vector2.one;adjustmentLabel.rectTransform.pivot=Vector2.one;
+            adjustmentLabel.rectTransform.sizeDelta=new Vector2(140,46);
+            adjustmentLabel.rectTransform.position=new Vector3(corners[0].x-8,corners[0].y+gameplayHud.rect.height*gameplayHud.lossyScale.y*.7f,corners[0].z);
+        }
+    }
+
     private static TextMeshProUGUI CreateText(string name, Transform parent, TMP_Text style, float size)
     {
         var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
@@ -360,6 +398,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
 
     private void OnDisable()
     {
+        if(timeFeedback!=null)timeFeedback.gameObject.SetActive(false);
         HideStartMessage();
         if (hudRoot != null) hudRoot.gameObject.SetActive(false);
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
@@ -367,6 +406,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
 
     private void OnDestroy()
     {
+        if(timeFeedback!=null)Destroy(timeFeedback.transform.root.gameObject);
         if (restartButton != null) restartButton.onClick.RemoveListener(RestartStage);
         if (startLabel != null) Destroy(startLabel.gameObject);
         if (hudRoot != null) Destroy(hudRoot.gameObject);

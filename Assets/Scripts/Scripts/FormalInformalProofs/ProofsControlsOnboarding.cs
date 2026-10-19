@@ -17,8 +17,8 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
     public ProofsTutorialStep CurrentStep { get; private set; }
     public bool AllowsJump => IsActive && CurrentStep == ProofsTutorialStep.Jump;
     public bool WantsViewBoard => CurrentStep == ProofsTutorialStep.ViewBoard;
-    public bool WantsInteraction => CurrentStep == ProofsTutorialStep.Book || CurrentStep == ProofsTutorialStep.ReadScroll ||
-        CurrentStep == ProofsTutorialStep.Place || CurrentStep == ProofsTutorialStep.TakeBack || CurrentStep == ProofsTutorialStep.Replace || CurrentStep == ProofsTutorialStep.ConfirmBook;
+    public bool WantsInteraction => CurrentStep == ProofsTutorialStep.ReadScroll ||
+        CurrentStep == ProofsTutorialStep.Place || CurrentStep == ProofsTutorialStep.TakeBack || CurrentStep == ProofsTutorialStep.Replace;
     public Button YesButton { get; private set; }
     public Button NoButton { get; private set; }
     public GameObject PracticeObject => practiceObject;
@@ -154,10 +154,10 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
         switch (CurrentStep)
         {
             case ProofsTutorialStep.Timer:
-                ShowStep(ProofsTutorialStep.Progress, "This shows the current challenge out of " + stage.ChallengeCount + ". Complete one question from each challenge. Correct work unlocks the next challenge; return to the book to start it.", ui.Progress.rectTransform, true); break;
+                ShowStep(ProofsTutorialStep.Progress, "This shows the current challenge out of " + stage.ChallengeCount + " and question out of two. Complete two distinct questions per challenge. Correct work pauses the timer; return to the book to start the next question. After both questions, the next challenge becomes available.", ui.Progress.rectTransform, true); break;
             case ProofsTutorialStep.Progress:
                 StartCamera(); Focus(stage.BookTarget, Vector3.forward);
-                ShowStep(ProofsTutorialStep.Book, "Interact with the book statue to start each challenge. After completing your arrangement, interact with it again to confirm. Try a practice interaction now; it cannot start the real timer.", null, false, stage.BookTarget); break;
+                ShowStep(ProofsTutorialStep.Book, "Interact with the book statue to start each challenge. After completing your arrangement, interact with it again to confirm. Tap the hand for a practice interaction; it cannot start the real timer.", hand, false, stage.BookTarget); break;
             case ProofsTutorialStep.FormalAltar:
                 Focus(stage.AltarTargets[1], Vector3.forward);
                 ShowStep(ProofsTutorialStep.InformalAltar, "The Informal Proof altar receives valid reasoning explained in prose. Informal does not mean incorrect. In Challenges 1 and 2, classify each scroll by how it presents its reasoning.", null, true, stage.AltarTargets[1]); break;
@@ -176,12 +176,14 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
         stage.ReaderTitle.text = "PRACTICE SCROLL — READ AND COLLECT"; stage.ReaderBody.text = PracticePassage;
         var scroll = stage.ReaderPanel.GetComponentInChildren<ScrollRect>(true); if (scroll != null) scroll.verticalNormalizedPosition = 1;
         stage.ReaderPanel.SetActive(true);
-        ShowStep(ProofsTutorialStep.Reader, "Read the practice passage. Carry Scroll selects and collects this exact scroll. Close leaves it on the stand. Try Carry Scroll when ready.", (RectTransform)stage.CollectButton.transform);
+        ui.RefreshReader(true);
+        ShowStep(ProofsTutorialStep.Reader, "Read this practice proof. Get This Scroll collects it; Back leaves it at the stand.", (RectTransform)stage.CollectButton.transform);
     }
     public void CollectPracticeScroll()
     {
         if (!IsActive || CurrentStep != ProofsTutorialStep.Reader || !Readable) return;
         stage.ReaderPanel.SetActive(false); PracticeCarried = true; practiceScroll.SetActive(false);
+        ui.RefreshReader();
         practiceStand.SetTabletVisible(false); Focus(stage.AltarTargets[1], Vector3.forward);
         ShowStep(ProofsTutorialStep.Place, "You are carrying the practice scroll. Its valid prose belongs on the Informal Proof altar. Use Place Scroll or the hand to place it. Placement alone does not submit your answer.", hand, false, stage.AltarTargets[1]);
     }
@@ -189,15 +191,16 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
     {
         if (!IsActive || CurrentStep != ProofsTutorialStep.Reader) return;
         stage.ReaderPanel.SetActive(false);
-        ShowStep(ProofsTutorialStep.ReadScroll, "Interact with the practice scroll to read it again, then choose Carry Scroll.", hand, false, practiceStand.transform);
+        ui.RefreshReader();
+        ShowStep(ProofsTutorialStep.ReadScroll, "Interact with the practice scroll to read it again, then choose Get This Scroll.", hand, false, practiceStand.transform);
     }
     public void PlacePracticeScroll(int altar)
     {
         if (!IsActive || !PracticeCarried || altar != 1 || !Readable || CurrentStep != ProofsTutorialStep.Place && CurrentStep != ProofsTutorialStep.Replace) return;
         bool replacing = CurrentStep == ProofsTutorialStep.Replace;
         PracticeCarried = false; PracticePlacement = altar;
-        practiceScroll.transform.SetPositionAndRotation(stage.AltarTargets[altar].position + Vector3.up * 1.74f, Quaternion.Euler(0, 90, 0));
-        practiceScroll.transform.localScale = Vector3.one * 4; practiceScroll.SetActive(true);
+        practiceScroll.transform.SetPositionAndRotation(stage.AltarTargets[altar].TransformPoint(new Vector3(0, 1.74f, 0)), Quaternion.Euler(0, 90, 0));
+        practiceScroll.transform.localScale = stage.AltarTargets[altar].lossyScale * 4; practiceScroll.SetActive(true);
         if (replacing)
         {
             Focus(stage.BookTarget, Vector3.forward);
@@ -264,6 +267,7 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
         if (stage != null)
         {
             if (stage.ReaderPanel != null) stage.ReaderPanel.SetActive(false);
+            ui?.RefreshReader();
             if (stage.TakeBackPanel != null) stage.TakeBackPanel.SetActive(false);
         }
         if (ui != null && ui.BoardView != null) ui.BoardView.readingArea = new Rect(.05f, .16f, .9f, .78f);

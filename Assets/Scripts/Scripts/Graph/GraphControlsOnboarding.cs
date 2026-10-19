@@ -355,8 +355,8 @@ namespace LogicLegends.Graph
             PracticeGraph = CreatePracticeGraph(GraphChallengeType.Path);
             stage.ui.RebuildMap(PracticeGraph);
             SetGuidedStep(GraphTutorialStep.Book,
-                "Interact with this book statue to start each challenge. Try the hand or INTERACT button. This is practice only.",
-                null, false, "Confirm");
+                "Interact with this book statue to start each challenge. Tap the hand button. This is practice only.",
+                hand, false);
             SetWorldTargets(stage.bookStatue.GetComponentsInChildren<Renderer>());
             hand.gameObject.SetActive(true);
         }
@@ -433,7 +433,7 @@ namespace LogicLegends.Graph
             if (!IsActive || CurrentStep != GraphTutorialStep.Book || !stage.NearBook || acceptedInteractionFrame == Time.frameCount) return;
             acceptedInteractionFrame = Time.frameCount;
             SetGuidedStep(GraphTutorialStep.Minimap,
-                "Use this minimap to navigate the stage and locate important areas. Points are platforms; lines are bridges.",
+                "Use this minimap to navigate the stage and locate important areas. Points are platforms; lines are bridges. Tap the minimap for a larger view, then Close to return.",
                 stage.ui.TutorialTarget("Graph minimap"), true, "Graph minimap");
         }
 

@@ -14,9 +14,10 @@ namespace LogicLegends.Trees
         TreeStageManager stage;
         TMP_Text objective,objectiveProgress,objectiveTitle,feedback,clock,selection,lessonBody;
         RectTransform diagram,owned,actions,numberRow,settingsButton;
+        RectTransform compactMap, mapTimer, feedbackCard;
         readonly Vector3[] settingsCorners=new Vector3[4];
         GameObject lesson,result;
-        Button book,connect,remove,clear,guide;
+        Button connect,remove,clear,guide;
         readonly Dictionary<string,Button> nodes=new Dictionary<string,Button>();
         RectTransform focusOverlay, focusTargets, focusNumbers, focusObjectiveCard, focusFeedbackCard, focusTimerCard, focusEdgeControls, focusActionBar;
         TMP_Text focusObjective, focusProgress, focusTitle, focusFeedback, focusClock, focusSelection, focusFeedbackHeading;
@@ -37,15 +38,16 @@ namespace LogicLegends.Trees
             objectiveTitle=Text(info,"Challenge title",new Vector2(.09f,.60f),new Vector2(.91f,.79f),28);
             objective=Text(info,"Objective",new Vector2(.09f,.12f),new Vector2(.91f,.56f),26,true);
             objectiveProgress.alignment=objectiveTitle.alignment=objective.alignment=TextAlignmentOptions.TopLeft;
-            var feed=Panel("Feedback",owned,new Vector2(0,1),new Vector2(225,-495),new Vector2(410,135));
+            var feed=Panel("Feedback",owned,new Vector2(0,1),new Vector2(225,-495),new Vector2(410,135));feedbackCard=feed;
             feedback=Text(feed,"Feedback",new Vector2(.09f,.12f),new Vector2(.91f,.88f),24,true);
-            var map=Panel("Tree minimap",owned,new Vector2(1,1),new Vector2(-185,-180),new Vector2(330,320),hudMap);
-            var caption=Text(map,"Diagram title",new Vector2(.15f,.84f),new Vector2(.85f,.94f),24);caption.text="TREE STRUCTURE";
+            var mapDock=StageUITheme.Rect("Tree map safe area",owned);StageUITheme.Stretch(mapDock,Vector2.zero,Vector2.one);mapDock.gameObject.AddComponent<Crystal.SafeArea>();
+            var map=Panel("Tree minimap",mapDock,new Vector2(1,1),new Vector2(-185,-180),new Vector2(330,320),hudMap);compactMap=map;
+            map.localScale=Vector3.one*.86f; ExpandableMinimap.Attach(map);
+            var caption=Text(map,"Diagram title",new Vector2(.15f,.84f),new Vector2(.85f,.94f),24);caption.text=TrialCatalog.ForScene("Trees").Title;
             diagram=StageUITheme.Rect("Editable diagram",map);StageUITheme.Stretch(diagram,new Vector2(.13f,.13f),new Vector2(.87f,.82f));
-            var time=Panel("Shared countdown",owned,new Vector2(1,1),new Vector2(-185,-385),new Vector2(330,85));
+            var time=Panel("Shared countdown",mapDock,new Vector2(1,1),new Vector2(-185,-385),new Vector2(330,85));mapTimer=time;
             clock=Text(time,"Timer",new Vector2(.1f,.1f),new Vector2(.9f,.9f),32);
             actions=StageUITheme.Rect("Tree actions",owned);Place(actions,new Vector2(.5f,0),new Vector2(0,125),new Vector2(780,175));
-            book=Action("Book interaction",actions,"ACTIVATE BOOK",Vector2.zero,new Vector2(280,88),stage.InteractBook);
             selection=Text(actions,"Selected endpoints",new Vector2(0,.02f),new Vector2(1,.25f),24,true);
             Place(selection.rectTransform,new Vector2(.5f,.5f),new Vector2(0,-75),new Vector2(780,40));
             connect=Action("Connect",actions,"CONNECT",new Vector2(-250,-22),new Vector2(235,65),()=>stage.Edit(false));
@@ -180,6 +182,22 @@ namespace LogicLegends.Trees
                     guide.GetComponent<RectTransform>().anchoredPosition=new Vector2(topRight.x-host.rect.xMin+16+140,(topRight.y+bottomRight.y)*.5f-host.rect.yMax);
                 }
             }
+            if(compactMap!=null&&!compactMap.GetComponent<ExpandableMinimap>().IsOpen)
+            {
+                // Fit the narrow screen in pixels, keeping the map clear of the guide.
+                bool portrait=Screen.height>Screen.width;
+                float scale=portrait?Mathf.Min(.86f,Screen.width*.24f/(330*compactMap.parent.lossyScale.x)):.86f;
+                compactMap.localScale=Vector3.one*scale;compactMap.anchorMin=compactMap.anchorMax=compactMap.pivot=Vector2.one;
+                compactMap.anchoredPosition=new Vector2(-24,-24);
+                if(portrait)
+                {
+                    guide.GetComponent<RectTransform>().GetWorldCorners(settingsCorners);
+                    compactMap.position=new Vector3(compactMap.position.x,Mathf.Min(compactMap.position.y,settingsCorners[0].y-12),compactMap.position.z);
+                }
+                compactMap.GetWorldCorners(settingsCorners);
+                mapTimer.anchorMin=mapTimer.anchorMax=mapTimer.pivot=Vector2.one;mapTimer.localScale=Vector3.one*scale;
+                mapTimer.position=settingsCorners[3]-Vector3.up*12;
+            }
             if(stage==null||!stage.BoardOpen||stage.boardFocus==null||stage.boardFocus.outputCamera==null)return;
             var camera=stage.boardFocus.outputCamera;
             foreach(var node in stage.board.Nodes)
@@ -204,15 +222,15 @@ namespace LogicLegends.Trees
             objectiveTitle.text=stage.Challenge.title.ToUpperInvariant();objective.text=stage.Challenge.objective;
             feedback.text=stage.Feedback;
             int seconds=Mathf.CeilToInt(stage.timer.Remaining);clock.text=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
-            book.GetComponentInChildren<TMP_Text>().text="OPEN TREE BOARD";
             bool active=stage.CanSolve;
-            book.interactable=stage.CanAct&&!stage.BoardOpen&&stage.NearBook&&(stage.State==TreeStageState.ACTIVE||stage.State==TreeStageState.WAITING_FOR_ACTIVATION);
             connect.gameObject.SetActive(false);remove.gameObject.SetActive(false);clear.gameObject.SetActive(false);
             connect.interactable=remove.interactable=clear.interactable=active;
             numberRow.gameObject.SetActive(false);
             foreach(var button in numberRow.GetComponentsInChildren<Button>())button.interactable=active;
             string selected=stage.Answer.HasValue?"Number selected: "+stage.Answer:string.IsNullOrEmpty(stage.board.First)?"Tap a node on the board.":"Selected: "+stage.board.First+(string.IsNullOrEmpty(stage.board.Second)?"":" to "+stage.board.Second);
-            selection.text="Use the Book Statue to open the interactive board.";selection.color=StageUITheme.Ink;
+            selection.text="Use the hand button near the Book Statue to open the interactive board.";selection.color=StageUITheme.Ink;
+            bool bookPrompt=stage.NearBook&&!stage.BoardOpen&&(stage.State==TreeStageState.WAITING_FOR_ACTIVATION||stage.State==TreeStageState.ACTIVE);
+            feedbackCard.gameObject.SetActive(!bookPrompt);selection.gameObject.SetActive(!bookPrompt);
             foreach(var entry in nodes){entry.Value.interactable=false;entry.Value.GetComponentInChildren<TMP_Text>().color=entry.Key==stage.board.First||entry.Key==stage.board.Second?StageUITheme.Gold:StageUITheme.Ink;}
             guide.interactable=stage.Ready&&!stage.Moving&&(stage.State==TreeStageState.ACTIVE||stage.State==TreeStageState.WAITING_FOR_ACTIVATION);
             focusProgress.text=objectiveProgress.text;focusTitle.text=objectiveTitle.text;focusObjective.text=objective.text;
@@ -244,7 +262,7 @@ namespace LogicLegends.Trees
             {var page=StageUITheme.Rect(left?"Left page":"Right page",cover);StageUITheme.Stretch(page,new Vector2(left?.055f:.515f,.18f),new Vector2(left?.485f:.945f,.9f));var paper=page.gameObject.AddComponent<Image>();paper.sprite=Resources.LoadAll<Sprite>("StageUI/ReadingPaper")[0];paper.type=Image.Type.Sliced;paper.pixelsPerUnitMultiplier=2;paper.raycastTarget=false;}
             var title=Text(cover,"Lesson heading",new Vector2(.09f,.75f),new Vector2(.45f,.85f),40);title.color=StageUITheme.ReadingInk;title.text="TREES FIELD GUIDE";
             lessonBody=Text(cover,"Lesson body",new Vector2(.09f,.25f),new Vector2(.45f,.73f),31,true);lessonBody.color=StageUITheme.ReadingInk;lessonBody.alignment=TextAlignmentOptions.TopLeft;
-            var notes=Text(cover,"Tree conventions",new Vector2(.55f,.27f),new Vector2(.91f,.82f),31,true);notes.color=StageUITheme.ReadingInk;notes.alignment=TextAlignmentOptions.TopLeft;notes.text="TREE CHECKLIST\n\nRoot: no parent\nLeaf: no children\nEach other node: one parent\n\nDepth and height count edges.\nRoot depth and level: 0\n\nSpanning tree: connected, no cycles, <nobr>V - 1</nobr> edges.\n\nWrong confirmation: -10 seconds. Your connections are kept.";
+            var notes=Text(cover,"Tree conventions",new Vector2(.55f,.27f),new Vector2(.91f,.82f),31,true);notes.color=StageUITheme.ReadingInk;notes.alignment=TextAlignmentOptions.TopLeft;notes.text="TREE CHECKLIST\n\nRoot: no parent\nLeaf: no children\nEach other node: one parent\n\nDepth and height count edges.\nRoot depth and level: 0\n\nSpanning tree: connected, no cycles, <nobr>V - 1</nobr> edges.\n\nTap the minimap for a full view; Close restores it.\n\nWrong confirmation: -10 seconds. Your connections are kept.";
             Action("Close lesson",cover,"RETURN TO GARDEN",new Vector2(0,-335),new Vector2(380,70),()=>stage.SetLesson(false));lesson=overlay.gameObject;lesson.SetActive(false);
         }
         public void ShowLesson(bool open){lessonBody.text=stage.Challenge.lesson;lesson.GetComponentsInChildren<Button>(true)[0].GetComponentInChildren<TMP_Text>().text=stage.BoardOpen?"BACK TO BOARD":"RETURN TO GARDEN";lesson.SetActive(open);RefreshVisibility();}

@@ -43,6 +43,11 @@ public class GrabbableObject : MonoBehaviourPun
 
     private void HandleHUDVisibility()
     {
+        // Truth Table uses the hand-only bubble; never expose its old pickup HUD through a wall.
+        if (TryGetComponent<TruthBlock>(out var truthElement) && truthElement.UsesHandBubble)
+        { if(interactionHUD!=null)interactionHUD.SetActive(false);return; }
+        if(gameObject.scene.name=="RulesOfInference"&&GetComponent<LogicLegends.Inference.InferenceCrystal>()!=null)
+        {if(interactionHUD!=null)interactionHUD.SetActive(false);return;}
         // Don't show the prompt if this block is already held or stored in the inventory
         if (isHeld || isStoredInInventory)
         {
@@ -82,6 +87,7 @@ public class GrabbableObject : MonoBehaviourPun
 
     public void Grab(Transform holdPoint)
     {
+        if (TryGetComponent<TruthBlock>(out var element) && !element.CanCollectNow) return;
         if (isStoredInInventory) return; // Ignore grabs if securely stored in inventory UI
 
         // --- FIX: Ensure current item is handled/stored before grabbing new one ---

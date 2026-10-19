@@ -19,7 +19,7 @@ public static class BookIndicatorAnimationChecks
     public static void Begin()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Exit Play Mode first.");
-        if (!EditorSceneManager.SaveOpenScenes()) return;
+        if (SceneManager.GetActiveScene().isDirty) throw new InvalidOperationException("Save scene changes first.");
         var paths = new List<string>();
         for (int i = 0; i < SceneManager.sceneCount; i++) paths.Add(SceneManager.GetSceneAt(i).path);
         SessionState.SetString("Books.IndicatorQA.Paths", string.Join("|", paths));
@@ -111,6 +111,7 @@ public static class BookIndicatorAnimationChecks
 
     static IEnumerator Run()
     {
+        Application.runInBackground = true;
         Time.timeScale = 1;
         var books = UnityEngine.Object.FindObjectsByType<BookStatuePresentation>(FindObjectsSortMode.None);
         foreach (var book in books)
@@ -133,11 +134,11 @@ public static class BookIndicatorAnimationChecks
             {
                 var book = books[i]; var glyph = book.Indicator; var anchor = book.IndicatorAnchor;
                 string label = book.name;
-                Check(glyph.gameObject.activeInHierarchy && glyph.GetComponent<Renderer>().enabled && glyph.text == "!", label + ": marker stays visible");
+                Check(glyph.gameObject.activeInHierarchy && glyph.enabled && book.Bubble.gameObject.activeInHierarchy && glyph.text == "!", label + ": marker stays visible");
                 Check(anchor.parent == book.transform && !anchor.IsChildOf(book.transform.Find("Page rig")), label + ": stable root parent");
                 Check(Vector3.Distance(anchor.localPosition, anchors[i]) < .00001f, label + ": anchor never follows page bounds");
-                Check(Vector3.Distance(glyph.transform.lossyScale, Vector3.one * 1.1f) < .01f, label + ": twice the previous world scale");
-                Vector3 difference = glyph.transform.position - anchor.position;
+                Check(Mathf.Abs(book.Bubble.rect.width - 105f) < .01f && Mathf.Abs(book.Bubble.rect.height - 110f) < .01f, label + ": compact circular thought bubble");
+                Vector3 difference = book.Bubble.position - anchor.position;
                 Check(Mathf.Abs(difference.x) < .001f && Mathf.Abs(difference.z) < .001f && difference.y >= -.001f,
                     label + ": only the intended vertical bob moves the marker");
                 low[i] = Mathf.Min(low[i], difference.y); high[i] = Mathf.Max(high[i], difference.y);
@@ -159,8 +160,8 @@ public static class BookIndicatorAnimationChecks
             Check(high[i] - low[i] <= .321f, book.name + ": no page-driven vertical jumps above the label-safe height (span=" + (high[i] - low[i]) + ")");
             book.SetRequired(false); Check(!book.Indicator.gameObject.activeSelf, book.name + ": hide after activation");
             book.SetRequired(true); Check(book.Indicator.gameObject.activeSelf, book.name + ": show when needed again");
-            Check(book.GetComponentsInChildren<TextMeshPro>().Count(t => t.name == "Book Interaction Indicator") == 1, book.name + ": one marker");
-            File.AppendAllText(Report, "PASS " + book.name + ": three flips; stable anchor; 2x size; bob; visibility toggles; inflated page bounds=" + unstablePageBounds[i] + "\n");
+            Check(book.GetComponentsInChildren<TMP_Text>(true).Count(t => t.name == "Book Interaction Indicator") == 1, book.name + ": one marker");
+            File.AppendAllText(Report, "PASS " + book.name + ": three flips; stable anchor; white thought bubble; bob; visibility toggles; inflated page bounds=" + unstablePageBounds[i] + "\n");
         }
         File.AppendAllText(Report, "ALL REPEATED PAGE FLIP CHECKS PASSED\n");
     }

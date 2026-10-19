@@ -8,25 +8,32 @@ namespace LogicLegends.Inference
     {
         public static InferenceCrystalInteraction Active { get; private set; }
         public InferenceChallenge Challenge { get; private set; }
-        public Button CollectButton { get; private set; }
         public InferenceCrystal AvailableCrystal { get; private set; }
         [Min(.5f)] public float interactionRange = 2.4f;
+        [Min(.5f)] public float detectionRange = 8f;
         public void Initialize(InferenceChallenge owner) { Challenge = owner; Active = this; }
         void Update()
         {
-            if (CollectButton == null)
-            {
-                var canvas = GameObject.Find("Canvas 1"); var safe = canvas != null ? canvas.transform.Find("SafeArea") : null;
-                if (safe == null) return;
-                CollectButton = StageUITheme.Button("CollectRuleCrystalButton", safe, "Collect Rule Crystal", Collect);
-                var rect = (RectTransform)CollectButton.transform;
-                rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f, 0f);
-                rect.anchoredPosition = new Vector2(0f, 330f); rect.sizeDelta = new Vector2(390f, 88f);
-            }
             AvailableCrystal = FindAvailable();
-            var tutorial = InferenceControlsOnboarding.Active;
-            bool practice = tutorial != null && tutorial.IsCrystalPractice && GameInput.Instance != null && !GameInput.Instance.GameplayInputBlocked;
-            CollectButton.gameObject.SetActive(practice || AvailableCrystal != null);
+        }
+        public bool CanShowBubble(InferenceCrystal crystal)
+        {
+            if(!CanUse()||Player.LocalInstance.GetHeldObject()!=null||crystal==null||crystal.IsPlaced||crystal.IsRecovering||
+                crystal.QuestionId!=Challenge.Question?.Id)return false;
+            var grab=crystal.GetComponent<GrabbableObject>();var collider=crystal.GetComponent<SphereCollider>();
+            return crystal.gameObject.activeInHierarchy&&!grab.IsHeld&&!grab.isStoredInInventory&&collider!=null&&collider.enabled;
+        }
+        public bool IsWithinRange(InferenceCrystal crystal)
+        {return DistanceTo(crystal)<=interactionRange;}
+        public bool IsWithinDetectionRange(InferenceCrystal crystal)
+        {return DistanceTo(crystal)<=Mathf.Max(detectionRange,interactionRange);}
+        float DistanceTo(InferenceCrystal crystal)
+        {
+            if(crystal==null||Player.LocalInstance==null)return float.PositiveInfinity;
+            var player=Player.LocalInstance;var controller=player.GetComponent<CharacterController>();
+            var point=controller!=null&&controller.enabled?controller.bounds.center:player.transform.position+Vector3.up;
+            var collider=crystal.GetComponent<SphereCollider>();
+            return collider!=null&&collider.enabled?Vector3.Distance(point,collider.ClosestPoint(point)):float.PositiveInfinity;
         }
         bool CanUse()
         {
@@ -43,20 +50,13 @@ namespace LogicLegends.Inference
             InferenceCrystal best = null; float distance = interactionRange;
             foreach (var crystal in Challenge.Crystals)
             {
-                if (crystal == null || !crystal.gameObject.activeInHierarchy || crystal.IsPlaced || crystal.QuestionId != Challenge.Question?.Id) continue;
+                if (crystal == null || !crystal.gameObject.activeInHierarchy || crystal.IsPlaced || crystal.IsRecovering || crystal.QuestionId != Challenge.Question?.Id) continue;
                 var grab = crystal.GetComponent<GrabbableObject>(); var collider = crystal.GetComponent<SphereCollider>();
                 if (grab.IsHeld || grab.isStoredInInventory || collider == null || !collider.enabled) continue;
                 float current = Vector3.Distance(point, collider.ClosestPoint(point));
                 if (current <= distance) { distance = current; best = crystal; }
             }
             return best;
-        }
-        void Collect()
-        {
-            var tutorial = InferenceControlsOnboarding.Active;
-            if (tutorial != null && tutorial.IsCrystalPractice) { tutorial.TryPracticeInteraction(); return; }
-            if (Player.LocalInstance == null || Player.LocalInstance.GetHeldObject() != null) return;
-            TryHandleInteraction();
         }
         public bool TryHandleInteraction()
         {
@@ -68,25 +68,29 @@ namespace LogicLegends.Inference
             }
             var crystal = FindAvailable();
             if (crystal == null) return false;
+            if(crystal.PickupQuizCompleted)
+            {
+                CollectAfterQuiz(crystal,false);
+                return true;
+            }
             var quiz = Challenge.GetComponent<InferenceCrystalQuiz>();
             if (quiz == null) return false;
-            // Both pickup inputs reach this gate; no inventory mutation happens before answering.
-            if (!quiz.Open(() => CollectAfterQuiz(crystal))) return true;
-            AvailableCrystal = null; if (CollectButton != null) CollectButton.gameObject.SetActive(false);
+            // Only a crystal's first successful collection needs a quiz this challenge.
+            if (!quiz.Open(() => CollectAfterQuiz(crystal,true))) return true;
+            AvailableCrystal = null;
             return true;
         }
-        void CollectAfterQuiz(InferenceCrystal crystal)
+        void CollectAfterQuiz(InferenceCrystal crystal,bool completedQuiz)
         {
             if (!CanUse() || crystal == null || crystal.IsPlaced || crystal.QuestionId != Challenge.Question?.Id) return;
             var player = Player.LocalInstance;
             var grab = crystal.GetComponent<GrabbableObject>();
             if (player.GetHeldObject() != null || grab.IsHeld || grab.isStoredInInventory) return;
             grab.Grab(player.GetHoldPoint()); player.SetHeldObjectSilently(grab);
+            if(completedQuiz&&grab.IsHeld)crystal.MarkPickupQuizCompleted();
             AvailableCrystal = null;
-            if (CollectButton != null) CollectButton.gameObject.SetActive(false);
         }
-        void OnDisable() { if (Active == this) Active = null; if (CollectButton != null) CollectButton.gameObject.SetActive(false); }
+        void OnDisable() { if (Active == this) Active = null; }
         void OnEnable() { if (Challenge != null) Active = this; }
-        void OnDestroy() { if (CollectButton != null) Destroy(CollectButton.gameObject); }
     }
 }

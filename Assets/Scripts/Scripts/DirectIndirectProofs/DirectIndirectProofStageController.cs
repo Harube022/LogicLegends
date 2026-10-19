@@ -135,6 +135,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         }
         for (int i = 0; i < placedTabletIds.Length; i++) placedTabletIds[i] = -1;
         secondsLeft = startingSeconds;
+        BuildQuestionSchedule();
         state = TrialState.WaitingForActivation;
         readerPanel.SetActive(false);
         resultsPanel.SetActive(false);
@@ -150,18 +151,27 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
     private void Start()
     {
         if (!enabled) return;
+        var trialHud=StageUITheme.Rect("CurrentStageHud",timerText.transform.parent);
+        StageUITheme.CompactSurface(trialHud.gameObject.AddComponent<Image>());
+        trialHud.GetComponent<Image>().raycastTarget=false;
+        var trialTitle=StageUITheme.Text("CurrentStageLabel",trialHud,TrialCatalog.ForScene("Direct&Indirect").Title,26);
+        timerText.transform.SetParent(trialHud,false);progressText.transform.SetParent(trialHud,false);
+        PrelimUIPresentation.CompactHud(trialHud,(RectTransform)trialHud.parent,trialTitle,timerText,progressText);
         selectTabletButton.onClick.AddListener(SelectReadTablet);
         closeReaderButton.onClick.AddListener(CloseReader);
         retryButton.onClick.AddListener(RetryStage);
         menuButton.onClick.AddListener(ReturnToMenu);
         altarBoard = timerText.GetComponentInParent<Canvas>().GetComponent<ProofAltarOrderingBoard>();
         if (altarBoard == null) Debug.LogError("Proof Altar Ordering Board is missing from the HUD.", this);
+        Guide = gameObject.AddComponent<DirectProofsGuide>();
+        Guide.Initialize(this, trialHud);
     }
 
     private void OnEnable() { BindInput(); }
 
     private void OnDisable()
     {
+        Guide?.Cancel();
         BookStatuePresentation.SetRequired(bookStatue, false);
         RestoreBookMaterials();
         if (input != null) input.OnInteractAction -= OnInteract;
@@ -171,6 +181,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     private void BindInput()
     {
+        BookStatuePresentation.BindHand(bookStatue, () => isActiveAndEnabled && !GuidanceBlocksGameplay && !IsReaderOpen && player != null && player.enabled && (state == TrialState.WaitingForActivation || state == TrialState.Active) && NearestTarget() == 0, () => OnInteract(this, EventArgs.Empty));
         GameInput current = GameInput.Instance != null ? GameInput.Instance : FindFirstObjectByType<GameInput>();
         if (current == input) return;
         if (input != null) input.OnInteractAction -= OnInteract;
@@ -180,10 +191,10 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     private void Update()
     {
-        BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && state == TrialState.WaitingForActivation);
+        BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && !GuidanceBlocksGameplay && state == TrialState.WaitingForActivation);
         if (input == null) BindInput();
         if (player == null) player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
-        if (timerRunning)
+        if (timerRunning && !GuidanceBlocksGameplay)
         {
             float elapsed = Time.deltaTime;
             activeSeconds += elapsed;
@@ -191,9 +202,10 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
             if (secondsLeft <= 0f) Finish(false);
         }
         RefreshTimer();
+        if (GuidanceBlocksGameplay) return;
         if (state == TrialState.StageComplete || state == TrialState.GameOver || IsReaderOpen) return;
 
-        progressText.text = "CHALLENGE " + ChallengeNumber + " / 5";
+        RefreshQuestionCounter();
         if (state == TrialState.ChallengeComplete)
         {
             promptText.text = "Proof accepted. The timer is paused.";
@@ -207,7 +219,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         int target = NearestTarget();
         if (target == 0) promptText.text = state == TrialState.Active ?
             "INTERACT • Confirm proof at the Book Statue" :
-            "INTERACT • Activate the Book Statue";
+            BookStatuePresentation.HandPromptText;
         else if (target == 1) promptText.text = "INTERACT • Read the full problem";
         else if (target == 42) promptText.text = "INTERACT • Arrange the proof at the trial altar";
         else if (target == 40 || target == 41) promptText.text = challengeIndex == 0 ?
@@ -268,6 +280,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     private void OnInteract(object sender, EventArgs args)
     {
+        if (GuidanceBlocksGameplay || input != null && input.GameplayInputBlocked) return;
         if (IsReaderOpen || state == TrialState.Validating || state == TrialState.ChallengeComplete ||
             state == TrialState.StageComplete || state == TrialState.GameOver) return;
         int target = NearestTarget();
@@ -286,8 +299,8 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void ActivateChallenge()
     {
-        if (state != TrialState.WaitingForActivation) return;
-        activeVariantIndex = UnityEngine.Random.Range(0, catalog.variantSets[challengeIndex].variants.Length);
+        if (state != TrialState.WaitingForActivation || GuidanceBlocksGameplay) return;
+        activeVariantIndex = selectedVariants[challengeIndex, questionIndex];
         activeChallenge = catalog.variantSets[challengeIndex].variants[activeVariantIndex];
         adminSelectedVariants[challengeIndex] = activeVariantIndex;
         TrialProofChallenge challenge = Current;
@@ -300,7 +313,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         indirectChoiceGlow.SetActive(false);
         bookErrorGlow.SetActive(false);
         for (int i = 0; i < placedTabletIds.Length; i++) placedTabletIds[i] = -1;
-        boardText.text = "CHALLENGE " + ChallengeNumber + "\n" + challenge.title + "\n\n" + challenge.problem;
+        boardText.text = "CHALLENGE " + ChallengeNumber + " · QUESTION " + QuestionNumber + " OF 2\n" + challenge.title + "\n\n" + challenge.problem;
         UpdateAltarLayout();
         neutralTabletText.text = challengeIndex >= 3 ? ProofGoal(challenge.problem) : "";
         if (challengeIndex >= 1)
@@ -326,7 +339,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void InteractAltar(bool direct)
     {
-        if (state != TrialState.Active || challengeIndex > 2) return;
+        if (GuidanceBlocksGameplay || state != TrialState.Active || challengeIndex > 2) return;
         if (challengeIndex == 0)
         {
             // The player chooses a proof family; contrapositive and contradiction are indirect.
@@ -348,7 +361,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void InteractNeutralAltar()
     {
-        if (state != TrialState.Active || challengeIndex < 3 || altarBoard == null) return;
+        if (GuidanceBlocksGameplay || state != TrialState.Active || challengeIndex < 3 || altarBoard == null) return;
         altarBoardOpened = true;
         altarBoard.Show(this, Current, placedTabletIds, true);
         SetGameplayEnabled(false);
@@ -364,7 +377,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void SelectMethod(int method)
     {
-        if (state != TrialState.Active || Current.kind == TrialProofKind.ArrangeSteps || method < 0 || method > 2) return;
+        if (GuidanceBlocksGameplay || state != TrialState.Active || Current.kind == TrialProofKind.ArrangeSteps || method < 0 || method > 2) return;
         selectedMethod = method;
         RefreshStationVisuals();
         RefreshSelection();
@@ -387,12 +400,12 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void DebugClearCurrentChallenge()
     {
-        if (CanDebugClearChallenge) CompleteChallenge();
+        if (!GuidanceBlocksGameplay && CanDebugClearChallenge) CompleteChallenge();
     }
 
     public void ReadTablet(int sourceIndex)
     {
-        if (state != TrialState.Active || sourceIndex < 0 || sourceIndex >= sourceTablets.Length ||
+        if (GuidanceBlocksGameplay || state != TrialState.Active || sourceIndex < 0 || sourceIndex >= sourceTablets.Length ||
             !sourceTablets[sourceIndex].gameObject.activeInHierarchy ||
             !sourceTablets[sourceIndex].InteractionEnabled) return;
         readingSource = sourceIndex;
@@ -407,17 +420,20 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void OpenProblem()
     {
-        if (state != TrialState.Active) return;
+        if (GuidanceBlocksGameplay || state != TrialState.Active) return;
         readingSource = -1;
-        readerTitle.text = "CHALLENGE " + ChallengeNumber + ": " + Current.title;
+        readerTitle.text = "CHALLENGE " + ChallengeNumber + " · QUESTION " + QuestionNumber + " OF 2\n" + Current.title;
         readerBody.text = Current.problem;
         selectTabletButton.gameObject.SetActive(false);
         readerPanel.SetActive(true);
+        Canvas.ForceUpdateCanvases();
+        var problemScroll = readerPanel.GetComponent<ScrollRect>(); if (problemScroll != null) problemScroll.verticalNormalizedPosition = 1;
         SetGameplayEnabled(false);
     }
 
     public void SelectReadTablet()
     {
+        if (GuidanceBlocksGameplay) return;
         if (readingSource < 0 || readingSource >= sourceTablets.Length) return;
         if (selectedSource >= 0) sourceTablets[selectedSource].SetSelected(false);
         selectedSource = readingSource;
@@ -436,7 +452,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void PlaceOrRemove(int slot)
     {
-        if (state != TrialState.Active || slot < 0 || slot >= Current.tablets.Length ||
+        if (GuidanceBlocksGameplay || state != TrialState.Active || slot < 0 || slot >= Current.tablets.Length ||
             !stepSlots[slot].gameObject.activeInHierarchy) return;
         if (selectedSource >= 0)
         {
@@ -472,7 +488,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void SubmitProof()
     {
-        if (state != TrialState.Active) return;
+        if (GuidanceBlocksGameplay || state != TrialState.Active) return;
         if (challengeIndex == 0 && selectedMethod < 0)
         { promptText.text = "Choose the Direct or Indirect Proof altar first."; return; }
         if (challengeIndex >= 1 && (!altarBoardOpened || !stepsReordered))
@@ -537,7 +553,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
             (selectedMethod == (int)TrialProofMethod.Direct ? directChoiceGlow : indirectChoiceGlow)
                 .GetComponent<Renderer>().sharedMaterial = choiceGreen;
         Play(correctSound);
-        boardText.text = "CHALLENGE " + ChallengeNumber + " COMPLETE\n" + Current.title +
+        boardText.text = "CHALLENGE " + ChallengeNumber + " · QUESTION " + QuestionNumber + " COMPLETE\n" + Current.title +
             "\n\n" + Current.explanation + "\n\nThe timer is paused.";
         StartCoroutine(AdvanceChallenge());
     }
@@ -550,7 +566,8 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         directChoiceGlow.SetActive(false);
         indirectChoiceGlow.SetActive(false);
         bookErrorGlow.SetActive(false);
-        challengeIndex++;
+        questionIndex++;
+        if (questionIndex >= QuestionsPerChallenge) { questionIndex = 0; challengeIndex++; }
         activeChallenge = null;
         activeVariantIndex = -1;
         if (challengeIndex >= catalog.challenges.Length) Finish(true);
@@ -564,9 +581,9 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     private void ShowReadyMessage()
     {
-        boardText.text = "";
+        boardText.text = "CHALLENGE " + ChallengeNumber + " · QUESTION " + QuestionNumber + " OF 2\n\nUse the hand at the Book Statue to start. Read the problem, choose or arrange the proof at the active altar, then confirm at the book. The shared timer is paused.";
         neutralTabletText.text = "";
-        progressText.text = "CHALLENGE " + ChallengeNumber + " / 5";
+        RefreshQuestionCounter();
         selectionText.text = "Timer paused • Activate the Book Statue";
     }
 
@@ -696,6 +713,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         RestoreBookMaterials();
         timerRunning = false;
         state = won ? TrialState.StageComplete : TrialState.GameOver;
+        Guide?.Cancel();
         readerPanel.SetActive(false);
         if (altarBoard != null) altarBoard.ForceClose();
         HideStations();
@@ -706,7 +724,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         resultsText.text = won ? string.Format(
             "DIRECT AND INDIRECT PROOFS STAGE COMPLETE!\nTime Played: {0:00}:{1:00}\nCorrect: {2}\nMistakes: {3}",
             played / 60, played % 60, correctCount, mistakeCount) :
-            "TIME'S UP\nChallenges completed: " + correctCount + "/5\nMistakes: " + mistakeCount;
+            "TIME'S UP\nQuestions completed: " + correctCount + "/10\nChallenges completed: " + Mathf.Min(challengeIndex, 5) + "/5\nMistakes: " + mistakeCount;
         resultsPanel.SetActive(true);
         if (!won) return;
 #if UNITY_EDITOR
@@ -717,6 +735,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void RetryStage()
     {
+        Guide?.Cancel();
         if (input != null) input.SetGameplayInputBlocked(false);
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -724,6 +743,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void ReturnToMenu()
     {
+        Guide?.Cancel();
         if (input != null) input.SetGameplayInputBlocked(false);
         Time.timeScale = 1f;
         SceneManager.LoadScene("Main Menu");

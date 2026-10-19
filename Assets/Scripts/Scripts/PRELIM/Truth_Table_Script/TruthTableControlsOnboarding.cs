@@ -11,7 +11,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     private enum Step
     {
         Movement, Jump, Interaction, Book, Timer, Minimap, Progress,
-        BoardSlots, BoardSubmit, House, Door, DoorQuiz, DoorOpened, Confirm
+        BoardSlots, BoardSubmit, House, Door, DoorQuiz, DoorQuizFeedback, DoorOpened, Blocks, Confirm
     }
 
     [SerializeField, Range(0.15f, 0.8f)] private float joystickDeadZone = 0.3f;
@@ -29,7 +29,8 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     public bool AllowsJump => IsActive && step == Step.Jump;
     public bool SuppressMovement => IsActive && step >= Step.Book;
     public bool IsDemonstratingBook => IsActive && step == Step.Book;
-    public bool WantsDedicatedInteractionPrompt => IsActive && (step == Step.Book || step == Step.Door);
+    public bool WantsDedicatedInteractionPrompt => false;
+    public bool IsPracticeQuizOpen => IsActive && (step == Step.DoorQuiz || step == Step.DoorQuizFeedback);
 
     private Step step;
     private TruthTableStageClock clock;
@@ -61,6 +62,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     private RectTransform practiceQuizTitle;
     private TextMeshProUGUI practiceQuizFeedback;
     private Button[] practiceAnswerButtons;
+    private Button practiceQuizContinue;
     private RectTransform[] practiceOptionRects;
     private GameObject confirmation;
     private RectTransform confirmationCard;
@@ -284,12 +286,12 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         cardImage.color = new Color(0.06f, 0.16f, 0.22f, 0.98f);
         TextMeshProUGUI title = MakeText("Practice Quiz Title", practiceQuizCard, 46f);
         practiceQuizTitle = title.rectTransform;
-        title.text = "Practice Door Quiz";
+        title.text = "Practice: If P is True, what is ~P?";
         title.rectTransform.anchorMin = title.rectTransform.anchorMax = new Vector2(0.5f, 1f);
         title.rectTransform.anchoredPosition = new Vector2(0f, -62f);
         title.rectTransform.sizeDelta = new Vector2(760f, 84f);
         practiceQuizFeedback = MakeText("Practice Quiz Prompt", practiceQuizCard, 34f);
-        practiceQuizFeedback.text = "Tap any answer to practice opening this door.";
+        practiceQuizFeedback.text = "Choose an answer. Practice does not use real time.";
         practiceQuizFeedback.rectTransform.anchorMin = practiceQuizFeedback.rectTransform.anchorMax = new Vector2(0.5f, 1f);
         practiceQuizFeedback.rectTransform.anchoredPosition = new Vector2(0f, -155f);
         practiceQuizFeedback.rectTransform.sizeDelta = new Vector2(760f, 110f);
@@ -304,8 +306,11 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
             option.anchoredPosition = new Vector2(i % 2 == 0 ? -175f : 175f,
                 i < 2 ? -10f : -120f);
             practiceAnswerButtons[i] = option.GetComponent<Button>();
+            practiceAnswerButtons[i].GetComponentInChildren<TMP_Text>().text = new[]{"A. True","B. False","C. Both True and False","D. Cannot be determined"}[i];
             practiceOptionRects[i] = option;
         }
+        practiceQuizContinue = MakeButton(practiceQuizCard, "Continue", 0, FinishPracticeQuiz).GetComponent<Button>();
+        practiceQuizContinue.gameObject.SetActive(false);
         practiceQuiz.SetActive(false);
     }
 
@@ -488,7 +493,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         PrepareDemonstration();
         handButton.gameObject.SetActive(true);
         AimAtBook();
-        SetWorldInstruction("Interact with this book statue to start the game.", false,
+        SetWorldInstruction("Tap the hand button to interact with this book statue and start each challenge.", false,
             StableRenderers(book));
     }
 
@@ -506,7 +511,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     private void BeginMinimapDemo()
     {
         step = Step.Minimap;
-        SetInstruction("Use the minimap to find your way around the stage.",
+        SetInstruction("Use the minimap to find your way around the stage. Tap it for a centered overview of the whole playable map; Close returns to this view.",
             minimapPanel, true, true);
     }
 
@@ -533,7 +538,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         for (int i = 0; i < boardHeaders.Length; i++)
             if (boardHeaders[i] != null) boardHeaders[i].text = "P ? Q";
         AimAtBoard();
-        SetWorldInstruction("Place True and False blocks here to complete each row of the current column. Use the P and Q values to work out your answers.",
+        SetWorldInstruction("Numbered rows identify the four P/Q combinations: TT, TF, FT, FF. True/False element blocks are the expression outputs. Place each output in the highlighted row of the current Truth Table column.",
             true, null, puzzle.GetColumnSnapPoints(0));
     }
 
@@ -557,8 +562,8 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     {
         step = Step.Door;
         handButton.gameObject.SetActive(true);
-        SetWorldInstruction("Interact with a door to open a multiple-choice quiz.", false,
-            houseDoor.GetComponentsInChildren<Renderer>(true));
+        SetInstruction("A door bubble expands when you are nearby. Tap the hand button to open its multiple-choice quiz.", handButton);
+        worldTargets.AddRange(houseDoor.GetComponentsInChildren<Renderer>(true));
     }
 
     private void OpenPracticeQuiz()
@@ -568,7 +573,8 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         handButton.gameObject.SetActive(false);
         instructions.gameObject.SetActive(false);
         worldHighlight.gameObject.SetActive(false);
-        practiceQuizFeedback.text = "Tap any answer to practice opening this door.";
+        practiceQuizFeedback.text = "Choose an answer. Practice does not use real time.";
+        practiceQuizContinue.gameObject.SetActive(false);
         foreach (Button answer in practiceAnswerButtons) answer.interactable = true;
         practiceQuiz.SetActive(true);
         practiceQuiz.transform.SetAsLastSibling();
@@ -577,11 +583,20 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
     private void AnswerPracticeQuiz(int answerIndex)
     {
         if (!IsActive || step != Step.DoorQuiz || answerIndex < 0 || answerIndex >= 4) return;
-        step = Step.DoorOpened;
+        step = Step.DoorQuizFeedback;
         foreach (Button answer in practiceAnswerButtons) answer.interactable = false;
+        practiceQuizFeedback.text = (answerIndex == 1 ? "Correct." : "Incorrect. Correct answer: False.") + "\nPractice only — no time is deducted.";
+        practiceQuizFeedback.color = answerIndex == 1 ? new Color(.25f,.95f,.35f) : new Color(1,.4f,.4f);
+        practiceQuizContinue.gameObject.SetActive(true);
+    }
+
+    private void FinishPracticeQuiz()
+    {
+        if (step != Step.DoorQuizFeedback) return;
+        step = Step.DoorOpened;
         practiceQuiz.SetActive(false);
         doors.SetTutorialDoorOpen(tutorialHouseIndex, true);
-        SetWorldInstruction("Answer the quiz to open the door. Either answer opens it, but an incorrect answer costs 10 seconds. The countdown pauses while a quiz is open.",
+        SetWorldInstruction("Either answer opens the door. In gameplay, an incorrect answer shows the correct answer and costs 10 seconds. The countdown stays paused while you read the quiz feedback; this practice never deducts time.",
             true, houseDoor.GetComponentsInChildren<Renderer>(true));
     }
 
@@ -596,7 +611,12 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
             case Step.BoardSlots: BeginBoardSubmitDemo(); break;
             case Step.BoardSubmit: BeginHouseDemo(); break;
             case Step.House: BeginDoorDemo(); break;
-            case Step.DoorOpened: BeginConfirmation(); break;
+            case Step.DoorOpened:
+                step = Step.Blocks;
+                handButton.gameObject.SetActive(true);
+                SetInstruction("True/False element blocks represent the output for a row. Their bubbles appear only after their house opens. Approach an available block and tap the hand button to collect it. Choose a True or False inventory stack, fill the board rows, and tap Submit Column.", handButton, false, true);
+                break;
+            case Step.Blocks: BeginConfirmation(); break;
         }
     }
 
@@ -668,20 +688,29 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
             float quizWidth = Mathf.Min(850f, Mathf.Max(360f, safeArea.rect.width - 40f));
             bool stackAnswers = quizWidth < 700f;
             practiceQuizCard.sizeDelta = new Vector2(quizWidth, stackAnswers ? 700f : 560f);
+            practiceQuizCard.anchoredPosition = Vector2.zero;
             if (practiceQuizTitle != null)
-                practiceQuizTitle.sizeDelta = new Vector2(quizWidth - 40f, 84f);
+            {
+                practiceQuizTitle.pivot = new Vector2(.5f,1);practiceQuizTitle.anchoredPosition = new Vector2(0,-24);practiceQuizTitle.sizeDelta = new Vector2(quizWidth-48,96);
+                var label = practiceQuizTitle.GetComponent<TMP_Text>();label.fontSize=32;label.enableAutoSizing=true;label.fontSizeMin=24;label.fontSizeMax=32;
+            }
             if (practiceQuizFeedback != null)
-                practiceQuizFeedback.rectTransform.sizeDelta = new Vector2(quizWidth - 40f, 110f);
+            {
+                var rect=practiceQuizFeedback.rectTransform;rect.anchorMin=rect.anchorMax=rect.pivot=new Vector2(.5f,1);rect.anchoredPosition=new Vector2(0,-128);rect.sizeDelta=new Vector2(quizWidth-48,110);practiceQuizFeedback.fontSize=28;
+            }
             if (practiceOptionRects != null)
                 for (int i = 0; i < practiceOptionRects.Length; i++)
                 {
-                    RectTransform option = practiceOptionRects[i];
-                    if (option == null) continue;
-                    option.sizeDelta = new Vector2(stackAnswers ? quizWidth - 60f : 315f,
-                        stackAnswers ? 78f : 94f);
-                    option.anchoredPosition = stackAnswers ? new Vector2(0f, -10f - i * 90f) :
-                        new Vector2(i % 2 == 0 ? -175f : 175f, i < 2 ? -10f : -120f);
+                    var option=practiceOptionRects[i];if(option==null)continue;
+                    option.anchorMin=option.anchorMax=option.pivot=new Vector2(.5f,1);
+                    option.sizeDelta=new Vector2(stackAnswers?quizWidth-60:315,stackAnswers?68:84);
+                    option.anchoredPosition=new Vector2(stackAnswers?0:i%2==0?-175:175,-252-(stackAnswers?i*78:(i/2)*98));
                 }
+            if(practiceQuizContinue!=null)
+            {
+                var rect=(RectTransform)practiceQuizContinue.transform;rect.anchorMin=rect.anchorMax=rect.pivot=new Vector2(.5f,1);
+                rect.sizeDelta=new Vector2(240,64);rect.anchoredPosition=new Vector2(0,stackAnswers?-590:-468);
+            }
         }
         float buttonWidth = Mathf.Min(250f, width * 0.42f);
         if (yesButton != null)

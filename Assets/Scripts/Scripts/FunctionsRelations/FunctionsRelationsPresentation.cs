@@ -21,6 +21,8 @@ public sealed class FunctionsRelationsPresentation : MonoBehaviour
     private void Awake()
     {
         labels = GetComponentsInChildren<TMP_Text>(true);
+        var title=hud!=null?hud.Find("CurrentStageLabel")?.GetComponent<TMP_Text>():null;
+        if(title!=null)title.text=TrialCatalog.ForScene("Functions and Relations").Title;
     }
 
     private void LateUpdate()

@@ -141,7 +141,6 @@ public partial class TruthTableDoorInteraction
 
 public sealed partial class ProofsLibraryStageController
 {
-    readonly int[] adminSelectedVariants = { -1, -1, -1, -1, -1 };
     static string AdminSolution(ProofChallengeData q)
     {
         var text = new StringBuilder(q.title + "\n" + q.context + "\n" + q.instructions + "\n\nEXPECTED SOLUTION\n");
@@ -159,13 +158,13 @@ public sealed partial class ProofsLibraryStageController
     }
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
-        pages.Add(new AdminAnswerPage("Current question — Proofs Library", activeChallenge == null ? "Waiting for book activation. No variant has been selected for this challenge." : "Challenge " + ChallengeNumber + "\n" + AdminSolution(activeChallenge)));
+        pages.Add(new AdminAnswerPage("Current question — Proofs Library", activeChallenge == null ? "Waiting for book activation. Two distinct questions per challenge are selected for this run." : "Challenge " + ChallengeNumber + " — Question " + QuestionNumber + " of " + QuestionsPerChallenge + "\n" + AdminSolution(activeChallenge)));
         for (int c = 0; c < catalog.variantSets.Length; c++)
         {
-            var text = new StringBuilder("One variant is drawn when this challenge starts. Future challenges are not selected yet.\n\n");
+            var text = new StringBuilder("Two distinct questions are selected per challenge for this run. SELECTED marks both; CURRENT marks the active question.\n\n");
             var bank = catalog.variantSets[c].variants;
             for (int q = 0; q < bank.Length; q++)
-                text.AppendLine("QUESTION " + (q + 1) + AdminQuestionAnswers.Mark(adminSelectedVariants[c] == q, c == challengeIndex && activeChallenge == bank[q]) + "\n" + AdminSolution(bank[q]) + "\n");
+                text.AppendLine("QUESTION " + (q + 1) + AdminQuestionAnswers.Mark(IsSelectedVariant(c, q), c == challengeIndex && activeChallenge == bank[q]) + "\n" + AdminSolution(bank[q]) + "\n");
             pages.Add(new AdminAnswerPage("Challenge " + (c + 1) + " — Proofs Library", text.ToString()));
         }
     }
@@ -187,12 +186,12 @@ public sealed partial class DirectIndirectProofStageController
     }
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
-        pages.Add(new AdminAnswerPage("Current question — Direct & Indirect", activeChallenge == null ? "Waiting for book activation. No variant has been selected for this challenge." : "Challenge " + ChallengeNumber + "\n" + AdminSolution(activeChallenge)));
+          pages.Add(new AdminAnswerPage("Current question — Direct & Indirect", activeChallenge == null ? "Waiting for book activation. Two distinct questions are preselected per challenge." : "Challenge " + ChallengeNumber + ", question " + QuestionNumber + " of 2\n" + AdminSolution(activeChallenge)));
         for (int c = 0; c < catalog.variantSets.Length; c++)
         {
-            var text = new StringBuilder("One variant is drawn when this challenge starts.\n\n");
+              var text = new StringBuilder("Two distinct questions are preselected for this challenge.\n\n");
             var bank = catalog.variantSets[c].variants;
-            for (int q = 0; q < bank.Length; q++) text.AppendLine("QUESTION " + (q + 1) + AdminQuestionAnswers.Mark(adminSelectedVariants[c] == q, c == challengeIndex && bank[q] == activeChallenge) + "\n" + AdminSolution(bank[q]) + "\n");
+              for (int q = 0; q < bank.Length; q++) text.AppendLine("QUESTION " + (q + 1) + AdminQuestionAnswers.Mark(SelectedVariantIndices(c).Contains(q), c == challengeIndex && bank[q] == activeChallenge) + "\n" + AdminSolution(bank[q]) + "\n");
             pages.Add(new AdminAnswerPage("Challenge " + (c + 1) + " — Direct & Indirect", text.ToString()));
         }
     }

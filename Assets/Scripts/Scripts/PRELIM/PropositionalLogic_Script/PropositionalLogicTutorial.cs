@@ -19,20 +19,26 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
 
     private readonly (string title, string body)[] pages =
     {
-        ("Start the challenge",
-            "Move to the book statue in your current room. Tap the on-screen READ button to reveal the question and start the shared countdown. Closing this guide does not start the timer."),
-        ("Read the question",
-            "Read the description at the top of the screen. Decide which logical operation it describes, then compare the four answer labels shown above the doors."),
-        ("Choose a door",
-            "Use the on-screen joystick to walk to the selection pad in front of your answer. Stay on the pad for about 2 seconds. Its ring fills, the door clears, and your character moves through it. On a keyboard, use WASD to reach the pad."),
-        ("Use the hints",
-            "The truth-table board helps you check the operation. While the challenge is active, it reveals one answer row every 20 seconds, up to four rows. The reveal pauses with this guide."),
-        ("Watch your time",
-            "A fresh run begins with 6 minutes shared across the five challenges. A wrong door takes 10 seconds away. A hammer knocks you back and stuns you for about 5 seconds; then you can try the same challenge again."),
-        ("Complete all five",
-            "A correct door sends you to the next challenge room and pauses the countdown. Find that room’s book statue and tap READ again to reveal the next question and resume your remaining time. The challenge order is randomized."),
-        ("Finish or retry",
-            "Finish all five challenges, then choose NEXT STAGE to enter Truth Table or MAIN MENU to leave. If time reaches zero, Start Over begins a fresh run. Try from Checkpoint resumes with a shorter timer (up to two retries); after that, study in Logic Garden or return to the Main Menu.")
+        ("Propositions and truth values",
+            "A proposition is a statement that is true (T) or false (F). P and Q stand for propositions. Logical operators combine them into a compound proposition. This stage asks you to identify five operators from descriptions and truth-table patterns."),
+        ("AND, OR, and XOR",
+            "AND (P ∧ Q) is true only when both propositions are true. OR (P ∨ Q) is inclusive: it is true when at least one is true, including both. Exclusive OR (XOR) is true when exactly one is true."),
+        ("If–then and if and only if",
+            "A conditional P → Q means 'if P, then Q'. P is the antecedent and Q the consequent; it is false only when P is true and Q is false. A biconditional P ↔ Q means 'P if and only if Q'; it is true when both have the same truth value."),
+        ("Activate, read, and decide",
+            "Approach the current room's Book Statue and tap the hand button. This reveals a question and starts or resumes the countdown. Read the question at the top, use the hint board, compare the four answer doors, and choose the matching operator."),
+        ("Use the hint board",
+            "The board shows the operator's truth table: each row pairs truth values for P and Q with a result. During an active challenge, one result appears every 20 seconds, up to four rows. Help pauses both the countdown and hint reveals."),
+        ("Choose an answer door",
+            "Walk onto the selection pad in front of your answer using the joystick or WASD. Stay there for about 2 seconds as its ring fills. The door opens and your character moves through it. Leaving the pad cancels the selection."),
+        ("Time and incorrect answers",
+            "A fresh run has 6 minutes shared across all five challenges. A wrong door subtracts 10 seconds, knocks you back, and stuns you for about 5 seconds. After recovery, activate the book for a new question in the same challenge. The remaining countdown is preserved; it does not reset."),
+        ("Complete each challenge",
+            "A correct door completes the challenge, moves you to the next room, and pauses the countdown. The message below the HUD tells you to activate that room's book. The hand button reveals the next question and resumes your remaining time. Challenge order is randomized."),
+        ("Game Over and retries",
+            "At zero time, Start Over begins a fresh six-minute run. Try Again keeps your challenge progress with 4 minutes for Challenges 1–3 or 3 minutes for Challenges 4–5. You have two checkpoint retries; afterward, the middle option becomes Study in Logic Garden. Main Menu is also available."),
+        ("Finish the stage",
+            "Complete all five challenges. Play Next Stage opens Truth Table; Go to Menu returns to Main Menu. Reopening Help pauses gameplay and preserves your previous state. Closing Help never activates a book or starts a challenge.")
     };
 
     private int pageIndex;
@@ -49,10 +55,40 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
     private float previousTimeScale;
     private bool isOpen;
     private bool startControlsAfterClose;
+    private int helpLayoutMode = -1;
 
     public bool IsOpen => isOpen;
     public int PageIndex => pageIndex;
     public int PageCount => pages.Length;
+
+    // Keep the same parchment artwork, but use one full-width page on narrow screens.
+    private void LateUpdate()
+    {
+        if (!isOpen || titleText == null || bodyText == null) return;
+        bool portrait = Screen.height > Screen.width;
+        int mode = portrait ? 1 : 0;
+        if (helpLayoutMode == mode) return;
+        helpLayoutMode = mode;
+        var card = titleText.transform.parent;
+        var left = card.Find("LeftReadingPage") as RectTransform;
+        var right = card.Find("RightReadingPage");
+        var spine = card.Find("BookSpine");
+        var referenceTitle = card.Find("FieldNotesHeading");
+        var referenceBody = card.Find("FieldNotesBody");
+        if (left != null) StageUITheme.Stretch(left, new Vector2(.045f, .25f), new Vector2(portrait ? .955f : .49f, .85f));
+        if (right != null) right.gameObject.SetActive(!portrait);
+        if (spine != null) spine.gameObject.SetActive(!portrait);
+        if (referenceTitle != null) referenceTitle.gameObject.SetActive(!portrait);
+        if (referenceBody != null) referenceBody.gameObject.SetActive(!portrait);
+        StageUITheme.Stretch(titleText.rectTransform, new Vector2(portrait ? .13f : .08f, portrait ? .66f : .67f), new Vector2(portrait ? .87f : .46f, portrait ? .80f : .78f));
+        StageUITheme.Stretch(bodyText.rectTransform, new Vector2(portrait ? .13f : .08f, .30f), new Vector2(portrait ? .87f : .46f, portrait ? .64f : .65f));
+        titleText.fontSizeMax = portrait ? 36 : 44;
+        bodyText.fontSizeMax = portrait ? 27 : 31;
+        if (backButton != null) StageUITheme.Stretch((RectTransform)backButton.transform, new Vector2(.09f, portrait ? .16f : .10f), new Vector2(portrait ? .39f : .28f, portrait ? .23f : .21f));
+        if (nextButton != null) StageUITheme.Stretch((RectTransform)nextButton.transform, new Vector2(portrait ? .61f : .30f, portrait ? .16f : .10f), new Vector2(portrait ? .91f : .49f, portrait ? .23f : .21f));
+        if (pageText != null) StageUITheme.Stretch(pageText.rectTransform, new Vector2(portrait ? .40f : .50f, portrait ? .16f : .10f), new Vector2(portrait ? .60f : .62f, portrait ? .23f : .21f));
+        if (beginButton != null) StageUITheme.Stretch((RectTransform)beginButton.transform, new Vector2(portrait ? .20f : .64f, portrait ? .05f : .10f), new Vector2(portrait ? .80f : .91f, portrait ? .12f : .21f));
+    }
 
     private void Awake()
     {

@@ -21,11 +21,12 @@ public static class BookStatuePlayChecks
     const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
     static readonly string[] Scenes = { "PRELIM", "Truth_Table", "RulesOfInference", "Setssss", "Functions and Relations",
         "Formal vs. Informal Proofs", "Direct&Indirect", "Induction", "Graph", "Trees" };
-    static readonly string[] History = { "FunctionsRelations.LastVariant.", "LogicLegends.Induction.LastVariant." };
+    static readonly string[] History = { "FunctionsRelations.LastVariant.", "LogicLegends.Induction.LastVariant.", "LogicLegends.ProofsLibrary.LastVariant.", "LogicLegends.Graph.LastVariant.", "LogicLegends.Trees.LastVariant." };
 
     [MenuItem("Logic Legends/Book Statues/Run Offline Play Checks")]
     public static void Begin()
     {
+        SessionState.SetBool("Books.TreesOnly", false);
         SessionState.SetBool("Books.TruthOnly", false);
         SessionState.SetBool("Books.PropositionalOnly", false);
         BeginRun();
@@ -34,6 +35,7 @@ public static class BookStatuePlayChecks
     [MenuItem("Logic Legends/Book Statues/Run Truth Table Play Checks")]
     public static void BeginTruthTable()
     {
+        SessionState.SetBool("Books.TreesOnly", false);
         SessionState.SetBool("Books.TruthOnly", true);
         SessionState.SetBool("Books.PropositionalOnly", false);
         BeginRun();
@@ -42,18 +44,35 @@ public static class BookStatuePlayChecks
     [MenuItem("Logic Legends/Book Statues/Run Propositional Replacement Checks")]
     public static void BeginPropositional()
     {
+        SessionState.SetBool("Books.TreesOnly", false);
         SessionState.SetBool("Books.TruthOnly", false);
         SessionState.SetBool("Books.PropositionalOnly", true);
+        BeginRun();
+    }
+
+    public static void BeginTrees()
+    {
+        SessionState.SetBool("Books.TreesOnly", true);
+        SessionState.SetBool("Books.TruthOnly", false);
+        SessionState.SetBool("Books.PropositionalOnly", false);
+        BeginRun();
+    }
+
+    public static void BeginTrialTitles()
+    {
+        SessionState.SetBool("Books.TreesOnly",false);SessionState.SetBool("Books.TruthOnly",false);SessionState.SetBool("Books.PropositionalOnly",false);
+        SessionState.SetBool("Books.TrialTitlesOnly",true);
         BeginRun();
     }
 
     static void BeginRun()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Exit Play Mode first.");
-        EditorSceneManager.SaveOpenScenes();
+        if (SceneManager.GetActiveScene().isDirty) throw new InvalidOperationException("Save scene changes first.");
+        SessionState.SetInt("Books.ViewSize", BookMapMobileChecks.GetSize());
         SessionState.SetString("Books.OriginalScene", SceneManager.GetActiveScene().path);
         SessionState.SetBool(Flag, true);
-        if (!SessionState.GetBool("Books.TruthOnly", false) && !SessionState.GetBool("Books.PropositionalOnly", false)) File.WriteAllText(Report, "Book statue Play Mode checks started.\n");
+        if (!SessionState.GetBool("Books.TreesOnly", false) && !SessionState.GetBool("Books.TruthOnly", false) && !SessionState.GetBool("Books.PropositionalOnly", false)) File.WriteAllText(Report, "Book statue Play Mode checks started.\n");
         EditorSceneManager.OpenScene("Assets/Scenes/PRELIM.unity");
         EditorApplication.isPlaying = true;
     }
@@ -64,6 +83,11 @@ public static class BookStatuePlayChecks
     {
         if (state != PlayModeStateChange.EnteredEditMode || !SessionState.GetBool(Flag, false)) return;
         SessionState.SetBool(Flag, false);
+        SessionState.SetBool("Books.TrialTitlesOnly",false);
+        SessionState.SetBool("Truth.InteractionQA", false);
+        SessionState.SetBool("Truth.HelpQA", false);
+        BookMapMobileChecks.SetSize(SessionState.GetInt("Books.ViewSize",6));
+        Crystal.SafeArea.Sim = Crystal.SafeArea.SimDevice.None;
         if (SessionState.GetBool("Books.PrefsCaptured", false))
         {
             foreach (var prefix in History) for (int i = 0; i < 5; i++)
@@ -96,10 +120,14 @@ public static class BookStatuePlayChecks
     static void Loaded(Scene scene, LoadSceneMode mode)
     {
         if (!SessionState.GetBool(Flag, false)) return;
+        foreach (var behaviour in UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+            if (behaviour != null && (behaviour.GetType().Namespace ?? "").StartsWith("Photon.Pun.Demo.Cockpit")) behaviour.enabled=false;
         if (Player.LocalInstance == null)
         {
             var avatar = UnityEngine.Object.Instantiate(Resources.Load<GameObject>("Multiplayer_Male"));
             avatar.GetComponent<MultiplayerAvatarSync>().enabled = false;
+            avatar.GetComponent<PlayerEquipmentLoader>().enabled = false;
+            foreach (var skin in avatar.GetComponentsInChildren<PlayerAnimator>(true)) skin.gameObject.SetActive(skin.name == "UNIFORM_MALE");
             avatar.GetComponent<CharacterController>().enabled = true;
         }
         if (UnityEngine.Object.FindFirstObjectByType<BookStatueCheckRunner>() == null)
@@ -134,8 +162,9 @@ public static class BookStatuePlayChecks
 
     static IEnumerator Run()
     {
+        Application.runInBackground = true;
         foreach (string scene in SessionState.GetBool("Books.TruthOnly", false) ? new[] { "Truth_Table" } :
-            SessionState.GetBool("Books.PropositionalOnly", false) ? new[] { "PRELIM" } : Scenes)
+            SessionState.GetBool("Books.PropositionalOnly", false) ? new[] { "PRELIM" } : SessionState.GetBool("Books.TreesOnly", false) ? new[] { "Trees" } : Scenes)
         {
             string sceneName = scene == "Truth_Table" ? "PRELIM" : scene;
             if (SceneManager.GetActiveScene().name != sceneName || scene == "Truth_Table" && !SessionState.GetBool("Books.TruthOnly", false))
@@ -176,12 +205,31 @@ public static class BookStatuePlayChecks
             Player.LocalInstance.ToggleControl(true);
             yield return null; yield return null;
 
+            if(SessionState.GetBool("Books.TrialTitlesOnly",false))
+            {
+                string expected=TrialCatalog.ForScene(sceneName,scene=="Truth_Table"?2:1).Title;
+                var title=UnityEngine.Object.FindObjectsByType<TMPro.TMP_Text>(FindObjectsInactive.Include,FindObjectsSortMode.None).FirstOrDefault(t=>t.gameObject.scene.name==sceneName&&t.text==expected);
+                Check(title!=null,scene+" has menu-ordered HUD title: "+expected);
+                foreach(int size in new[]{6,12,3})
+                {
+                    BookMapMobileChecks.SetSize(size);yield return new WaitForSecondsRealtime(.35f);yield return new WaitForEndOfFrame();
+                    title.ForceMeshUpdate(true);Check(!title.isTextOverflowing,expected+" fits at "+Screen.width+"x"+Screen.height);
+                }
+                File.AppendAllText(Report,"PASS "+expected+" — desktop, landscape and portrait text layouts\n");
+                continue;
+            }
+
             var visuals = UnityEngine.Object.FindObjectsByType<BookStatuePresentation>(FindObjectsInactive.Include, FindObjectsSortMode.None)
                 .Where(b => b.gameObject.scene.name == sceneName && b.gameObject.activeInHierarchy).ToArray();
             Check(visuals.Length > 0, scene + " has saved book presentation");
             yield return CheckAnimation(visuals, scene);
             if (scene == "PRELIM")
             {
+                // The arrival guide may open during animation sampling on slower frames.
+                prelimHelp?.CloseTutorial();
+                if (PropositionalControlsOnboarding.Active != null)
+                { PropositionalControlsOnboarding.Active.SkipTutorial(); Call(PropositionalControlsOnboarding.Active,"ConfirmYes"); }
+                Time.timeScale=1;GameInput.Instance.SetGameplayInputBlocked(false);Player.LocalInstance.ToggleControl(true);
                 var coach = Find<PropositionalControlsOnboarding>();
                 var quiz = Find<QuizManager>(); var timer = Find<LevelTimerManager>();
                 float seconds = timer.RemainingTime;
@@ -191,7 +239,7 @@ public static class BookStatuePlayChecks
                 Check(coach.IsDemonstratingBook, "replacement supports the existing book demonstration");
                 yield return new WaitForSecondsRealtime(.8f);
                 var interaction = Field<BookInteract>(coach, "roomBook");
-                Call(interaction, "OnInteractClicked");
+                GameInput.Instance.MobileInteract();
                 Check(!coach.IsDemonstratingBook && coach.IsActive, "practice book interaction advances only the tutorial");
                 Check(timer.IsTimerRunning == running && Mathf.Abs(timer.RemainingTime - seconds) < .01f &&
                     !Field<bool>(quiz, "currentChallengeStarted"), "book practice preserves real challenge and timer");
@@ -211,6 +259,18 @@ public static class BookStatuePlayChecks
                 Time.timeScale = 1; GameInput.Instance.SetGameplayInputBlocked(false); Player.LocalInstance.ToggleControl(true);
                 yield return null;
             }
+            if (scene == "Setssss")
+            {
+                var setsGuide = Find<SetssssHelpUI>(); setsGuide.CloseHelp(); Set(setsGuide,"shownOnEntry",true);
+                if (SetssssControlsOnboarding.Active != null) { SetssssControlsOnboarding.Active.SkipTutorial(); SetssssControlsOnboarding.Active.ConfirmYes(); }
+                yield return null; yield return null;
+                var introduction = Find<SetssssChallengeIntroductions>(); if (introduction != null && introduction.IsOpen) introduction.Skip();
+                yield return null;
+            }
+            if (scene == "Truth_Table" && SessionState.GetBool("Truth.HelpQA", false))
+            { yield return TruthTableInteractionChecks.CheckHelp(); }
+            if (scene == "Truth_Table" && SessionState.GetBool("Truth.InteractionQA", false))
+            { yield return TruthTableInteractionChecks.Run(); continue; }
             yield return CheckStates(scene, fr, induction, proofs, graph, trees);
             File.AppendAllText(Report, scene + ": PASS animation, fixed statue transform, waiting/activation/next/terminal indicators\n");
         }
@@ -225,8 +285,8 @@ public static class BookStatuePlayChecks
         var bones = transforms.Select(t => t.Find("Page rig/Page_00")).ToArray();
         var first = bones.Select(t => t.localRotation).ToArray();
         var changed = new bool[books.Length];
-        float until = Time.realtimeSinceStartup + 3.4f;
-        while (Time.realtimeSinceStartup < until)
+        float until = Time.realtimeSinceStartup + 20f;
+        while (Time.realtimeSinceStartup < until && !changed.All(x => x))
         {
             Time.timeScale = 1;
             for (int i = 0; i < books.Length; i++)
@@ -246,6 +306,15 @@ public static class BookStatuePlayChecks
                 animator.GetCurrentAnimatorStateInfo(0).normalizedTime + " timescale=" + Time.timeScale + "\n");
         }
         Check(changed.All(x => x), scene + " every active book page flips");
+        if(scene=="PRELIM"||scene=="Truth_Table")
+            foreach(var book in books)
+            {
+                bool required=book.InteractionRequired;book.SetRequired(true);
+                var color=book.Indicator.color;
+                Check(color.r>.99f&&Mathf.Abs(color.g-.8f)<.01f&&color.b<.01f,scene+" book marker is yellow");
+                Check(book.Bubble.GetComponent<UnityEngine.UI.Image>().color==Color.white,scene+" book bubble stays white");
+                book.SetRequired(required);
+            }
     }
 
     static IEnumerator CheckStates(string scene, FunctionsRelationsStageManager fr, InductionStageManager induction,
@@ -323,7 +392,7 @@ public static class BookStatuePlayChecks
             var quiz = Find<QuizManager>();
             var challenge = (TopicChallenge)Call(quiz, "GetCurrentChallenge");
             var interaction = challenge.roomChoiceCanvas.transform.parent.GetComponentInChildren<BookInteract>(true);
-            book = interaction.transform; activate = () => Call(interaction, "OnInteractClicked");
+            book = interaction.transform; activate = () => Call(interaction, "ActivateFromHand");
             waiting = () => { Field<GameObject>(quiz, "quizPanel").SetActive(false); interaction.ResetInteraction(); };
             terminal = () => Set(Field<LevelTimerManager>(interaction, "timerManager"), "currentTimer", 0f);
             completed = terminal;
@@ -332,16 +401,25 @@ public static class BookStatuePlayChecks
         var visual = BookStatuePresentation.For(book);
         yield return null;
         Check(visual.InteractionRequired && visual.Indicator != null && visual.Indicator.gameObject.activeSelf, scene + " waiting indicator");
-        float glyphY = visual.Indicator.transform.position.y;
-        yield return new WaitForSecondsRealtime(.25f);
-        Check(Mathf.Abs(visual.Indicator.transform.position.y - glyphY) > .001f, scene + " indicator bobs");
+        float low=float.MaxValue, high=float.MinValue, sampleUntil=Time.unscaledTime+.9f;
+        while(Time.unscaledTime<sampleUntil)
+        { yield return new WaitForEndOfFrame(); low=Mathf.Min(low,visual.Bubble.position.y);high=Mathf.Max(high,visual.Bubble.position.y); }
+        Check(high-low>.001f, scene + " indicator bobs");
         Check(visual.Indicator.text == "!", scene + " exclamation text");
         CaptureBook(visual, scene);
         // Move using the existing teleport helper to exercise the real book-start method.
         Vector3 offset = new Vector3(0, 0, -2);
         PrelimTeleportTransition.MovePlayerImmediately(Player.LocalInstance.gameObject, book.position + offset,
             Quaternion.LookRotation(-offset));
-        activate();
+        yield return new WaitForSecondsRealtime(.55f);
+        Check(visual.PlayerInRange, scene + " configured hand proximity is available: player=" + Player.LocalInstance.transform.position + " enabled=" + Player.LocalInstance.enabled + " CC=" + Player.LocalInstance.GetComponent<CharacterController>().enabled + " bounds=" + Player.LocalInstance.GetComponent<CharacterController>().bounds + " book=" + book.position + " zones=" + string.Join(";",book.GetComponentsInChildren<Collider>(true).Select(c=>c.name+" "+c.isTrigger+" "+c.bounds)) + " quiz=" + (Find<QuizManager>()!=null?Find<QuizManager>().IsQuizActive.ToString():"none"));
+        Check(visual.Expansion > .99f, scene + " thought bubble expands in range");
+        Check(visual.Bubble.GetComponent<UnityEngine.UI.Image>().color == Color.white, scene + " white bubble");
+        yield return BookMapMobileChecks.Run(scene, visual);
+        // Exercise the actual existing hand Button callback, not a stage debug start.
+        var handButton = UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None).First(b => b.name == "InteractButton");
+        Check(handButton.gameObject.activeInHierarchy && handButton.interactable, scene + " hand button is available");
+        handButton.onClick.Invoke();
         yield return new WaitForSecondsRealtime(2f);
         Check(!visual.InteractionRequired, scene + " activation hides indicator");
         waiting(); yield return null; yield return null;
@@ -368,7 +446,8 @@ public static class BookStatuePlayChecks
     {
         Directory.CreateDirectory("Temp/BookStatueQA");
         Bounds bounds = BookStatueProjectSetup.GeometryBounds(book.transform);
-        bounds.Encapsulate(book.Indicator.GetComponent<Renderer>().bounds);
+        var bubbleCorners = new Vector3[4]; book.Bubble.GetWorldCorners(bubbleCorners);
+        foreach (var corner in bubbleCorners) bounds.Encapsulate(corner);
         var go = new GameObject("Book QA Camera"); var camera = go.AddComponent<Camera>();
         camera.fieldOfView = 38; camera.nearClipPlane = .05f; camera.farClipPlane = 500;
         var direction = new Vector3(0, .16f, -1).normalized;

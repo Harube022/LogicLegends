@@ -10,13 +10,16 @@ result panel for victory and time-out because the shared `GameOverManager` and
 `StageCompleteManager` components depend on other stages' LevelManager UI and
 reward setup; attaching them here would disturb those stages.
 
-The Book begins/resumes each challenge and validates only on a later interaction.
+Each playthrough selects two distinct questions from each existing bank of ten.
+Both must be completed before advancing through the same five challenge types.
+The HUD and Information Board show the question number out of two.
+The Book begins/resumes each question and validates only on a later interaction.
 The timer starts at 10:00, pauses after each correct answer, never resets between
-challenges, and loses 10 seconds on every incomplete or incorrect Book confirmation.
+questions or challenges, and loses 10 seconds on every incomplete or incorrect Book confirmation.
 All scroll placements and physical pedestal slots remain editable after a mistake.
 Time played counts active
 challenge time separately from penalties. Stage victory displays time played,
-five correct submissions, and the number of incorrect confirmations.
+ten correct submissions (two per challenge), and the number of incorrect confirmations.
 
 `Assets/Resources/ProofChallenges.asset` stores the five configurations:
 
@@ -36,7 +39,7 @@ the Formal and Informal altars. The older
 `ProofScrollDisplay.prefab` objects remain as hidden interaction references so
 their scene and controller references stay intact. There is no central scroll table.
 Each source shows its scroll letter and a short proof preview. Interact opens the
-full scroll reader with Carry and Close buttons; a small scroll model follows the player
+centered parchment scroll reader with Get This Scroll and Back buttons; a small scroll model follows the player
 and is reparented to its altar on placement. Placed scroll models scale up and
 rearrange into a one-, two-, or four-position display so they remain visible.
 Interacting with an altar while empty-handed opens **Take Back a Scroll**, which
@@ -70,8 +73,9 @@ Use **Admin Button Enabled** on `Admin Debug` in the Inspector to show or hide
 the button in this scene, or call `AdminButtonOn` / `AdminButtonOff` at runtime.
 **Clear Current Challenge** is available only during an active challenge; it
 uses the normal completion flow and pauses the timer before the next challenge.
-**Clear Current Condition** remains disabled because this stage has no condition
-sub-rounds. The panel pauses gameplay while open and restores it when closed.
+**Clear Current Condition** remains disabled. Clear Current Challenge completes
+the remaining questions in that challenge. The panel pauses gameplay while open
+and restores it when closed.
 
 Exact scene wiring on `ProofsLibraryStageManager`:
 
@@ -151,3 +155,54 @@ reader collection and correction, Skip/No/Yes cleanup, normal board viewing, wro
 answer preservation/penalty, and all five authored validations. It suppresses
 account unlock writes and restores question-history preferences on exiting Play.
 Leave the flag disabled for ordinary play.
+
+## Challenge introductions and two-question progression
+
+`ProofsChallengeIntroductions` reuses the PRELIM theme and shared Skip control,
+unscaled Cinemachine blends, target highlights, and a scrollable mobile lesson
+card. Each task is introduced once per run, after onboarding or the previous
+challenge, before Book activation. It does not repeat before question 2.
+
+Practice stands and tablet stations are isolated clones with disabled colliders.
+Their ribbon examples never modify the real world board or inventory. Overhead
+views hide separate ceiling/roof renderers and overhead chamber decorations,
+then restore each renderer's prior state. Completion, Skip, disabling, and
+results cancel the camera and restore input, time scale, UI, and cursor state.
+Gameplay colliders remain enabled; combined room meshes are not disabled.
+
+The ten-minute shared timer and ten-second error penalty are unchanged. Correct
+questions clear previous answers and pause time until the next Book activation.
+Admin's viewer marks both preselected questions per challenge and the currently
+active question using the actual catalog and validator data.
+
+While carrying a classification scroll, `ProofsPedestalIndicators` shows one
+small yellow bobbing arrow above each empty proof altar. Occupied altars have no
+arrow but can still accept additional scrolls. Taking back the last scroll makes
+an altar eligible again. Guidance never checks the correct classification.
+The reader uses the same complete catalog text as the world scroll and scrolls
+long passages. It snapshots movement, camera input, cursor and mobile controls,
+restoring their prior states on Back or collection. Reading still consumes active
+countdown time, preserving the existing timer rule.
+
+The offline Play Mode suite solves all ten selected questions and checks distinct
+sampling, resets, once-per-challenge intros, overhead framing, ceiling renderer
+restoration, Skip cleanup, and retained penalties.
+
+All five challenge types now use the centered parchment reader. In challenges
+3–5, source interaction requests reading; only Get This Scroll changes the existing
+selected statement/rule ID. World previews and reader bodies share one content
+function and the current shuffled option mapping. Back changes no selections.
+Return Scroll clears the held option and restores that same source; it never
+instantiates another scroll or alters placed proof steps. A carried scroll proxy
+reuses the existing carry artwork. Filled slots retain their existing clear and
+replace behavior, and IsComplete/IsCorrect validation is unchanged.
+
+The slot guide reconciles the actual configured STEP/RULE pedestal instances at
+runtime. Yellow arrows sit to the right of every compatible empty slot and use
+only type/occupancy, never correct answer IDs. Classification altars retain their
+empty-altar arrows. Return, placement and View Board use separate central action
+rows; the hand remains available for placing scrolls.
+Portrait touch controls are fitted within this stage's safe area to leave those
+action rows clear. Their original layouts are restored in landscape and on exit;
+tutorial highlights continue to follow the actual controls. The interaction prompt
+shares the action buttons' safe-area parent.
