@@ -1,0 +1,7 @@
+# Profile title plaque
+
+Generated with the built-in imagegen tool for the Main Menu profile. The blank clipped-corner plaque follows the profile-design reference and the original settings wood and Play button's matte brown trim. Text remains editable Unity UI using IMPACT SDF.
+
+## Generation prompt
+
+Use case: stylized-concept. Asset type: single transparent PNG UI title plaque for a Unity fantasy learning game, no lettering. Reference image 1 is composition guidance: isolate the clipped-corner wooden PLAYER PROFILE header at the top, recreate ONLY its blank wooden plaque. Reference image 2 is the original game's material authority: settings_background.png warm matte illustrated wood, broad painted grain, warm brown carved rim and modest bevel. Reference image 3 is the original btn_play.png lighting authority: subdued broad upper highlight, dark lower shadow and simple brown layered rim. Create one wide horizontal wooden sign, width to height about 5:1, centered front-on, clipped chamfered corners, thick simple double brown wooden border, flat warm medium brown central wooden inset, broad painted horizontal grain, restrained shading. Match the header in reference 1 without its text. Keep empty unobstructed middle for editable Unity text. Large isolated plaque, 4% transparent margin around the outer silhouette, genuine alpha transparency outside. No text, no icons, no metal, no gold rims, no ornamental end blocks, no photorealism, no backdrop, no whole UI mockup. Output only the single blank title plaque.
