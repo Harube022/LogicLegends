@@ -21,9 +21,14 @@ public class StageCompleteManager : MonoBehaviour
 
     [Header("Reward Settings")]
     [SerializeField] private int baseCoins = 500;
-    [SerializeField] private int baseGems = 40;
+    // Retained for serialized scene compatibility. Stage completions award no gems.
+    [SerializeField, HideInInspector] private int baseGems = 0;
     [SerializeField] private int coinPenaltyPerHeart = 50;
-    [SerializeField] private int gemPenaltyPerHeart = 5;
+    [SerializeField, HideInInspector] private int gemPenaltyPerHeart = 0;
+    private bool completed;
+#if UNITY_EDITOR
+    public static bool SuppressPersistenceForValidation { get; set; }
+#endif
 
     [Header("Stage Progression")]
     [Tooltip("What stage number is this? (e.g., 1)")]
@@ -34,6 +39,8 @@ public class StageCompleteManager : MonoBehaviour
 
     public void TriggerStageComplete()
     {
+        if (completed) return;
+        completed = true;
         // 1. Freeze the game clock
         if (LevelManager.Instance != null) LevelManager.Instance.StopStageTimer();
 
@@ -52,7 +59,8 @@ public class StageCompleteManager : MonoBehaviour
 
         // 4. Calculate Final Rewards (Mathf.Max ensures it never drops below 0!)
         int finalCoins = Mathf.Max(0, baseCoins - (heartsLost * coinPenaltyPerHeart));
-        int finalGems = Mathf.Max(0, baseGems - (heartsLost * gemPenaltyPerHeart));
+        // Ignore legacy nonzero scene values, including negative penalties.
+        const int finalGems = 0;
 
         // 5. Update the Text on Screen
         int minutes = Mathf.FloorToInt(timeTaken / 60);
@@ -64,31 +72,41 @@ public class StageCompleteManager : MonoBehaviour
         if (gemsRewardText != null) gemsRewardText.text = "+" + finalGems.ToString();
 
         // 6. Push to Google Firebase
-        SaveProgressToFirebase(finalCoins, finalGems);
+        SaveProgressToFirebase(finalCoins);
     }
 
-    private void SaveProgressToFirebase(int coinsEarned, int gemsEarned)
+    private void SaveProgressToFirebase(int coinsEarned)
     {
-        if (FirebaseAuth.DefaultInstance == null || FirebaseAuth.DefaultInstance.CurrentUser == null) return;
-
-        string userId = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
-        DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
+#if UNITY_EDITOR
+        if (SuppressPersistenceForValidation) return;
+#endif
 
         // A. Save the highest stage unlocked through the shared progression path.
         UnlockStage(Mathf.Min(thisStageNumber + 1, StageSelectionState.LastStage));
 
-        // B. Add the newly earned Coins and Gems
-        dbRef.Child("users").Child(userId).GetValueAsync().ContinueWithOnMainThread(task =>
-        {
-            if (task.IsCompleted && task.Result.Exists)
-            {
-                DataSnapshot snap = task.Result;
-                int currentCoins = snap.HasChild("coins") ? int.Parse(snap.Child("coins").Value.ToString()) : 0;
-                int currentGems = snap.HasChild("gems") ? int.Parse(snap.Child("gems").Value.ToString()) : 0;
+        // Only coins are awarded by gameplay. Never rewrite the gem balance,
+        // even with +0: a stale write could erase a confirmed top-up.
+        AwardCoins(coinsEarned);
+    }
 
-                dbRef.Child("users").Child(userId).Child("coins").SetValueAsync(currentCoins + coinsEarned);
-                dbRef.Child("users").Child(userId).Child("gems").SetValueAsync(currentGems + gemsEarned);
-            }
+    public static void AwardCoins(int amount)
+    {
+        if (amount <= 0) return;
+        FirebaseAuth auth = FirebaseAuth.DefaultInstance;
+        if (auth == null || auth.CurrentUser == null) return;
+        var coins = FirebaseDatabase.DefaultInstance.RootReference
+            .Child("users").Child(auth.CurrentUser.UserId).Child("coins");
+        coins.RunTransaction(data =>
+        {
+            long current = 0;
+            if (data.Value != null && (!long.TryParse(data.Value.ToString(), out current) || current < 0))
+                return TransactionResult.Abort();
+            if (current > int.MaxValue - (long)amount) return TransactionResult.Abort();
+            data.Value = current + amount;
+            return TransactionResult.Success(data);
+        }).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsCanceled || task.IsFaulted) Debug.LogWarning("Your coin reward could not be saved. Check your connection.");
         });
     }
 
@@ -109,24 +127,17 @@ public class StageCompleteManager : MonoBehaviour
         DatabaseReference unlockedStageReference = FirebaseDatabase.DefaultInstance.RootReference
             .Child("users").Child(auth.CurrentUser.UserId).Child("unlockedStage");
 
-        unlockedStageReference.GetValueAsync().ContinueWithOnMainThread(task =>
+        unlockedStageReference.RunTransaction(data =>
+        {
+            int currentUnlocked = StageSelectionState.FirstStage;
+            if (data.Value != null && !int.TryParse(data.Value.ToString(), out currentUnlocked))
+                return TransactionResult.Abort();
+            data.Value = Mathf.Max(currentUnlocked, requestedStage);
+            return TransactionResult.Success(data);
+        }).ContinueWithOnMainThread(task =>
         {
             if (task.IsFaulted || task.IsCanceled)
-            {
-                Debug.LogWarning($"Could not read unlockedStage while unlocking Stage {requestedStage}.");
-                return;
-            }
-
-            int currentUnlocked = StageSelectionState.FirstStage;
-            if (task.Result.Exists && task.Result.Value != null)
-            {
-                int.TryParse(task.Result.Value.ToString(), out currentUnlocked);
-            }
-
-            if (requestedStage > currentUnlocked)
-            {
-                unlockedStageReference.SetValueAsync(requestedStage);
-            }
+                Debug.LogWarning($"Could not save Stage {requestedStage}. Check your connection.");
         });
     }
 

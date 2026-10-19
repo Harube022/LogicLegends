@@ -133,6 +133,15 @@ public sealed class ShopPreviewUI : MonoBehaviour
         secondary.interactable = true;
     }
 
+    public void ShowPurchasesUnavailable(string text = null)
+    {
+        if (!IsOpen || owned) return;
+        confirming = false;
+        primary.interactable = false;
+        primaryLabel.text = "UNAVAILABLE";
+        SetFeedback(text ?? "You can preview this outfit. Reconnect to the shop before buying.", "PURCHASES UNAVAILABLE", Warning);
+    }
+
     public void ShowSaving()
     {
         primary.interactable = secondary.interactable = false;
