@@ -4,7 +4,9 @@ This is the new standalone Node.js backend for hosting outside Firebase while th
 
 There is **one gem balance**, with no paid/earned split. Existing gems are preserved. Stage completion now awards **0 gems**, including scenes that still serialize an older nonzero reward. Gameplay never writes the gem field, even with a zero increment, so a stage save cannot overwrite a top-up. Coin rewards and stage unlocks continue through transactions on their own fields. Firebase Console or privileged Admin SDK edits can still change coins and gems for developer testing; no administrator credentials or gem-edit backdoor is included in the game.
 
-The checked-in Unity settings use the **local sandbox**. Sandbox accounts, gems, purchases and equipped clothes live in the database emulator. The shop's coin display continues to read the player's existing Firebase coins; test-wallet responses never replace that coin balance. A sandbox purchase updates the shop's gem counter and can buy/equip clothes in the menu; it never changes the live Firebase profile or real player equipment. Existing localPayments test wallets from the old prototype are not copied automatically. In sandbox, gameplay stages still use the existing Firebase progression code; their rewards are not mixed into this sandbox commerce wallet.
+The Unity settings point to **https://logiclegends-payment.onrender.com** with Sandbox disabled. This selects the hosted wallet; it does not enable payments. Keep the host's `COMMERCE_ENABLED=false` until the launch checks are complete, then use `CHECKOUT_ENABLED=false` to verify wallet access before accepting new top-ups. For local sandbox testing, set the asset URL back to `http://127.0.0.1:18080` and enable Sandbox.
+
+In sandbox, accounts, gems, purchases and equipped clothes live in the database emulator. The shop's coin display continues to read the player's existing Firebase coins; test-wallet responses never replace that coin balance. A sandbox purchase updates the shop's gem counter and can buy/equip clothes in the menu; it never changes the live Firebase profile or real player equipment. Existing localPayments test wallets from the old prototype are not copied automatically. In sandbox, gameplay stages still use the existing Firebase progression code; their rewards are not mixed into this sandbox commerce wallet.
 
 The Main Menu shows saved Firebase balances and owned clothes before contacting the commerce service. If that service is unavailable, the shop remains browseable with purchases blocked. Customization can still load and save already-owned equipment through Firebase. Sandbox inventory replaces that preview only after a successful sandbox response; the backend remains the authority for sandbox purchases and equipment. Firebase reads and login-token retrieval have bounded waits with retry feedback.
 
@@ -44,7 +46,7 @@ cd 'C:\Users\ADMIN\OneDrive\Documents\GitHub\LogicLegends\Backend\commerce'
 npm.cmd start
 ```
 
-5. In Unity, `Assets/Resources/CommerceSettings.asset` has the backend URL and Sandbox setting. The Editor uses `http://127.0.0.1:18080`. A Development APK must use the public HTTPS tunnel URL. Sandbox purchases are disabled in release builds.
+5. For this local test, set `Assets/Resources/CommerceSettings.asset` to `http://127.0.0.1:18080` and enable Sandbox. A Development APK must use the public HTTPS tunnel URL. Sandbox purchases are disabled in release builds. Restore the hosted URL and disable Sandbox when returning to the hosted wallet.
 
 6. Sign in normally. Open Shop → Top Up → Buy 5 Gems. Complete PayMongo's **simulated payment** and return to the game. The shop balance updates within a few seconds. After two successful top-ups, preview a 10-gem outfit, press Buy and Confirm. Balance becomes zero, the outfit becomes owned, and it appears in Customization for sandbox equip/preview.
 
