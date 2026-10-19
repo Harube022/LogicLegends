@@ -1,0 +1,24 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "username": { ".write": "auth != null && auth.uid === $uid", ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
+        "base_character": { ".write": "auth != null && auth.uid === $uid && !data.exists()", ".validate": "newData.val() === 'Male_Character' || newData.val() === 'Female_Character'" },
+        "equipped": {
+          "clothes": {
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.isString() && ((newData.val() === 'male_default' && root.child('users').child($uid).child('base_character').val() === 'Male_Character') || (newData.val() === 'female_default' && root.child('users').child($uid).child('base_character').val() === 'Female_Character') || root.child('users').child($uid).child('inventory').child(newData.val()).val() === true)"
+          },
+          "pets": {
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.isString() && root.child('users').child($uid).child('inventory').child(newData.val()).val() === true"
+          }
+        },
+        "unlockedStage": { ".write": "auth != null && auth.uid === $uid", ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9 && (!data.exists() || newData.val() >= data.val())" }
+      }
+    }
+  }
+}
