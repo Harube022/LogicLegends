@@ -46,6 +46,8 @@ Keep all three processes running during tests. Stop the database emulator with *
 
 Use a host that supports Node.js 22 or Docker. Build/start this **Backend/commerce** directory, with `npm ci` and `node server.js`, or use the included Dockerfile. The host assigns the public HTTPS URL **after you create and deploy the service**. Configure a persistent service suitable for incoming webhooks. The Docker context excludes local environment and credential files.
 
+For the **first deployment**, set only `NODE_VERSION=22` and `COMMERCE_ENABLED=false`, and use `/health` as the health-check path. This starts a setup service without Firebase or PayMongo credentials. Its health response is `{"mode":"setup","paymentsEnabled":false}`; all account/payment endpoints return 503. This allows you to obtain the permanent HTTPS URL and configure secrets before accepting payments. Keep the switch false until the launch requirements below are complete. This mode needs no database emulator.
+
 Store configuration privately on that host:
 
 ```text
@@ -72,6 +74,8 @@ Create/update the **live** PayMongo webhook to `https://YOUR-HOST/webhook`. Chan
 The existing StageCompleteManager, Coin and GraphCompletion scripts still grant gameplay currency from the client. **These legacy grants are denied under the protected rules.** They need trusted server validation and reward endpoints before public release. Do not enable permissive currency rules to keep those scripts working: that would let clients change paid balances. This task prepares top-up, purchase and equip endpoints; validating stage completion requires a separate game-specific reward implementation. Stage progression is independently allowed in the baseline, so it is not an anti-cheat system.
 
 Once the rules and trusted gameplay reward path are ready, set `LIVE_WALLET_READY=true` on the host. The server intentionally refuses real Firebase mode without this acknowledgment. Perform a controlled live checkout, verify exactly one credit, buy an outfit, equip it, and restart the game to verify persistence. Refund/dispute handling and customer-support reconciliation should be configured before opening a public store; no refund revocation is automated here.
+
+To leave setup mode, also change `COMMERCE_ENABLED` to `true` and redeploy after all live environment variables and credentials are configured. Enabling this switch does not bypass the live-wallet readiness check.
 
 No live backend, Firebase rules or live PayMongo webhook has been deployed by this change.
 

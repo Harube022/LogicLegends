@@ -6,6 +6,17 @@ const { getDatabase } = require('firebase-admin/database');
 const { catalog, fail, signature, validatePayment, grant, buy, present, mutate } = require('./wallet');
 
 function createApp(env = process.env, integrations = {}) {
+  // Let a new hosting service obtain its HTTPS URL before private credentials
+  // and the production wallet protections are configured. No payment or
+  // account routes are available while this explicit switch is off.
+  if (env.COMMERCE_ENABLED === 'false') {
+    const setup = express();
+    setup.disable('x-powered-by');
+    setup.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+    setup.get('/health', (req, res) => res.json({ mode: 'setup', paymentsEnabled: false }));
+    setup.use((req, res) => res.status(503).json({ error: 'The shop is being configured. Please try again later.' }));
+    return setup;
+  }
   const sandbox = env.STORAGE_MODE === 'emulator';
   const live = env.PAYMENT_MODE === 'live';
   if (!['emulator', 'firebase'].includes(env.STORAGE_MODE) || !['test', 'live'].includes(env.PAYMENT_MODE)) throw new Error('Configure storage and payment modes explicitly.');
