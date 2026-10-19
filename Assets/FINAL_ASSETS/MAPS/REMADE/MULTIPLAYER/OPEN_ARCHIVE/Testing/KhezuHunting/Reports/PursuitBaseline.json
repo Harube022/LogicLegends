@@ -1,0 +1,412 @@
+{
+    "scope": "Offline real NavMesh pursuit on the north route; test target uses its actual CharacterController at the existing 19.5 m/s run speed. Only the test player is repositioned. No monster teleport or player system edit.",
+    "baseline": true,
+    "autoBraking": true,
+    "caughtWhileRunning": false,
+    "caughtAfterStopping": false,
+    "startSeparation": 15.969703674316407,
+    "endSeparation": 41.09965515136719,
+    "minimumRunChaseSpeed": 9.88554859161377,
+    "meanRunChaseSpeed": 15.95773983001709,
+    "targetDistance": 117.08409118652344,
+    "runSeconds": 6.005128860473633,
+    "passed": [
+        "Awakens and begins the real north-route hunt",
+        "Runner can begin moving before capture range"
+    ],
+    "failed": [],
+    "samples": [
+        {
+            "seconds": 0.0,
+            "separation": 16.16808319091797,
+            "monsterSpeed": 12.559556007385254,
+            "targetSpeed": 19.499828338623048,
+            "remainingDistance": 15.969717979431153
+        },
+        {
+            "seconds": 0.11028671264648438,
+            "separation": 16.965866088867189,
+            "monsterSpeed": 12.022832870483399,
+            "targetSpeed": 19.499752044677736,
+            "remainingDistance": 14.616902351379395
+        },
+        {
+            "seconds": 0.21732044219970704,
+            "separation": 17.79529571533203,
+            "monsterSpeed": 11.546375274658204,
+            "targetSpeed": 19.500133514404298,
+            "remainingDistance": 16.142608642578126
+        },
+        {
+            "seconds": 0.32725048065185549,
+            "separation": 18.696571350097658,
+            "monsterSpeed": 11.097637176513672,
+            "targetSpeed": 19.499629974365236,
+            "remainingDistance": 14.900260925292969
+        },
+        {
+            "seconds": 0.4321117401123047,
+            "separation": 19.60223388671875,
+            "monsterSpeed": 10.6887788772583,
+            "targetSpeed": 19.500446319580079,
+            "remainingDistance": 18.787559509277345
+        },
+        {
+            "seconds": 0.5397758483886719,
+            "separation": 20.570068359375,
+            "monsterSpeed": 10.363097190856934,
+            "targetSpeed": 19.49995231628418,
+            "remainingDistance": 17.65595245361328
+        },
+        {
+            "seconds": 0.646697998046875,
+            "separation": 21.56591033935547,
+            "monsterSpeed": 10.040526390075684,
+            "targetSpeed": 19.49971580505371,
+            "remainingDistance": 16.566818237304689
+        },
+        {
+            "seconds": 0.7556533813476563,
+            "separation": 22.5810546875,
+            "monsterSpeed": 10.15604305267334,
+            "targetSpeed": 19.500701904296876,
+            "remainingDistance": 20.4564208984375
+        },
+        {
+            "seconds": 0.8644943237304688,
+            "separation": 23.61426544189453,
+            "monsterSpeed": 9.88554859161377,
+            "targetSpeed": 19.500471115112306,
+            "remainingDistance": 19.367225646972658
+        },
+        {
+            "seconds": 0.9719524383544922,
+            "separation": 24.633216857910158,
+            "monsterSpeed": 10.56854248046875,
+            "targetSpeed": 19.5001277923584,
+            "remainingDistance": 23.20507049560547
+        },
+        {
+            "seconds": 1.080078125,
+            "separation": 25.557952880859376,
+            "monsterSpeed": 10.87260627746582,
+            "targetSpeed": 19.499927520751954,
+            "remainingDistance": 22.021339416503908
+        },
+        {
+            "seconds": 1.1891193389892579,
+            "separation": 26.513328552246095,
+            "monsterSpeed": 10.811317443847657,
+            "targetSpeed": 19.499855041503908,
+            "remainingDistance": 25.83051300048828
+        },
+        {
+            "seconds": 1.2991294860839844,
+            "separation": 27.37419891357422,
+            "monsterSpeed": 11.971663475036621,
+            "targetSpeed": 19.50057029724121,
+            "remainingDistance": 24.546188354492189
+        },
+        {
+            "seconds": 1.4080047607421876,
+            "separation": 28.21295166015625,
+            "monsterSpeed": 11.6529541015625,
+            "targetSpeed": 19.500192642211915,
+            "remainingDistance": 23.26189422607422
+        },
+        {
+            "seconds": 1.512411117553711,
+            "separation": 28.975807189941408,
+            "monsterSpeed": 12.918708801269532,
+            "targetSpeed": 19.500391006469728,
+            "remainingDistance": 26.93988037109375
+        },
+        {
+            "seconds": 1.6225471496582032,
+            "separation": 29.698936462402345,
+            "monsterSpeed": 12.77532958984375,
+            "targetSpeed": 19.500011444091798,
+            "remainingDistance": 25.515342712402345
+        },
+        {
+            "seconds": 1.7304439544677735,
+            "separation": 30.421607971191408,
+            "monsterSpeed": 13.260210990905762,
+            "targetSpeed": 19.499828338623048,
+            "remainingDistance": 29.151336669921876
+        },
+        {
+            "seconds": 1.8371658325195313,
+            "separation": 31.030792236328126,
+            "monsterSpeed": 13.759005546569825,
+            "targetSpeed": 19.50033950805664,
+            "remainingDistance": 27.679428100585939
+        },
+        {
+            "seconds": 1.944620132446289,
+            "separation": 31.6695556640625,
+            "monsterSpeed": 13.390670776367188,
+            "targetSpeed": 19.499399185180665,
+            "remainingDistance": 31.218276977539064
+        },
+        {
+            "seconds": 2.052335739135742,
+            "separation": 32.238853454589847,
+            "monsterSpeed": 14.495025634765625,
+            "targetSpeed": 19.499465942382814,
+            "remainingDistance": 29.687110900878908
+        },
+        {
+            "seconds": 2.1568050384521486,
+            "separation": 32.78265380859375,
+            "monsterSpeed": 14.128223419189454,
+            "targetSpeed": 19.49895668029785,
+            "remainingDistance": 28.193756103515626
+        },
+        {
+            "seconds": 2.2598953247070314,
+            "separation": 33.32037353515625,
+            "monsterSpeed": 14.854272842407227,
+            "targetSpeed": 19.499530792236329,
+            "remainingDistance": 31.79791259765625
+        },
+        {
+            "seconds": 2.3688125610351564,
+            "separation": 33.80487823486328,
+            "monsterSpeed": 14.893949508666993,
+            "targetSpeed": 19.499141693115236,
+            "remainingDistance": 30.15851593017578
+        },
+        {
+            "seconds": 2.475221633911133,
+            "separation": 34.31536102294922,
+            "monsterSpeed": 14.730582237243653,
+            "targetSpeed": 19.499937057495118,
+            "remainingDistance": 33.662139892578128
+        },
+        {
+            "seconds": 2.581817626953125,
+            "separation": 34.745643615722659,
+            "monsterSpeed": 15.596869468688965,
+            "targetSpeed": 19.499361038208009,
+            "remainingDistance": 32.01378631591797
+        },
+        {
+            "seconds": 2.686403274536133,
+            "separation": 35.17681884765625,
+            "monsterSpeed": 15.200118064880371,
+            "targetSpeed": 19.499345779418947,
+            "remainingDistance": 30.405548095703126
+        },
+        {
+            "seconds": 2.7926254272460939,
+            "separation": 35.59398651123047,
+            "monsterSpeed": 16.276769638061525,
+            "targetSpeed": 19.500516891479493,
+            "remainingDistance": 33.72370147705078
+        },
+        {
+            "seconds": 2.9001922607421877,
+            "separation": 35.96551513671875,
+            "monsterSpeed": 15.862091064453125,
+            "targetSpeed": 19.4998722076416,
+            "remainingDistance": 31.997665405273439
+        },
+        {
+            "seconds": 3.007770538330078,
+            "separation": 36.368377685546878,
+            "monsterSpeed": 16.090036392211915,
+            "targetSpeed": 19.49980354309082,
+            "remainingDistance": 35.31407928466797
+        },
+        {
+            "seconds": 3.108104705810547,
+            "separation": 36.662017822265628,
+            "monsterSpeed": 16.524429321289064,
+            "targetSpeed": 19.49998664855957,
+            "remainingDistance": 33.651206970214847
+        },
+        {
+            "seconds": 3.213838577270508,
+            "separation": 37.001617431640628,
+            "monsterSpeed": 16.095487594604493,
+            "targetSpeed": 19.500288009643556,
+            "remainingDistance": 31.928993225097658
+        },
+        {
+            "seconds": 3.3196563720703127,
+            "separation": 37.30755615234375,
+            "monsterSpeed": 17.1666316986084,
+            "targetSpeed": 19.499557495117189,
+            "remainingDistance": 35.244117736816409
+        },
+        {
+            "seconds": 3.4253997802734377,
+            "separation": 37.57978057861328,
+            "monsterSpeed": 16.72639274597168,
+            "targetSpeed": 19.50043487548828,
+            "remainingDistance": 33.45433044433594
+        },
+        {
+            "seconds": 3.5321693420410158,
+            "separation": 37.87841033935547,
+            "monsterSpeed": 17.150218963623048,
+            "targetSpeed": 19.499879837036134,
+            "remainingDistance": 36.61145782470703
+        },
+        {
+            "seconds": 3.638895034790039,
+            "separation": 38.11000061035156,
+            "monsterSpeed": 17.152587890625,
+            "targetSpeed": 19.499467849731447,
+            "remainingDistance": 34.76191711425781
+        },
+        {
+            "seconds": 3.7456626892089845,
+            "separation": 38.38700866699219,
+            "monsterSpeed": 16.703338623046876,
+            "targetSpeed": 19.4996280670166,
+            "remainingDistance": 37.969451904296878
+        },
+        {
+            "seconds": 3.852558135986328,
+            "separation": 38.59947204589844,
+            "monsterSpeed": 17.753570556640626,
+            "targetSpeed": 19.50076675415039,
+            "remainingDistance": 36.097450256347659
+        },
+        {
+            "seconds": 3.960216522216797,
+            "separation": 38.815093994140628,
+            "monsterSpeed": 17.28571128845215,
+            "targetSpeed": 19.499496459960939,
+            "remainingDistance": 34.21376037597656
+        },
+        {
+            "seconds": 4.06843376159668,
+            "separation": 39.032440185546878,
+            "monsterSpeed": 18.12276268005371,
+            "targetSpeed": 19.500734329223634,
+            "remainingDistance": 37.34806823730469
+        },
+        {
+            "seconds": 4.178234100341797,
+            "separation": 39.21315002441406,
+            "monsterSpeed": 17.63352394104004,
+            "targetSpeed": 19.49862289428711,
+            "remainingDistance": 35.3876953125
+        },
+        {
+            "seconds": 4.286096572875977,
+            "separation": 39.42805480957031,
+            "monsterSpeed": 17.810462951660158,
+            "targetSpeed": 19.50015640258789,
+            "remainingDistance": 38.39137268066406
+        },
+        {
+            "seconds": 4.393871307373047,
+            "separation": 39.571533203125,
+            "monsterSpeed": 18.02715492248535,
+            "targetSpeed": 19.499027252197267,
+            "remainingDistance": 36.433258056640628
+        },
+        {
+            "seconds": 4.500391006469727,
+            "separation": 39.75602722167969,
+            "monsterSpeed": 17.56250762939453,
+            "targetSpeed": 19.50033950805664,
+            "remainingDistance": 39.51710510253906
+        },
+        {
+            "seconds": 4.605810165405273,
+            "separation": 39.89979553222656,
+            "monsterSpeed": 18.376632690429689,
+            "targetSpeed": 19.50020408630371,
+            "remainingDistance": 37.60520935058594
+        },
+        {
+            "seconds": 4.712911605834961,
+            "separation": 40.04847717285156,
+            "monsterSpeed": 17.8956356048584,
+            "targetSpeed": 19.49958610534668,
+            "remainingDistance": 35.66542053222656
+        },
+        {
+            "seconds": 4.821155548095703,
+            "separation": 40.21354675292969,
+            "monsterSpeed": 18.547298431396486,
+            "targetSpeed": 19.499065399169923,
+            "remainingDistance": 38.72784423828125
+        },
+        {
+            "seconds": 4.928777694702148,
+            "separation": 40.32130432128906,
+            "monsterSpeed": 18.276729583740236,
+            "targetSpeed": 19.500038146972658,
+            "remainingDistance": 36.736968994140628
+        },
+        {
+            "seconds": 5.038358688354492,
+            "separation": 40.4776611328125,
+            "monsterSpeed": 18.224178314208986,
+            "targetSpeed": 19.50006866455078,
+            "remainingDistance": 39.63926696777344
+        },
+        {
+            "seconds": 5.145549774169922,
+            "separation": 40.56288146972656,
+            "monsterSpeed": 18.615678787231447,
+            "targetSpeed": 19.499589920043947,
+            "remainingDistance": 37.63429260253906
+        },
+        {
+            "seconds": 5.252738952636719,
+            "separation": 40.68666076660156,
+            "monsterSpeed": 18.12343978881836,
+            "targetSpeed": 19.49983024597168,
+            "remainingDistance": 35.667877197265628
+        },
+        {
+            "seconds": 5.361139297485352,
+            "separation": 40.784942626953128,
+            "monsterSpeed": 18.958423614501954,
+            "targetSpeed": 19.50050926208496,
+            "remainingDistance": 38.671142578125
+        },
+        {
+            "seconds": 5.470127105712891,
+            "separation": 40.873931884765628,
+            "monsterSpeed": 18.455949783325197,
+            "targetSpeed": 19.499813079833986,
+            "remainingDistance": 36.63484191894531
+        },
+        {
+            "seconds": 5.57685661315918,
+            "separation": 40.99113464355469,
+            "monsterSpeed": 18.841615676879884,
+            "targetSpeed": 19.49977684020996,
+            "remainingDistance": 39.74598693847656
+        },
+        {
+            "seconds": 5.68348503112793,
+            "separation": 41.04597473144531,
+            "monsterSpeed": 18.785335540771486,
+            "targetSpeed": 19.50069808959961,
+            "remainingDistance": 37.721588134765628
+        },
+        {
+            "seconds": 5.791332244873047,
+            "separation": 41.15275573730469,
+            "monsterSpeed": 18.28400993347168,
+            "targetSpeed": 19.499521255493165,
+            "remainingDistance": 40.72465515136719
+        },
+        {
+            "seconds": 5.898674011230469,
+            "separation": 41.21876525878906,
+            "monsterSpeed": 18.877426147460939,
+            "targetSpeed": 19.500286102294923,
+            "remainingDistance": 38.697479248046878
+        }
+    ]
+}

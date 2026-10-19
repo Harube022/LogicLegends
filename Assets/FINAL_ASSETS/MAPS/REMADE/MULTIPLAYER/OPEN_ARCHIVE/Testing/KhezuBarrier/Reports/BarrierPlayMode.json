@@ -1,0 +1,208 @@
+{
+    "checkedUtc": "2026-10-18T14:49:39.9165447Z",
+    "scope": "Offline Editor: two real awakening/navigation captures, real two-second cinematic and crimson barrier, virtual Input System keyboard/mouse, existing mobile input, original CharacterController, health, UI and thirty-second nest sleep. Authorization and death/observer cases use explicitly identified fixtures. Live 2–4-client transport and native Android input/device performance are separate checks.",
+    "passed": true,
+    "checks": [
+        {
+            "name": "Capture-to-barrier has no movement-unlocked frame",
+            "detail": "maximum displacement=0",
+            "passed": true
+        },
+        {
+            "name": "Actual capture opens the connected owner-only challenge UI",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Crimson barrier is active after cinematic completion",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Player, CharacterController, UI and networking remain enabled",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Movement-only restriction leaves shared input unblocked",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "WASD, held run input, jump and mobile joystick cannot move the player",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Movement actions are rejected before the motor",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Direct CharacterController movement is reconciled to the host anchor",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "External teleport/ability transform writes cannot escape",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Root motion cannot move the captured root",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Return-to-spawn rejects movement during capture",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Camera rotation remains available after the POV sequence",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "SUCCESS and FAILED are touch-sized, wired and unobstructed",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Host rejects wrong owner and stale challenge serial",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Host rejects test results with development configuration disabled",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "SUCCESS mouse click reaches the authoritative outcome handler",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Duplicate and opposite outcomes are rejected",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Player stays locked throughout the barrier dissolve",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "SUCCESS releases only its own movement token",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Valid player movement returns without enabling unrelated systems",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "WASD works again after release",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Mobile movement works again after release",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu navigates back to the original nest before sleeping",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Success deducts no hearts and starts exactly thirty seconds at arrival",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "No hunt resumes before the thirty-second sleep completes",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Original Full_Awaken completes and hunting resumes",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Capture-to-barrier has no movement-unlocked frame",
+            "detail": "maximum displacement=0",
+            "passed": true
+        },
+        {
+            "name": "Actual capture opens the connected owner-only challenge UI",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "FAILED mouse click reaches the host exactly once",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "FAILED duplicates cannot deduct extra hearts",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "FAILED deducts exactly one existing HealthManager heart",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "FAILED releases movement and plays the existing Attack",
+            "detail": "animation=Attack",
+            "passed": true
+        },
+        {
+            "name": "Reapplying an outcome/health checkpoint cannot deduct twice",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "FAILED resumes hunting without a new nest sleep timer",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Simulated 2/3/4-player no-repeat rotation never immediately reselects the failed actor",
+            "detail": "Live multiple clients are not simulated by this roster test.",
+            "passed": true
+        },
+        {
+            "name": "Observer fixture leaves the local bystander free and hides outcome UI",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Death interrupts the challenge without removing the health movement restriction",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Restoring health preserves an unrelated movement restriction",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Restored health leaves no stale barrier or health movement token",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "No runtime errors",
+            "detail": "",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

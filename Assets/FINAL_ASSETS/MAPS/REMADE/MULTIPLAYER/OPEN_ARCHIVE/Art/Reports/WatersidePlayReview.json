@@ -1,0 +1,37 @@
+{
+  "checkedUtc": "2026-10-19T06:00:50.778376+00:00",
+  "passed": true,
+  "scope": "Connected Unity Editor, original Player and GameInput; existing water movement test run with sinking temporarily disabled during Play Mode. Stopped afterward; serialized 5/4/5 sinking settings verified restored.",
+  "automaticSpray": {
+    "systemsPlaying": 12,
+    "systemsWithAssignedMesh": 12,
+    "liveDropletsInSample": 49,
+    "maxDroplets": 120
+  },
+  "frameTimeSeconds": [
+    6.418225,
+    24.72262
+  ],
+  "motionRegions": {
+    "falling_water_and_foam": {
+      "meanAbsolutePixelChange": 6.514422695035461,
+      "changedPixelsPercent": 42.96042553191489
+    },
+    "pond": {
+      "meanAbsolutePixelChange": 3.951534110993284,
+      "changedPixelsPercent": 28.91092258748674
+    },
+    "static_rock_and_bush": {
+      "meanAbsolutePixelChange": 0.0,
+      "changedPixelsPercent": 0.0
+    }
+  },
+  "waterRegression": {
+    "passed": true,
+    "checks": 27,
+    "checkedUtc": "2026-10-19T05:52:46.8300991Z",
+    "report": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Testing/Water/Reports/WaterPlayMode.json"
+  },
+  "consoleErrors": 0,
+  "limitations": "Android hardware and live multiplayer not tested."
+}

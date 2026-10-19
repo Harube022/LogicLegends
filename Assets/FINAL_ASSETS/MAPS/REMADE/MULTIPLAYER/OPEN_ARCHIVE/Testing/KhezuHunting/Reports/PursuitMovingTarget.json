@@ -1,0 +1,485 @@
+{
+    "scope": "Offline real NavMesh pursuit on the north route; test target uses its actual CharacterController at the existing 19.5 m/s run speed. Only the test player is repositioned. No monster teleport or player system edit.",
+    "baseline": false,
+    "autoBraking": false,
+    "caughtWhileRunning": false,
+    "caughtAfterStopping": true,
+    "startSeparation": 15.92156982421875,
+    "endSeparation": 11.390060424804688,
+    "minimumRunChaseSpeed": 18.74103546142578,
+    "meanRunChaseSpeed": 20.24863624572754,
+    "targetDistance": 117.00125122070313,
+    "runSeconds": 6.0010576248168949,
+    "longestSlowdown": 0.021754102781414987,
+    "passed": [
+        "Awakens and begins the real north-route hunt",
+        "Runner can begin moving before capture range",
+        "Moving-target pursuit does not use arrival auto-braking",
+        "Close runner gets at least six seconds of fair escape movement",
+        "Real CharacterController completes the run along the existing environment",
+        "Close pursuit recovers from brief route transitions without sustained slowing",
+        "Running neither opens a free gap nor causes an immediate capture",
+        "Close pursuit averages only slightly above the player's run speed",
+        "Stopping still allows one normal close-range capture",
+        "Moving pursuit keeps the selected target and hunting rotation"
+    ],
+    "failed": [],
+    "samples": [
+        {
+            "seconds": 0.0,
+            "separation": 16.127395629882814,
+            "monsterSpeed": 20.280658721923829,
+            "targetSpeed": 19.500123977661134,
+            "remainingDistance": 15.921584129333496,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 0.10766983032226563,
+            "separation": 16.043418884277345,
+            "monsterSpeed": 20.2808895111084,
+            "targetSpeed": 19.500120162963868,
+            "remainingDistance": 15.430068969726563,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 0.21648406982421876,
+            "separation": 15.958549499511719,
+            "monsterSpeed": 20.279809951782228,
+            "targetSpeed": 19.499719619750978,
+            "remainingDistance": 15.308662414550782,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 0.3264951705932617,
+            "separation": 15.87274169921875,
+            "monsterSpeed": 20.280057907104493,
+            "targetSpeed": 19.499893188476564,
+            "remainingDistance": 15.02032470703125,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 0.4367055892944336,
+            "separation": 15.786788940429688,
+            "monsterSpeed": 20.28002166748047,
+            "targetSpeed": 19.50016212463379,
+            "remainingDistance": 14.926918029785157,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 0.5455131530761719,
+            "separation": 15.701927185058594,
+            "monsterSpeed": 20.280136108398439,
+            "targetSpeed": 19.500131607055665,
+            "remainingDistance": 14.877655029296875,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 0.6550865173339844,
+            "separation": 15.616462707519532,
+            "monsterSpeed": 20.279850006103517,
+            "targetSpeed": 19.50033187866211,
+            "remainingDistance": 14.779151916503907,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 0.7614469528198242,
+            "separation": 15.533493041992188,
+            "monsterSpeed": 20.280364990234376,
+            "targetSpeed": 19.499610900878908,
+            "remainingDistance": 14.680511474609375,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 0.867523193359375,
+            "separation": 15.450752258300782,
+            "monsterSpeed": 20.279865264892579,
+            "targetSpeed": 19.499649047851564,
+            "remainingDistance": 14.622413635253907,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 0.972834587097168,
+            "separation": 15.368606567382813,
+            "monsterSpeed": 20.280385971069337,
+            "targetSpeed": 19.5006103515625,
+            "remainingDistance": 14.578079223632813,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 1.0738468170166016,
+            "separation": 15.289817810058594,
+            "monsterSpeed": 20.279951095581056,
+            "targetSpeed": 19.49992561340332,
+            "remainingDistance": 14.668861389160157,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 1.1826105117797852,
+            "separation": 15.204978942871094,
+            "monsterSpeed": 20.27964973449707,
+            "targetSpeed": 19.500160217285158,
+            "remainingDistance": 14.557571411132813,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 1.2844514846801758,
+            "separation": 15.125556945800782,
+            "monsterSpeed": 20.279752731323243,
+            "targetSpeed": 19.500202178955079,
+            "remainingDistance": 14.649574279785157,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 1.3919525146484376,
+            "separation": 15.041702270507813,
+            "monsterSpeed": 20.280332565307618,
+            "targetSpeed": 19.50069236755371,
+            "remainingDistance": 14.635894775390625,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 1.5016164779663087,
+            "separation": 14.956138610839844,
+            "monsterSpeed": 20.280298233032228,
+            "targetSpeed": 19.499910354614259,
+            "remainingDistance": 14.527458190917969,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 1.611159324645996,
+            "separation": 14.870697021484375,
+            "monsterSpeed": 20.280105590820314,
+            "targetSpeed": 19.500625610351564,
+            "remainingDistance": 14.444686889648438,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 1.7168092727661133,
+            "separation": 14.788291931152344,
+            "monsterSpeed": 20.280330657958986,
+            "targetSpeed": 19.49979591369629,
+            "remainingDistance": 14.375114440917969,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 1.8180131912231446,
+            "separation": 14.709342956542969,
+            "monsterSpeed": 20.2801513671875,
+            "targetSpeed": 19.500198364257814,
+            "remainingDistance": 14.28277587890625,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 1.9223928451538087,
+            "separation": 14.627922058105469,
+            "monsterSpeed": 20.28003692626953,
+            "targetSpeed": 19.5004825592041,
+            "remainingDistance": 14.221176147460938,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 2.027308464050293,
+            "separation": 14.54608154296875,
+            "monsterSpeed": 20.28034210205078,
+            "targetSpeed": 19.50050163269043,
+            "remainingDistance": 14.142387390136719,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 2.138363838195801,
+            "separation": 14.459465026855469,
+            "monsterSpeed": 20.28008460998535,
+            "targetSpeed": 19.500635147094728,
+            "remainingDistance": 14.032005310058594,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 2.2468862533569338,
+            "separation": 14.37481689453125,
+            "monsterSpeed": 20.27965545654297,
+            "targetSpeed": 19.498857498168947,
+            "remainingDistance": 13.96258544921875,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 2.355587959289551,
+            "separation": 14.290046691894532,
+            "monsterSpeed": 20.279769897460939,
+            "targetSpeed": 19.4999942779541,
+            "remainingDistance": 13.871818542480469,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 2.4608049392700197,
+            "separation": 14.207977294921875,
+            "monsterSpeed": 20.279817581176759,
+            "targetSpeed": 19.500293731689454,
+            "remainingDistance": 13.784515380859375,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 2.566716194152832,
+            "separation": 14.1253662109375,
+            "monsterSpeed": 20.28036117553711,
+            "targetSpeed": 19.49981689453125,
+            "remainingDistance": 13.685043334960938,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 2.6731271743774416,
+            "separation": 14.042373657226563,
+            "monsterSpeed": 20.279529571533204,
+            "targetSpeed": 19.500642776489259,
+            "remainingDistance": 13.632431030273438,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 2.77883243560791,
+            "separation": 13.959884643554688,
+            "monsterSpeed": 20.279966354370118,
+            "targetSpeed": 19.49928092956543,
+            "remainingDistance": 13.550155639648438,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 2.8838491439819338,
+            "separation": 13.877975463867188,
+            "monsterSpeed": 20.280107498168947,
+            "targetSpeed": 19.50038719177246,
+            "remainingDistance": 13.4715576171875,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 2.986466407775879,
+            "separation": 13.797927856445313,
+            "monsterSpeed": 20.279674530029298,
+            "targetSpeed": 19.49974822998047,
+            "remainingDistance": 13.403610229492188,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 3.0955896377563478,
+            "separation": 13.712799072265625,
+            "monsterSpeed": 20.279468536376954,
+            "targetSpeed": 19.49921226501465,
+            "remainingDistance": 13.23272705078125,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 3.199080467224121,
+            "separation": 13.632080078125,
+            "monsterSpeed": 20.280427932739259,
+            "targetSpeed": 19.50017738342285,
+            "remainingDistance": 13.240798950195313,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 3.304388999938965,
+            "separation": 13.549942016601563,
+            "monsterSpeed": 20.279586791992189,
+            "targetSpeed": 19.500444412231447,
+            "remainingDistance": 13.155471801757813,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 3.410050392150879,
+            "separation": 13.467514038085938,
+            "monsterSpeed": 20.28048324584961,
+            "targetSpeed": 19.4992618560791,
+            "remainingDistance": 13.069107055664063,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 3.5178823471069338,
+            "separation": 13.383392333984375,
+            "monsterSpeed": 20.28058433532715,
+            "targetSpeed": 19.49960708618164,
+            "remainingDistance": 12.95684814453125,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 3.625515937805176,
+            "separation": 13.2994384765625,
+            "monsterSpeed": 20.28056526184082,
+            "targetSpeed": 19.500818252563478,
+            "remainingDistance": 12.883392333984375,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 3.7310667037963869,
+            "separation": 13.217117309570313,
+            "monsterSpeed": 20.280296325683595,
+            "targetSpeed": 19.50079345703125,
+            "remainingDistance": 12.801193237304688,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 3.831547737121582,
+            "separation": 13.13873291015625,
+            "monsterSpeed": 20.280296325683595,
+            "targetSpeed": 19.50048828125,
+            "remainingDistance": 12.915130615234375,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 3.9397687911987306,
+            "separation": 13.054336547851563,
+            "monsterSpeed": 20.280410766601564,
+            "targetSpeed": 19.498838424682618,
+            "remainingDistance": 12.848770141601563,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 4.049490928649902,
+            "separation": 12.968795776367188,
+            "monsterSpeed": 20.28045082092285,
+            "targetSpeed": 19.499919891357423,
+            "remainingDistance": 12.768280029296875,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 4.154389381408691,
+            "separation": 12.886978149414063,
+            "monsterSpeed": 20.280166625976564,
+            "targetSpeed": 19.499481201171876,
+            "remainingDistance": 12.684600830078125,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 4.260909080505371,
+            "separation": 12.803909301757813,
+            "monsterSpeed": 20.279518127441408,
+            "targetSpeed": 19.50022315979004,
+            "remainingDistance": 12.57025146484375,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 4.36678409576416,
+            "separation": 12.721343994140625,
+            "monsterSpeed": 20.279937744140626,
+            "targetSpeed": 19.499828338623048,
+            "remainingDistance": 12.51116943359375,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 4.476380348205566,
+            "separation": 12.6358642578125,
+            "monsterSpeed": 20.279294967651368,
+            "targetSpeed": 19.499887466430665,
+            "remainingDistance": 12.43316650390625,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 4.58078670501709,
+            "separation": 12.554458618164063,
+            "monsterSpeed": 20.27960777282715,
+            "targetSpeed": 19.50111961364746,
+            "remainingDistance": 12.348068237304688,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 4.686814308166504,
+            "separation": 12.471755981445313,
+            "monsterSpeed": 20.28020668029785,
+            "targetSpeed": 19.499414443969728,
+            "remainingDistance": 12.253021240234375,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 4.793740272521973,
+            "separation": 12.38836669921875,
+            "monsterSpeed": 20.279951095581056,
+            "targetSpeed": 19.499797821044923,
+            "remainingDistance": 12.165634155273438,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 4.898621559143066,
+            "separation": 12.306564331054688,
+            "monsterSpeed": 20.27942657470703,
+            "targetSpeed": 19.500438690185548,
+            "remainingDistance": 12.0980224609375,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 5.002520561218262,
+            "separation": 12.22552490234375,
+            "monsterSpeed": 20.280624389648439,
+            "targetSpeed": 19.500370025634767,
+            "remainingDistance": 12.027206420898438,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 5.108525276184082,
+            "separation": 12.142837524414063,
+            "monsterSpeed": 20.280458450317384,
+            "targetSpeed": 19.49947738647461,
+            "remainingDistance": 11.929107666015625,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 5.217892646789551,
+            "separation": 12.057510375976563,
+            "monsterSpeed": 20.280412673950197,
+            "targetSpeed": 19.50028419494629,
+            "remainingDistance": 11.854995727539063,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 5.3232316970825199,
+            "separation": 11.975357055664063,
+            "monsterSpeed": 20.27967071533203,
+            "targetSpeed": 19.499408721923829,
+            "remainingDistance": 11.767532348632813,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 5.42916202545166,
+            "separation": 11.89276123046875,
+            "monsterSpeed": 20.279346466064454,
+            "targetSpeed": 19.500484466552736,
+            "remainingDistance": 11.676910400390625,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 5.535799980163574,
+            "separation": 11.809585571289063,
+            "monsterSpeed": 20.280725479125978,
+            "targetSpeed": 19.499834060668947,
+            "remainingDistance": 11.610687255859375,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 5.641095161437988,
+            "separation": 11.72747802734375,
+            "monsterSpeed": 20.279356002807618,
+            "targetSpeed": 19.499788284301759,
+            "remainingDistance": 11.530914306640625,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 5.746617317199707,
+            "separation": 11.645172119140625,
+            "monsterSpeed": 20.28044319152832,
+            "targetSpeed": 19.498716354370118,
+            "remainingDistance": 11.430892944335938,
+            "state": "Hunting"
+        },
+        {
+            "seconds": 5.8504228591918949,
+            "separation": 11.564208984375,
+            "monsterSpeed": 20.280120849609376,
+            "targetSpeed": 19.4996337890625,
+            "remainingDistance": 0.0,
+            "state": "NavigationBlocked"
+        },
+        {
+            "seconds": 5.956454277038574,
+            "separation": 11.56243896484375,
+            "monsterSpeed": 18.74103546142578,
+            "targetSpeed": 19.50026512145996,
+            "remainingDistance": 0.0,
+            "state": "NavigationBlocked"
+        }
+    ]
+}

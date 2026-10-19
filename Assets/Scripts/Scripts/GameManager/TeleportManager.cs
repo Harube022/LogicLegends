@@ -190,6 +190,8 @@ public class TeleportManager : MonoBehaviourPun
     // Added the Action parameter back here
     public void StartTeleport(GameObject player, Transform destination, Action onMidTeleport = null)
     {
+        var movement=player!=null?player.GetComponent<Player>():null;
+        if(movement!=null && movement.IsMovementLocked)return;
         if (UsesCoveredTransitions && prelimTransition != null)
         {
             prelimTransition.StartTeleport(player, destination, onMidTeleport);

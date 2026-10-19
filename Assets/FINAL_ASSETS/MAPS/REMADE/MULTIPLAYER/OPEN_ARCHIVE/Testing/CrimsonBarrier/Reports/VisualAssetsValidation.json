@@ -1,0 +1,82 @@
+{
+    "checkedUtc": "2026-10-18T13:11:03.9585449Z",
+    "passed": true,
+    "checks": [
+        {
+            "name": "All thirteen requested mathematical glyphs present",
+            "detail": "∀∃∈∉∪∩⊆∧∨¬→↔∑",
+            "passed": true
+        },
+        {
+            "name": "Static font atlas prevents runtime glyph requests",
+            "detail": "1024 x 1024 Noto Sans Math SDF",
+            "passed": true
+        },
+        {
+            "name": "Exact requested palette",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Semi-transparent wall and inside visibility",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "No gameplay or blocking components in reusable VFX",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "No additional dynamic lights or audio listeners",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Both energy rings, rotating wall and ground runes authored",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Venn, graph, truth table, sets and mappings baked",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Bounded Android particle budget",
+            "detail": "32 maximum live particles",
+            "passed": true
+        },
+        {
+            "name": "Lightweight baked geometry",
+            "detail": "5368 triangles, 11 renderers; no full-screen effect",
+            "passed": true
+        },
+        {
+            "name": "URP shader compiles: Crimson_Transparent_Veil",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "URP shader compiles: Crimson_Energy_Lines",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "URP shader compiles: Crimson_Math_Glyphs",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "URP shader compiles: Crimson_Rising_Streaks",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "URP shader compiles: Crimson_Soft_Sparks",
+            "detail": "",
+            "passed": true
+        }
+    ],
+    "limitation": "Visual assets tested in Unity 6000.3.6f1 URP 17.3. Phase 3B gameplay controller and challenge outcome service are absent from this checkout. No movement lock, success/failure, heart or networking logic was added. Android device performance and live multiplayer unverified."
+}

@@ -1,0 +1,12 @@
+{
+  "checkedUtc": "2026-10-18T09:12:28.0925358Z",
+  "passed": true,
+  "checkedFileCount": 400,
+  "expectedChanges": [
+    "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Meshes/OpenArchive_PlayerNavMesh.asset",
+    "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Meshes/OpenArchive_LargeMonsterNavMesh.asset",
+    "Assets/Scripts/Scripts/Player.cs"
+  ],
+  "unexpectedChanges": [],
+  "note": "The Player change adds only a scene-owned horizontal speed modifier. Jump settings and input mapping remain unchanged. Navigation is rebaked for the added waterbed and bank colliders. Existing bridge geometry, monster source, pursuit, cinematic, puzzle and health code are retained."
+}

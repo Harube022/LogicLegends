@@ -35,6 +35,7 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
     private void Update()
     {
         if (photonView.IsMine || !received) return;
+        if (player!=null && player.IsMovementLocked) {targetPosition=player.MovementLockPosition;walking=jumping=running=false;}
         float blend = 1f - Mathf.Exp(-15f * Time.unscaledDeltaTime);
         transform.position = Vector3.Distance(transform.position, targetPosition) > 12f
             ? targetPosition : Vector3.Lerp(transform.position, targetPosition, blend);
@@ -56,6 +57,7 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
         if (!stream.IsWriting && info.Sender != photonView.Owner) return;
         if (stream.IsWriting)
         {
+            if(player!=null && player.IsMovementLocked)player.EnforceMovementLock();
             stream.SendNext(transform.position); stream.SendNext(transform.rotation);
             stream.SendNext(player != null && player.IsWalking());
             stream.SendNext(player != null && player.IsJumping());
@@ -65,8 +67,12 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
         {
             targetPosition = (Vector3)stream.ReceiveNext(); targetRotation = (Quaternion)stream.ReceiveNext();
             walking = (bool)stream.ReceiveNext(); jumping = (bool)stream.ReceiveNext(); running = (bool)stream.ReceiveNext();
+            // The Master-confirmed capture anchor overrides owner prediction and stale/forged
+            // movement packets while a lock is active. The existing five-field stream is retained.
+            if(player!=null && player.IsMovementLocked){targetPosition=player.MovementLockPosition;walking=jumping=running=false;player.EnforceMovementLock();}
             if (!received) transform.SetPositionAndRotation(targetPosition, targetRotation);
             received = true;
         }
     }
+    private void LateUpdate(){if(player!=null && player.IsMovementLocked)player.EnforceMovementLock();}
 }

@@ -1,0 +1,278 @@
+{
+    "checkedUtc": "2026-10-18T10:10:08.7564559Z",
+    "scope": "Offline Editor using the original enabled Player and GameInput. Saved grace, sinking and recovery settings are exercised in real time; shorter Inspector values are used only for additional cases, then restored. Character visuals lower while the original capsule stays on the riverbed, retaining movement, jumping and bridge clearance. No health or network protocol changes. Live multiplayer not verified.",
+    "passed": true,
+    "checks": [
+        {
+            "name": "Saved default timing",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Standing in water consumes grace without immediately sinking",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Warning is visible and does not intercept controls",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Pause freezes exposure without invalid visual offsets",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Disabled player is not drowned during cinematic control",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Character gradually lowers after the configured grace period",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Existing capsule remains supported throughout the sinking visual",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Full submersion produces exactly one forced return",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Return uses grounded original spawn and restores visual and movement",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Original hunt continues without fabricated capture or rotation reset",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Bunny hopping above the water does not reset exposure",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Sinking still occurs on shallow shelves",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Original jump can escape while already partially sinking",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Brief dry contact does not instantly refill grace",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Configured time on solid land fully recovers",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Standing on a bridge above water never charges the timer",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Second water visit starts a fresh grace period",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Disabling the component cleans up sinking and warning UI",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Existing return-to-spawn clears exposure and model offset",
+            "detail": "",
+            "passed": true
+        }
+    ],
+    "sinking": [
+        {
+            "seconds": 2.2514188289642336,
+            "depth": 0.0,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 2.502040386199951,
+            "depth": 0.0,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 2.753139019012451,
+            "depth": 0.0,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 3.0042190551757814,
+            "depth": 0.0,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 3.254737377166748,
+            "depth": 0.0,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 3.5069668292999269,
+            "depth": 0.0,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 3.7576189041137697,
+            "depth": 0.0,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 4.008975505828857,
+            "depth": 0.0,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 4.2598090171813969,
+            "depth": 0.0,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 4.510978698730469,
+            "depth": 0.0,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 4.761312961578369,
+            "depth": 0.0,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 5.012904167175293,
+            "depth": 7.994046313797299e-8,
+            "rootY": -5.745000839233398,
+            "modelY": -6.64500093460083
+        },
+        {
+            "seconds": 5.265077114105225,
+            "depth": 0.007364571560174227,
+            "rootY": -5.745000839233398,
+            "modelY": -6.652365207672119
+        },
+        {
+            "seconds": 5.515781402587891,
+            "depth": 0.0498126819729805,
+            "rootY": -5.745000839233398,
+            "modelY": -6.6948137283325199
+        },
+        {
+            "seconds": 5.767496109008789,
+            "depth": 0.1349087506532669,
+            "rootY": -5.745000839233398,
+            "modelY": -6.779909610748291
+        },
+        {
+            "seconds": 6.017879962921143,
+            "depth": 0.25645172595977785,
+            "rootY": -5.745000839233398,
+            "modelY": -6.901452541351318
+        },
+        {
+            "seconds": 6.268929958343506,
+            "depth": 0.4088016748428345,
+            "rootY": -5.745000839233398,
+            "modelY": -7.053802490234375
+        },
+        {
+            "seconds": 6.519457817077637,
+            "depth": 0.5850327014923096,
+            "rootY": -5.745000839233398,
+            "modelY": -7.2300333976745609
+        },
+        {
+            "seconds": 6.770995616912842,
+            "depth": 0.7791779637336731,
+            "rootY": -5.745000839233398,
+            "modelY": -7.4241790771484379
+        },
+        {
+            "seconds": 7.022920608520508,
+            "depth": 0.9850711226463318,
+            "rootY": -5.745000839233398,
+            "modelY": -7.630071640014648
+        },
+        {
+            "seconds": 7.276505947113037,
+            "depth": 1.1950939893722535,
+            "rootY": -5.745000839233398,
+            "modelY": -7.840094566345215
+        },
+        {
+            "seconds": 7.527200698852539,
+            "depth": 1.4025182723999024,
+            "rootY": -5.745000839233398,
+            "modelY": -8.04751968383789
+        },
+        {
+            "seconds": 7.7784600257873539,
+            "depth": 1.5998475551605225,
+            "rootY": -5.745000839233398,
+            "modelY": -8.244848251342774
+        },
+        {
+            "seconds": 8.03005313873291,
+            "depth": 1.7820366621017457,
+            "rootY": -5.745000839233398,
+            "modelY": -8.427037239074707
+        },
+        {
+            "seconds": 8.281325340270996,
+            "depth": 1.9415202140808106,
+            "rootY": -5.745000839233398,
+            "modelY": -8.58652114868164
+        },
+        {
+            "seconds": 8.533077239990235,
+            "depth": 2.071784257888794,
+            "rootY": -5.745000839233398,
+            "modelY": -8.716785430908204
+        },
+        {
+            "seconds": 8.784100532531739,
+            "depth": 2.1662678718566896,
+            "rootY": -5.745000839233398,
+            "modelY": -8.81126880645752
+        },
+        {
+            "seconds": 9.035724639892579,
+            "depth": 2.218562364578247,
+            "rootY": -5.745000839233398,
+            "modelY": -8.863563537597657
+        },
+        {
+            "seconds": 9.286540985107422,
+            "depth": 2.23162841796875,
+            "rootY": -5.745000839233398,
+            "modelY": -8.876628875732422
+        }
+    ]
+}

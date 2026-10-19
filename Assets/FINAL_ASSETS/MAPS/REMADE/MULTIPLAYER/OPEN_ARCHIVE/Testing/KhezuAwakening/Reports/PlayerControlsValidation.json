@@ -1,0 +1,77 @@
+{
+    "checkedUtc": "2026-10-16T13:40:35.7169472Z",
+    "passed": true,
+    "checks": [
+        {
+            "name": "Visible, grounded local character",
+            "detail": "(-5.000, 1.455, -202.500)",
+            "passed": true
+        },
+        {
+            "name": "One gameplay camera, listener and EventSystem",
+            "detail": "Existing exploration follow camera replaces fixed review view.",
+            "passed": true
+        },
+        {
+            "name": "W key moves character",
+            "detail": "5.28 m",
+            "passed": true
+        },
+        {
+            "name": "Keyboard release clears movement",
+            "detail": "Original GameInput actions.",
+            "passed": true
+        },
+        {
+            "name": "Shared joystick moves character",
+            "detail": "5.28 m",
+            "passed": true
+        },
+        {
+            "name": "Joystick release clears movement",
+            "detail": "Original MobileInputUI callback.",
+            "passed": true
+        },
+        {
+            "name": "Space jumps",
+            "detail": "Peak rise 3.80 m",
+            "passed": true
+        },
+        {
+            "name": "Shared jump button jumps",
+            "detail": "Peak rise 3.87 m",
+            "passed": true
+        },
+        {
+            "name": "Right-side drag turns camera",
+            "detail": "24.0 degrees",
+            "passed": true
+        },
+        {
+            "name": "Settings pauses and blocks gameplay input",
+            "detail": "Original LevelMenu.",
+            "passed": true
+        },
+        {
+            "name": "Resume restores gameplay input",
+            "detail": "Original LevelMenu.",
+            "passed": true
+        },
+        {
+            "name": "Return-to-spawn keeps character grounded",
+            "detail": "(-5.000, 1.455, -202.500)",
+            "passed": true
+        },
+        {
+            "name": "Monster stays asleep and stationary while exploring",
+            "detail": "No connection from player input to monster movement or mistakes.",
+            "passed": true
+        },
+        {
+            "name": "Control verification completed",
+            "detail": "",
+            "passed": true
+        }
+    ],
+    "limits": "Unity Editor: injected keyboard events and shared UI pointer callbacks drive the real Player and CharacterController. Physical Android touch and multiplayer are not verified."
+}
