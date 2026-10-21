@@ -661,6 +661,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
 
     public bool DebugClearCurrentChallenge()
     {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return false;
         if (!CanDebugClearChallenge) return false;
         // The existing Admin command clears the whole challenge, including remaining questions.
         correctCount += QuestionsPerChallenge - QuestionNumber;
@@ -831,15 +832,16 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
 
     public void RetryStage()
     {
+        TrialRewards.RecordRetry(4);
         UnlockGameplay();
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        TeleportManager.Navigate(SceneManager.GetActiveScene().name);
     }
 
     public void ReturnToMenu()
     {
         UnlockGameplay();
         Time.timeScale = 1f;
-        SceneManager.LoadScene("Main Menu");
+        TeleportManager.Navigate("Main Menu");
     }
 }

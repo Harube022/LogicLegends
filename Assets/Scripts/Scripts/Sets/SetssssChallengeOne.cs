@@ -210,6 +210,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
 
     public bool DebugClearCurrentCondition()
     {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return false;
         if (!CanDebugClearCondition) return false;
         // Use the same advancement as a validated Submit: this removes only the
         // current bank entry, regenerates the next condition's blocks, and also
@@ -220,6 +221,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
 
     public bool DebugClearCurrentChallenge()
     {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return false;
         if (!CanDebugClearChallenge) return false;
         // Advance() owns the normal completion message, block reset, book gate,
         // and final-stage event. Point its final-condition branch at the active
@@ -659,6 +661,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
     // stage restart outside Game Over starts again at Challenge 1.
     public void RestartChallenge()
     {
+        TrialRewards.RecordRetry(7, true);
         bool newPlaythrough = !gameOverTriggered;
         introductions?.Cancel();
         if (newPlaythrough) introductions?.ResetPlaythrough();

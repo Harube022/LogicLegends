@@ -56,6 +56,7 @@ public sealed class WorldStageAudio : MonoBehaviour
         if (scene.name == "PRELIM")
             return StageSelectionState.SelectedStage == 1 || StageSelectionState.SelectedStage == 2
                 ? StageSelectionState.SelectedStage : -1;
+        if (scene.name == "TruthTable") return 2;
         if (scene.name == "RulesOfInference") return 3;
         if (scene.name == "Setssss") return 4;
         if (scene.name == "Graph") return 9;

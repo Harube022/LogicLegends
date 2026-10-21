@@ -17,9 +17,6 @@ public partial class TruthTableDoorInteraction
     TMP_Text correctAnswerText;
     Coroutine feedbackCloseRoutine;
     readonly Dictionary<GameObject,bool> hiddenQuizControls=new Dictionary<GameObject,bool>();
-    RectTransform quizAdmin;
-    Vector2 adminAnchorMin,adminAnchorMax,adminPivot,adminPosition,adminSize;
-    Vector3 adminScale;
 
     public bool UsesHandBubbles => isActiveAndEnabled && IsTruthTableActive;
     bool CanUseWorld => UsesHandBubbles && IsStageRunning && !panelOpen && !stageClock.IsTutorialOpen &&
@@ -28,6 +25,14 @@ public partial class TruthTableDoorInteraction
 
     void InitializePresentation()
     {
+        // Center the quiz on the full Canvas, independently of safe-area insets.
+        // Keep SafeArea above the shade so its Settings and Admin buttons work.
+        var canvas = StageFullScreenPanels.RootCanvas(blankPanel.transform);
+        blankPanel.transform.SetParent(canvas.transform, false);
+        blankPanel.transform.SetAsFirstSibling();
+        var panelRect = (RectTransform)blankPanel.transform;
+        StageUITheme.Stretch(panelRect, Vector2.zero, Vector2.one);
+        panelRect.localScale = Vector3.one;
         quizCard = (RectTransform)questionText.transform.parent;
         correctAnswerText = StageUITheme.Text("Correct Answer",quizCard,"",26,true);
         correctAnswerText.color = new Color(1,.9f,.6f); correctAnswerText.gameObject.SetActive(false);
@@ -189,9 +194,8 @@ public partial class TruthTableDoorInteraction
         if(closeButton!=null){PlaceQuizItem((RectTransform)closeButton.transform,top,Mathf.Min(240,content),64);top+=76;}
         quizCard.anchorMin=quizCard.anchorMax=quizCard.pivot=new Vector2(.5f,.5f);
         quizCard.sizeDelta=new Vector2(width,top+44);
-        // Reserve a small header for the paused quiz clock and penalty feedback.
-        quizCard.anchoredPosition=new Vector2(0,-45);
-        quizCard.localScale=Vector3.one*Mathf.Min(1,(((RectTransform)blankPanel.transform).rect.height-130)/(top+44));
+        quizCard.anchoredPosition=Vector2.zero;
+        quizCard.localScale=Vector3.one*Mathf.Min(1,(((RectTransform)blankPanel.transform).rect.height-96)/(top+44));
     }
     void HideQuizControls()
     {
@@ -200,19 +204,12 @@ public partial class TruthTableDoorInteraction
         {
             if(rect.name=="Joystick"||rect.name=="JumpButton"||rect.name=="InteractButton"||rect.name=="InventoryBar"||rect.name=="TruthTableHelpButton")
             {hiddenQuizControls[rect.gameObject]=rect.gameObject.activeSelf;rect.gameObject.SetActive(false);}
-            if(rect.name=="AdminButton"&&rect.gameObject.activeInHierarchy)quizAdmin=rect;
-        }
-        if(quizAdmin!=null)
-        {
-            adminAnchorMin=quizAdmin.anchorMin;adminAnchorMax=quizAdmin.anchorMax;adminPivot=quizAdmin.pivot;adminPosition=quizAdmin.anchoredPosition;adminSize=quizAdmin.sizeDelta;adminScale=quizAdmin.localScale;
-            quizAdmin.anchorMin=quizAdmin.anchorMax=quizAdmin.pivot=new Vector2(0,1);quizAdmin.anchoredPosition=new Vector2(230,-24);quizAdmin.sizeDelta=new Vector2(200,80);quizAdmin.localScale=Vector3.one;
         }
     }
     void RestoreQuizControls()
     {
         foreach(var entry in hiddenQuizControls)if(entry.Key!=null&&(stageClock==null||!stageClock.IsGameOver))entry.Key.SetActive(entry.Value);
         hiddenQuizControls.Clear();
-        if(quizAdmin!=null){quizAdmin.anchorMin=adminAnchorMin;quizAdmin.anchorMax=adminAnchorMax;quizAdmin.pivot=adminPivot;quizAdmin.anchoredPosition=adminPosition;quizAdmin.sizeDelta=adminSize;quizAdmin.localScale=adminScale;quizAdmin=null;}
     }
     static void PlaceQuizItem(RectTransform rect,float top,float width,float height)
     {

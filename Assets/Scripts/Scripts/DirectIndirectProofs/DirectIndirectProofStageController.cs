@@ -402,6 +402,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void DebugClearCurrentChallenge()
     {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return;
         if (!GuidanceBlocksGameplay && CanDebugClearChallenge) CompleteChallenge();
     }
 
@@ -738,10 +739,11 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void RetryStage()
     {
+        TrialRewards.RecordRetry(5);
         Guide?.Cancel();
         if (input != null) input.SetGameplayInputBlocked(false);
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        TeleportManager.Navigate(SceneManager.GetActiveScene().name);
     }
 
     public void ReturnToMenu()
@@ -749,7 +751,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         Guide?.Cancel();
         if (input != null) input.SetGameplayInputBlocked(false);
         Time.timeScale = 1f;
-        SceneManager.LoadScene("Main Menu");
+        TeleportManager.Navigate("Main Menu");
     }
 
     private static string Letter(int index) { return ((char)('A' + index)).ToString(); }

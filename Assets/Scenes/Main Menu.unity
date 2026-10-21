@@ -61670,14 +61670,12 @@ MonoBehaviour:
   - {fileID: 1944340950}
   - {fileID: 158502727}
   - {fileID: 1991642696}
-  - {fileID: 207234816}
   - {fileID: 993608106}
   - {fileID: 1634772248}
   - {fileID: 553944985}
   - {fileID: 515435260}
   - {fileID: 1716313041}
   - {fileID: 1473989508}
-  - {fileID: 1072414809}
   maleMannequin: {fileID: 1557418872}
   femaleMannequin: {fileID: 231163025}
   mannequinModels:
@@ -69225,6 +69223,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1602024198}
   m_CullTransparentMesh: 1
+--- !u!1001 &1602140252
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3633141688619492448, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
+      propertyPath: m_Name
+      value: TeleportManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 5045580964905946308, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -283.53503
+      objectReference: {fileID: 0}
+    - target: {fileID: 5045580964905946308, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.00002
+      objectReference: {fileID: 0}
+    - target: {fileID: 5045580964905946308, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -280.32635
+      objectReference: {fileID: 0}
+    - target: {fileID: 5045580964905946308, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5045580964905946308, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5045580964905946308, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5045580964905946308, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5045580964905946308, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5045580964905946308, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5045580964905946308, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: dd0b069fed1df184e8838d01518945ae, type: 3}
 --- !u!1 &1605186088
 GameObject:
   m_ObjectHideFlags: 0
@@ -69528,7 +69583,7 @@ MonoBehaviour:
     button: {fileID: 767445994}
     status: {fileID: 1738157184}
   - stageNumber: 2
-    sceneName: PRELIM
+    sceneName: TruthTable
     button: {fileID: 771690927}
     status: {fileID: 1184676913}
   - stageNumber: 3
@@ -97021,3 +97076,4 @@ SceneRoots:
   - {fileID: 1156863049}
   - {fileID: 1060298838}
   - {fileID: 2031482718}
+  - {fileID: 1602140252}

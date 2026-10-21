@@ -175,6 +175,14 @@ public sealed class ProfileAccountInformationUI : MonoBehaviour
         ValidateInput();
         usernameInput.Select();
         usernameInput.ActivateInputField();
+        StartCoroutine(PlaceUsernameCaret());
+    }
+
+    private IEnumerator PlaceUsernameCaret()
+    {
+        yield return null;
+        yield return null;
+        if (usernameInput != null && usernameInput.isFocused) usernameInput.MoveTextEnd(false);
     }
 
     private void ValidateInput()

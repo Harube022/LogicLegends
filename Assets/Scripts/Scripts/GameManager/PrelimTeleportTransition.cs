@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-/// <summary>Fade-first teleports used exclusively by PRELIM and RulesOfInference.</summary>
+/// <summary>Fade-first teleports and scene transitions for the selectable learning stages.</summary>
 public sealed class PrelimTeleportTransition : MonoBehaviour
 {
     public static PrelimTeleportTransition Instance { get; private set; }
@@ -88,11 +88,12 @@ public sealed class PrelimTeleportTransition : MonoBehaviour
 
     private IEnumerator FadeInWhenReady()
     {
-        // Firebase spawning and the initial randomized room placement may finish later.
-        while (Player.LocalInstance == null) yield return null;
+        // Gameplay waits for its spawn; the Main Menu has no gameplay Player.
+        bool gameplay = gameObject.scene.name != "Main Menu";
+        while (gameplay && Player.LocalInstance == null) yield return null;
         yield return null;
         yield return null;
-        if (Player.LocalInstance != null) TeleportCameraSync.ResetAfterMove(Player.LocalInstance.transform, Vector3.zero);
+        if (gameplay && Player.LocalInstance != null) TeleportCameraSync.ResetAfterMove(Player.LocalInstance.transform, Vector3.zero);
         yield return FadeTo(0f);
         fadeCanvasGroup.blocksRaycasts = false;
         startupFading = false;

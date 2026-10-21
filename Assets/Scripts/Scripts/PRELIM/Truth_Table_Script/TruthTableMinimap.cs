@@ -54,7 +54,7 @@ public class TruthTableMinimap : MonoBehaviour
         mapImage = minimapPanel.GetComponentInChildren<RawImage>(true);
         markerPosition = playerMarker.anchoredPosition;
         markerScale = playerMarker.localScale;
-        bool inTruthTable = (SceneManager.GetActiveScene().name == "PRELIM" &&
+        bool inTruthTable = ((SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "TruthTable") &&
                              StageSelectionState.SelectedStage == 2) ||
                             SceneManager.GetActiveScene().name == "RulesOfInference";
         minimapPanel.gameObject.SetActive(inTruthTable);
@@ -65,7 +65,7 @@ public class TruthTableMinimap : MonoBehaviour
     private void LateUpdate()
     {
         // The stage can change in this same scene after Propositional Logic ends.
-        bool inTruthTable = (SceneManager.GetActiveScene().name == "PRELIM" &&
+        bool inTruthTable = ((SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "TruthTable") &&
                              StageSelectionState.SelectedStage == 2) ||
                             SceneManager.GetActiveScene().name == "RulesOfInference";
         if(SceneManager.GetActiveScene().name=="RulesOfInference")
@@ -74,7 +74,7 @@ public class TruthTableMinimap : MonoBehaviour
             if((challenge!=null&&challenge.IsBoardOpen)||(StageJourneyUI.Instance!=null&&StageJourneyUI.Instance.InferenceQuizOpen)||
                 (InferenceControlsOnboarding.Active!=null&&InferenceControlsOnboarding.Active.IsPracticeBoardOpen))inTruthTable=false;
         }
-        if (SceneManager.GetActiveScene().name == "PRELIM" && StageSelectionState.SelectedStage == 2)
+        if ((SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "TruthTable") && StageSelectionState.SelectedStage == 2)
         {
             if (stageClock == null) stageClock = FindFirstObjectByType<TruthTableStageClock>(FindObjectsInactive.Include);
             if (stageClock != null && stageClock.IsPlayerAtBoard) inTruthTable = false;
@@ -145,7 +145,7 @@ public class TruthTableMinimap : MonoBehaviour
         {
             // Both camera-map stages use this named collision floor. Background ocean
             // bounds are deliberately excluded from the playable overview.
-            var root = SceneManager.GetActiveScene().name == "PRELIM" ? GameObject.Find("Truth_Table") : null;
+            var root = SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "TruthTable" ? GameObject.Find("Truth_Table") : null;
             var candidates = root != null ? root.GetComponentsInChildren<Collider>(true) : FindObjectsByType<Collider>(FindObjectsSortMode.None);
             var floor = candidates.Where(c => !c.isTrigger && c.name.StartsWith("FLOOR",System.StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(c => c.bounds.size.x*c.bounds.size.z).FirstOrDefault();

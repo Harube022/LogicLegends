@@ -31,7 +31,6 @@ public sealed class TruthTableStageClock : MonoBehaviour
     private UnityEngine.UI.Button restartButton;
     private Coroutine adjustmentRoutine;
     private RectTransform timeFeedback;
-    private TMP_Text quizClockLabel;
 
     public bool IsWaitingForBook => state == StageState.WaitingForBook;
     public bool IsRunning => state == StageState.Running;
@@ -80,7 +79,6 @@ public sealed class TruthTableStageClock : MonoBehaviour
         hudRoot.gameObject.SetActive(StageSelectionState.SelectedStage == 2 && StageJourneyUI.Instance == null);
         if (hudRoot.gameObject.activeSelf) UpdateHudLayout();
         if(timeFeedback!=null)timeFeedback.gameObject.SetActive(StageSelectionState.SelectedStage==2);
-        if(quizClockLabel!=null){quizClockLabel.gameObject.SetActive(quizOpen);quizClockLabel.text=FormatTime(remainingSeconds);}
         if(StageJourneyUI.Instance==null)LayoutTimeFeedback(hudRoot);
     }
 
@@ -185,6 +183,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
     private void RestartStage()
     {
         if (state != StageState.GameOver) return;
+        TrialRewards.RecordRetry(2);
         LastCompletedRemainingSeconds = 0f;
         TruthTableDoorInteraction.ClearSessionForRestart();
         GameInput input = FindFirstObjectByType<GameInput>();
@@ -193,7 +192,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
         if (player != null) player.ToggleControl(true);
         StageSelectionState.Select(2);
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        TeleportManager.Navigate(SceneManager.GetActiveScene().name);
     }
 
     private void ShowAdjustment(int amount)
@@ -286,8 +285,6 @@ public sealed class TruthTableStageClock : MonoBehaviour
         var scaler=overlay.GetComponent<UnityEngine.UI.CanvasScaler>();scaler.uiScaleMode=UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution=new Vector2(1920,1080);scaler.matchWidthOrHeight=.5f;
         timeFeedback=StageUITheme.Rect("Time feedback safe area",overlay.transform);StageUITheme.Stretch(timeFeedback,Vector2.zero,Vector2.one);timeFeedback.gameObject.AddComponent<Crystal.SafeArea>();
-        quizClockLabel=StageUITheme.Text("Paused quiz timer",timeFeedback,"18:00",32);quizClockLabel.gameObject.SetActive(false);
-        quizClockLabel.outlineWidth=.2f;quizClockLabel.outlineColor=Color.black;
         adjustmentLabel = CreateText("TruthTableTimeAdjustment",timeFeedback,style,30);
         adjustmentLabel.outlineWidth=.2f;adjustmentLabel.outlineColor=Color.black;
         adjustmentLabel.gameObject.SetActive(false);
@@ -362,8 +359,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
         if(timeFeedback==null||gameplayHud==null)return;
         if(quizOpen)
         {
-            Place(quizClockLabel.rectTransform,Vector2.one,new Vector2(-24,-24),new Vector2(200,46));quizClockLabel.rectTransform.pivot=Vector2.one;
-            Place(adjustmentLabel.rectTransform,Vector2.one,new Vector2(-24,-76),new Vector2(200,42));adjustmentLabel.rectTransform.pivot=Vector2.one;
+            Place(adjustmentLabel.rectTransform,Vector2.one,new Vector2(-24,-24),new Vector2(200,42));adjustmentLabel.rectTransform.pivot=Vector2.one;
         }
         else
         {

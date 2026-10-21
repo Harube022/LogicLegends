@@ -172,6 +172,11 @@ public class AuthManager : MonoBehaviour
     // ---> FIX 1: THE FLASHING LOGIN SCREEN <---
     private void Awake()
     {
+        if (gameObject.scene.name == "Main Menu")
+        {
+            MainMenuMobileInput.EnsureForScene(gameObject.scene);
+            CommerceClient.Prewarm();
+        }
         // Hide everything the exact millisecond the scene loads.
         // This prevents the login screen from flashing while Firebase checks your saved session!
         if (loginMenu != null) loginMenu.SetActive(false);

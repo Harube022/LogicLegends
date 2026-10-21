@@ -26,8 +26,27 @@ public static class CommerceClient
     public static CommerceSettings Settings => Resources.Load<CommerceSettings>("CommerceSettings");
     public static bool Sandbox => Settings == null || Settings.sandbox;
     public static event Action Changed;
+    private static Task warmup;
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void Reset() { Changed = null; }
+    private static void Reset() { Changed = null; warmup = null; }
+    // Wake the hosted service while the Main Menu/login is visible rather than
+    // making the first shop visit absorb the entire cold-start delay.
+    public static void Prewarm()
+    {
+        if (warmup == null || warmup.IsCompleted) warmup = Warmup();
+    }
+    private static async Task Warmup()
+    {
+        var settings = Settings;
+        if (settings == null || !Uri.TryCreate(settings.backendUrl, UriKind.Absolute, out var endpoint) ||
+            (endpoint.Scheme != "https" && !(Application.isEditor && endpoint.IsLoopback))) return;
+        using (var request = UnityWebRequest.Get(settings.backendUrl.TrimEnd('/') + "/health"))
+        {
+            request.timeout = 20;
+            var operation = request.SendWebRequest();
+            while (!operation.isDone) await Task.Yield();
+        }
+    }
     public static void NotifyChanged() { Changed?.Invoke(); }
     public static Task<Account> LoadAccount(string character) => Send<Account>("/account", JsonUtility.ToJson(new AccountRequest { character = character }));
     public static Task<Account> Wallet() => Send<Account>("/wallet");
@@ -59,7 +78,9 @@ public static class CommerceClient
         using (var request = new UnityWebRequest(settings.backendUrl.TrimEnd('/') + path, json == null ? "GET" : "POST"))
         {
             request.downloadHandler = new DownloadHandlerBuffer();
-            request.timeout = 70; // Allow a sleeping development host to wake up.
+            // Browsing must reach a retry state promptly on a slow/unreachable
+            // host. Purchase/checkout requests keep their existing write timeout.
+            request.timeout = path == "/account" || path == "/wallet" ? 20 : 70;
             request.SetRequestHeader("Authorization", "Bearer " + token);
             if (json != null)
             {

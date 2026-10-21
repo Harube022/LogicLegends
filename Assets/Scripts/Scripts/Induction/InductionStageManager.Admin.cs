@@ -11,6 +11,7 @@ namespace LogicLegends.Induction
 
         public bool DebugClearCurrentChallenge()
         {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return false;
             if (!CanDebugClearChallenge) return false;
             CompleteCurrentChallenge();
             return true;
@@ -34,6 +35,7 @@ namespace LogicLegends.Induction
 
         public void AppendAdminAnswers(List<AdminAnswerPage> pages)
         {
+        if (!AdminAuthorization.IsAuthorized) return;
             bool initialized = runVariantIndices != null;
             pages.Add(new AdminAnswerPage("Current question — Induction", "Challenge " + (ChallengeIndex + 1) +
                 " of " + InductionChallenges.ChallengesPerRun + " — " + State + "\n" +

@@ -350,7 +350,7 @@ public sealed class SetsUIController : MonoBehaviour
     private void ReturnToMenu()
     {
         if (stageCompleteManager != null) stageCompleteManager.ReturnToMenu();
-        else UnityEngine.SceneManagement.SceneManager.LoadScene("Main Menu");
+        else TeleportManager.Navigate("Main Menu");
     }
 
     private void BuildHudIfNeeded()

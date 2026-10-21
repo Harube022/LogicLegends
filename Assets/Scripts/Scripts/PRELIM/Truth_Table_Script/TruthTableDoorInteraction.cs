@@ -85,7 +85,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
     private bool IsTruthTableActive
     {
-        get { return SceneManager.GetActiveScene().name == "PRELIM" && StageSelectionState.SelectedStage == 2; }
+        get { return (SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "TruthTable") && StageSelectionState.SelectedStage == 2; }
     }
 
     private void Awake()

@@ -10,6 +10,7 @@ public sealed class StageResultLayout : MonoBehaviour
     public TMP_Text Stage, Heading, Summary;
     public Button Primary, Menu, Extra;
     public bool LegacySummary;
+    public bool HasCoinReward;
     string previousSummary;
     bool navigating;
     void OnEnable() { Layout(); }
@@ -33,7 +34,7 @@ public sealed class StageResultLayout : MonoBehaviour
         }
         Label(Stage, new Vector2(.07f,.79f), new Vector2(.93f,.90f), 24, 30, false);
         Label(Heading, new Vector2(.07f,.62f), new Vector2(.93f,.79f), 38, 64, false);
-        Label(Summary, new Vector2(.09f,.34f), new Vector2(.91f,.60f), 24, 32, true);
+        Label(Summary, new Vector2(.09f,HasCoinReward ? .37f : .34f), new Vector2(.91f,.60f), 24, 32, true);
         bool extra = Extra != null && Extra.gameObject.activeSelf;
         bool primary = Primary != null && Primary.gameObject.activeSelf;
         bool menu = Menu != null && Menu.gameObject.activeSelf;
@@ -45,6 +46,8 @@ public sealed class StageResultLayout : MonoBehaviour
     }
     public void Complete(int trial, UnityEngine.Events.UnityAction next = null)
     {
+        HasCoinReward = true;
+        TrialRewardDisplay.Attach(this, trial);
         navigating = false;
         Menu.gameObject.SetActive(true);
         if (Extra != null) Extra.gameObject.SetActive(false);
