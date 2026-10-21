@@ -1,6 +1,6 @@
 const { fail, balance } = require('./wallet');
 
-const adminEmails = new Set(['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabrrameda@gmail.com']);
+const adminEmails = new Set(['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabarrameda@gmail.com']);
 const isAdminEmail = email => typeof email === 'string' && adminEmails.has(email.trim().toLowerCase());
 const trialNumber = value => { if (!Number.isInteger(value) || value < 1 || value > 10) throw fail('Invalid trial.'); return String(value); };
 const operationId = value => { if (!/^[a-f0-9]{32}$/.test(value || '')) throw fail('Invalid attempt request.'); return value; };

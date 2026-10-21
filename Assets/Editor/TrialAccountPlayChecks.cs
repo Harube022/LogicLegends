@@ -103,7 +103,7 @@ public static class TrialAccountPlayChecks
             Check(button!=null&&!button.gameObject.activeSelf,"AdminButtonOn cannot grant access to an ordinary account");
         }
         Check(AdminQuestionAnswers.Capture().Count==0,"ordinary account cannot obtain answer snapshots");
-        foreach(string email in new[]{"sngbdsa137@gmail.com","russelbarrameda593@gmail.com","famatigabrrameda@gmail.com"})
+        foreach(string email in new[]{"sngbdsa137@gmail.com","russelbarrameda593@gmail.com","famatigabarrameda@gmail.com"})
         {
             Identity(email,email.ToUpperInvariant()+"  ",true);AdminAuthorization.Tick();yield return null;
             Check(AdminAuthorization.IsAuthorized,"backend-confirmed allowlisted account gains access");

@@ -16,7 +16,7 @@ public static class AdminAuthorization
         {
             case "sngbdsa137@gmail.com":
             case "russelbarrameda593@gmail.com":
-            case "famatigabrrameda@gmail.com": return true;
+            case "famatigabarrameda@gmail.com": return true;
             default: return false;
         }
     }

@@ -138,7 +138,7 @@ these normalized emails:
 
 - `sngbdsa137@gmail.com`
 - `russelbarrameda593@gmail.com`
-- `famatigabrrameda@gmail.com`
+- `famatigabarrameda@gmail.com`
 
 The backend verifies the ID token, including revocation, then reads the Firebase
 Auth user record. Request-body email, profile email, and Unity visibility/build

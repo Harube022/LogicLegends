@@ -11,11 +11,11 @@ test('reward compounds by 25%, floors only the final value and handles further r
   for (const bad of [-1, 1.5, NaN, Infinity, '2']) assert.throws(() => rewardForRetries(bad));
 });
 test('all three authenticated Admin account emails normalize exactly; lookalikes are denied', () => {
-  for (const email of ['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabrrameda@gmail.com']) {
+  for (const email of ['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabarrameda@gmail.com']) {
     assert.equal(isAdminEmail(email), true); assert.equal(isAdminEmail('  ' + email.toUpperCase() + ' '), true);
     assert.equal(isAdminEmail(email + '.attacker.test'), false);
   }
-  for (const email of ['', null, 'ordinary@gmail.com', 'sngbdsa137+admin@gmail.com']) assert.equal(isAdminEmail(email), false);
+  for (const email of ['', null, 'ordinary@gmail.com', 'sngbdsa137+admin@gmail.com', 'famatigabrrameda@gmail.com']) assert.equal(isAdminEmail(email), false);
 });
 for (let trial = 1; trial <= 10; trial++) {
   test(`trial ${trial}: completion receipt, retries, reload and repeated results preserve the existing account`, () => {

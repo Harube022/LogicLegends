@@ -35,7 +35,7 @@ test('all ten trials: authenticated Admin policy and atomic reward receipts use 
       assert.equal((await call('missing', 'access')).status, 401);
       await account('ordinary', 'ordinary@example.test');
       assert.equal((await ok(await call('ordinary', 'access'))).admin, false);
-      for (const [i, email] of ['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabrrameda@gmail.com'].entries()) {
+      for (const [i, email] of ['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabarrameda@gmail.com'].entries()) {
         const token = 'admin-' + i; await account(token, '  ' + email.toUpperCase() + '  ');
         assert.equal((await ok(await call(token, 'access'))).admin, true);
         for (let trial = 1; trial <= 10; trial++) {
