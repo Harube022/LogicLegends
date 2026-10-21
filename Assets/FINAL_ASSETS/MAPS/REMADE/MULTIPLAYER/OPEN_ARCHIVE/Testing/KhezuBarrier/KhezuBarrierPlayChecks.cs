@@ -137,11 +137,12 @@ namespace LogicLegends.Tests.Khezu
                 // The state changes in Update; Animator evaluates a crossfade later in this frame.
                 yield return new WaitForEndOfFrame();
                 var attackAnimator=hunt.GetComponent<Animator>();
-                Record("FAILED releases movement and plays the existing Attack",!player.IsMovementLocked && hunt.State==KhezuHuntState.AttackRecovery && !ui.Visible &&
+                Record("FAILED holds the player stunned after the existing Attack connects",player.IsMovementLocked && hunt.FailureStunActive && hunt.State==KhezuHuntState.AttackRecovery && !ui.Visible &&
                     (attackAnimator.GetNextAnimatorStateInfo(0).IsName("Attack") || attackAnimator.GetCurrentAnimatorStateInfo(0).IsName("Attack")),"animation="+hunt.GetSnapshot().animation);
-                Place(session.SpawnPoint.position);var checkpoint=hunt.GetSnapshot();hunt.ApplySnapshot(checkpoint,true);hunt.AuthorityChanged();
+                var checkpoint=hunt.GetSnapshot();hunt.ApplySnapshot(checkpoint,true);hunt.AuthorityChanged();
                 Record("Reapplying an outcome/health checkpoint cannot deduct twice",hunt.health.CurrentHealth==hp-1 && hunt.ResolvedSerial==serial);
-                deadline=Time.realtimeSinceStartup+5;while(hunt.State!=KhezuHuntState.Hunting && Time.realtimeSinceStartup<deadline)yield return null;
+                deadline=Time.realtimeSinceStartup+7;while(hunt.State!=KhezuHuntState.Hunting && Time.realtimeSinceStartup<deadline)yield return null;
+                if(!player.IsMovementLocked)Place(session.SpawnPoint.position);
                 Record("FAILED resumes hunting without a new nest sleep timer",hunt.State==KhezuHuntState.Hunting && hunt.NestSleepEndsAt==previousSleepEnd);
                 bool rotationPass=true;var random=new System.Random(17);
                 for(int count=2;count<=4;count++){var rotationModel=new KhezuHuntRotation();var ids=Enumerable.Range(1,count).ToArray();int last=0;for(int n=0;n<100;n++){int selected=rotationModel.Select(ids,max=>random.Next(max),last);rotationPass&=selected!=last;last=selected;}}

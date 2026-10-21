@@ -1,0 +1,49 @@
+{
+  "completed": "2026-10-20T10:44:14.1269431+08:00",
+  "scene": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Topics/Testing/MultiplayerGameplay.unity",
+  "topic": "T1 Propositional Logic - Rune Choice Circle",
+  "passed": true,
+  "changes": [
+    "Reusable A-D answer runes with logical symbols, focus feedback and timed channel arcs",
+    "Compact read-only question reader and nearby objective card using existing artwork",
+    "Book-gated five-challenge team progression, explanations, cancellation and attributed mistake feedback",
+    "Corrected the multiplayer Disjunction answer key and disambiguated six question variants; solo banks preserved",
+    "Progress seal, correct-answer sound and authoritative answer receipts for local VFX"
+  ],
+  "validation": {
+    "t1PlayModeChecks": 78,
+    "completedT1Rounds": 5,
+    "questionVariants": 50,
+    "seededT1Questions": 640,
+    "correctAdapterCases": 2048,
+    "incorrectAdapterCases": 2048,
+    "livePhotonChecks": 28,
+    "liveRemoteCommands": 18,
+    "monsterNavigationRoutes": 80,
+    "protectedFilesUnchanged": 2502,
+    "unityConsoleErrors": 0,
+    "editorLayouts": [
+      "1920x1080",
+      "1600x1200",
+      "2340x1080"
+    ],
+    "all50QuestionTextsFitAt": "1920x1080",
+    "sharedProgress": true,
+    "mistakeAttribution": true,
+    "lateJoin": true,
+    "activeChannelHostHandoff": true,
+    "sceneCleanAndPlayModeStopped": true
+  },
+  "limitations": [
+    "No physical Android device test",
+    "Remote peers used independent Photon Realtime clients; their rendered touch UI and audio were not verified",
+    "Gameplay button checks used graphic raycasts and programmatic activation; no native OS gameplay input pass"
+  ],
+  "reports": [
+    "T1Polish.json",
+    "QuestionAdapters.json",
+    "SharedProgressPhoton.json",
+    "SceneAndNavigation.json"
+  ],
+  "testInstructions": "Play MultiplayerGameplay, expand Show / hide test tools, select T1 with Previous / Next Topic, press Visit Topic, then use Hand / E at the Book Statue. Discuss the question, enter an A-D rune, tap Hand / E once and stay until its ring fills."
+}

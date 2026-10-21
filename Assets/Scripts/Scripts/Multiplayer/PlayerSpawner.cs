@@ -45,19 +45,8 @@ public class PlayerSpawner : MonoBehaviour
             Debug.LogError(Status + " Resources/" + prefabName, this); yield break;
         }
 
-        int[] actors = PhotonNetwork.PlayerList.Select(p => p.ActorNumber).OrderBy(n => n).ToArray();
-        int slot = Mathf.Max(0, System.Array.IndexOf(actors, PhotonNetwork.LocalPlayer.ActorNumber)) % 4;
-        Vector3 origin = spawnPoint != null ? spawnPoint.position : transform.position;
-        var offset = new Vector3(slot % 2 == 0 ? -0.5f : 0.5f, 0f, slot < 2 ? -0.5f : 0.5f) * slotSpacing;
         Quaternion facing = spawnPoint != null ? spawnPoint.rotation : transform.rotation;
-        Vector3 position = origin + facing * offset;
-        if (Physics.Raycast(position + Vector3.up * 30f, Vector3.down, out var ground, 60f, ~(1 << 7), QueryTriggerInteraction.Ignore))
-        {
-            var controller = prefab.GetComponent<CharacterController>();
-            float clearance = controller == null ? 0.2f : Mathf.Max(0.2f,
-                (controller.height * 0.5f - controller.center.y + controller.skinWidth) * prefab.transform.localScale.y);
-            position.y = ground.point.y + clearance;
-        }
+        Vector3 position = ResolveSpawnPosition(prefab, PhotonNetwork.LocalPlayer.ActorNumber);
         Status = "Spawning " + prefabName + ".";
         SpawnedPlayer = PhotonNetwork.Instantiate(prefabName, position, facing);
         // Let Player.Start bind the inherited CameraTarget before snapping Cinemachine.
@@ -69,5 +58,24 @@ public class PlayerSpawner : MonoBehaviour
             TeleportCameraSync.ResetAfterMove(SpawnedPlayer.transform, Vector3.zero);
             Status = "Your player is ready.";
         }
+    }
+
+    /// <summary>The same grounded room-slot placement for either avatar variant.</summary>
+    public Vector3 ResolveSpawnPosition(GameObject avatar, int actorNumber)
+    {
+        int[] actors = PhotonNetwork.PlayerList.Select(p => p.ActorNumber).OrderBy(n => n).ToArray();
+        int slot = Mathf.Max(0, System.Array.IndexOf(actors, actorNumber)) % 4;
+        Vector3 origin = spawnPoint != null ? spawnPoint.position : transform.position;
+        var offset = new Vector3(slot % 2 == 0 ? -0.5f : 0.5f, 0f, slot < 2 ? -0.5f : 0.5f) * slotSpacing;
+        Quaternion facing = spawnPoint != null ? spawnPoint.rotation : transform.rotation;
+        Vector3 position = origin + facing * offset;
+        if (Physics.Raycast(position + Vector3.up * 30f, Vector3.down, out var ground, 60f, ~(1 << 7), QueryTriggerInteraction.Ignore))
+        {
+            var controller = avatar.GetComponent<CharacterController>();
+            float clearance = controller == null ? 0.2f : Mathf.Max(0.2f,
+                (controller.height * 0.5f - controller.center.y + controller.skinWidth) * avatar.transform.localScale.y);
+            position.y = ground.point.y + clearance;
+        }
+        return position;
     }
 }

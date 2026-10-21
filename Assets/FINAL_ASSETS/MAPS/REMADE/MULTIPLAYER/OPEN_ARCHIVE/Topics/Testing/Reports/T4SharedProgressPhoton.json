@@ -1,0 +1,108 @@
+{
+    "passed": true,
+    "acceptedRemoteCommands": 61,
+    "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+    "checks": [
+        {
+            "name": "Independent clients share an invisible private room",
+            "passed": true
+        },
+        {
+            "name": "Native player retains local control ownership",
+            "passed": true
+        },
+        {
+            "name": "Remote replica cannot consume host input",
+            "passed": true
+        },
+        {
+            "name": "Guest Book starts T4's authenticated shared six-minute timer",
+            "passed": true
+        },
+        {
+            "name": "Late join restores actual scroll classifications and exact deadline",
+            "passed": true
+        },
+        {
+            "name": "Wrong proof style charges its authenticated sender despite a forged actor field",
+            "passed": true
+        },
+        {
+            "name": "Replayed proof submission cannot charge another mistake",
+            "passed": true
+        },
+        {
+            "name": "Guest snapshot cannot forge proof completion",
+            "passed": true
+        },
+        {
+            "name": "Teammate corrects the same scrolls and shares the proof-style result",
+            "passed": true
+        },
+        {
+            "name": "T4 remains reserved between challenges",
+            "passed": true
+        },
+        {
+            "name": "Next challenge keeps four original scrolls and the same running clock",
+            "passed": true
+        },
+        {
+            "name": "Guest cannot steal a manuscript carried by a teammate",
+            "passed": true
+        },
+        {
+            "name": "Live master handoff retains solved work, carried manuscript and deadline",
+            "passed": true
+        },
+        {
+            "name": "Departure returns held scrolls while preserving reservation and mistake identity",
+            "passed": true
+        },
+        {
+            "name": "Timeout retains classifications and attributes one mistake to the current activator",
+            "passed": true
+        },
+        {
+            "name": "Expired T4 cannot be exchanged for another topic",
+            "passed": true
+        },
+        {
+            "name": "Guest retry keeps current manuscripts and starts a fresh attempt",
+            "passed": true
+        },
+        {
+            "name": "Only the captured player loses proof interaction authority",
+            "passed": true
+        },
+        {
+            "name": "Captured guest cannot pick a nearby unheld manuscript",
+            "passed": true
+        },
+        {
+            "name": "Photon challenge 2 shares its accepted proof and progress",
+            "passed": true
+        },
+        {
+            "name": "Photon challenge 3 shares its accepted proof and progress",
+            "passed": true
+        },
+        {
+            "name": "Photon challenge 4 shares its accepted proof and progress",
+            "passed": true
+        },
+        {
+            "name": "Photon challenge 5 shares its accepted proof and progress",
+            "passed": true
+        },
+        {
+            "name": "All five networked proof challenges freeze time and unlock the next topic",
+            "passed": true
+        },
+        {
+            "name": "T4 network play preserves every other topic's progress and timer",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

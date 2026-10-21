@@ -1,0 +1,220 @@
+{
+  "passed": true,
+  "checkedUtc": "2026-10-20T12:36:36.3318928Z",
+  "topic": "T7 Sets",
+  "arena": "Garden of Sets",
+  "scene": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Topics/Testing/MultiplayerGameplay.unity",
+  "updatedSoloScene": "Assets/Scenes/Setssss.unity",
+  "updatedSoloController": "SetssssChallengeOne",
+  "challenges": [
+    "Single-set membership",
+    "Disjoint sets",
+    "Shared elements in the intersection",
+    "Five independent regions: full A, full B, intersection, A minus B, B minus A",
+    "Correct the preplaced complement inside U"
+  ],
+  "problemsPerChallenge": 2,
+  "problemsTotal": 10,
+  "timerSecondsPerChallenge": 1080,
+  "timerStartsAt": "Book activation starts each challenge; problem two advances automatically on the same clock",
+  "incorrectPenaltySeconds": 10,
+  "retry": "Preserves solved questions and current physical placements; one attributed mistake per wrong answer or natural timeout. A penalty that exhausts time does not add a second timeout mistake.",
+  "sharedAuthority": "Existing ArchiveTopicSession owns team progress, timer, carry ownership, grades, mistakes and checkpoints. Existing command and snapshot transport retained.",
+  "presentation": [
+    "Three reusable props, five opaque non-overlapping floor meshes, clear universal boundary",
+    "Compact right-side objective, scrollable reader, saved mathematical font fallbacks",
+    "Red/green per-block feedback; take/place/correct/incorrect sounds; capped one-shot mesh sparks",
+    "Existing animated Book and Hand/E controls reused"
+  ],
+  "technicalNotes": [
+    "Challenge four uses six logical copies per source value, sixty total; only available, carried and placed copies render. Return extras to reuse the copy pool.",
+    "Editor tests age deadlines instead of waiting eighteen minutes.",
+    "Live Photon checks use an Editor host and two independent Realtime peers; monster motion is paused only inside the protocol fixture.",
+    "Physical Android performance and rendered remote-device UI were not verified."
+  ],
+  "nativePlayChecks": 268,
+  "updatedSourceCases": 45,
+  "livePhotonChecks": 34,
+  "livePhotonCommands": 162,
+  "originalSourceAndSceneFiles": [
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\FINAL_ASSETS\\MAPS\\REMADE\\MULTIPLAYER\\OPEN_ARCHIVE\\Topics\\Testing\\MultiplayerGameplay.unity",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scenes\\Setssss.unity",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetElement.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetPlacementZone.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetsChallengeCatalog.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetssssBoardView.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetssssChallengeIntroductions.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetssssChallengeOne.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetssssChallengePresentation.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetssssControlsOnboarding.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetssssDiagramLabels.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetssssHelpUI.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetssssHudView.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetssssNumberedBlock.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetssssPlacementFootprint.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetssssStageResultUI.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetsStageManager.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Sets\\SetsUIController.cs",
+      "unchanged": true
+    }
+  ],
+  "solutionPreserved": true,
+  "reports": [
+    {
+      "report": "T7SoloAudit",
+      "passed": true,
+      "checks": 1,
+      "remoteCommands": null,
+      "sourceCases": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T7SetVariants",
+      "passed": true,
+      "checks": 336,
+      "remoteCommands": null,
+      "sourceCases": 45,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T7PolishPlayMode",
+      "passed": true,
+      "checks": 268,
+      "remoteCommands": null,
+      "sourceCases": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T7SharedProgressPhoton",
+      "passed": true,
+      "checks": 34,
+      "remoteCommands": 162,
+      "sourceCases": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T7AssetPersistence",
+      "passed": true,
+      "checks": 1,
+      "remoteCommands": null,
+      "sourceCases": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T7RegionGeometry",
+      "passed": true,
+      "checks": 1,
+      "remoteCommands": null,
+      "sourceCases": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T1BookTimer",
+      "passed": true,
+      "checks": 29,
+      "remoteCommands": null,
+      "sourceCases": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T2PolishPlayMode",
+      "passed": true,
+      "checks": 118,
+      "remoteCommands": null,
+      "sourceCases": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T3PolishPlayMode",
+      "passed": true,
+      "checks": 112,
+      "remoteCommands": null,
+      "sourceCases": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T4PolishPlayMode",
+      "passed": true,
+      "checks": 130,
+      "remoteCommands": null,
+      "sourceCases": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T5PolishPlayMode",
+      "passed": true,
+      "checks": 102,
+      "remoteCommands": null,
+      "sourceCases": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T6PolishPlayMode",
+      "passed": true,
+      "checks": 101,
+      "remoteCommands": null,
+      "sourceCases": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "SceneAndNavigation",
+      "passed": true,
+      "checks": 3,
+      "remoteCommands": null,
+      "sourceCases": null,
+      "navigationRoutes": 80
+    }
+  ]
+}

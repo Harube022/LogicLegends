@@ -29,19 +29,35 @@ namespace LogicLegends.OpenArchive.Topics
     }
 
     public enum ArchiveActivity { Choice, Truth, Premises, Sort, Order, Method, Induction, Sets, Mapping, Graph, Tree }
-    public enum ArchiveAction { Start, Pick, Place, Select, Submit, Connect, Remove, Undo, RetryRoute, BeginChoice, ReturnItem }
+    public enum ArchiveAction { Start, Pick, Place, Select, Submit, Connect, Remove, Undo, RetryRoute, BeginChoice, ReturnItem, ClearSelection, AdminCompleteTopic, AdminResetTopic, RequestHint, BarrierHint, BarrierAnswer }
     [Serializable] public sealed class ArchiveCarry { public int actor, item; }
-    [Serializable] public sealed class ArchiveMistake { public int actor, topic, round, revision, sequence; public double time; }
-    [Serializable] public sealed class ArchiveActor { public int actor, mistakes, lastSequence, mappingInput = -1, mappingRound = -1; public string displayName; }
+    [Serializable] public sealed class ArchiveMistake { public int actor, topic, round, revision, sequence; public double time; public string reason; }
+    [Serializable] public sealed class ArchiveActor { public int actor, mistakes, lastSequence, mappingInput = -1, mappingRound = -1, treeFirst=-1, treeSecond=-1, treeRound=-1; public string displayName; }
     [Serializable] public sealed class ArchiveStationState
     {
         public int topic, round, revision, phase, subphase, selection = -1, flags;
+        public int testResetSerial;
         public int[] placements = Array.Empty<int>();
+        // Last submitted Sets block grades. Moving a block clears only its own receipt.
+        public int[] setGrades = Array.Empty<int>();
         public List<int> links = new List<int>(), route = new List<int>();
         public List<ArchiveCarry> carries = new List<ArchiveCarry>();
         public int routeActor, channelActor, channelChoice = -1, channelSequence;
         public double channelStarted;
+        // Authoritative answer receipt. Presentation can animate it without owning progress.
+        public int answerSerial, lastAnswerActor, lastAnswerChoice = -1, lastAnswerRound = -1, lastAnswerResult;
+        public double lastAnswerAt;
+        // Shared topic deadline is checkpointed with progress; readers never own a clock.
+        public double timerDeadline;
+        public float timerLimit, timerSavedRemaining;
+        public bool timerRunning, timerExpired;
+        public int timerActor, timerAttempt, timerTimeouts;
         public bool continuous = true, routeSampleValid;
+        // Checkpoint the current bridge transaction with the authoritative route.
+        public int routeEdge=-1;
+        public bool routeCrossedMiddle,routeAtVertex;
+        public double routeSampleAt;
+        public string routeReason="";
         public Vector3 lastRoutePosition;
         public string feedback = "Use the book to begin.", reveal = "";
     }
@@ -51,10 +67,26 @@ namespace LogicLegends.OpenArchive.Topics
         public ArchiveStationState[] stations;
         public List<ArchiveActor> actors = new List<ArchiveActor>();
         public List<ArchiveMistake> mistakes = new List<ArchiveMistake>();
+        public ArchiveExitState exit = new ArchiveExitState();
+        public ArchiveBarrierChallengeState barrier = new ArchiveBarrierChallengeState();
+        public List<ArchiveLearningHint> learningHints = new List<ArchiveLearningHint>();
+    }
+    [Serializable] public sealed class ArchiveExitState
+    {
+        public bool opened, won;
+        public double openedAt, wonAt;
+        public List<ArchiveEscape> escaped = new List<ArchiveEscape>();
+    }
+    [Serializable] public sealed class ArchiveEscape
+    {
+        public int actor;
+        public Vector3 anchor;
+        public double time;
     }
     [Serializable] public sealed class ArchiveCommand
     {
         public int topic, revision, sequence, a = -1, b = -1;
+        public int captureSerial, encounterHuntSerial;
         public ArchiveAction action;
     }
 
@@ -65,6 +97,11 @@ namespace LogicLegends.OpenArchive.Topics
         public string title, prompt, instructions, successText;
         public string[] items = Array.Empty<string>(), details = Array.Empty<string>(), slots = Array.Empty<string>();
         public int[] expected = Array.Empty<int>(), itemOrder = Array.Empty<int>();
+        public int setGroup=-1,setEntry=-1;
+        public string[] setA=Array.Empty<string>(),setB=Array.Empty<string>(),setUniverse=Array.Empty<string>(),setSourceValues=Array.Empty<string>();
+        public string setName="A";
+        public int[] setInitialPlacements=Array.Empty<int>();
+        public Vector3[][] setCells;
         public string[][] regionValues;
         public List<int[]> orders = new List<int[]>();
         public int correctChoice = -1, method = -1, statementCount;

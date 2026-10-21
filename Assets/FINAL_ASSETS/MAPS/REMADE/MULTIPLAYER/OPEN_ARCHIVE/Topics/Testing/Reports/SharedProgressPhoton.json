@@ -1,90 +1,174 @@
 {
     "passed": true,
-    "acceptedRemoteCommands": 15,
+    "acceptedRemoteCommands": 105,
     "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
     "checks": [
         {
-            "name": "Two independent clients share an invisible private room",
+            "name": "Independent clients share an invisible private room",
             "passed": true
         },
         {
-            "name": "Existing network player owns the local exploration controls",
+            "name": "Native player retains local control ownership",
             "passed": true
         },
         {
-            "name": "All ten adapted topics initialize on the authority",
+            "name": "Remote replica cannot consume host input",
             "passed": true
         },
         {
-            "name": "Host starts one shared Truth Table challenge",
+            "name": "Competing host and guest Book requests activate exactly one topic",
             "passed": true
         },
         {
-            "name": "Guest replica retains independent ownership and cannot consume host input",
+            "name": "T2 starts its own six-minute shared clock at the native Book",
             "passed": true
         },
         {
-            "name": "Forged actor field cannot change the Photon sender's mistake attribution",
+            "name": "Guest cannot forge another topic start while Truth Table is active",
             "passed": true
         },
         {
-            "name": "Wrong answer retains shared work and charges exactly one actor",
+            "name": "Wrong answer charges its authenticated sender once through the existing monster controller",
             "passed": true
         },
         {
-            "name": "Attributed mistake uses the existing monster awakening controller",
+            "name": "Replay cannot charge another mistake",
             "passed": true
         },
         {
-            "name": "Replayed sequence cannot double-charge a mistake",
+            "name": "Late join retains the active topic, shared work and mistake identity",
             "passed": true
         },
         {
-            "name": "Late join preserves filled rows and the original mistake actor",
+            "name": "Late join resumes T2's exact deadline and attributed answer receipt",
             "passed": true
         },
         {
-            "name": "Another player completes the same shared answer without erasing the mistake record",
+            "name": "T2 Master handoff preserves current outputs, exact clock and team reservation",
             "passed": true
         },
         {
-            "name": "Distant guest cannot start or edit a topic",
+            "name": "Late guest cannot start another topic",
             "passed": true
         },
         {
-            "name": "Non-authority snapshot is ignored by host and independent observer",
+            "name": "Another player completes a shared round while the topic remains reserved",
             "passed": true
         },
         {
-            "name": "Actual master change preserves trusted team progress and attribution",
+            "name": "Solved T2 table keeps the team clock and clears outputs for the next expression",
             "passed": true
         },
         {
-            "name": "Two real actors can carry independent copies of a replenishing truth token",
+            "name": "Other topics remain blocked between Truth Table rounds",
             "passed": true
         },
         {
-            "name": "Departure returns only the disconnected player's carried item",
+            "name": "T2 timeout preserves solved and partial work and charges the guest Book activator once",
             "passed": true
         },
         {
-            "name": "Mistake identity and saved name survive disconnect",
+            "name": "T2 timeout cannot unlock another topic",
             "passed": true
         },
         {
-            "name": "Captured guest cannot work while the uninvolved host stays free",
+            "name": "Guest retries T2 with a fresh six minutes and the same unfinished outputs",
             "passed": true
         },
         {
-            "name": "Captured actor's real network edit is rejected",
+            "name": "Nine native Truth Table rounds release the team reservation only at topic completion",
             "passed": true
         },
         {
-            "name": "Topic validation leaves the uninvolved player's health intact",
+            "name": "Multiplayer T2 completion freezes the remaining team time",
             "passed": true
         },
         {
-            "name": "Cleanup releases test capture without changing player systems",
+            "name": "Completing the previous topic allows T1 and starts its existing six-minute timer",
+            "passed": true
+        },
+        {
+            "name": "Guest can cooperate on the reserved topic while the host stays free",
+            "passed": true
+        },
+        {
+            "name": "Answer receipt and topic reservation survive the next Book gate",
+            "passed": true
+        },
+        {
+            "name": "Another topic is blocked between T1 challenges",
+            "passed": true
+        },
+        {
+            "name": "Next Book activation preserves the shared deadline",
+            "passed": true
+        },
+        {
+            "name": "Cancellation adds no mistake and does not release the reserved topic",
+            "passed": true
+        },
+        {
+            "name": "Guest snapshot cannot release the reservation by forging completion",
+            "passed": true
+        },
+        {
+            "name": "Live master handoff retains the active topic, solved work and exact deadline",
+            "passed": true
+        },
+        {
+            "name": "Master handoff cannot unlock another topic",
+            "passed": true
+        },
+        {
+            "name": "Timeout preserves the reservation and solved progress and charges its activator once",
+            "passed": true
+        },
+        {
+            "name": "Timeout cannot be used to switch topics",
+            "passed": true
+        },
+        {
+            "name": "Guest can retry the same unfinished topic with a fresh six-minute attempt",
+            "passed": true
+        },
+        {
+            "name": "Pending channel timeout charges the guest activator once and keeps T1 reserved",
+            "passed": true
+        },
+        {
+            "name": "All five native T1 challenges release the reservation and stop its timer",
+            "passed": true
+        },
+        {
+            "name": "Guest can start a new topic only after the previous topic is complete",
+            "passed": true
+        },
+        {
+            "name": "Another player cannot take a non-replenishing connector already carried by a teammate",
+            "passed": true
+        },
+        {
+            "name": "The initiating player can leave without releasing the topic reservation; their carried connector returns",
+            "passed": true
+        },
+        {
+            "name": "Original mistake identity survives disconnect",
+            "passed": true
+        },
+        {
+            "name": "Remaining teammate can continue the reserved topic after its starter leaves",
+            "passed": true
+        },
+        {
+            "name": "Capture blocks only the captured player",
+            "passed": true
+        },
+        {
+            "name": "Captured player's command cannot edit or release the reserved topic",
+            "passed": true
+        },
+        {
+            "name": "Cleanup preserves native player controls",
             "passed": true
         }
     ],

@@ -26,7 +26,7 @@ public class TeleportManager : MonoBehaviourPun
         SceneManager.GetActiveScene().name == "LogicGarden" ||
         SceneManager.GetActiveScene().name == "Graph" ||
         SceneManager.GetActiveScene().name == "Trees" ||
-        SceneManager.GetActiveScene().name == "MultiplayerStage";
+        MultiplayerSceneRoutes.IsGameplay(SceneManager.GetActiveScene());
     public bool IsTeleporting => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTeleporting : isTeleporting;
     public bool IsTransitioning => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTransitioning : isTeleporting;
     public float FadeAlpha => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.FadeAlpha :
@@ -44,7 +44,7 @@ public class TeleportManager : MonoBehaviourPun
 
     private static void EnsurePrelimManager(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name != "PRELIM" && scene.name != "RulesOfInference") return;
+        if (scene.name != "PRELIM" && scene.name != "RulesOfInference" && !MultiplayerSceneRoutes.IsOpenArchive(scene)) return;
         EnsureExists().EnsureCoveredTransition();
     }
 

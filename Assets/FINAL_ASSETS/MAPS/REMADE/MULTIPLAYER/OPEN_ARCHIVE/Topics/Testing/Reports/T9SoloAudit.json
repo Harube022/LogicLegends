@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "sourceScene": "Assets/Scenes/Graph.unity",
+  "controller": "GraphStageManager",
+  "managers": 1,
+  "startingSeconds": 600.0,
+  "incorrectPenaltySeconds": 10,
+  "sharedCatalog": true,
+  "sourceCatalog": "Assets/Prefabs/Graph/GraphChallenges.asset",
+  "groups": [
+    {
+      "type": "VerticesAndEdges",
+      "variants": 10
+    },
+    {
+      "type": "Degree",
+      "variants": 10
+    },
+    {
+      "type": "Path",
+      "variants": 10
+    },
+    {
+      "type": "DirectedPath",
+      "variants": 10
+    },
+    {
+      "type": "Cycle",
+      "variants": 10
+    }
+  ],
+  "adaptations": [
+    "Existing authoritative session; checkpointed runner, route and connecting-edge transaction",
+    "Uniformly fitted ground-level graph paths with no new collision or navigation blockers",
+    "Actual capsule-foot movement; directed edges and midpoint traversal required",
+    "Explicit runner claim/retry at the green start rune; no player teleport",
+    "Solo ten-minute remaining clock pauses only at solved Book gates",
+    "Wrong Confirm retains work and costs ten seconds; timeout keeps solved team progress"
+  ]
+}

@@ -1,0 +1,128 @@
+{
+    "passed": true,
+    "acceptedRemoteCommands": 7,
+    "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+    "checks": [
+        {
+            "name": "Independent clients share an invisible private room",
+            "passed": true
+        },
+        {
+            "name": "Native player retains local control ownership",
+            "passed": true
+        },
+        {
+            "name": "Remote replica cannot consume host input",
+            "passed": true
+        },
+        {
+            "name": "Optional tutorial opens without movement locking, starting a topic, or starting its clock",
+            "passed": true
+        },
+        {
+            "name": "Tutorial, barrier reading and answer lists have visible native scrollbars",
+            "passed": true
+        },
+        {
+            "name": "Only explicit tutorial acknowledgement marks it seen",
+            "passed": true
+        },
+        {
+            "name": "Personal hint levels checkpoint for the requesting authenticated player",
+            "passed": true
+        },
+        {
+            "name": "Delayed lower-sequence hint request is rejected",
+            "passed": true
+        },
+        {
+            "name": "Three hint levels are capped and never add mistakes, pause, extend or reset the team deadline",
+            "passed": true
+        },
+        {
+            "name": "Out-of-arena hint packet cannot mutate progress",
+            "passed": true
+        },
+        {
+            "name": "Admin reset discards only the current problem's hint applicability",
+            "passed": true
+        },
+        {
+            "name": "Pre-reset hint request cannot populate a fresh problem",
+            "passed": true
+        },
+        {
+            "name": "Real wrong-answer submission identifies the incorrect truth-table row and retains mistake attribution",
+            "passed": true
+        },
+        {
+            "name": "Remote capture hides math controls on the host and locks only the captured actor",
+            "passed": true
+        },
+        {
+            "name": "Rajang uses original inference rules and the old development outcome selector is disabled",
+            "passed": true
+        },
+        {
+            "name": "Late join does not regenerate the captured player's question",
+            "passed": true
+        },
+        {
+            "name": "Another actor cannot spoof the captured player and a client boolean outcome cannot bypass math validation",
+            "passed": true
+        },
+        {
+            "name": "Stale revision, malformed option and wrong hunt serial cannot resolve capture or alter its clock",
+            "passed": true
+        },
+        {
+            "name": "Authority handoff preserves problem identity, personal hints and the exact original barrier deadline",
+            "passed": true
+        },
+        {
+            "name": "Captured guest's correct inference answer enters the existing success outcome without damage",
+            "passed": true
+        },
+        {
+            "name": "Success preserves arena work and its clock, causes no puzzle completion, and retains thirty-second nest sleep",
+            "passed": true
+        },
+        {
+            "name": "Khezu uses a counterexample problem with an explicit no-counterexample option",
+            "passed": true
+        },
+        {
+            "name": "Incorrect confirmed math answer holds the prison and delays damage until attack contact",
+            "passed": true
+        },
+        {
+            "name": "Attack deducts exactly one heart at contact and transfers movement lock into the original five-second knockback/stun",
+            "passed": true
+        },
+        {
+            "name": "Replaying a failed answer cannot deduct a second heart",
+            "passed": true
+        },
+        {
+            "name": "Failure resumes the existing eligible-target flow without immediately rehunting its victim",
+            "passed": true
+        },
+        {
+            "name": "Local barrier retains complete movement lock while another living player remains free",
+            "passed": true
+        },
+        {
+            "name": "Correct answer after the original deadline is rejected",
+            "passed": true
+        },
+        {
+            "name": "Expired barrier uses its existing failure timer, exactly one heart and explanatory timeout feedback",
+            "passed": true
+        },
+        {
+            "name": "Barrier hints, answers and timeout never change topic mistake totals or its shared deadline",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

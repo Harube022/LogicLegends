@@ -1,0 +1,112 @@
+{
+    "passed": true,
+    "acceptedRemoteCommands": 41,
+    "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+    "checks": [
+        {
+            "name": "Independent clients share an invisible private room",
+            "passed": true
+        },
+        {
+            "name": "Native player retains local control ownership",
+            "passed": true
+        },
+        {
+            "name": "Remote replica cannot consume host input",
+            "passed": true
+        },
+        {
+            "name": "Guest Book starts the authenticated shared six-minute induction clock",
+            "passed": true
+        },
+        {
+            "name": "Late join restores the chosen base formula and exact deadline",
+            "passed": true
+        },
+        {
+            "name": "Wrong formula charges its authenticated sender despite a forged actor field",
+            "passed": true
+        },
+        {
+            "name": "Replayed formula submission cannot charge a second mistake",
+            "passed": true
+        },
+        {
+            "name": "Guest snapshot cannot forge induction completion",
+            "passed": true
+        },
+        {
+            "name": "Teammate corrects the same base formula and shares its accepted equality",
+            "passed": true
+        },
+        {
+            "name": "Gate timeout preserves solved progress without inheriting a previous single-slot answer",
+            "passed": true
+        },
+        {
+            "name": "Expired induction still reserves the unfinished team topic",
+            "passed": true
+        },
+        {
+            "name": "Teammate Book starts the hypothesis with an empty anchor and a fresh attempt",
+            "passed": true
+        },
+        {
+            "name": "Guest cannot steal a teammate's carried formula scroll",
+            "passed": true
+        },
+        {
+            "name": "Master handoff keeps solved work, carried formula and deadline",
+            "passed": true
+        },
+        {
+            "name": "Departure returns held scrolls and retains reservation plus mistake identity",
+            "passed": true
+        },
+        {
+            "name": "Active timeout keeps the hypothesis and charges the current Book activator once",
+            "passed": true
+        },
+        {
+            "name": "Guest retry retains the exact unfinished hypothesis formula",
+            "passed": true
+        },
+        {
+            "name": "Active induction cannot be exchanged for another topic",
+            "passed": true
+        },
+        {
+            "name": "Only the captured player loses induction interaction authority",
+            "passed": true
+        },
+        {
+            "name": "Captured guest cannot pick a valid nearby unheld formula scroll",
+            "passed": true
+        },
+        {
+            "name": "Photon induction stage 2 shares its accepted formulas and progress",
+            "passed": true
+        },
+        {
+            "name": "Photon induction stage 3 shares its accepted formulas and progress",
+            "passed": true
+        },
+        {
+            "name": "Photon induction stage 4 shares its accepted formulas and progress",
+            "passed": true
+        },
+        {
+            "name": "Photon induction stage 5 shares its accepted formulas and progress",
+            "passed": true
+        },
+        {
+            "name": "Shared full proof freezes time and unlocks the next topic",
+            "passed": true
+        },
+        {
+            "name": "T6 network play preserves every other topic's state and clocks",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

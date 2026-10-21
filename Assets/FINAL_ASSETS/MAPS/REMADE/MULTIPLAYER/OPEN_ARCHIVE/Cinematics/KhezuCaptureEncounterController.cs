@@ -33,7 +33,9 @@ namespace LogicLegends.OpenArchive.Cinematics
             if (PhotonNetwork.InRoom) return actor == PhotonNetwork.LocalPlayer.ActorNumber;
             return actor == -1 && global::Player.LocalInstance != null;
         }
-        void Awake() { hunting = GetComponent<KhezuHuntingController>(); animator = GetComponent<Animator>(); }
+        void Awake() { hunting = GetComponent<KhezuHuntingController>(); animator = GetComponent<Animator>();
+            if(GetComponent<KhezuBarrierStatusUI>()==null)gameObject.AddComponent<KhezuBarrierStatusUI>();
+        }
         public override void OnEnable() { base.OnEnable(); if (hunting != null) hunting.CaptureSequenceLocked = true; }
         void Update()
         {
@@ -41,6 +43,7 @@ namespace LogicLegends.OpenArchive.Cinematics
             SynchronizeBarrierMovement();
             if (disconnected) { EndLocal(); return; }
             if (hunting.State != KhezuHuntState.Caught) { EndLocal(); return; }
+            if(hunting.BarrierResolving)return; // The outcome owns Attack; do not restore cinematic speed/poses.
             float elapsed = Mathf.Max(0, (float)(KhezuHuntingController.EncounterClock - hunting.CaptureStartedAt));
             float timeline = KhezuCinematicJumpscareController.TimelineTime(elapsed);
             int serial = hunting.CaptureSerial, actor = hunting.CaughtPlayerId;

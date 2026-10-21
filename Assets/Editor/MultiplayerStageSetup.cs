@@ -27,14 +27,19 @@ public static class MultiplayerStageSetup
         // ParrelSync shares Assets, but each editor owns its copied build settings.
         EditorApplication.delayCall += EnsureBuildScene;
     }
-    private static void EnsureBuildScene()
+    public static void EnsureBuildScene()
     {
-        if (!File.Exists(ScenePath)) return;
         var scenes=EditorBuildSettings.scenes.ToList();
-        int index=scenes.FindIndex(s=>s.path==ScenePath);
-        if(index>=0&&scenes[index].enabled)return;
-        if(index<0)scenes.Add(new EditorBuildSettingsScene(ScenePath,true));else scenes[index]=new EditorBuildSettingsScene(ScenePath,true);
-        EditorBuildSettings.scenes=scenes.ToArray();
+        bool changed=false;
+        foreach(var path in new[]{ScenePath,MultiplayerSceneRoutes.GameplayPath})
+        {
+            if(!File.Exists(path))continue;
+            int index=scenes.FindIndex(s=>s.path==path);
+            if(index>=0&&scenes[index].enabled)continue;
+            if(index<0)scenes.Add(new EditorBuildSettingsScene(path,true));else scenes[index]=new EditorBuildSettingsScene(path,true);
+            changed=true;
+        }
+        if(changed)EditorBuildSettings.scenes=scenes.ToArray();
     }
     private static void RequestedSetup()
     {
@@ -273,14 +278,14 @@ public static class MultiplayerStageSetup
         }
         finally { EditorSceneManager.ClosePreviewScene(preview); }
     }
-    private static void UpdateMainMenu()
+    public static void UpdateMainMenu()
     {
         const string path="Assets/Scenes/Main Menu.unity";
         var scene=SceneManager.GetSceneByPath(path); bool opened=!scene.isLoaded;
         if(opened)scene=EditorSceneManager.OpenScene(path,OpenSceneMode.Additive);
         try
         {
-            foreach(var menu in scene.GetRootGameObjects().SelectMany(r=>r.GetComponentsInChildren<MultiplayerMenuManager>(true))) Set(menu,"multiplayerScene","MultiplayerStage");
+            foreach(var menu in scene.GetRootGameObjects().SelectMany(r=>r.GetComponentsInChildren<MultiplayerMenuManager>(true))) Set(menu,"multiplayerScene",MultiplayerSceneRoutes.GameplayPath);
             EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
         }
         finally { if(opened)EditorSceneManager.CloseScene(scene,true); }
@@ -324,7 +329,7 @@ public static class MultiplayerStageSetup
             if(Mathf.Abs(bounds.min.y)>.02f)throw new Exception("Decoration is not grounded: "+decoration.name);
         }
         lines.Add("100 x 100 platform; "+designs.childCount+" linked, grounded decorations; no unpacked prefab instances.");
-        lines.Add("MultiplayerStage enabled in build settings; Main Menu destination updated.");
+        lines.Add("Legacy test stage retained; Main Menu destination is the enabled Open Archive MultiplayerGameplay scene.");
         return string.Join("\n",lines);
     }
     private static T Ensure<T>(GameObject go) where T : Component { var component=go.GetComponent<T>(); return component!=null?component:go.AddComponent<T>(); }

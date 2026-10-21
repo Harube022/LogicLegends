@@ -58,8 +58,8 @@ MonoBehaviour:
       - Biconditional
       - Disjunction
       correctOptionIndex: 0
-    - questionText: P is true. Q is true. Therefore, P ___ Q is true. What operation
-        belongs between them?
+    - questionText: P ___ Q is true only for TT. It is false for TF, FT and FF. Which
+        connective belongs in the blank?
       options:
       - Exclusive OR
       - Biconditional
@@ -99,7 +99,8 @@ MonoBehaviour:
       - Disjunction
       - Biconditional
       correctOptionIndex: 2
-    - questionText: I combine two statements using the word OR.
+    - questionText: 'I combine statements using inclusive OR: either may be true,
+        and both may be true.'
       options:
       - Conjunction
       - Exclusive OR
@@ -112,7 +113,7 @@ MonoBehaviour:
       - Conjunction
       - Exclusive OR
       - Biconditional
-      correctOptionIndex: 1
+      correctOptionIndex: 0
     - questionText: Given P and Q, I am true if P is true, Q is true, or both are
         true.
       options:
@@ -121,16 +122,16 @@ MonoBehaviour:
       - Exclusive OR
       - Biconditional
       correctOptionIndex: 1
-    - questionText: "My symbol is \u2228, and only one side needs to be true for
-        me to be true."
+    - questionText: "My symbol is \u2228. At least one statement must be true; both
+        true is also allowed."
       options:
       - Conjunction
       - Exclusive OR
       - Disjunction
       - Biconditional
       correctOptionIndex: 2
-    - questionText: P is false, but Q is true. Even so, P ___ Q is true. What operation
-        belongs between them?
+    - questionText: P ___ Q is true for TT, TF and FT, but false for FF. Which connective
+        belongs in the blank?
       options:
       - Conjunction
       - Exclusive OR
@@ -178,7 +179,8 @@ MonoBehaviour:
       - Conjunction
       - Exclusive OR
       correctOptionIndex: 3
-    - questionText: I become true when one statement is true and the other is false.
+    - questionText: I am true exactly when one statement is true and the other is
+        false. I am false when their truth values match.
       options:
       - Exclusive OR
       - Disjunction
@@ -256,14 +258,14 @@ MonoBehaviour:
       - Conditional
       - Conjunction
       - Biconditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 0
     - questionText: 'I connect two statements in the form: If P, then Q.'
       options:
       - Conjunction
       - Conditional
       - Biconditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 1
     - questionText: 'I make a promise: whenever the first statement is true, the
         second statement must also be true.'
@@ -271,22 +273,22 @@ MonoBehaviour:
       - Conjunction
       - Biconditional
       - Conditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 2
     - questionText: "Given P and Q, I am written as P \u2192 Q."
       options:
       - Conjunction
       - Biconditional
-      - 'Exclusive OR '
+      - Exclusive OR
       - Conditional
       correctOptionIndex: 3
-    - questionText: When my first statement is true, but my second statement is false,
-        the entire statement becomes false.
+    - questionText: My only false case is P true and Q false. In all three other
+        cases I am true. Which connective am I?
       options:
       - Conditional
       - Conjunction
       - Biconditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 0
     - questionText: 'Four possibilities exist: TT, TF, FT, and FF. Only TF makes
         me false.'
@@ -294,7 +296,7 @@ MonoBehaviour:
       - Conjunction
       - Conditional
       - Biconditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 1
     - questionText: P is true and Q is true, so 'If P, then Q' is satisfied. Which
         logical operation does this represent?
@@ -302,14 +304,14 @@ MonoBehaviour:
       - Conjunction
       - Biconditional
       - Conditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 2
     - questionText: If you defeat the guardian, then the gate will open. Which logical
         operation describes this condition?
       options:
       - Conjunction
       - Biconditional
-      - 'Exclusive OR '
+      - Exclusive OR
       - Conditional
       correctOptionIndex: 3
     - questionText: 'The rule says: If the torch is lit, then the hidden passage
@@ -318,7 +320,7 @@ MonoBehaviour:
       - Conditional
       - Conjunction
       - Biconditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 0
     - questionText: "My symbol is \u2192. The statement before me is the condition,
         while the statement after me is the consequence."
@@ -326,7 +328,7 @@ MonoBehaviour:
       - Conjunction
       - Conditional
       - Biconditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 1
   - title: Biconditional
     questions:
@@ -335,7 +337,7 @@ MonoBehaviour:
       - Biconditional
       - Conjunction
       - Conditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 0
     - questionText: I am true when both statements are true or when both statements
         are false.
@@ -343,7 +345,7 @@ MonoBehaviour:
       - Conjunction
       - Biconditional
       - Conditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 1
     - questionText: I become false whenever the two statements have different truth
         values.
@@ -351,13 +353,13 @@ MonoBehaviour:
       - Conjunction
       - Conditional
       - Biconditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 2
     - questionText: "Given P and Q, I am written as P \u2194 Q."
       options:
       - Conjunction
       - Conditional
-      - 'Exclusive OR '
+      - Exclusive OR
       - Biconditional
       correctOptionIndex: 3
     - questionText: I connect two statements where each one implies the other.
@@ -365,7 +367,7 @@ MonoBehaviour:
       - Biconditional
       - Conjunction
       - Conditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 0
     - questionText: 'Four possibilities exist: TT, TF, FT, and FF. Only TT and FF
         make me true.'
@@ -373,7 +375,7 @@ MonoBehaviour:
       - Conjunction
       - Biconditional
       - Conditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 1
     - questionText: P is true and Q is true, so the statement is true. If both become
         false, the statement remains true.
@@ -381,14 +383,14 @@ MonoBehaviour:
       - Conjunction
       - Conditional
       - Biconditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 2
     - questionText: The gate opens if the two magical switches are either both activated
         or both deactivated.
       options:
       - Conjunction
       - Conditional
-      - 'Exclusive OR '
+      - Exclusive OR
       - Biconditional
       correctOptionIndex: 3
     - questionText: The two conditions must agree. If one is true while the other
@@ -397,7 +399,7 @@ MonoBehaviour:
       - Biconditional
       - Conjunction
       - Conditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 0
     - questionText: "My symbol is \u2194, and I express that one statement is true
         exactly when the other statement is true."
@@ -405,7 +407,7 @@ MonoBehaviour:
       - Conjunction
       - Biconditional
       - Conditional
-      - 'Exclusive OR '
+      - Exclusive OR
       correctOptionIndex: 1
   inferenceRules:
   - {fileID: 11400000, guid: 9f67f65cf358c26478a50243abf7f0da, type: 2}

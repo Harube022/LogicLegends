@@ -1,5 +1,6 @@
 using UnityEngine;
 using Photon.Pun;
+using System.Collections.Generic;
 
 [DefaultExecutionOrder(100)] // Read Player's movement flags after its Update.
 public class PlayerAnimator : MonoBehaviour
@@ -25,6 +26,8 @@ public class PlayerAnimator : MonoBehaviour
     private bool hasStunParameter;
     private bool hasWalkPlayback;
     private bool hasRunPlayback;
+    private bool externalStun;
+    private readonly HashSet<Object> stunOwners=new HashSet<Object>();
 
     private void Awake()
     {
@@ -53,12 +56,15 @@ public class PlayerAnimator : MonoBehaviour
 
     public void SetStunned(bool stunned)
     {
-        if (animator != null && hasStunParameter)
-            animator.SetBool(IS_STUNNED, stunned);
+        externalStun=stunned;ApplyStun();
     }
+    public void AcquireStun(Object owner){if(owner!=null){stunOwners.Add(owner);ApplyStun();}}
+    public void ReleaseStun(Object owner){stunOwners.Remove(owner);ApplyStun();}
+    private void ApplyStun(){if(animator!=null && hasStunParameter)animator.SetBool(IS_STUNNED,externalStun || stunOwners.Count>0);}
 
     private void Update()
     {
+        if(stunOwners.Count>0){stunOwners.RemoveWhere(o=>o==null);ApplyStun();}
         bool remote = PhotonNetwork.InRoom && view != null && !view.IsMine;
         float speed;
         if (remote)

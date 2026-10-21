@@ -1,0 +1,253 @@
+{
+    "checkedUtc": "2026-10-20T07:57:13.8128942Z",
+    "scope": "Offline Unity Editor. Both existing monster rigs, real awakening/navigation/capture/cinematic, FAILED submission, full five-second stun, shared existing player motor and animations. Timeout, success and collision cases additionally use explicitly aged checkpoint fixtures; no three-minute real-time wait or device run is implied.",
+    "passed": true,
+    "checks": [
+        {
+            "name": "Khezu: 180 seconds starts after completed cinematic",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: formed barrier, owner UI and continuous capture lock",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: visible owner countdown",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: existing monster VFX palette retained",
+            "detail": "Crimson_Barrier_Style",
+            "passed": true
+        },
+        {
+            "name": "Khezu: wrong owner and stale serial rejected",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: FAILED accepted through existing owner command",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: duplicate/conflicting results rejected",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: attack plays while barrier holds, with no early damage or movement",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: contact deducts one heart and transfers directly to stun",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: barrier dissolves at contact and stun lasts exactly five seconds",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: visible smooth knockback reaches safe ground",
+            "detail": "(30.00, 1.08, 27.50);(29.90, 1.08, 27.27);(29.80, 1.08, 27.04);(29.71, 1.08, 26.81);(29.61, 1.08, 26.58);(29.51, 1.08, 26.35);(29.41, 1.08, 26.12);(29.32, 1.08, 25.89)",
+            "passed": true
+        },
+        {
+            "name": "Khezu: existing rig-compatible looping dizzy animation plays",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: checkpoint resumes remaining stun without repeated damage",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: held desktop/mobile movement and jump cannot escape stun",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: recovery releases only encounter stun, retaining unrelated restriction",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: controls return after recovery without globally blocking input",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: checkpoint retains remaining deadline",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: timeout fails without development buttons or a client request",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: timeout follows same single-heart hit path",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: reset cancels every encounter token",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: a late SUCCESS cannot beat the host deadline",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: SUCCESS still accepted before expiry",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: success releases undamaged and preserves return-to-nest flow",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: 180 seconds starts after completed cinematic",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: formed barrier, owner UI and continuous capture lock",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: visible owner countdown",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: existing monster VFX palette retained",
+            "detail": "Rajang_Orange_Barrier_Style",
+            "passed": true
+        },
+        {
+            "name": "Rajang: wrong owner and stale serial rejected",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: FAILED accepted through existing owner command",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: duplicate/conflicting results rejected",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: attack plays while barrier holds, with no early damage or movement",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: contact deducts one heart and transfers directly to stun",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: barrier dissolves at contact and stun lasts exactly five seconds",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: visible smooth knockback reaches safe ground",
+            "detail": "(30.00, 1.08, 27.50);(29.92, 1.08, 27.26);(29.83, 1.08, 27.03);(29.75, 1.08, 26.79);(29.67, 1.08, 26.56);(29.58, 1.08, 26.32);(29.50, 1.08, 26.09);(29.42, 1.08, 25.85)",
+            "passed": true
+        },
+        {
+            "name": "Rajang: existing rig-compatible looping dizzy animation plays",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: checkpoint resumes remaining stun without repeated damage",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: held desktop/mobile movement and jump cannot escape stun",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: recovery releases only encounter stun, retaining unrelated restriction",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: controls return after recovery without globally blocking input",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: checkpoint retains remaining deadline",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: timeout fails without development buttons or a client request",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: timeout follows same single-heart hit path",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: reset cancels every encounter token",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: a late SUCCESS cannot beat the host deadline",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: SUCCESS still accepted before expiry",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: success releases undamaged and preserves return-to-nest flow",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Knockback stops before a real solid wall",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Knockback stops with capsule support before an exposed ledge",
+            "detail": "(1001.77, 201.58, 1001.77)",
+            "passed": true
+        },
+        {
+            "name": "No Unity runtime errors",
+            "detail": "",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

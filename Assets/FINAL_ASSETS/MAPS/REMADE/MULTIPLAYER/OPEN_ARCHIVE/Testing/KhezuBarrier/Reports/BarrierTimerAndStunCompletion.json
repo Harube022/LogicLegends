@@ -1,0 +1,18 @@
+{
+  "checkedUtc": "2026-10-20T08:01:05.8246734Z",
+  "passed": true,
+  "editorChecks": 49,
+  "livePhotonChecks": 16,
+  "barrierSeconds": 180,
+  "stunSeconds": 5,
+  "timeoutOutcome": "Failed",
+  "hit": "Keep barrier and movement lock through attack contact, then deduct one heart, dissolve, knock back, and stun",
+  "sourceOwner": "Existing KhezuHuntingController and encounter shared by both monster profiles",
+  "newAnimationsGenerated": false,
+  "environmentAndMonsterAssetsChanged": false,
+  "limits": [
+    "Deadline tests use aged snapshots instead of waiting three real minutes.",
+    "Multiplayer checks use a rendered Unity host plus two independent headless Photon peers.",
+    "Physical Android device input, remote rendered UI and performance were not tested."
+  ]
+}

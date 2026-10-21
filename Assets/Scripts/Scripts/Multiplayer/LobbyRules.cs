@@ -6,7 +6,8 @@ using NetPlayer = Photon.Realtime.Player;
 public static class LobbyRules
 {
     public const string CodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    public const string Protocol = "LL-private-lobby-3";
+    // Earlier builds do not include the Open Archive scene or its encounter protocol.
+    public const string Protocol = "LL-private-lobby-4";
     public const string ReadyKey = "ll.ready", VersionKey = "ll.version", StateKey = "ll.state", SceneKey = "ll.scene";
     public const string Waiting = "waiting", Locking = "locking", Loading = "loading";
     public const byte ChatEvent = 74;

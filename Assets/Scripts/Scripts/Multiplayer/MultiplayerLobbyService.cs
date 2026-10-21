@@ -29,7 +29,7 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
     public NetPlayer[] Players => InLobby ? PhotonNetwork.PlayerList.Where(p => !p.IsInactive).OrderBy(p => p.ActorNumber).ToArray() : Array.Empty<NetPlayer>();
     public bool CanStart => InLobby && PhotonNetwork.IsMasterClient && !Starting && LobbyRules.CanStart(Players);
     public string Region => PhotonNetwork.CloudRegion ?? PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion;
-    public string TargetScene { get; set; } = "MultiplayerStage";
+    public string TargetScene { get; set; } = MultiplayerSceneRoutes.GameplayPath;
 
     private readonly List<string> messages = new List<string>();
     private readonly List<RoomChatMessage> chatMessages = new List<RoomChatMessage>();
@@ -235,7 +235,13 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
         if (!InLobby || !PhotonNetwork.IsMasterClient) { startRoutine = null; Busy = false; yield break; }
         if (RoomState != LobbyRules.Loading || !LobbyRules.CanStart(Players)) { AbortStart(); yield break; }
         committed = true; startRoutine = null; Busy = false;
-        Notify("Starting game..."); PhotonNetwork.LoadLevel(scene);
+        Notify("Starting game...");
+        // PUN compares synchronized strings to Scene.name, so a full asset path would
+        // reload on later room-property updates. Resolve that unambiguous path once
+        // and synchronize its build index instead. Legacy name destinations still work.
+        int buildIndex = SceneUtility.GetBuildIndexByScenePath(scene);
+        if (buildIndex >= 0) PhotonNetwork.LoadLevel(buildIndex);
+        else PhotonNetwork.LoadLevel(scene);
     }
     private void AbortStart()
     {

@@ -1,0 +1,124 @@
+{
+    "passed": true,
+    "acceptedRemoteCommands": 65,
+    "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+    "checks": [
+        {
+            "name": "Independent clients share an invisible private room",
+            "passed": true
+        },
+        {
+            "name": "Native player retains local control ownership",
+            "passed": true
+        },
+        {
+            "name": "Remote replica cannot consume host input",
+            "passed": true
+        },
+        {
+            "name": "T3 guest Book starts the authenticated shared six-minute clock",
+            "passed": true
+        },
+        {
+            "name": "Late join restores actual placed words, current stage and exact deadline",
+            "passed": true
+        },
+        {
+            "name": "T3 reserves the team topic from other guest Book starts",
+            "passed": true
+        },
+        {
+            "name": "Correct guest premises open the shared crystal stage without resetting time",
+            "passed": true
+        },
+        {
+            "name": "Wrong crystal charges its authenticated sender once and retains the altar",
+            "passed": true
+        },
+        {
+            "name": "Replayed T3 submission cannot repeat the penalty",
+            "passed": true
+        },
+        {
+            "name": "Untrusted guest snapshot cannot forge inference completion",
+            "passed": true
+        },
+        {
+            "name": "Live master handoff preserves solved premises, current crystal and deadline",
+            "passed": true
+        },
+        {
+            "name": "Crystal timeout preserves the stage and adds one Book-activator mistake",
+            "passed": true
+        },
+        {
+            "name": "Teammate retries directly at the saved crystal stage",
+            "passed": true
+        },
+        {
+            "name": "Teammate finishes the restored challenge and receives its original conclusion",
+            "passed": true
+        },
+        {
+            "name": "Guest cannot steal a word tablet held by another teammate",
+            "passed": true
+        },
+        {
+            "name": "Departure returns carried words while preserving the reservation and mistake identity",
+            "passed": true
+        },
+        {
+            "name": "Premise timeout keeps solved challenges and current words, attributing the current activator",
+            "passed": true
+        },
+        {
+            "name": "Only the captured player loses inference interaction authority",
+            "passed": true
+        },
+        {
+            "name": "Captured guest cannot edit or release T3",
+            "passed": true
+        },
+        {
+            "name": "Photon premise stage 2 solved by the remaining teammate",
+            "passed": true
+        },
+        {
+            "name": "Photon Rule Crystal stage 2 shares its conclusion",
+            "passed": true
+        },
+        {
+            "name": "Photon premise stage 3 solved by the remaining teammate",
+            "passed": true
+        },
+        {
+            "name": "Photon Rule Crystal stage 3 shares its conclusion",
+            "passed": true
+        },
+        {
+            "name": "Photon premise stage 4 solved by the remaining teammate",
+            "passed": true
+        },
+        {
+            "name": "Photon Rule Crystal stage 4 shares its conclusion",
+            "passed": true
+        },
+        {
+            "name": "Photon premise stage 5 solved by the remaining teammate",
+            "passed": true
+        },
+        {
+            "name": "Photon Rule Crystal stage 5 shares its conclusion",
+            "passed": true
+        },
+        {
+            "name": "All five live T3 challenges complete, freeze time and release the next topic",
+            "passed": true
+        },
+        {
+            "name": "Live T3 work preserves all other topic progress and timers",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

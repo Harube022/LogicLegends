@@ -26,6 +26,10 @@ namespace LogicLegends.OpenArchive.Hunting
         public bool captureAnchorValid;
         public int resolvedSerial,resolvedActor,resolvedOutcome,avoidNextTarget;
         public double resolvedAt,releaseAt,sleepEndsAt,nestArrivedAt,attackEndsAt;
+        public int barrierTimerSerial;
+        public double barrierStartedAt,barrierDeadline,attackHitAt,barrierDissolveAt,stunEndsAt;
+        public bool barrierTimedOut,failureHitApplied;
+        public Vector3[] knockbackPath=new Vector3[0];
         public HealthManager.ActorHealth[] healthStates=new HealthManager.ActorHealth[0];
     }
 
@@ -161,17 +165,20 @@ namespace LogicLegends.OpenArchive.Hunting
                     else BeginHunt();
                     break;
                 case KhezuCommand.ResetHunt:
+                    CancelBarrierSequence();
                     StopNavigation(); animator.speed = 1; TargetPlayerId = CaughtPlayerId = 0; pending = false;
                     State = fullyAwake ? KhezuHuntState.Ready : driver.Mistakes > 0 ? KhezuHuntState.Waking : KhezuHuntState.Sleeping;
                     if (fullyAwake) Blend("Idle");
                     break;
                 case KhezuCommand.ResetRotation:
+                    CancelBarrierSequence();
                     StopNavigation(); animator.speed = 1; TargetPlayerId = CaughtPlayerId = 0; pending = false;
                     rotation.HuntedPlayerIds.Clear();
                     State = fullyAwake ? KhezuHuntState.Ready : driver.Mistakes > 0 ? KhezuHuntState.Waking : KhezuHuntState.Sleeping;
                     if (fullyAwake) Blend("Idle");
                     break;
                 case KhezuCommand.Sleep:
+                    CancelBarrierSequence();
                     StopNavigation(); TargetPlayerId = CaughtPlayerId = 0; pending = fullyAwake = false;
                     State = KhezuHuntState.Sleeping; animator.speed = 1; driver.ApplySharedMistakes(0);
                     idleReadyAt = -1;
@@ -202,7 +209,7 @@ namespace LogicLegends.OpenArchive.Hunting
             if (State == KhezuHuntState.WaitingForPlayers && targets.Count > 0) BeginHunt();
             if (State != KhezuHuntState.Hunting && State != KhezuHuntState.NavigationBlocked) return;
             Target target;
-            if (!targets.TryGetValue(TargetPlayerId, out target) || target.transform == null || !target.transform.gameObject.activeInHierarchy)
+            if (!targets.TryGetValue(TargetPlayerId, out target) || target.transform == null || !target.transform.gameObject.activeInHierarchy || EscapedArchivePlayer(TargetPlayerId))
             { StopNavigation(); TargetPlayerId = 0; BeginHunt(); return; }
             float gap = TargetSurfaceGap(target);
             float catchUp = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(closePressureDistance, Mathf.Max(closePressureDistance + 1, catchUpDistance), gap));
@@ -218,9 +225,9 @@ namespace LogicLegends.OpenArchive.Hunting
             }
             // A projected destination can be beside the player rather than directly on them.
             // Finish turning toward the actual target so the existing front reach can connect.
-            if (agent.enabled && agent.isOnNavMesh && !agent.isStopped)
+            if (agent.enabled && agent.isOnNavMesh)
             {
-                bool arrived = !agent.pathPending && (!agent.hasPath || agent.remainingDistance < .85f);
+                bool arrived = agent.isStopped || (!agent.pathPending && (!agent.hasPath || agent.remainingDistance < .85f));
                 agent.updateRotation = !arrived;
                 Vector3 toward = target.transform.position - transform.position; toward.y = 0;
                 if (arrived && toward.sqrMagnitude > .1f)
@@ -236,6 +243,7 @@ namespace LogicLegends.OpenArchive.Hunting
                 {
                     CapturePosition=target.transform.position;CaptureAnchorValid=true;
                     StopNavigation(); Blend("Idle"); animator.speed = 1;
+                    CancelBarrierSequence();
                     State = KhezuHuntState.Caught; CaughtPlayerId = TargetPlayerId; CaptureSerial++;
                     CaptureStartedAt = EncounterClock; EncounterPhase = 0;
                     Status = "Caught " + TargetName;
@@ -281,10 +289,12 @@ namespace LogicLegends.OpenArchive.Hunting
                 }
                 else if (p != global::Player.LocalInstance) continue;
                 var eligibility = p.GetComponent<KhezuHuntEligibility>();
-                if (excluded.Contains(id) || (health!=null && !health.IsActorAlive(id)) || (eligibility != null && !eligibility.IsEligible)) continue;
+                if (excluded.Contains(id) || EscapedArchivePlayer(id) || (health!=null && !health.IsActorAlive(id)) || (eligibility != null && !eligibility.IsEligible)) continue;
                 targets[id] = new Target { transform = p.transform, capsule = p.GetComponent<CharacterController>(), name = name };
             }
         }
+        static bool EscapedArchivePlayer(int actor) => Topics.ArchiveTopicSession.Current != null &&
+            (Topics.ArchiveTopicSession.Current.TeamWon || Topics.ArchiveTopicSession.Current.HasEscapedActor(actor));
         void BeginHunt()
         {
             if (!IsAuthority || !fullyAwake) return;
@@ -347,13 +357,18 @@ namespace LogicLegends.OpenArchive.Hunting
             // broad ground agent's route. Test actual upper-body sight lines there.
             if (TargetFeet(t) - transform.position.y > elevatedFeetThreshold)
                 return CanReachElevatedTarget(t);
-            if (gap > catchSurfaceDistance) return false;
+            // The navigation clearance can keep a supported runner outside the
+            // rectangular torso even while the monster can turn and reach them.
+            if (gap > catchSurfaceDistance) return CanReachGroundTarget(t);
             Vector3 center = t.capsule == null ? t.transform.position + Vector3.up : t.transform.TransformPoint(t.capsule.center);
             Vector3 from = transform.position, to = center;
             from.y = to.y = Mathf.Max(transform.position.y, TargetFeet(t)) + 1.5f;
             RaycastHit obstruction;
-            return !Physics.Linecast(from, to, out obstruction, catchObstructionMask, QueryTriggerInteraction.Ignore) ||
-                obstruction.transform == t.transform || obstruction.transform.IsChildOf(t.transform);
+            if (!Physics.Linecast(from, to, out obstruction, catchObstructionMask, QueryTriggerInteraction.Ignore) ||
+                obstruction.transform == t.transform || obstruction.transform.IsChildOf(t.transform)) return true;
+            // A low rock can block this foot-level ray while the arms have clear
+            // access to the torso. Solid walls still block every rig-to-player ray.
+            return CanReachGroundTarget(t);
         }
         float TargetSurfaceGap(Target t)
         {
@@ -389,7 +404,11 @@ namespace LogicLegends.OpenArchive.Hunting
             // CrossFade is evaluated after Update. An immediate outcome checkpoint must
             // already describe Attack, even before the Animator has evaluated this frame.
             float animationTime=animationState.normalizedTime;
-            if(State==KhezuHuntState.AttackRecovery){animationName="Attack";animationTime=Mathf.Clamp01(1-(float)(attackEndsAt-EncounterClock)/ClipSeconds("Attack"));}
+            if((BarrierResolving && ResolvedOutcome==2) || State==KhezuHuntState.AttackRecovery){
+                bool attacking=EncounterClock<attackEndsAt;
+                animationName=attacking?"Attack":"Idle";
+                animationTime=attacking?Mathf.Clamp01((float)(EncounterClock-ResolvedAt)/ClipSeconds("Attack")):0;
+            }
             var snapshot = new KhezuSnapshot { state = (int)State, mistakes = driver.Mistakes, stage = driver.PlayingStage,
                 target = TargetPlayerId, caught = CaughtPlayerId, hunted = rotation.HuntedPlayerIds.OrderBy(i => i).ToArray(), excluded = excluded.OrderBy(i => i).ToArray(),
                 position = transform.position, rotation = transform.rotation, animation = animationName,
@@ -401,7 +420,9 @@ namespace LogicLegends.OpenArchive.Hunting
         public void SetEncounterPhase(int value)
         {
             if (!IsAuthority || State != KhezuHuntState.Caught || value < 0 || value > 4 || EncounterPhase == value) return;
-            EncounterPhase = value; SnapshotChanged?.Invoke();
+            EncounterPhase = value;
+            if(value==4)EnsureBarrierTimer();
+            SnapshotChanged?.Invoke();
         }
         public void ApplySnapshot(KhezuSnapshot s, bool initial)
         {

@@ -1,0 +1,241 @@
+{
+  "passed": true,
+  "checkedUtc": "2026-10-20T13:16:13.9632423Z",
+  "topic": "T8 Functions and Relations",
+  "arena": "Mapping Conduit",
+  "scene": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Topics/Testing/MultiplayerGameplay.unity",
+  "soloScene": "Assets/Scenes/Functions and Relations.unity",
+  "soloController": "FunctionsRelationsStageManager",
+  "sourceCatalog": "Assets/Resources/FunctionsRelationsChallenges.asset",
+  "challenges": [
+    "Build the relation",
+    "Connect the ordered pairs, including multiple outputs from one input",
+    "Complete a constrained bijection with one fixed connection",
+    "Function or relation classification using the three original pedestals",
+    "Identify every applicable Injective, Surjective and Bijective property"
+  ],
+  "sourceVariants": 50,
+  "initialSeconds": 600,
+  "incorrectPenaltySeconds": 10,
+  "timer": "Book starts the shared ten-minute remaining clock. Solved Book gates pause it; next Book resumes the saved remaining value. Reading during an active challenge keeps time running.",
+  "retry": "Wrong submissions retain connections and choices; natural timeout keeps solved team progress and unfinished work. Book timeout retry supplies a new ten-minute attempt. A wrong-answer penalty exhausting time adds no second timeout mistake.",
+  "sharedAuthority": "ArchiveTopicSession remains the single owner of shared progress, timer, connections, per-actor pending inputs, choices and mistake receipts. Existing command/snapshot protocol and encounter checks retained.",
+  "presentation": [
+    "Four Domain and four Codomain crystal ports with opaque textured URP materials",
+    "Blue editable lasers, amber fixed lasers, directed arrowheads, live actual range",
+    "Three verdict seals in original solo order and three property toggle seals",
+    "Compact right-side objective, scroll reader, nearby crystal and choice buttons, Codomain Undo",
+    "Existing animated Book, Hand/E movement controls, selection/connection/verdict sounds and capped mesh sparks"
+  ],
+  "nativePlayChecks": 103,
+  "livePhotonChecks": 34,
+  "livePhotonCommands": 51,
+  "cameraAngles": 12,
+  "technicalNotes": [
+    "Three reusable prop prefabs and a directed-arrow mesh; kit retains only its existing Book collider.",
+    "Live Photon validation uses a rendered Editor host and two independent Realtime peers. Monster motion is paused only in the opt-in protocol fixture.",
+    "Deadline fixtures are aged rather than waiting ten minutes.",
+    "Physical Android performance, audio on a phone and rendered remote-device UI were not verified."
+  ],
+  "originalSourceAndSceneFiles": [
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scenes\\Functions and Relations.unity",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Resources\\FunctionsRelationsChallenges.asset",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\FINAL_ASSETS\\MAPS\\REMADE\\MULTIPLAYER\\OPEN_ARCHIVE\\Topics\\Testing\\MultiplayerGameplay.unity",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\CodomainNode.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\DomainNode.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\FunctionsRelationsBoardView.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\FunctionsRelationsControlsOnboarding.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\FunctionsRelationsControlsOnboarding.View.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\FunctionsRelationsHelpUI.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\FunctionsRelationsPresentation.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\FunctionsRelationsStageManager.Admin.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\FunctionsRelationsStageManager.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\LaserEmitter.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\LaserMappingController.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\LaserReceiver.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\MappingChallengeCatalog.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\MappingChallengeVariantFactory.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\MappingChamberEnvironmentController.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\FunctionsRelations\\MappingRuleEvaluator.cs",
+      "unchanged": true
+    }
+  ],
+  "solutionPreserved": true,
+  "reports": [
+    {
+      "report": "T8SoloAudit",
+      "passed": true,
+      "checks": 1,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T8MappingVariants",
+      "passed": true,
+      "checks": 342,
+      "remoteCommands": null,
+      "sourceVariants": 50,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T8PolishPlayMode",
+      "passed": true,
+      "checks": 103,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T8SharedProgressPhoton",
+      "passed": true,
+      "checks": 34,
+      "remoteCommands": 51,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T8AssetPersistence",
+      "passed": true,
+      "checks": 1,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T8CameraPresentation",
+      "passed": true,
+      "checks": 1,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T1BookTimer",
+      "passed": true,
+      "checks": 29,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T2PolishPlayMode",
+      "passed": true,
+      "checks": 118,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T3PolishPlayMode",
+      "passed": true,
+      "checks": 112,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T4PolishPlayMode",
+      "passed": true,
+      "checks": 130,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T5PolishPlayMode",
+      "passed": true,
+      "checks": 102,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T6PolishPlayMode",
+      "passed": true,
+      "checks": 101,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "T7PolishPlayMode",
+      "passed": true,
+      "checks": 268,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    },
+    {
+      "report": "SceneAndNavigation",
+      "passed": true,
+      "checks": 3,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": 80
+    },
+    {
+      "report": "QuestionAdapters",
+      "passed": true,
+      "checks": 1,
+      "remoteCommands": null,
+      "sourceVariants": null,
+      "navigationRoutes": null
+    }
+  ]
+}

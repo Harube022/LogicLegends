@@ -1,0 +1,128 @@
+{
+    "passed": true,
+    "acceptedRemoteCommands": 10,
+    "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+    "checks": [
+        {
+            "name": "Independent clients share an invisible private room",
+            "passed": true
+        },
+        {
+            "name": "Native player retains local control ownership",
+            "passed": true
+        },
+        {
+            "name": "Remote replica cannot consume host input",
+            "passed": true
+        },
+        {
+            "name": "Saved scene includes the reusable portal bound to its existing team session",
+            "passed": true
+        },
+        {
+            "name": "Portal starts hidden and nonblocking at zero completed topics",
+            "passed": true
+        },
+        {
+            "name": "Nine completed topics cannot open the portal",
+            "passed": true
+        },
+        {
+            "name": "Guest-forged topic and victory snapshots are rejected by the master and receiving peer",
+            "passed": true
+        },
+        {
+            "name": "Original last-challenge submission opens the same shared portal without awarding victory",
+            "passed": true
+        },
+        {
+            "name": "Ground-up portal formation cannot accept early escapes",
+            "passed": true
+        },
+        {
+            "name": "Portal becomes visible with a bounded lightweight particle budget",
+            "passed": true
+        },
+        {
+            "name": "Standing outside the oval cannot escape through the portal's surrounding stone arch",
+            "passed": true
+        },
+        {
+            "name": "A captured or stunned actor cannot escape while movement-locked inside the portal",
+            "passed": true
+        },
+        {
+            "name": "Being near the landmark without entering its aperture does not escape",
+            "passed": true
+        },
+        {
+            "name": "First survivor escape waits for the living host",
+            "passed": true
+        },
+        {
+            "name": "Escaped network avatar is safely locked and clears the aperture for teammates",
+            "passed": true
+        },
+        {
+            "name": "An unescaped teammate keeps movement and interaction",
+            "passed": true
+        },
+        {
+            "name": "Repeated host updates neither duplicate escape receipts nor restart portal formation",
+            "passed": true
+        },
+        {
+            "name": "Both monster rigs exclude escaped actors while retaining remaining survivors",
+            "passed": true
+        },
+        {
+            "name": "A connected living late join is required even before its avatar spawns",
+            "passed": true
+        },
+        {
+            "name": "Authority handoff preserves escaped roster, player safety and original portal activation time",
+            "passed": true
+        },
+        {
+            "name": "Two escaped peers cannot win before the last living teammate enters",
+            "passed": true
+        },
+        {
+            "name": "Last survivor's physical portal entry wins for the whole team exactly once",
+            "passed": true
+        },
+        {
+            "name": "Victory locks escaped local movement and sends the existing active monster to sleep",
+            "passed": true
+        },
+        {
+            "name": "Shared victory is monotonic and closes further room joins",
+            "passed": true
+        },
+        {
+            "name": "New test session restores exact original avatar renderer and controller states without retaining escape locks",
+            "passed": true
+        },
+        {
+            "name": "A new portal does not inherit the previous match's escapes",
+            "passed": true
+        },
+        {
+            "name": "Owner-writable eliminated flags cannot bypass the portal while authoritative hearts remain",
+            "passed": true
+        },
+        {
+            "name": "Only actual authoritative elimination removes the late survivor from the requirement",
+            "passed": true
+        },
+        {
+            "name": "Eliminated or disconnected players do not have to enter the portal",
+            "passed": true
+        },
+        {
+            "name": "Zero living survivors cannot produce a free victory",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

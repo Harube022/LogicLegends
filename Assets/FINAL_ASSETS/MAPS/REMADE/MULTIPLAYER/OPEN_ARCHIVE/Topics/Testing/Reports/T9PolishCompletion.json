@@ -1,0 +1,176 @@
+{
+  "passed": true,
+  "checkedUtc": "2026-10-20T14:08:55.9044087Z",
+  "topic": "T9 Graphs",
+  "arena": "Path of Connections",
+  "scene": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Topics/Testing/MultiplayerGameplay.unity",
+  "soloScene": "Assets/Scenes/Graph.unity",
+  "soloController": "GraphStageManager",
+  "sourceCatalog": "Assets/Prefabs/Graph/GraphChallenges.asset",
+  "challenges": [
+    "Vertices and edges: physically cross a connecting edge",
+    "Degree: count incident edges, original choices 0 through 6",
+    "Simple path: reach the destination without repeated vertices",
+    "Directed path: follow allowed arrows and avoid dead ends",
+    "Cycle: close at the start after at least three distinct vertices"
+  ],
+  "sourceVariants": 50,
+  "initialSeconds": 600,
+  "incorrectPenaltySeconds": 10,
+  "timer": "First Book activation starts the shared ten-minute remaining clock. Solved Book gates pause it; the next Book resumes the saved time. Reading during an active challenge keeps time running.",
+  "retry": "Wrong Confirm retains route or degree choice, records one submitting-player mistake, and deducts ten seconds. Natural timeout keeps solved challenges and current work; Book retry starts a fresh ten-minute attempt. Route retry requires returning to the start and never teleports players.",
+  "authority": "ArchiveTopicSession remains the only progress and timer owner. One route runner is claimed at the actual start; the authority samples capsule-foot movement, connecting-edge midpoints, direction, supported height and interruptions. A live runner cannot be stolen or confirmed by teammates. Captured/departed runners release their slot; an interrupted route can be restarted by a teammate at START. Runner, route and pending edge are in the existing shared checkpoint.",
+  "presentation": [
+    "Uniformly fitted ground-level stone graph paths, visible colored vertex runes, directed arrows and visited-path feedback",
+    "Green start, gold goal, purple degree focus, blue walked edges, red interrupted routes",
+    "Read-only live graph map with original display labels and a runner marker",
+    "Compact right-side objective, scroll reader, Claim/Retry, Confirm and seven degree choices",
+    "Existing animated Book and player controls; arrival/answer sounds and capped 24-particle mesh feedback"
+  ],
+  "howToTest": [
+    "Open the saved MultiplayerGameplay scene and enter Play Mode.",
+    "Complete any currently active topic, then approach the T9 Book and use Hand / E.",
+    "For walking challenges, stand on the green START and use Hand / E or Claim. Walk the connecting paths and Confirm at the goal.",
+    "For the degree challenge, select 0 through 6 in the reader or on a nearby degree seal, then Confirm.",
+    "Return to START to retry a route. Correct answers wait at the Book before continuing."
+  ],
+  "validation": {
+    "sourceVariantChecks": 481,
+    "nativeGraphChecks": 63,
+    "livePhotonChecks": 38,
+    "acceptedRemoteCommands": 19,
+    "allTopicCorrectAdapterChecks": 2048,
+    "allTopicIncorrectAdapterChecks": 2048,
+    "nativeRegression": [
+      {
+        "report": "T1BookTimer.json",
+        "passed": true,
+        "checks": 29
+      },
+      {
+        "report": "T2PolishPlayMode.json",
+        "passed": true,
+        "checks": 118
+      },
+      {
+        "report": "T3PolishPlayMode.json",
+        "passed": true,
+        "checks": 112
+      },
+      {
+        "report": "T4PolishPlayMode.json",
+        "passed": true,
+        "checks": 130
+      },
+      {
+        "report": "T5PolishPlayMode.json",
+        "passed": true,
+        "checks": 102
+      },
+      {
+        "report": "T6PolishPlayMode.json",
+        "passed": true,
+        "checks": 101
+      },
+      {
+        "report": "T7PolishPlayMode.json",
+        "passed": true,
+        "checks": 268
+      },
+      {
+        "report": "T8PolishPlayMode.json",
+        "passed": true,
+        "checks": 103
+      },
+      {
+        "report": "T9PolishPlayMode.json",
+        "passed": true,
+        "checks": 63
+      }
+    ],
+    "completeMonsterNavigationRoutes": 80,
+    "reimportPasses": 2,
+    "verifiedPrefabs": 4,
+    "cameraAngles": 12,
+    "consoleErrors": 0,
+    "consoleWarnings": 0
+  },
+  "technicalNotes": [
+    "The existing island, solo source, shared source graph catalog, saved scene file, player systems and both monster navigation profiles are preserved.",
+    "Three reusable graph prop prefabs; no new solid colliders, bridge gates, transparent barrier surfaces or navigation blockers.",
+    "New graph energy materials are opaque URP/Unlit. Map uses a single small UI mesh; original SDF label materials are reused.",
+    "Actual screenshots were inspected; buried node inlays and a missing UI CanvasRenderer were corrected and covered by native checks.",
+    "Live Photon tests use a rendered Editor host and two independent Realtime peers in an invisible private room.",
+    "Deadline fixtures are aged instead of waiting ten minutes. Monster motion is disabled only inside opt-in test fixtures.",
+    "Physical Android performance, phone audio and rendered remote-device UI have not been verified."
+  ],
+  "originalSourceAndSceneFiles": [
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scenes\\Graph.unity",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Prefabs\\Graph\\GraphChallenges.asset",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\FINAL_ASSETS\\MAPS\\REMADE\\MULTIPLAYER\\OPEN_ARCHIVE\\Topics\\Testing\\MultiplayerGameplay.unity",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphChallengeCatalog.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphChallengeData.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphCompletion.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphControlsOnboarding.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphEdge.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphGeometry.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphStageClock.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphStageManager.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphStagePlayChecks.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphTraversalTracker.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphUIController.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Graph\\GraphVertex.cs",
+      "unchanged": true
+    }
+  ],
+  "existingSolutionPreserved": true,
+  "editorLeftStopped": true,
+  "sceneLeftClean": true,
+  "previews": [
+    "Temp/T9Polish/T9_Arena.png",
+    "Temp/T9Polish/T9_Reader.png"
+  ]
+}

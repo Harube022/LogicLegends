@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "rule": "One unfinished topic for the whole team. Reservation persists between rounds, during timeout/retry, after the starter leaves, and across host handoff. Completing every round releases the reservation.",
+  "implementation": "Derived from existing authoritative, checkpointed station progress. No duplicate progress owner or additional network protocol.",
+  "ui": "Blocked Books name the unfinished topic and disable Start. The same active topic remains available for team cooperation.",
+  "offlinePolicyChecks": 129,
+  "nativeTopics": 10,
+  "nativeRounds": 59,
+  "nativeCommands": 499,
+  "livePhotonChecks": 34,
+  "liveRemoteCommands": 101,
+  "limits": "Unity Editor plus two independent headless Photon clients; remote rendered UI and physical Android not verified."
+}

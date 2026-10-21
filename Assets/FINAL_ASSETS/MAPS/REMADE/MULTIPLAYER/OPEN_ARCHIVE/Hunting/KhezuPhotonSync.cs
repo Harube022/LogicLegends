@@ -103,6 +103,9 @@ namespace LogicLegends.OpenArchive.Hunting
                 state.encounterPhase < 0 || state.encounterPhase > 4 || double.IsNaN(state.captureStartedAt) || double.IsInfinity(state.captureStartedAt) ||
                 !Enum.IsDefined(typeof(KhezuHuntState), state.state)) return;
             if(!Finite(state.capturePosition) || !Finite(state.resolvedAt) || !Finite(state.releaseAt) || !Finite(state.sleepEndsAt) || !Finite(state.nestArrivedAt) || !Finite(state.attackEndsAt) ||
+                !Finite(state.barrierStartedAt) || !Finite(state.barrierDeadline) || !Finite(state.attackHitAt) || !Finite(state.barrierDissolveAt) || !Finite(state.stunEndsAt) ||
+                state.barrierTimerSerial<0 || state.barrierTimerSerial>state.captureSerial || state.barrierDeadline<state.barrierStartedAt ||
+                state.knockbackPath==null || state.knockbackPath.Length>33 || state.knockbackPath.Any(v=>!Finite(v)) ||
                 state.resolvedSerial<0 || state.resolvedSerial>state.captureSerial || state.resolvedOutcome<0 || state.resolvedOutcome>2 ||
                 (state.state==(int)KhezuHuntState.Caught && !state.captureAnchorValid) || state.healthStates==null || state.healthStates.Length>4 ||
                 state.healthStates.Any(h=>h==null || h.actor==0 || h.hearts<0 || h.hearts>Mathf.Max(3,controller.health!=null?controller.health.MaximumHealth:3) || h.lastPenaltySerial<0) || state.healthStates.Select(h=>h.actor).Distinct().Count()!=state.healthStates.Length)return;

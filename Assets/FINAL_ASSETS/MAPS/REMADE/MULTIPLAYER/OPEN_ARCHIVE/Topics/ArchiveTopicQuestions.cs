@@ -29,8 +29,9 @@ namespace LogicLegends.OpenArchive.Topics
                     var pool = catalog.propositions[bank].questions; var logic = pool[random.Next(pool.Count)];
                     var order = Permutation(logic.options.Length, random.Next());
                     q.activity = ArchiveActivity.Choice; q.title = "Proposition challenge " + (round+1); q.prompt = logic.questionText;
-                    q.items = order.Select(i => logic.options[i]).ToArray(); q.correctChoice = Array.IndexOf(order, logic.correctOptionIndex);
-                    q.instructions = "Read the question. Approach your answer rune and use Interact. Stay on it until the channel completes."; break;
+                    q.items = order.Select(i => logic.options[i].Trim()).ToArray(); q.correctChoice = Array.IndexOf(order, logic.correctOptionIndex);
+                    q.successText = ArchivePropositionNotation.Explanation(q.items[q.correctChoice]);
+                    q.instructions = "Discuss the question with your team. Walk onto A, B, C or D, tap Hand / E once, and stay inside its ring until the channel completes. Step away to cancel."; break;
                 case 1:
                     int difficulty = round / 3;
                     var truthPool = TruthTableChallengeQuestions.Banks[difficulty];
@@ -39,7 +40,7 @@ namespace LogicLegends.OpenArchive.Topics
                     q.prompt = truth.Expression; q.items = new[] { "True", "False" }; q.reusableItems = true;
                     q.slots = new[] { "P=T, Q=T", "P=T, Q=F", "P=F, Q=T", "P=F, Q=F" };
                     q.expected = Enumerable.Range(0, 4).Select(i => truth.EvaluateRow(i) ? 0 : 1).ToArray();
-                    q.instructions = "Collect a True or False token, place it in a row socket, and submit all four rows. Tokens replenish at their stands."; break;
+                    q.instructions = "Read P and Q for each row (TT, TF, FT, FF). Take a reusable T / True or F / False tile with Hand / E, carry it to that row's output, and use Hand / E to place it. Fill four outputs, then Check table. You can replace a tile to correct a row. Teammates share the same table."; break;
                 case 2: BuildInference(catalog, q, round, seed, subphase); break;
                 case 3:
                     var proofs = catalog.formalProofs.variantSets[round].variants;
@@ -85,25 +86,26 @@ namespace LogicLegends.OpenArchive.Topics
                     var induction = InductionChallenges.VariantSets[round][random.Next(InductionChallenges.VariantsPerChallenge)];
                     q.activity=ArchiveActivity.Induction;q.title=induction.title;q.prompt=induction.theorem;q.instructions=induction.instructions;
                     q.items=induction.choices.Select((t,i)=>"Formula "+(char)('A'+i)).ToArray();q.details=induction.choices.Select(t=>t.expression).ToArray();
-                    q.slots=induction.answers.Keys.ToArray();q.expected=induction.answers.Values.Select(id=>Array.FindIndex(induction.choices,c=>c.id==id)).ToArray();break;
+                    q.slots=induction.answers.Keys.OrderBy(key=>key.StartsWith("Base:")?0:key.StartsWith("Hypothesis:")?1:2).ThenBy(key=>int.Parse(key.Split(':')[1])).ToArray();
+                    q.expected=q.slots.Select(key=>Array.FindIndex(induction.choices,c=>c.id==induction.answers[key])).ToArray();break;
                 case 6: BuildSets(catalog,q,round,seed);break;
                 case 7:
                     var mapping = catalog.mappings.GetVariant(round, random.Next(catalog.mappings.ChallengeGroups[round].variants.Count));
                     q.activity=ArchiveActivity.Mapping;q.mapping=mapping;q.title=mapping.title;q.prompt=mapping.instruction;
                     q.inputLabels=mapping.domain;q.outputLabels=mapping.codomain;
-                    q.instructions="Select an input at Domain, then an output at Range. Undo corrects the last editable laser. Use the classification/property markers for the later questions.";break;
+                    q.instructions="Use Hand / E at a Domain crystal, then at a Codomain crystal to connect them. Blue lasers are editable; amber lasers are fixed. Undo at Codomain removes the last editable team connection. The range contains only the outputs reached by the current lasers. Later challenges use three verdict or property seals.";break;
                 case 8:
                     var graphs = catalog.graphs.variantSets[round].variants;var graph=graphs[random.Next(graphs.Count)];
                     q.activity=ArchiveActivity.Graph;q.graph=graph;q.title=graph.title;q.prompt=graph.objective;
                     q.nodeIds=graph.vertices.Select(v=>v.id).ToArray();
-                    var xs=graph.vertices.Select(v=>v.position.x).ToArray();var zs=graph.vertices.Select(v=>v.position.z).ToArray();
-                    q.nodes=graph.vertices.Select(v=>new Vector2(Normalize(v.position.x,xs),Normalize(v.position.z,zs))).ToArray();
-                    q.instructions="The player who starts this route walks from the marked start along the ground connections. Confirm at the destination. Retry Route clears only the current attempt. Degree questions use the number markers.";break;
+                    var boundsX=graph.vertices.Select(v=>v.position.x).ToArray();var boundsZ=graph.vertices.Select(v=>v.position.z).ToArray();float graphScale=9.6f/Mathf.Max(1,Mathf.Max(boundsX.Max()-boundsX.Min(),boundsZ.Max()-boundsZ.Min()));
+                    q.nodes=graph.vertices.Select(v=>new Vector2((v.position.x-(boundsX.Min()+boundsX.Max())*.5f)*graphScale,-(v.position.z-(boundsZ.Min()+boundsZ.Max())*.5f)*graphScale)).ToArray();
+                    q.instructions="Use Hand / E at the green start rune to take the route. One teammate walks it while everyone shares the result. Stay on a connected stone path, cross its middle, and follow directed arrows. Confirm while standing on the goal vertex; a cycle finishes back at its start. Retry at the start clears only the unfinished route. Degree questions use choices 0 to 6.";break;
                 case 9:
                     var trees=catalog.trees.variantSets[round].variants;var tree=trees[random.Next(trees.Count)];
                     q.activity=ArchiveActivity.Tree;q.tree=tree;q.title=tree.title;q.prompt=tree.objective;
-                    q.nodeIds=tree.nodes.Select(n=>n.id).ToArray();q.nodes=tree.nodes.Select(n=>new Vector2(n.position.x*4.7f,(n.position.y-.5f)*8)).ToArray();
-                    q.instructions="Use the node controls or nearby node plinths. Select a parent and child to connect/remove a branch. Select one node or a number for identification/depth. Submit the finished tree.";break;
+                    q.nodeIds=tree.nodes.Select(n=>n.id).ToArray();var treePoints=tree.nodes.Select(n=>new Vector2(n.position.x*4.5f,n.position.y*5)).ToArray();var treeMin=new Vector2(treePoints.Min(p=>p.x),treePoints.Min(p=>p.y));var treeMax=new Vector2(treePoints.Max(p=>p.x),treePoints.Max(p=>p.y));float treeScale=9.6f/Mathf.Max(1,Mathf.Max(treeMax.x-treeMin.x,treeMax.y-treeMin.y));q.nodes=treePoints.Select(p=>(p-(treeMin+treeMax)*.5f)*treeScale).ToArray();
+                    q.instructions="Use Hand / E at a node, or select it on the live tree diagram. Build and Repair: select the parent first, then the child, then Connect. Remove accepts either endpoint order; remove an old parent before adding a new one. Spanning trees use only original branches. Clear Pick keeps all branches. Identify selects one node; Depth / Height uses choices 0 to 5. Confirm the shared answer. Reading keeps movement and the active timer running.";break;
                 default: throw new ArgumentOutOfRangeException(nameof(topic));
             }
             q.itemOrder=Permutation(q.items.Length,unchecked(seed+topic*10007+round*331+subphase*772+761));
@@ -141,8 +143,9 @@ namespace LogicLegends.OpenArchive.Topics
         }
         static void BuildSets(ArchiveTopicCatalog c,ArchiveQuestion q,int round,int seed)
         {
-            int group=round/ArchiveTopicCatalog.SetProblemsPerChallenge,problem=round%ArchiveTopicCatalog.SetProblemsPerChallenge;var bank=c.sets[group].questions;var data=bank[Permutation(bank.Count,unchecked(seed+group*307+101))[problem]];
+            int group=round/ArchiveTopicCatalog.SetProblemsPerChallenge,problem=round%ArchiveTopicCatalog.SetProblemsPerChallenge;var bank=c.sets[group].questions;int entry=Permutation(bank.Count,unchecked(seed+group*307+101))[problem];var data=bank[entry];
             var a=(data.a??Array.Empty<string>()).Distinct().OrderBy(value=>value,StringComparer.Ordinal).ToArray();var b=(data.b??Array.Empty<string>()).Distinct().OrderBy(value=>value,StringComparer.Ordinal).ToArray();
+            q.setGroup=group;q.setEntry=entry;q.setA=a;q.setB=b;q.setName=data.setName;q.setUniverse=data.universe??Array.Empty<string>();
             q.activity=ArchiveActivity.Sets;q.regionPlacement=true;q.title="Challenge "+(group+1)+" — "+new[]{"Membership","Sets A and B","Intersection","Set differences","Complement"}[group]+" / Problem "+(problem+1)+" of "+ArchiveTopicCatalog.SetProblemsPerChallenge;
             q.prompt="A = { "+string.Join(", ",a)+" }\nB = { "+string.Join(", ",b)+" }";
             if(group==3)
@@ -162,10 +165,13 @@ namespace LogicLegends.OpenArchive.Topics
                 q.slots=new[]{"A only","Intersection","B only"};
                 q.regionValues=new[]{a.Except(b).ToArray(),a.Intersect(b).ToArray(),b.Except(a).ToArray()};
             }
-            var items=q.regionValues.SelectMany(v=>v).ToList();var random=new Random(unchecked(seed+round*331));
-            if(group!=4)while(items.Count<Math.Max(10,q.regionValues.Sum(v=>v.Length)+2)) {string value=random.Next(1,100).ToString();if(!items.Contains(value))items.Add(value);}
-            q.items=Permutation(items.Count,random.Next()).Select(i=>items[i]).ToArray();
-            q.instructions=group==3?"Fill all five answer regions. Use a separate block copy for every required appearance of a number. Unused blocks stay at the stand.":"Carry the needed elements into their correct regions. Unused blocks stay at the stand. Every physical block counts in exactly one region.";
+            var items=(group==4?q.setUniverse:a.Union(b)).Distinct().ToList();var random=new Random(unchecked(seed+round*331));
+            if(group!=4)while(items.Count<10){string value=random.Next(1,100).ToString();if(!items.Contains(value))items.Add(value);}
+            q.setSourceValues=Permutation(items.Count,random.Next()).Select(i=>items[i]).ToArray();
+            // Logical copy IDs are bounded for Android; only available, carried and placed copies are rendered.
+            q.items=group==3?Enumerable.Range(0,ArchiveSetsPresentation.CopiesPerSource).SelectMany(_=>q.setSourceValues).ToArray():q.setSourceValues.ToArray();
+            if(group==4){var inside=new HashSet<string>(data.setName=="B"?data.b:data.a);if(entry==0){inside.Add("3");inside.Add("4");}else{inside.Remove((data.setName=="B"?data.b:data.a)[0]);inside.Add(q.setUniverse.First(value=>!(data.setName=="B"?data.b:data.a).Contains(value)));}q.setInitialPlacements=q.items.Select(value=>inside.Contains(value)?0:1).ToArray();}
+            q.instructions=group==3?"Fill five separate answer trays: full A, full B, A ∩ B, A − B and B − A. Each spawner pickup leaves another copy of that value; moving a placed block creates no copy. Use one physical block for each required appearance. Unused blocks stay at the supply.":group==4?"Correct the existing arrangement. Members belong inside the named circle; complement elements belong outside that circle but inside U. Use every value in U once. No duplicate copies are supplied.":"Carry every listed element into A only, A ∩ B or B only. Shared values appear once in the intersection. Unused distractors stay at the supply.";
         }
 
         public static bool Validate(ArchiveQuestion q,ArchiveStationState state,out string feedback)
@@ -176,6 +182,7 @@ namespace LogicLegends.OpenArchive.Topics
                 case ArchiveActivity.Choice:return state.selection==q.correctChoice;
                 case ArchiveActivity.Sort:return state.placements.SequenceEqual(q.expected);
                 case ArchiveActivity.Sets:
+                    if(state.placements.Length!=q.items.Length||state.placements.Any(region=>region< -1||region>=q.slots.Length))return false;
                     for(int region=0;region<q.slots.Length;region++)
                         if(!state.placements.Select((r,i)=>new{r,i}).Where(v=>v.r==region).Select(v=>q.items[v.i]).OrderBy(v=>v).SequenceEqual(q.regionValues[region].OrderBy(v=>v)))return false;
                     return true;
@@ -185,31 +192,69 @@ namespace LogicLegends.OpenArchive.Topics
                 case ArchiveActivity.Order:
                     if(q.proof==null || q.proof.kind==ProofChallengeKind.MissingRule)return state.placements.SequenceEqual(q.expected);
                     int n=q.statementCount;var steps=state.placements.Take(n).ToArray();
+                    if(state.placements.Length!=q.PlacementCount)return false;
                     if(!q.orders.Any(o=>o.SequenceEqual(steps)) || steps.Any(i=>i<0||i>=n))return false;
+                    if(q.proof.kind==ProofChallengeKind.Formalize&&state.placements.Skip(n).Distinct().Count()!=n)return false;
                     for(int i=0;i<n;i++)
                     {
                         if(q.proof.steps[steps[i]].prerequisiteIds.Any(prior=>!steps.Take(i).Contains(prior)))return false;
-                        if(q.proof.kind==ProofChallengeKind.Formalize && state.placements[n+i]!=n+steps[i])return false;
+                        if(q.proof.kind==ProofChallengeKind.Formalize)
+                        {
+                            int rule=state.placements[n+i];
+                            // Equal visible justifications are interchangeable physical cards, including repeated Premise cards.
+                            if(rule<n||rule>=n*2||!string.Equals(q.proof.steps[rule-n].justification.Trim(),q.proof.steps[steps[i]].justification.Trim(),StringComparison.OrdinalIgnoreCase))return false;
+                        }
                     }
                     return steps[n-1]==n-1;
                 case ArchiveActivity.Method:return q.trial.IsCorrect(state.selection,state.placements);
                 case ArchiveActivity.Mapping:
+                    if(state.links.Any(link=>link<0||link/100>=q.inputLabels.Length||link%100>=q.outputLabels.Length)||state.links.Distinct().Count()!=state.links.Count)return false;
                     var pairs=Pairs(q,state.links);
-                    if(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction)return state.selection==q.mapping.correctClassificationIndex;
-                    if(q.mapping.questionKind==MappingQuestionKind.SelectProperties)return state.flags==(int)q.mapping.correctProperties;
+                    if(!MappingRuleEvaluator.HasValidEndpoints(pairs,q.inputLabels,q.outputLabels))return false;
+                    if(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction)return state.selection==(MappingRuleEvaluator.IsFunction(pairs,q.inputLabels)?0:2)&&state.selection==q.mapping.correctClassificationIndex;
+                    if(q.mapping.questionKind==MappingQuestionKind.SelectProperties)return state.flags==(int)(MappingRuleEvaluator.Properties(pairs,q.inputLabels,q.outputLabels)&(MappingProperty.Injective|MappingProperty.Surjective|MappingProperty.Bijective))&&state.flags==(int)q.mapping.correctProperties;
                     return MappingRuleEvaluator.ExactPairs(pairs,q.mapping.requiredPairs)&&MappingRuleEvaluator.MeetsRules(pairs,q.mapping);
                 case ArchiveActivity.Graph:
-                    return GraphAnswerValidator.Validate(q.graph,state.route.Select(i=>q.nodeIds[i]).ToList(),state.selection<0?(int?)null:state.selection,state.continuous,out feedback);
+                    if(state.route.Any(i=>i<0||i>=q.nodeIds.Length))return false;
+                    return GraphAnswerValidator.Validate(q.graph,state.route.Select(i=>q.nodeIds[i]).ToList(),state.selection<0?(int?)null:state.selection,state.continuous&&state.routeAtVertex,out feedback);
                 case ArchiveActivity.Tree:
-                    return TreeAnswerValidator.Validate(q.tree,state.links.Select(l=>new TreeEdgeData(q.nodeIds[l/100],q.nodeIds[l%100])).ToList(),state.selection<0||state.selection>=q.nodeIds.Length?null:q.nodeIds[state.selection],state.flags<0?(int?)null:state.flags,out feedback);
+                    if(!ArchiveTreeRules.Decode(q,state.links,out var treeEdges))return false;
+                    if(!q.tree.Editable&&!new HashSet<int>(q.tree.initial.Select(e=>ArchiveTreeRules.Encode(q,e))).SetEquals(state.links))return false;
+                    return TreeAnswerValidator.Validate(q.tree,treeEdges,state.selection<0||state.selection>=q.nodeIds.Length?null:q.nodeIds[state.selection],state.flags<0?(int?)null:state.flags,out feedback);
                 default:return false;
             }
         }
+        public static string ProofReveal(ArchiveQuestion q,ArchiveStationState state)
+        {
+            if(q.proof.kind==ProofChallengeKind.SortScrolls)
+                return string.Join("\n",q.items.Select((name,i)=>name+" · "+q.slots[state.placements[i]]))+"\n\nFormal proofs state explicit steps and justifications. Informal proofs explain valid reasoning in ordinary language.";
+            if(q.proof.kind==ProofChallengeKind.MissingRule){string rule=q.items[state.placements[0]];return "Justification: "+rule+"\n\n"+q.prompt.Replace("[MISSING JUSTIFICATION]",rule).Replace("[MISSING]",rule).Trim();}
+            return string.Join("\n",Enumerable.Range(0,q.statementCount).Select(i=>(i+1)+". "+q.proof.steps[state.placements[i]].statement+" — "+(q.proof.kind==ProofChallengeKind.Formalize?q.proof.steps[state.placements[q.statementCount+i]-q.statementCount].justification:q.proof.steps[state.placements[i]].justification)));
+        }
+        public static string MethodReveal(ArchiveQuestion q,ArchiveStationState state)
+        {
+            var method=q.trial.kind==TrialProofKind.ArrangeSteps?q.trial.station:(TrialProofMethod)state.selection;
+            string name=method==TrialProofMethod.Contrapositive?"Contrapositive (indirect)":method==TrialProofMethod.Contradiction?"Contradiction (indirect)":"Direct";
+            string steps=q.trial.kind==TrialProofKind.IdentifyMethod?"":string.Join("\n\n",state.placements.Select((item,i)=>(i+1)+". "+q.trial.tablets[item].statement+"\n"+q.trial.tablets[item].justification))+"\n\n";
+            return "Accepted method: "+name+"\n\n"+steps+q.trial.explanation;
+        }
+        public static string InductionReveal(ArchiveQuestion q,ArchiveStationState state)
+        {
+            string proof=string.Join("\n\n",q.slots.Select((key,i)=>(key.StartsWith("Base:")?"Base case · P(1)":key.StartsWith("Hypothesis:")?"Inductive hypothesis · P(k)":"Inductive step · line "+key.Split(':')[1])+"\n"+q.details[state.placements[i]]));
+            return q.prompt+"\n\n"+proof+(q.slots.Any(key=>key.StartsWith("Base:"))&&q.slots.Any(key=>key.StartsWith("Hypothesis:"))&&q.slots.Count(key=>key.StartsWith("Step:"))==4?"\n\nThe base case and P(k) → P(k + 1) establish P(n) for every integer n ≥ 1.":"");
+        }
+        public static int[] SetPlacementGrades(ArchiveQuestion q,ArchiveStationState state){var grades=new int[q.items.Length];var seen=Enumerable.Range(0,q.slots.Length).Select(_=>new HashSet<string>()).ToArray();for(int i=0;i<grades.Length;i++){int region=i<state.placements.Length?state.placements[i]:-1;if(region<0)continue;grades[i]=region<q.regionValues.Length&&q.regionValues[region].Contains(q.items[i])&&seen[region].Add(q.items[i])?1:-1;}return grades;}
+        public static string MappingReveal(ArchiveQuestion q,ArchiveStationState state)=>q.title+"\n"+string.Join("  ·  ",Pairs(q,state.links))+"\nRange = { "+string.Join(", ",q.outputLabels.Where((label,i)=>state.links.Any(link=>link%100==i)))+" }\n"+(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction?"Accepted verdict: "+ArchiveMappingPresentation.ClassificationNames[state.selection]+". A function is also a relation; each input must have exactly one output.":q.mapping.questionKind==MappingQuestionKind.SelectProperties?"Accepted properties: "+string.Join(", ",new[]{2,4,8}.Where(flag=>(state.flags&flag)!=0).Select(flag=>ArchiveMappingPresentation.PropertyNames[Array.IndexOf(new[]{2,4,8},flag)])):q.mapping.requireFunction?"Every input has exactly one output; this completed mapping is one-to-one and onto.":"The complete relation matches the required ordered pairs.");
+        public static string GraphLabel(ArchiveQuestion q,string id)=>string.IsNullOrEmpty(q.graph.Vertex(id)?.label)?id:q.graph.Vertex(id).label;
+        public static string GraphReveal(ArchiveQuestion q,ArchiveStationState state)=>q.title+"\n"+(q.graph.type==GraphChallengeType.Degree?"Degree of "+GraphLabel(q,q.graph.degreeVertex)+" = "+state.selection:"Accepted route: "+string.Join(" → ",state.route.Select(i=>GraphLabel(q,q.nodeIds[i]))))+"\n\n"+q.graph.lesson;
+        public static string SetsReveal(ArchiveQuestion q)=>q.prompt+"\n\n"+string.Join("\n",q.slots.Select((name,i)=>name+" = { "+string.Join(", ",q.regionValues[i])+" }"));
         public static List<MappingPair> Pairs(ArchiveQuestion q,IEnumerable<int> links) => links.Select(l=>new MappingPair(q.inputLabels[l/100],q.outputLabels[l%100])).ToList();
         public static void Prepare(ArchiveQuestion q,ArchiveStationState state)
         {
             state.placements=Enumerable.Repeat(-1,q.PlacementCount).ToArray();state.selection=-1;state.flags=q.activity==ArchiveActivity.Tree?-1:0;state.reveal="";
+            state.setGrades=Array.Empty<int>();if(q.activity==ArchiveActivity.Sets){state.setGrades=new int[q.items.Length];if(q.setInitialPlacements.Length==q.PlacementCount)state.placements=q.setInitialPlacements.ToArray();}
             state.carries.Clear();state.links.Clear();state.route.Clear();state.continuous=true;state.routeSampleValid=false;
+            state.routeEdge=-1;state.routeCrossedMiddle=false;state.routeAtVertex=false;state.routeSampleAt=0;state.routeReason="";
             state.channelActor=0;state.channelChoice=-1;
             if(q.mapping!=null)state.links=q.mapping.initialPairs.Select(p=>Array.IndexOf(q.inputLabels,p.domain)*100+Array.IndexOf(q.outputLabels,p.codomain)).ToList();
             if(q.tree!=null)state.links=q.tree.initial.Select(e=>Array.IndexOf(q.nodeIds,e.source)*100+Array.IndexOf(q.nodeIds,e.destination)).ToList();

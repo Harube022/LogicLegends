@@ -23,7 +23,7 @@ namespace LogicLegends.OpenArchive.Cinematics.VFX
         bool disconnected;
         void Awake(){if(encounter==null)encounter=GetComponent<KhezuCaptureEncounterController>();if(hunting==null)hunting=GetComponent<KhezuHuntingController>();}
         void LateUpdate(){
-            bool confirmed=!disconnected && encounter!=null && hunting!=null && !hunting.BarrierResolving && encounter.isActiveAndEnabled && encounter.Phase==KhezuEncounterPhase.BarrierChallenge &&
+            bool confirmed=!disconnected && encounter!=null && hunting!=null && !hunting.BarrierDissolving && encounter.isActiveAndEnabled && encounter.Phase==KhezuEncounterPhase.BarrierChallenge &&
                 KhezuHuntingController.EncounterClock-hunting.CaptureStartedAt>=KhezuCinematicJumpscareController.Duration;
             if(confirmed && KhezuCaptureEncounterController.IsCaughtLocalPlayer(hunting.CaughtPlayerId) && encounter.cinematic!=null && encounter.cinematic.IsPlaying)confirmed=false;
             if(!confirmed){EndVisual();return;}
@@ -49,7 +49,7 @@ namespace LogicLegends.OpenArchive.Cinematics.VFX
             return null;
         }
         void EndVisual(){
-            if(ActiveBarrier!=null){float elapsed=hunting!=null && hunting.ResolvedSerial==PresentedSerial && hunting.ResolvedOutcome!=0?(float)(KhezuHuntingController.EncounterClock-hunting.ResolvedAt)*ActiveBarrier.style.animationSpeed:0;ActiveBarrier.Dissolve(elapsed);}
+            if(ActiveBarrier!=null){float elapsed=hunting!=null && hunting.ResolvedSerial==PresentedSerial && hunting.BarrierDissolving?Mathf.Max(0,(float)(KhezuHuntingController.EncounterClock-hunting.BarrierDissolveAt))*ActiveBarrier.style.animationSpeed:0;ActiveBarrier.Dissolve(elapsed);}
             ActiveBarrier=null;captured=null;actor=0;nextPlayerSearch=0;
         }
         public override void OnDisconnected(Photon.Realtime.DisconnectCause cause){disconnected=true;EndVisual();}

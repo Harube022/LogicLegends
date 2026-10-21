@@ -1,0 +1,160 @@
+{
+    "passed": true,
+    "acceptedRemoteCommands": 19,
+    "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+    "checks": [
+        {
+            "name": "Independent clients share an invisible private room",
+            "passed": true
+        },
+        {
+            "name": "Native player retains local control ownership",
+            "passed": true
+        },
+        {
+            "name": "Remote replica cannot consume host input",
+            "passed": true
+        },
+        {
+            "name": "Guest Book starts the shared graph clock without claiming a runner",
+            "passed": true
+        },
+        {
+            "name": "Early Confirm charges authenticated runner once and deducts exactly ten seconds",
+            "passed": true
+        },
+        {
+            "name": "Replayed Confirm cannot charge another mistake",
+            "passed": true
+        },
+        {
+            "name": "Remote movement checkpoints an unfinished connecting edge past its midpoint",
+            "passed": true
+        },
+        {
+            "name": "Late join restores route runner, midpoint checkpoint and exact shared deadline",
+            "passed": true
+        },
+        {
+            "name": "A teammate cannot steal a live runner even while standing on START",
+            "passed": true
+        },
+        {
+            "name": "A teammate cannot confirm another actor's physical route",
+            "passed": true
+        },
+        {
+            "name": "Guest cannot forge a completed graph snapshot",
+            "passed": true
+        },
+        {
+            "name": "Handoff preserves the unfinished bridge transaction and clock",
+            "passed": true
+        },
+        {
+            "name": "The same route finishes after the Master handoff",
+            "passed": true
+        },
+        {
+            "name": "Walked edge completes for every peer and pauses the same remaining clock",
+            "passed": true
+        },
+        {
+            "name": "Unfinished T9 prevents starting a different topic",
+            "passed": true
+        },
+        {
+            "name": "Degree selection is shared team work without a route owner",
+            "passed": true
+        },
+        {
+            "name": "Timeout retains solved edge and selected degree and charges the Book activator once",
+            "passed": true
+        },
+        {
+            "name": "Teammate retry completes preserved degree work",
+            "passed": true
+        },
+        {
+            "name": "Capture releases the unavailable runner while leaving other players free",
+            "passed": true
+        },
+        {
+            "name": "Captured guest cannot reclaim graph traversal",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches F",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches H",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches I",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches J",
+            "passed": true
+        },
+        {
+            "name": "Another teammate can restart and solve the simple path after capture",
+            "passed": true
+        },
+        {
+            "name": "Runner departure frees START without losing mistake identity or charging a new mistake",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches F",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches H",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches I",
+            "passed": true
+        },
+        {
+            "name": "Directed path through actual remote movement completes for the room",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches E",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches F",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches G",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches H",
+            "passed": true
+        },
+        {
+            "name": "Remote avatar physically reaches D",
+            "passed": true
+        },
+        {
+            "name": "Remote cycle closes at its source after distinct intermediate vertices",
+            "passed": true
+        },
+        {
+            "name": "All five shared graph challenges finish and release the next topic",
+            "passed": true
+        },
+        {
+            "name": "T9 transport flow leaves the other nine topics unchanged",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

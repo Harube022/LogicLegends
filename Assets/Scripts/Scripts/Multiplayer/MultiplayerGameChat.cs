@@ -28,7 +28,7 @@ public sealed class MultiplayerGameChat : MonoBehaviour
 
     private void Awake()
     {
-        if(gameObject.scene.name!="MultiplayerStage") { toggle.gameObject.SetActive(false);gameObject.SetActive(false);return; }
+        if(!MultiplayerSceneRoutes.IsGameplay(gameObject.scene)) { toggle.gameObject.SetActive(false);gameObject.SetActive(false);return; }
         overlay.SetActive(false);
         toggle.onClick.AddListener(Toggle);close.onClick.AddListener(Close);backdrop.onClick.AddListener(Close);
     }
@@ -67,7 +67,7 @@ public sealed class MultiplayerGameChat : MonoBehaviour
     }
     private void Refresh()
     {
-        bool available=gameObject.scene.name=="MultiplayerStage"&&service!=null&&service.InLobby;
+        bool available=MultiplayerSceneRoutes.IsGameplay(gameObject.scene)&&service!=null&&service.InLobby;
         toggle.gameObject.SetActive(available&&!IsOpen);
         if(!available) { unread=0;Close(); }
         unreadLabel.transform.parent.gameObject.SetActive(unread>0);
@@ -78,7 +78,7 @@ public sealed class MultiplayerGameChat : MonoBehaviour
     public void Toggle() { if(IsOpen)Close();else Open(); }
     public void Open()
     {
-        if(IsOpen||service==null||!service.InLobby||gameObject.scene.name!="MultiplayerStage"||Time.timeScale<=0)return;
+        if(IsOpen||service==null||!service.InLobby||!MultiplayerSceneRoutes.IsGameplay(gameObject.scene)||Time.timeScale<=0)return;
         blockedInput=GameInput.Instance;
         if(blockedInput!=null) { previousBlock=blockedInput.GameplayInputBlocked;blockedInput.SetGameplayInputBlocked(true);ownsBlock=true; }
         MobileInputUI.FindJoystick()?.ResetJoystick();
@@ -125,6 +125,12 @@ public sealed class MultiplayerGameChat : MonoBehaviour
         var toggleRect=(RectTransform)hud.toggle.transform;
         toggleRect.anchorMin=toggleRect.anchorMax=new Vector2(0,1);toggleRect.pivot=new Vector2(0,1);
         toggleRect.anchoredPosition=new Vector2(50,-185);MultiplayerUIArt.StandardAction(hud.toggle,220);
+        if(MultiplayerSceneRoutes.IsOpenArchive(safeArea.gameObject.scene))
+        {
+            // Beside Settings, clear of the shared topic banner and development tools below.
+            toggleRect.anchoredPosition=new Vector2(186,-32);
+            MultiplayerUIArt.StandardAction(hud.toggle,132);
+        }
         hud.toggle.navigation=new Navigation { mode=Navigation.Mode.None };
         var badgeRect=MultiplayerUIArt.Rect("UnreadBadge",toggleRect,1,1,1,1);
         badgeRect.sizeDelta=new Vector2(48,48);badgeRect.anchoredPosition=new Vector2(-4,0);

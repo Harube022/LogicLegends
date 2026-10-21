@@ -1,0 +1,128 @@
+{
+    "passed": true,
+    "acceptedRemoteCommands": 57,
+    "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+    "checks": [
+        {
+            "name": "Independent clients share an invisible private room",
+            "passed": true
+        },
+        {
+            "name": "Native player retains local control ownership",
+            "passed": true
+        },
+        {
+            "name": "Remote replica cannot consume host input",
+            "passed": true
+        },
+        {
+            "name": "Guest Book starts the authenticated shared six-minute Proof Forge clock",
+            "passed": true
+        },
+        {
+            "name": "Remote method selection requires proximity to its physical altar",
+            "passed": true
+        },
+        {
+            "name": "Late join restores the actual selected method and exact deadline",
+            "passed": true
+        },
+        {
+            "name": "Wrong method charges the authenticated sender despite a forged actor field",
+            "passed": true
+        },
+        {
+            "name": "Replayed method submission cannot add another mistake",
+            "passed": true
+        },
+        {
+            "name": "Guest snapshot cannot forge Proof Forge completion",
+            "passed": true
+        },
+        {
+            "name": "Identification timeout retains selected method and charges the Book activator once",
+            "passed": true
+        },
+        {
+            "name": "Timed-out T5 still reserves the unfinished team topic",
+            "passed": true
+        },
+        {
+            "name": "Teammate retries the same method answer at the Book",
+            "passed": true
+        },
+        {
+            "name": "Teammate corrects the same method and shares its original explanation",
+            "passed": true
+        },
+        {
+            "name": "T5 remains reserved between challenges",
+            "passed": true
+        },
+        {
+            "name": "Assigned proof starts five tablets without a redundant method selection",
+            "passed": true
+        },
+        {
+            "name": "Guest cannot steal a teammate's carried tablet",
+            "passed": true
+        },
+        {
+            "name": "Master handoff keeps solved identification, carried tablet and deadline",
+            "passed": true
+        },
+        {
+            "name": "Departure returns held tablets while preserving reservation and mistake identity",
+            "passed": true
+        },
+        {
+            "name": "Timeout retains the unfinished proof and charges the current Book activator once",
+            "passed": true
+        },
+        {
+            "name": "Guest Book retry keeps current tablet arrangement",
+            "passed": true
+        },
+        {
+            "name": "Only the captured player loses topic interaction authority",
+            "passed": true
+        },
+        {
+            "name": "Captured guest cannot pick a valid nearby tablet",
+            "passed": true
+        },
+        {
+            "name": "Photon stage 2 shares accepted method, proof and explanation",
+            "passed": true
+        },
+        {
+            "name": "Gate timeout cannot clone solved tablet IDs into the next networked challenge",
+            "passed": true
+        },
+        {
+            "name": "Network Book-gate timeout starts the next proof with empty sockets",
+            "passed": true
+        },
+        {
+            "name": "Photon stage 3 shares accepted method, proof and explanation",
+            "passed": true
+        },
+        {
+            "name": "Photon stage 4 shares accepted method, proof and explanation",
+            "passed": true
+        },
+        {
+            "name": "Photon stage 5 shares accepted method, proof and explanation",
+            "passed": true
+        },
+        {
+            "name": "Five shared Proof Forge stages freeze time and release the next topic",
+            "passed": true
+        },
+        {
+            "name": "T5 network play preserves every other topic's state and clock",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

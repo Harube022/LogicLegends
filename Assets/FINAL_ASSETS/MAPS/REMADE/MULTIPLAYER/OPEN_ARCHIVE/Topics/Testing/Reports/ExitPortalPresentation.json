@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "scope": "Unity 6000.3.6f1 URP Editor: saved scene and reusable prefab, rendered portal and offline victory UI. Native Photon coverage is in ExitPortalPhoton.json. Android hardware and separately rendered remote-client UI were not verified.",
+  "checks": [
+    {
+      "passed": true,
+      "name": "Saved MultiplayerGameplay session references the reusable northern-arch portal"
+    },
+    {
+      "passed": true,
+      "name": "Portal is hidden with a disabled trigger before completion"
+    },
+    {
+      "passed": true,
+      "name": "All ten rune glyphs are supported by the existing mathematical font"
+    },
+    {
+      "passed": true,
+      "name": "URP portal shader compiles without errors"
+    },
+    {
+      "passed": true,
+      "name": "Rendered portal colors, rotating rings, glyphs and bounded particles were visually inspected"
+    },
+    {
+      "passed": true,
+      "name": "Offline physical entry produces the local movement lock and the VICTORY card with Main Menu"
+    }
+  ],
+  "previews": [
+    "Temp/ArchiveVictoryPortal/Portal_Visual.png",
+    "Temp/ArchiveVictoryPortal/Victory_UI.png"
+  ]
+}

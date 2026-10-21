@@ -1,0 +1,72 @@
+{
+    "passed": true,
+    "checkedUtc": "2026-10-20T07:58:51.5154500Z",
+    "scope": "Private live Photon room, Unity host and two independent Realtime peers. Aged capture fixtures exercise authenticated owner outcomes, deadline/checkpoint replication, actual Master handoff and movement clamping of remote avatars. Independent peers are not rendered Unity/Android clients.",
+    "checks": [
+        {
+            "name": "Only captured remote avatar is locked; observer has no challenge UI or timer",
+            "passed": true
+        },
+        {
+            "name": "All peers receive one absolute 180-second room-clock deadline",
+            "passed": true
+        },
+        {
+            "name": "Request real Master handoff",
+            "passed": true
+        },
+        {
+            "name": "Master change preserves elapsed timer instead of restarting it",
+            "passed": true
+        },
+        {
+            "name": "Authenticated wrong-owner and stale results are rejected",
+            "passed": true
+        },
+        {
+            "name": "One remote failure commits attack while retaining barrier and health until contact",
+            "passed": true
+        },
+        {
+            "name": "Hit deducts exactly one captured-player heart and stuns only that player",
+            "passed": true
+        },
+        {
+            "name": "Observer renders remote avatar's existing stunned animation",
+            "passed": true
+        },
+        {
+            "name": "Owner movement packets cannot escape the host-confirmed knockback/stun anchor",
+            "passed": true
+        },
+        {
+            "name": "Request real Master handoff",
+            "passed": true
+        },
+        {
+            "name": "Master change during stun preserves end time and serial-deduplicated damage",
+            "passed": true
+        },
+        {
+            "name": "Checkpoint includes safe trajectory, five-second stun deadline and canonical health",
+            "passed": true
+        },
+        {
+            "name": "Replayed outcome during stun cannot damage twice",
+            "passed": true
+        },
+        {
+            "name": "Recovered player is released and no-repeat rotation selects another eligible player",
+            "passed": true
+        },
+        {
+            "name": "Host expires barrier without owner response or enabled development controls",
+            "passed": true
+        },
+        {
+            "name": "Captured-player disconnect leaves bystanders free",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

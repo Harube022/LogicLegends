@@ -10,19 +10,23 @@ namespace LogicLegends.OpenArchiveTesting
         [SerializeField] private Player explorer;
         [SerializeField] private Transform spawnPoint;
         [SerializeField] private CinemachineCamera followCamera;
+        private bool preserveInitialPosition;
 
         public Player Explorer => explorer;
         public Transform SpawnPoint => spawnPoint;
 
-        public void Configure(Player player, Transform spawn, CinemachineCamera camera)
+        public void Configure(Player player, Transform spawn, CinemachineCamera camera, bool keepSpawnPosition = false)
         {
             explorer = player; spawnPoint = spawn; followCamera = camera;
+            preserveInitialPosition = keepSpawnPosition;
         }
 
         private void Start()
         {
+            if (explorer == null) return;
             explorer.SetRunningEnabled(true);
-            ReturnToSpawn();
+            // PlayerSpawner already grounded the online avatar in its distinct room slot.
+            if (!preserveInitialPosition) ReturnToSpawn();
         }
 
         private void Update()

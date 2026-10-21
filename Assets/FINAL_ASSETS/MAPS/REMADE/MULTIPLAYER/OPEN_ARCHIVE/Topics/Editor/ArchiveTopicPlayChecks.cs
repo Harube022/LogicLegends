@@ -67,6 +67,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                     Status="T"+(topic+1)+" / round "+(round+1);MoveTo(station,ArchiveTopicStation.BookPosition+Vector3.back*1.7f);
                     station.points.First(p=>p.role==ArchivePointRole.Book).Interact();yield return .12f;
                     Record(Status+" starts through the existing hand/Book action",state.phase==1);
+                    Record(Status+" reserves this topic for the whole team",session.ActiveTopic==topic&&Enumerable.Range(0,10).Where(i=>i!=topic).All(i=>!session.CanStartTopic(i)));
                     while(state.round==round)
                     {
                         var q=session.Question(topic);var solution=ArchiveTopicChecks.Solution(q);
@@ -76,7 +77,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                         }
                         else
                         {
-                            if(q.activity==ArchiveActivity.Method)Send(topic,ArchiveAction.Select,solution.selection);
+                            if(q.activity==ArchiveActivity.Method&&ArchiveMethodPresentation.NeedsMethod(q)){MoveTo(station,ArchiveMethodPresentation.MethodPosition(solution.selection));Send(topic,ArchiveAction.Select,solution.selection);}
                             if(q.regionPlacement)
                             {
                                 for(int i=0;i<solution.placements.Length;i++)if(solution.placements[i]>=0)
@@ -92,9 +93,9 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                             }
                             if(q.mapping!=null)
                             {
-                                if(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction)Send(topic,ArchiveAction.Select,solution.selection);
+                                if(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction){MoveTo(station,ArchiveMappingPresentation.AnswerPosition(solution.selection));Send(topic,ArchiveAction.Select,solution.selection);}
                                 else if(q.mapping.questionKind==MappingQuestionKind.SelectProperties)
-                                {foreach(int flag in new[]{2,4,8})if((solution.flags&flag)!=0)Send(topic,ArchiveAction.Select,flag);}
+                                {foreach(int flag in new[]{2,4,8})if((solution.flags&flag)!=0){MoveTo(station,ArchiveMappingPresentation.AnswerPosition(Array.IndexOf(new[]{2,4,8},flag)));Send(topic,ArchiveAction.Select,flag);}}
                                 else foreach(int link in solution.links.Except(state.links).ToArray())
                                 {
                                     MoveTo(station,station.InputPosition(link/100));Send(topic,ArchiveAction.Select,link/100);yield return null;
@@ -106,8 +107,8 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                                 MoveTo(station,Vector3.zero);
                                 if(q.tree.Editable)
                                 {
-                                    foreach(int link in state.links.Except(solution.links).ToArray())Send(topic,ArchiveAction.Remove,link/100,link%100);
-                                    foreach(int link in solution.links.Except(state.links).ToArray())Send(topic,ArchiveAction.Connect,link/100,link%100);
+                                    foreach(int link in state.links.Except(solution.links).ToArray()){Send(topic,ArchiveAction.Select,link/100);Send(topic,ArchiveAction.Select,link%100);Send(topic,ArchiveAction.Remove,link/100,link%100);}
+                                    foreach(int link in solution.links.Except(state.links).ToArray()){Send(topic,ArchiveAction.Select,link/100);Send(topic,ArchiveAction.Select,link%100);Send(topic,ArchiveAction.Connect,link/100,link%100);}
                                 }
                                 if(q.tree.type==LogicLegends.Trees.TreeChallengeType.Identify)Send(topic,ArchiveAction.Select,solution.selection);
                                 if(solution.flags>=0)Send(topic,ArchiveAction.Select,100+solution.flags);
@@ -117,7 +118,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                                 if(q.graph.type==GraphChallengeType.Degree){MoveTo(station,Vector3.zero);Send(topic,ArchiveAction.Select,solution.selection);}
                                 else
                                 {
-                                    var start=q.nodes[solution.route[0]]+ArchiveTopicStation.GraphOffset;MoveTo(station,new Vector3(start.x,0,start.y));yield return .2f;
+                                    var start=q.nodes[solution.route[0]]+ArchiveTopicStation.GraphOffset;MoveTo(station,new Vector3(start.x,0,start.y));yield return .2f;Send(topic,ArchiveAction.RetryRoute);
                                     for(int i=1;i<solution.route.Count;i++)
                                     {
                                         var end=q.nodes[solution.route[i]]+ArchiveTopicStation.GraphOffset;var target=station.transform.TransformPoint(new Vector3(end.x,0,end.y));
@@ -136,6 +137,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                         if(state.round==round&&!(topic==2&&state.subphase==1))throw new InvalidOperationException(Status+" did not advance after a correct submission. "+state.feedback);
                     }
                     report.completedRounds++;Record(Status+" accepts the complete team answer",state.round==round+1);
+                    Record(Status+" keeps the topic reserved until every round is solved",state.phase==2?session.ActiveTopic==-1:session.ActiveTopic==topic);
                     if(topic==2)Record(Status+" reveals the derived conclusion after the rule is correct",!string.IsNullOrWhiteSpace(state.reveal));
                 }
                 report.completedTopics++;Record("T"+(topic+1)+" completes once for the team",state.phase==2);

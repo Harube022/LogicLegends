@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "sourceScene": "Assets/Scenes/Trees.unity",
+  "controller": "TreeStageManager",
+  "startingSeconds": 600.0,
+  "incorrectPenaltySeconds": 10,
+  "sharedOriginalCatalog": true,
+  "sourceCatalog": "Assets/Prefabs/Trees/TreeChallenges.asset",
+  "groups": [
+    {
+      "type": "Identify",
+      "variants": 10
+    },
+    {
+      "type": "Build",
+      "variants": 10
+    },
+    {
+      "type": "Repair",
+      "variants": 10
+    },
+    {
+      "type": "Depth",
+      "variants": 10
+    },
+    {
+      "type": "Spanning",
+      "variants": 10
+    }
+  ],
+  "adaptations": [
+    "Existing shared session and per-actor pending endpoints",
+    "Solo validator and parent/root/cycle/removal rules reused",
+    "No modal camera or movement lock while reading in the multiplayer arena",
+    "Ten-minute remaining clock pauses only at solved Book gates",
+    "Wrong work retained; timeout retry keeps solved team progress",
+    "Ground-level open branch network; no new collision or navigation blockers"
+  ]
+}

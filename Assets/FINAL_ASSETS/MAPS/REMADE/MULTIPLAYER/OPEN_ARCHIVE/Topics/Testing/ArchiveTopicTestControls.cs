@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace LogicLegends.OpenArchive.Topics
 {
     /// <summary>Offline review utilities, separate from the authoritative topic system.</summary>
-    public sealed class ArchiveTopicTestControls:MonoBehaviour
+    public sealed partial class ArchiveTopicTestControls:MonoBehaviour
     {
         public ArchiveTopicSession session;
         public TMP_FontAsset headingFont,textFont;
@@ -22,6 +22,7 @@ namespace LogicLegends.OpenArchive.Topics
             var body=FindObjectsByType<Transform>(FindObjectsInactive.Include,FindObjectsSortMode.None).FirstOrDefault(t=>t.name=="Test_Tools_Content");
             if(body==null)yield break;
             var dock=(RectTransform)body.parent;dock.sizeDelta=new Vector2(dock.sizeDelta.x,540);
+            BuildTopicAdmin(dock,body);
             var bodyRect=(RectTransform)body;bodyRect.sizeDelta=new Vector2(bodyRect.sizeDelta.x,480);
             var row=new GameObject("Topic_Review_Actions",typeof(RectTransform)).GetComponent<RectTransform>();row.SetParent(body,false);
             row.anchorMin=new Vector2(0,1);row.anchorMax=new Vector2(1,1);row.pivot=new Vector2(.5f,1);row.offsetMin=new Vector2(20,-470);row.offsetMax=new Vector2(-20,-350);
@@ -40,6 +41,7 @@ namespace LogicLegends.OpenArchive.Topics
         }
         void Update()
         {
+            RefreshTopicAdmin();
             if(label==null)return;
             label.text="T"+(selectedTopic+1)+" — "+ArchiveTopicCatalog.Names[selectedTopic]+"  |  Offline review";
             visit.interactable=CanVisit;

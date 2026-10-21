@@ -21,7 +21,7 @@ public static class MultiplayerUISetup
         try
         {
             if(mode=="lobby")BuildLobbyOnly();else if(mode=="stage")BuildStageOnly();else Build();
-            File.WriteAllText("Temp/MultiplayerUISetup.result","PASS\n"+(mode=="lobby"?"Main Menu lobby saved.":mode=="stage"?"MultiplayerStage chat saved; canvas prefab remains connected.":"Lobby and MultiplayerStage chat saved; shared prefabs remain connected."));
+            File.WriteAllText("Temp/MultiplayerUISetup.result","PASS\n"+(mode=="lobby"?"Main Menu lobby saved.":mode=="stage"?"Open Archive party chat saved.":"Lobby and Open Archive party chat saved."));
         }
         catch(Exception error) { File.WriteAllText("Temp/MultiplayerUISetup.result","FAIL\n"+error);Debug.LogException(error); }
     }
@@ -31,13 +31,13 @@ public static class MultiplayerUISetup
         if(EditorApplication.isPlayingOrWillChangePlaymode)throw new InvalidOperationException("Exit Play Mode before rebuilding multiplayer UI.");
         ConfigureArtwork();
         var previous=SceneManager.GetActiveScene();
-        var stage=SceneManager.GetSceneByPath(MultiplayerStageSetup.ScenePath);bool opened=!stage.isLoaded;
-        if(opened)stage=EditorSceneManager.OpenScene(MultiplayerStageSetup.ScenePath,OpenSceneMode.Additive);
+        var stage=SceneManager.GetSceneByPath(MultiplayerSceneRoutes.GameplayPath);bool opened=!stage.isLoaded;
+        if(opened)stage=EditorSceneManager.OpenScene(MultiplayerSceneRoutes.GameplayPath,OpenSceneMode.Additive);
         try
         {
-            var canvas=stage.GetRootGameObjects().First(g=>g.name=="Canvas 1");
+            var canvas=stage.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<Canvas>(true)).Single(c=>c.name=="Canvas 1");
             var safe=canvas.transform.Find("SafeArea");
-            if(safe==null||!PrefabUtility.IsPartOfPrefabInstance(canvas))throw new InvalidOperationException("A connected stage canvas with a safe area is required.");
+            if(safe==null)throw new InvalidOperationException("The Open Archive canvas needs its existing safe area.");
             MultiplayerGameChat.Build(safe);
             EditorSceneManager.MarkSceneDirty(stage);EditorSceneManager.SaveScene(stage);
         }
@@ -65,29 +65,9 @@ public static class MultiplayerUISetup
     [MenuItem("Logic Legends/Multiplayer/Build Lobby And In-Game Chat UI")]
     public static void Build()
     {
-        if(EditorApplication.isPlayingOrWillChangePlaymode)throw new InvalidOperationException("Exit Play Mode before rebuilding multiplayer UI.");
-        ConfigureArtwork();
-        var previous=SceneManager.GetActiveScene();
-        var menu=SceneManager.GetSceneByPath("Assets/Scenes/Main Menu.unity");bool openedMenu=!menu.isLoaded;
-        if(openedMenu)menu=EditorSceneManager.OpenScene("Assets/Scenes/Main Menu.unity",OpenSceneMode.Additive);
-        try
-        {
-            SceneManager.SetActiveScene(menu);MultiplayerLobbySetup.Build();
-            var stage=SceneManager.GetSceneByPath(MultiplayerStageSetup.ScenePath);
-            if(!stage.isLoaded)stage=EditorSceneManager.OpenScene(MultiplayerStageSetup.ScenePath,OpenSceneMode.Additive);
-            var canvas=stage.GetRootGameObjects().First(g=>g.name=="Canvas 1");
-            var safe=canvas.transform.Find("SafeArea");
-            if(safe==null)throw new InvalidOperationException("The stage canvas has no safe area.");
-            MultiplayerGameChat.Build(safe);
-            if(!PrefabUtility.IsPartOfPrefabInstance(canvas))throw new InvalidOperationException("Stage canvas must remain a linked prefab instance.");
-            EditorSceneManager.MarkSceneDirty(stage);EditorSceneManager.SaveScene(stage);
-            Debug.Log("Multiplayer UI updated: padded lobby cards and MultiplayerStage-only party chat.");
-        }
-        finally
-        {
-            if(previous.isLoaded)SceneManager.SetActiveScene(previous);
-            if(openedMenu)EditorSceneManager.CloseScene(menu,true);
-        }
+        BuildLobbyOnly();
+        BuildStageOnly();
+        Debug.Log("Multiplayer UI updated: private lobby and Open Archive party chat.");
     }
     public static void ConfigureArtwork()
     {

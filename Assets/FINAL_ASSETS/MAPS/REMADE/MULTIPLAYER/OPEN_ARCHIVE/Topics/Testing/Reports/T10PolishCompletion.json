@@ -1,0 +1,118 @@
+{
+  "passed": true,
+  "checkedUtc": "2026-10-20T15:12:05.6239612Z",
+  "topic": "T10 Trees",
+  "arena": "Tree of Connections",
+  "scene": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Topics/Testing/MultiplayerGameplay.unity",
+  "soloScene": "Assets/Scenes/Trees.unity",
+  "soloController": "TreeStageManager",
+  "sourceCatalog": "Assets/Prefabs/Trees/TreeChallenges.asset",
+  "sourceVariants": 50,
+  "challenges": [
+    "Identify a root, parent, child or leaf using the original variant",
+    "Build every required parent-child branch",
+    "Repair the incorrect parent link while retaining other branches",
+    "Count node depth from root depth zero",
+    "Construct any valid spanning tree from the original graph"
+  ],
+  "initialSeconds": 600,
+  "incorrectPenaltySeconds": 10,
+  "timer": "First Book activation starts the shared ten-minute remaining clock. Correct challenges pause it at Book gates; the next activation resumes saved time. Reading keeps movement, the world and active countdown running.",
+  "retry": "Wrong confirmations keep all branches and answer choices, record one submitting-player mistake and deduct ten seconds. An exhausting penalty does not add a second timeout mistake. Natural timeout retains solved challenges and current work; Book retry starts a new ten-minute attempt.",
+  "authority": "The existing ArchiveTopicSession owns shared progress, time, branches, node/number answers and actor-specific pending endpoints. Edits require the authenticated sender to own the selected endpoint pair. The source root, single-parent, cycle, duplicate, removable-edge and spanning-graph guards apply at the authority.",
+  "presentation": [
+    "Living seed-node pillars, visible colored rune rings and short wooden branch conduits",
+    "Green accepted branches with gold parent-to-child arrows; blue local selections and red wrong-answer feedback",
+    "Floating seed animation, growing connections, selection/branch/verdict sounds and capped 24-particle mesh feedback",
+    "Compact right-side objective and scroll reader with editable live diagram",
+    "Original solo circle-button artwork, number choices zero through five, Connect, Remove, Clear Pick and Confirm",
+    "Existing animated Book and player controls; no reading movement lock or modal camera takeover"
+  ],
+  "howToTest": [
+    "Open the saved MultiplayerGameplay scene at the scene path above and enter Play Mode.",
+    "Complete any currently active topic, then approach the T10 Book and use Hand / E.",
+    "Use world nodes or the reader diagram to choose a node; editable questions require parent first, then child, then Connect.",
+    "Remove accepts either endpoint order. Remove an existing parent before connecting its replacement. Clear Pick keeps all branches.",
+    "Depth questions use zero through five. Confirm the team answer, then return to the Book for the next challenge."
+  ],
+  "validation": {
+    "sourceVariantChecks": 853,
+    "validSpanningAnswers": 80,
+    "nativePlayChecks": 58,
+    "livePhotonChecks": 31,
+    "acceptedRemoteCommands": 57,
+    "allTopicCorrectAdapterChecks": 2048,
+    "allTopicIncorrectAdapterChecks": 2048,
+    "focusedT9RegressionChecks": 63,
+    "completeMonsterNavigationRoutes": 80,
+    "reimportPasses": 2,
+    "verifiedPrefabs": 4,
+    "cameraAngles": 12,
+    "consoleErrors": 0,
+    "consoleWarnings": 1,
+    "warning": "Anonymous test client uses default equipment because there is no active Firebase session."
+  },
+  "technicalNotes": [
+    "Three reusable tree prop prefabs, one opaque URP energy material, original circle/SDF assets and a single small UI branch mesh.",
+    "Only the existing Book collider remains; no new arena walls, solid node colliders or navigation blockers.",
+    "The original Trees scene, source scripts, source catalog, island geometry, player and encounter systems remain unchanged.",
+    "Live Photon checks use a rendered Editor host and two independent Realtime peers in an invisible private room.",
+    "Late join, host handoff, sender spoof/replay rejection, independent pending picks, capture, departure and timeout recovery passed.",
+    "Monster movement is disabled only inside opt-in protocol/native fixtures; normal gameplay behavior is retained.",
+    "Deadlines are aged in fixtures rather than waiting ten minutes.",
+    "Physical Android performance, phone audio, rendered remote-device UI and an Android build were not verified in this task."
+  ],
+  "originalSourceAndSceneFiles": [
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scenes\\Trees.unity",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Prefabs\\Trees\\TreeChallenges.asset",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\FINAL_ASSETS\\MAPS\\REMADE\\MULTIPLAYER\\OPEN_ARCHIVE\\Topics\\Testing\\MultiplayerGameplay.unity",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Trees\\TreeUIController.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Trees\\TreeStageManager.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Trees\\TreesPlayChecks.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Trees\\TreeNode.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Trees\\TreeChallengeCatalog.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Trees\\TreeBoardFocus.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Trees\\TreeBoardController.cs",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Scripts\\Scripts\\Trees\\TreeAnswerValidator.cs",
+      "unchanged": true
+    }
+  ],
+  "existingSolutionPreserved": true,
+  "editorLeftStopped": true,
+  "sceneLeftClean": true,
+  "previews": [
+    "Temp/T10Polish/T10_Reader.png",
+    "Temp/T10Polish/T10_Arena.png"
+  ]
+}

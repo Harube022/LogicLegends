@@ -25,7 +25,9 @@ namespace LogicLegends.OpenArchive.Topics
                     var actor=session.State.actors.Find(a=>a.actor==session.LocalActor);
                     if(actor!=null&&actor.mappingInput>=0)session.Request(station.topic,ArchiveAction.Connect,actor.mappingInput,index);break;
                 case ArchivePointRole.Select:session.Request(station.topic,ArchiveAction.Select,index);break;
-                case ArchivePointRole.Node:ArchiveTopicUI.Current?.PickNode(station,index);break;
+                case ArchivePointRole.Node:
+                    if(station.topic==8&&session.Question(8).graph.type!=LogicLegends.Graph.GraphChallengeType.Degree&&index==ArchiveGraphTraversal.StartIndex(session.Question(8)))session.Request(8,ArchiveAction.RetryRoute);
+                    else ArchiveTopicUI.Current?.PickNode(station,index);break;
             }
         }
     }

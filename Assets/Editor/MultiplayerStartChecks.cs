@@ -18,6 +18,8 @@ public static class MultiplayerStartChecks
     private static readonly List<string> log = new List<string>();
     private static LoadBalancingClient guest;
     private static ConnectionHandler heartbeat;
+    private static readonly List<LoadBalancingClient> companions = new List<LoadBalancingClient>();
+    private static readonly List<ConnectionHandler> companionKeepers = new List<ConnectionHandler>();
     private static int phase, sent;
     private static double deadline, nextChat;
     private static bool active, includeHistory, gameplayChatDelivered;
@@ -42,7 +44,7 @@ public static class MultiplayerStartChecks
         else if(!EditorApplication.isPlayingOrWillChangePlaymode&&request=="restore")
         {
             File.Delete(path);
-            if(!SceneManager.GetActiveScene().isDirty)EditorSceneManager.OpenScene(MultiplayerStageSetup.ScenePath);
+            if(!SceneManager.GetActiveScene().isDirty)EditorSceneManager.OpenScene(MultiplayerSceneRoutes.GameplayPath);
         }
     }
     public static string Results => string.Join("\n",log);
@@ -77,6 +79,7 @@ public static class MultiplayerStartChecks
         try
         {
             EditorApplication.QueuePlayerLoopUpdate(); guest?.Service();
+            foreach(var peer in companions)peer.Service();
             var s=MultiplayerLobbyService.Instance;
             if(EditorApplication.timeSinceStartup>deadline) throw new TimeoutException("Phase "+phase+": "+s.Status);
             switch(phase)
@@ -155,38 +158,62 @@ public static class MultiplayerStartChecks
                     guest.OpJoinRoom(new EnterRoomParams { RoomName=PhotonNetwork.CurrentRoom.Name }); Next(13); break;
                 case 13:
                     if(!guest.InRoom||s.Players.Length!=2) return;
-                    guest.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey]=true }); Next(9); break;
+                    guest.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey]=true });
+                    ConnectCompanion("Archive QA third player");ConnectCompanion("Archive QA fourth player");Next(27);break;
+                case 27:
+                    foreach(var peer in companions)
+                    {
+                        if(peer.State==ClientState.ConnectedToMasterServer)peer.OpJoinRoom(new EnterRoomParams { RoomName=PhotonNetwork.CurrentRoom.Name });
+                        if(peer.InRoom&&!LobbyRules.IsReady(peer.LocalPlayer))peer.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey]=true });
+                    }
+                    if(companions.Any(p=>!p.InRoom)||s.Players.Length!=4||!s.CanStart)return;
+                    Check(s.Players.Length==4&&s.CanStart,"The real lobby admits four independent clients and requires everyone ready");Next(9);break;
                 case 9:
                     if(!s.CanStart) return;
                     MultiplayerUIValidation.InsideFrame(UnityEngine.Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None).First(r=>r.name=="WoodFrame"&&r.parent.name=="SafeArea"));
                     ScreenCapture.CaptureScreenshot("Temp/MultiplayerQA/ready-two.png");
                     s.StartGame(); s.StartGame(); Next(10); break;
                 case 10:
-                    if(SceneManager.GetActiveScene().name!="MultiplayerStage"||Player.LocalInstance==null) return;
+                    if(!MultiplayerSceneRoutes.IsOpenArchive(SceneManager.GetActiveScene())||Player.LocalInstance==null) return;
                     if(guest.CurrentRoom==null) throw new InvalidOperationException("Remote client lost its room during scene load: "+guest.DisconnectedCause);
                     if(!guest.CurrentRoom.CustomProperties.TryGetValue("curScn",out var scene)) return;
-                    Check(Equals(scene,"MultiplayerStage"),"Host loads MultiplayerStage and synchronizes its room scene property");
+                    Check(Equals(scene,SceneUtility.GetBuildIndexByScenePath(MultiplayerSceneRoutes.GameplayPath)),"Lobby Start resolves the exact Open Archive path and synchronizes its build index to peers");
+                    Check(Equals(PhotonNetwork.CurrentRoom.CustomProperties[LobbyRules.SceneKey],MultiplayerSceneRoutes.GameplayPath),"The private room advertises the exact Open Archive destination");
                     Check(!guest.CurrentRoom.IsOpen&&Equals(guest.CurrentRoom.CustomProperties[LobbyRules.StateKey],LobbyRules.Loading),"Started room is closed and marked loading");
                     Check(UnityEngine.Object.FindObjectsByType<MultiplayerLobbyService>(FindObjectsSortMode.None).Length==1,"Duplicate Start presses preserve one session/service");
                     Check(s.Messages.Count>0&&s.Messages.Count<=LobbyRules.HistoryLimit,"Room chat survives into the multiplayer scene");
                     Check(GameInput.Instance==null||!GameInput.Instance.GameplayInputBlocked,"Closing the lobby restores gameplay input");
                     Check(Player.LocalInstance.GetComponent<PhotonView>().IsMine&&Player.LocalInstance.enabled,"One spawned player owns local movement");
-                    Check(Player.LocalInstance.GetComponentsInChildren<Renderer>().Any(r=>r.enabled&&r.gameObject.activeInHierarchy),"Inherited male default outfit is visible without a Firebase login");
-                    var cm=UnityEngine.Object.FindFirstObjectByType<Unity.Cinemachine.CinemachineCamera>();
+                    Check(Player.LocalInstance.GetComponentsInChildren<Renderer>().Any(r=>r.enabled&&r.gameObject.activeInHierarchy),"Owned avatar renders its inherited character and equipped outfit");
+                    var cm=GameObject.Find("CM_ThirdPersonCam").GetComponent<Unity.Cinemachine.CinemachineCamera>();
                     Check(cm.Target.TrackingTarget==Player.LocalInstance.transform.Find("CameraTarget"),"Cinemachine tracks the inherited local CameraTarget");
                     remoteViewID=guest.LocalPlayer.ActorNumber*PhotonNetwork.MAX_VIEW_IDS+1;
                     // PUN 2's documented-in-source Instantiate event layout (PhotonNetwork.SendInstantiate).
-                    guest.OpRaiseEvent(202,new Hashtable { [(byte)0]="Multiplayer_Female",[(byte)1]=new Vector3(-3,1.1f,3),[(byte)6]=PhotonNetwork.ServerTimestamp,[(byte)7]=remoteViewID },
-                        new RaiseEventOptions { Receivers=ReceiverGroup.Others,CachingOption=EventCaching.AddToRoomCache },SendOptions.SendReliable);
+                    SpawnPeer(guest,"Multiplayer_Female");
+                    foreach(var peer in companions)SpawnPeer(peer,peer==companions[0]?"Multiplayer_Male":"Multiplayer_Female");
                     Next(14);break;
                 case 14:
                     var remote=PhotonView.Find(remoteViewID);
                     if(remote==null||!remote.GetComponentsInChildren<Renderer>().Any(r=>r.enabled&&r.gameObject.activeInHierarchy))return;
+                    if(companions.Any(p=>PhotonView.Find(p.LocalPlayer.ActorNumber*PhotonNetwork.MAX_VIEW_IDS+1)==null))return;
+                    var spawner=UnityEngine.Object.FindFirstObjectByType<PlayerSpawner>();
+                    var expected=spawner.ResolveSpawnPosition(Resources.Load<GameObject>("Multiplayer_Male"),PhotonNetwork.LocalPlayer.ActorNumber);
+                    var delta=Player.LocalInstance.transform.position-expected;delta.y=0;
+                    Check(delta.magnitude<.1f,"Online exploration preserves the host's separate spawn slot instead of teleporting to the center");
+                    var avatars=UnityEngine.Object.FindObjectsByType<MultiplayerAvatarSync>(FindObjectsSortMode.None);
+                    Check(avatars.Length==4&&avatars.Select(a=>a.GetComponent<PhotonView>().OwnerActorNr).Distinct().Count()==4,"Four visible avatars retain four distinct network owners");
+                    Check(avatars.All(a=>avatars.All(b=>a==b||Vector3.Distance(a.transform.position,b.transform.position)>4)),"All four room slots are separated on the Open Archive spawn plaza");
+                    Check(avatars.All(a=>Physics.Raycast(a.transform.position+Vector3.up*.2f,Vector3.down,2f,~(1<<7),QueryTriggerInteraction.Ignore)),"Every room slot has solid ground beneath the avatar");
+                    var bootstrap=UnityEngine.Object.FindFirstObjectByType<LogicLegends.Tests.Khezu.KhezuMultiplayerTestSession>();
+                    Check(bootstrap!=null&&!bootstrap.offlineExplorer.activeSelf&&bootstrap.exploration.Explorer==Player.LocalInstance,"Online setup disables the offline explorer and binds the owned network player");
+                    var topics=LogicLegends.OpenArchive.Topics.ArchiveTopicSession.Current;
+                    Check(topics!=null&&topics.Ready&&topics.stations.Length==10&&topics.ActiveTopic==-1,"The existing ten-topic team session initializes without auto-starting a challenge");
+                    Check(topics.hunting!=null&&UnityEngine.Object.FindFirstObjectByType<LogicLegends.OpenArchive.Topics.ArchiveLearningUI>()!=null,"Existing monster encounter and learning interface load with the environment");
                     Check(remote.OwnerActorNr==guest.LocalPlayer.ActorNumber&&!remote.IsMine,"Remote female instantiates with the correct guest ownership");
                     Check(!remote.GetComponent<Player>().enabled&&!remote.GetComponent<CharacterController>().enabled,"Remote player cannot consume local controls or run local character physics");
                     Check(Player.LocalInstance.gameObject!=remote.gameObject,"Remote spawn leaves the local player and camera owner intact");
-                    // Match PUN OnSerializeWrite's three-value view header, then this avatar's five fields.
-                    var values=new object[] { remoteViewID,false,null,new Vector3(3,1.1f,3),Quaternion.Euler(0,90,0),true,false,false };
+                    // Match PUN OnSerializeWrite's three-value view header, then the avatar's six fields.
+                    var values=new object[] { remoteViewID,false,null,expected+Vector3.right*6,Quaternion.Euler(0,90,0),true,false,false,8f };
                     guest.OpRaiseEvent(201,new object[] { PhotonNetwork.ServerTimestamp,null,values },new RaiseEventOptions { Receivers=ReceiverGroup.Others },SendOptions.SendReliable);
                     localBefore=Player.LocalInstance.transform.position; GameInput.Instance.SetMobileMovement(Vector2.right);
                     nextChat=EditorApplication.timeSinceStartup+.6;Next(15);break;
@@ -194,12 +221,13 @@ public static class MultiplayerStartChecks
                     if(EditorApplication.timeSinceStartup<nextChat)return;
                     GameInput.Instance.SetMobileMovement(Vector2.zero);
                     var moved=PhotonView.Find(remoteViewID);
-                    if(Vector3.Distance(moved.transform.position,new Vector3(3,1.1f,3))>.3f)return;
+                    var remoteTarget=UnityEngine.Object.FindFirstObjectByType<PlayerSpawner>().ResolveSpawnPosition(Resources.Load<GameObject>("Multiplayer_Male"),PhotonNetwork.LocalPlayer.ActorNumber)+Vector3.right*6;
+                    if(Vector3.Distance(moved.transform.position,remoteTarget)>.3f)return;
                     Check(Vector3.Distance(localBefore,Player.LocalInstance.transform.position)>.1f,"The local avatar moves using the shared GameInput");
                     Check(localUpdates>0,"The guest receives the local avatar's PUN synchronization updates");
                     Check(moved.GetComponentsInChildren<Animator>().Any(a=>a.GetBool("IsWalking")),"Remote movement and walking animation arrive over the live connection");
-                    Check(Player.LocalInstance.GetComponent<CharacterController>().isGrounded,"The local avatar stands on the temporary platform collider");
-                    Check(UnityEngine.Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Count(a=>a.enabled)==1,"MultiplayerStage has exactly one active audio listener");
+                    Check(Player.LocalInstance.GetComponent<CharacterController>().isGrounded,"The local avatar stands on the Open Archive spawn plaza collider");
+                    Check(UnityEngine.Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Count(a=>a.enabled)==1,"Open Archive has exactly one active audio listener");
                     Check(TeleportManager.Instance!=null&&TeleportManager.UsesCoveredTransitions,"The new stage uses covered teleport transitions");
                     if(TeleportManager.Instance.IsTransitioning)return;
                     Check(TeleportManager.Instance.FadeAlpha<.01f,"The startup fade reveals the spawned players");
@@ -218,7 +246,7 @@ public static class MultiplayerStartChecks
                     var female=Player.LocalInstance;
                     Check(female.name.StartsWith("Multiplayer_Female")&&female.GetComponent<PhotonView>().IsMine&&female.enabled,"Inherited female prefab also spawns as the locally controlled player");
                     Check(female.GetComponentsInChildren<Renderer>().Any(r=>r.enabled&&r.gameObject.activeInHierarchy),"Local female default outfit remains visible");
-                    var femaleCamera=UnityEngine.Object.FindFirstObjectByType<Unity.Cinemachine.CinemachineCamera>();
+                    var femaleCamera=GameObject.Find("CM_ThirdPersonCam").GetComponent<Unity.Cinemachine.CinemachineCamera>();
                     Check(femaleCamera.Target.TrackingTarget==female.transform.Find("CameraTarget"),"Camera follows the female player after changing the owned avatar");
                     var equipment=new SerializedObject(PhotonView.Find(remoteViewID).GetComponent<PlayerEquipmentLoader>()).FindProperty("clothesModels");
                     bool tuxedo=false;
@@ -235,7 +263,7 @@ public static class MultiplayerStartChecks
                 case 18:
                     if(EditorApplication.timeSinceStartup<nextChat||!s.Messages.Any(m=>m.Contains("Ready for the next adventure?")))return;
                     var hud=UnityEngine.Object.FindFirstObjectByType<MultiplayerGameChat>();
-                    Check(hud!=null&&!hud.IsOpen&&hud.UnreadCount==1,"Only MultiplayerStage has the collapsed chat HUD; a guest message adds an unread badge");
+                    Check(hud!=null&&!hud.IsOpen&&hud.UnreadCount==1,"Open Archive keeps the collapsed party chat and shows an unread guest message");
                     hud.Open();
                     Check(hud.IsOpen&&hud.UnreadCount==0&&GameInput.Instance.GameplayInputBlocked&&Time.timeScale==1,"Opening chat clears unread, blocks local controls and leaves the multiplayer world running");
                     Check(!hud.GetComponentInParent<Canvas>().transform.Find("SafeArea/Gameplay_Interface").gameObject.activeSelf,"Expanded chat hides the touch HUD so tablet controls do not cross its edge");
@@ -282,7 +310,7 @@ public static class MultiplayerStartChecks
                 case 23:
                     if(s.InLobby||s.Busy||SceneManager.GetActiveScene().name!="Main Menu")return;
                     Check(UnityEngine.Object.FindFirstObjectByType<MultiplayerGameChat>()==null&&s.ChatMessages.Count==0,"Leaving removes the stage-only chat HUD and clears the room conversation");
-                    log.Add("COMPLETE live MultiplayerStage and in-game chat checks (second rendered device and native mobile keyboard not exercised)");Save();Stop();break;
+                    log.Add("COMPLETE live Open Archive lobby start: one rendered PUN client and three independent Realtime clients; second rendered device and native mobile keyboard not exercised");Save();Stop();break;
             }
         }
         catch(Exception e) { log.Add("FAIL "+e.Message); Save(); Stop();MultiplayerLobbyService.Instance?.LeaveLobby(); Debug.LogException(e); }
@@ -294,6 +322,24 @@ public static class MultiplayerStartChecks
         active=false; EditorApplication.update-=Tick; EditorApplication.playModeStateChanged-=PlayState;
         if(guest!=null) { guest.Disconnect(); guest.Service(); guest=null; }
         if(heartbeat!=null) { heartbeat.StopFallbackSendAckThread(); UnityEngine.Object.Destroy(heartbeat.gameObject); heartbeat=null; }
+        foreach(var peer in companions){peer.Disconnect();peer.Service();}companions.Clear();
+        foreach(var keeper in companionKeepers)if(keeper!=null){keeper.StopFallbackSendAckThread();UnityEngine.Object.Destroy(keeper.gameObject);}companionKeepers.Clear();
+    }
+    private static void ConnectCompanion(string name)
+    {
+        var settings=PhotonNetwork.PhotonServerSettings.AppSettings.CopyTo(new AppSettings());
+        settings.AppVersion=PhotonNetwork.NetworkingClient.AppVersion;settings.FixedRegion=PhotonNetwork.CloudRegion;
+        var peer=new LoadBalancingClient();peer.NickName=name;
+        var go=new GameObject(name+" heartbeat");UnityEngine.Object.DontDestroyOnLoad(go);
+        var keeper=go.AddComponent<ConnectionHandler>();keeper.Client=peer;keeper.StartFallbackSendAckThread();
+        companions.Add(peer);companionKeepers.Add(keeper);peer.ConnectUsingSettings(settings);
+    }
+    private static void SpawnPeer(LoadBalancingClient peer,string prefab)
+    {
+        var spawner=UnityEngine.Object.FindFirstObjectByType<PlayerSpawner>();
+        var position=spawner.ResolveSpawnPosition(Resources.Load<GameObject>(prefab),peer.LocalPlayer.ActorNumber);
+        peer.OpRaiseEvent(202,new Hashtable { [(byte)0]=prefab,[(byte)1]=position,[(byte)6]=PhotonNetwork.ServerTimestamp,[(byte)7]=peer.LocalPlayer.ActorNumber*PhotonNetwork.MAX_VIEW_IDS+1 },
+            new RaiseEventOptions { Receivers=ReceiverGroup.Others,CachingOption=EventCaching.AddToRoomCache },SendOptions.SendReliable);
     }
     private static void ValidateChat(string screenshot)
     {
@@ -313,7 +359,8 @@ public static class MultiplayerStartChecks
         Check(actions.Length==3&&actions.All(b=>
         {
             var rect=(RectTransform)b.transform;
-            return Mathf.Abs(rect.rect.width-220)<.1f&&Mathf.Abs(rect.rect.height-88)<.1f&&
+            float width=b.name=="ChatToggle"&&MultiplayerSceneRoutes.IsOpenArchive(hud.gameObject.scene)?132:220;
+            return Mathf.Abs(rect.rect.width-width)<.1f&&Mathf.Abs(rect.rect.height-88)<.1f&&
                 Mathf.Abs(b.GetComponent<UnityEngine.UI.Image>().pixelsPerUnitMultiplier-4.5f)<.01f;
         }),"Chat, Close and Send use matching readable buttons and artwork at "+resolution);
         Check(hud.Conversation.messageList.childCount>0,"Chat cards and controls fit at "+resolution);

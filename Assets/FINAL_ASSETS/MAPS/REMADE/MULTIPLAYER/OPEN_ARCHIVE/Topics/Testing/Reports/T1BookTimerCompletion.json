@@ -1,0 +1,28 @@
+{
+  "scene": "MultiplayerGameplay",
+  "book": "Shared Book Statue: closed while inactive; opening, hovering and curved page turns while active",
+  "timer": "T1: 360 seconds starting at first Book activation, shared across all five challenges; wrong answers and next Book interactions preserve the deadline; completion freezes remaining time",
+  "timeout": "Keep solved challenges; cancel the unfinished rune; record exactly one timeout mistake for the current activating player; next Book activation retries the unfinished challenge with a fresh 360-second attempt",
+  "checks": {
+    "bookAndTimer": 29,
+    "existingT1Gameplay": 78,
+    "livePhoton": 36,
+    "cameraViews": 48,
+    "visibleLabels": 116,
+    "monsterNavigationRoutes": 80,
+    "nativeKitColliders": 10,
+    "protectedUnrelatedFilesUnchanged": 2501
+  },
+  "passed": true,
+  "limitations": [
+    "Physical Android and remote rendered UI were not verified.",
+    "Timeout tests used shortened deadlines instead of waiting six real minutes.",
+    "World captions are capped in size, repositioned, or hidden locally when no clear space is available."
+  ],
+  "previews": [
+    "Temp/T1BookTimer/Book_Closed_Detail.png",
+    "Temp/T1BookTimer/Book_Active_Detail.png",
+    "Temp/T1BookTimer/Layout_1600x1200.png",
+    "Temp/T1BookTimer/Layout_2340x1080.png"
+  ]
+}

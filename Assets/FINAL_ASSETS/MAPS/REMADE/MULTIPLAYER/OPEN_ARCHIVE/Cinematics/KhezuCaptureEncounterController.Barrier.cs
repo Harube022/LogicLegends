@@ -14,6 +14,8 @@ namespace LogicLegends.OpenArchive.Cinematics
         [Header("Dedicated development challenge")]
         [Tooltip("Both this switch and an Editor/development build are required. Release builds reject test outcomes.")]
         public bool developmentTestOutcomes;
+        [Tooltip("Use inference-rule problems for Rajang; counterexample problems for Khezu. The active rig selector sets this presentation identity.")]
+        public bool inferenceBarrier;
         public bool DevelopmentOutcomesEnabled=>CompiledDevelopmentOutcomes && developmentTestOutcomes;
         public static bool CompiledDevelopmentOutcomes {
             get{
@@ -25,14 +27,31 @@ namespace LogicLegends.OpenArchive.Cinematics
             }
         }
         public bool LocalChallengeActive=>isActiveAndEnabled && !disconnected && Phase==KhezuEncounterPhase.BarrierChallenge && !hunting.BarrierResolving &&
-            KhezuCaptureEncounterController.IsCaughtLocalPlayer(hunting.CaughtPlayerId) && (cinematic==null || !cinematic.IsPlaying);
+            hunting.BarrierSecondsRemaining>0 && KhezuCaptureEncounterController.IsCaughtLocalPlayer(hunting.CaughtPlayerId) && (cinematic==null || !cinematic.IsPlaying);
+        public KhezuHuntingController Hunting=>hunting;
+        public bool LocalFailureStun=>isActiveAndEnabled && !disconnected && hunting!=null && hunting.FailureStunActive && IsCaughtLocalPlayer(hunting.ResolvedActor);
         Player barrierPlayer;
         int lockedActor,lockedSerial;
         float nextPlayerSearch;
+        PlayerAnimator[] stunnedSkins;
         KhezuHuntState lastLoggedState=(KhezuHuntState)(-1);
         public void SynchronizeBarrierMovement(){
             if(hunting==null)return;
             if(lastLoggedState!=hunting.State){lastLoggedState=hunting.State;BarrierLog("Next monster state: "+hunting.State);}
+            if(!disconnected && hunting.FailureStunActive){
+                if(barrierPlayer!=null && (lockedActor!=hunting.ResolvedActor || lockedSerial!=hunting.ResolvedSerial))ReleaseBarrierMovement();
+                if(barrierPlayer==null){
+                    barrierPlayer=CapturedAvatar(hunting.ResolvedActor);
+                    if(barrierPlayer==null)return;
+                    lockedActor=hunting.ResolvedActor;lockedSerial=hunting.ResolvedSerial;
+                }
+                // The same movement token transfers directly from prison to knockback/stun.
+                // No frame enables walking, jumping, dash or guided movement between them.
+                barrierPlayer.AcquireMovementLock(this,"Monster hit: knockback and stun",hunting.FailurePlayerPosition,100);
+                if(stunnedSkins==null)stunnedSkins=barrierPlayer.GetComponentsInChildren<PlayerAnimator>(true);
+                foreach(var skin in stunnedSkins)if(skin!=null)skin.AcquireStun(this);
+                return;
+            }
             if(disconnected || hunting.State!=KhezuHuntState.Caught){ReleaseBarrierMovement();return;}
             if(barrierPlayer!=null && (lockedActor!=hunting.CaughtPlayerId || lockedSerial!=hunting.CaptureSerial))ReleaseBarrierMovement();
             if(barrierPlayer==null){
@@ -47,8 +66,9 @@ namespace LogicLegends.OpenArchive.Cinematics
         }
         void LateUpdate(){if(barrierPlayer!=null && barrierPlayer.IsMovementLocked)barrierPlayer.EnforceMovementLock();}
         void ReleaseBarrierMovement(){
+            if(stunnedSkins!=null){foreach(var skin in stunnedSkins)if(skin!=null)skin.ReleaseStun(this);stunnedSkins=null;}
             if(barrierPlayer!=null){
-                if(hunting!=null && hunting.health!=null && !hunting.health.IsActorAlive(lockedActor))hunting.health.HoldDeathMovement(barrierPlayer,hunting.CapturePosition);
+                if(hunting!=null && hunting.health!=null && !hunting.health.IsActorAlive(lockedActor))hunting.health.HoldDeathMovement(barrierPlayer,barrierPlayer.transform.position);
                 barrierPlayer.ReleaseMovementLock(this);BarrierLog("Barrier movement lock released for "+lockedActor);
                 if(hunting!=null && hunting.ResolvedSerial==lockedSerial)BarrierLog("Barrier dissolved for actor "+lockedActor+"; next state "+hunting.State);
             }
@@ -74,13 +94,18 @@ namespace LogicLegends.OpenArchive.Cinematics
             AcceptDevelopmentOutcome(data.Sender,(int)packet[1],(bool)packet[2]);
         }
         bool AcceptDevelopmentOutcome(int sender,int serial,bool success){
-            if(!isActiveAndEnabled || !DevelopmentOutcomesEnabled || !hunting.IsAuthority || disconnected || Phase!=KhezuEncounterPhase.BarrierChallenge ||
+            return DevelopmentOutcomesEnabled && ResolveValidatedMathOutcome(sender,serial,success);
+        }
+        // Only an authoritative in-process validator may call this. It is never a client outcome RPC.
+        internal bool ResolveValidatedMathOutcome(int sender,int serial,bool success){
+            if(!isActiveAndEnabled || hunting==null || !hunting.IsAuthority || disconnected || Phase!=KhezuEncounterPhase.BarrierChallenge ||
                 hunting.BarrierResolving || sender!=hunting.CaughtPlayerId || serial!=hunting.CaptureSerial ||
                 KhezuHuntingController.EncounterClock-hunting.CaptureStartedAt<KhezuCinematicJumpscareController.Duration)return false;
             var presentation=GetComponent<KhezuBarrierVfxPresentation>();float dissolve=.9f;
-            if(presentation!=null && presentation.barrierPrefab!=null && presentation.barrierPrefab.style!=null){var style=presentation.barrierPrefab.style;dissolve=style.dissolveSeconds/style.animationSpeed;}
+            var style=presentation==null?null:presentation.styleOverride!=null?presentation.styleOverride:presentation.barrierPrefab!=null?presentation.barrierPrefab.style:null;
+            if(style!=null)dissolve=style.dissolveSeconds/Mathf.Max(.01f,style.animationSpeed);
             bool accepted=hunting.ResolveBarrierOutcome(sender,serial,success,dissolve);
-            if(accepted)BarrierLog("Host outcome accepted exactly once: actor "+sender+", capture "+serial+", "+(success?"SUCCESS":"FAILED")+"; barrier dissolving");
+            if(accepted)BarrierLog("Host outcome accepted exactly once: actor "+sender+", capture "+serial+", "+(success?"SUCCESS; barrier dissolving":"FAILED; barrier holds until attack contact"));
             return accepted;
         }
         [System.Diagnostics.Conditional("UNITY_EDITOR"),System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]

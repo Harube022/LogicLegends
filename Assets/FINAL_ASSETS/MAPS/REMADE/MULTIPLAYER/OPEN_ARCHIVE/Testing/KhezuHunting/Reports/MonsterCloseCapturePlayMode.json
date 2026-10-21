@@ -1,0 +1,402 @@
+{
+    "checkedUtc": "2026-10-20T23:51:18.1468676Z",
+    "scope": "Unity Editor offline: both existing rigs, real baked navigation, supported/airborne/occluded reach, native capture and barrier handoff. Remote clients and Android device unverified.",
+    "passed": true,
+    "checks": [
+        {
+            "name": "Rajang: supported close runner outside rectangular body can be caught",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: open navigation does not gain the scenery-only arm extension",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: low rock blocks the low ray but permits visible upper-body capture",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: solid wall still blocks a target inside normal body tolerance",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: distant supported runner stays outside capture reach",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: extended reach requires turning toward the runner",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: unsupported jump does not gain the supported turning footprint",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: solid wall blocks the supported capture fallback",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: removing the wall restores close capture",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: supported low ledge remains reachable",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: above-body platform remains outside reach",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: solid overhead slab blocks reach from below",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: original awakening starts native hunt",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: stopped agent turns and captures without teleporting",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (25.00, 0.00, 30.00)",
+            "detail": "target=(25.00, 1.08, 30.00), monster=(31.05, 0.15, 38.26), state=Caught, bodyGap=4.729187",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (25.00, 0.00, 30.00)",
+            "detail": "target=(25.00, 1.08, 30.00), monster=(31.05, 0.15, 38.26), state=Caught, bodyGap=4.729187",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (30.00, 0.00, 25.00)",
+            "detail": "target=(30.00, 1.08, 25.00), monster=(38.38, 0.15, 28.80), state=Caught, bodyGap=4.435977",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (30.00, 0.00, 25.00)",
+            "detail": "target=(30.00, 1.08, 25.00), monster=(38.38, 0.15, 28.80), state=Caught, bodyGap=4.435977",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (55.00, 0.00, 95.00)",
+            "detail": "target=(55.00, 1.08, 95.00), monster=(58.98, 0.15, 105.07), state=Caught, bodyGap=3.814793",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (55.00, 0.00, 95.00)",
+            "detail": "target=(55.00, 1.08, 95.00), monster=(58.98, 0.15, 105.07), state=Caught, bodyGap=3.814793",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (60.00, 0.00, 40.00)",
+            "detail": "target=(60.00, 1.08, 40.00), monster=(60.87, 0.15, 29.63), state=Caught, bodyGap=5.583842",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (60.00, 0.00, 40.00)",
+            "detail": "target=(60.00, 1.08, 40.00), monster=(60.87, 0.15, 29.63), state=Caught, bodyGap=5.583842",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (13.88, 4.70, -33.00)",
+            "detail": "target=(13.88, 5.81, -33.00), monster=(5.06, 1.87, -28.03), state=Caught, bodyGap=2.200258",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (13.88, 4.70, -33.00)",
+            "detail": "target=(13.88, 5.81, -33.00), monster=(5.06, 1.87, -28.03), state=Caught, bodyGap=2.200258",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (0.00, 0.00, -70.00)",
+            "detail": "target=(0.00, 1.08, -70.00), monster=(0.00, 0.26, -62.88), state=Caught, bodyGap=2.398213",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (0.00, 0.00, -70.00)",
+            "detail": "target=(0.00, 1.08, -70.00), monster=(0.00, 0.26, -62.88), state=Caught, bodyGap=2.398213",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (94.19, 0.00, 57.41)",
+            "detail": "target=(94.19, 1.08, 57.41), monster=(104.39, 0.15, 53.42), state=Caught, bodyGap=3.363094",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (94.19, 0.00, 57.41)",
+            "detail": "target=(94.19, 1.08, 57.41), monster=(104.39, 0.15, 53.42), state=Caught, bodyGap=3.363094",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (90.58, 0.00, 59.85)",
+            "detail": "target=(90.58, 1.08, 59.85), monster=(97.88, 0.15, 67.77), state=Caught, bodyGap=2.864454",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (90.58, 0.00, 59.85)",
+            "detail": "target=(90.58, 1.08, 59.85), monster=(97.88, 0.15, 67.77), state=Caught, bodyGap=2.864454",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (97.85, 0.00, -36.33)",
+            "detail": "target=(97.85, 1.08, -36.33), monster=(107.08, 0.15, -40.25), state=Caught, bodyGap=4.599191",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (97.85, 0.00, -36.33)",
+            "detail": "target=(97.85, 1.08, -36.33), monster=(107.08, 0.15, -40.25), state=Caught, bodyGap=4.599191",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (-44.57, 0.00, 104.38)",
+            "detail": "target=(-44.57, 1.08, 104.38), monster=(-45.68, 0.15, 114.37), state=Caught, bodyGap=5.303591",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (-44.57, 0.00, 104.38)",
+            "detail": "target=(-44.57, 1.08, 104.38), monster=(-45.68, 0.15, 114.37), state=Caught, bodyGap=5.303591",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (95.97, 0.00, -40.79)",
+            "detail": "target=(95.97, 1.08, -40.79), monster=(102.92, 0.15, -48.61), state=Caught, bodyGap=4.402007",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (95.97, 0.00, -40.79)",
+            "detail": "target=(95.97, 1.08, -40.79), monster=(102.92, 0.15, -48.61), state=Caught, bodyGap=4.402007",
+            "passed": true
+        },
+        {
+            "name": "Rajang: native capture at (100.47, 0.00, -40.44)",
+            "detail": "target=(100.47, 1.08, -40.44), monster=(110.84, 0.15, -43.43), state=Caught, bodyGap=5.811008",
+            "passed": true
+        },
+        {
+            "name": "Rajang: continuous pursuit and movement lock at (100.47, 0.00, -40.44)",
+            "detail": "target=(100.47, 1.08, -40.44), monster=(110.84, 0.15, -43.43), state=Caught, bodyGap=5.811008",
+            "passed": true
+        },
+        {
+            "name": "Khezu: supported close runner outside rectangular body can be caught",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: open navigation does not gain the scenery-only arm extension",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: low rock blocks the low ray but permits visible upper-body capture",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: solid wall still blocks a target inside normal body tolerance",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: distant supported runner stays outside capture reach",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: extended reach requires turning toward the runner",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: unsupported jump does not gain the supported turning footprint",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: solid wall blocks the supported capture fallback",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: removing the wall restores close capture",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: supported low ledge remains reachable",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: above-body platform remains outside reach",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: solid overhead slab blocks reach from below",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: original awakening starts native hunt",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: stopped agent turns and captures without teleporting",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (25.00, 0.00, 30.00)",
+            "detail": "target=(25.00, 1.08, 30.00), monster=(31.40, 0.08, 42.01), state=Caught, bodyGap=4.137551",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (25.00, 0.00, 30.00)",
+            "detail": "target=(25.00, 1.08, 30.00), monster=(31.40, 0.08, 42.01), state=Caught, bodyGap=4.137551",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (30.00, 0.00, 25.00)",
+            "detail": "target=(30.00, 1.08, 25.00), monster=(42.28, 0.08, 30.73), state=Caught, bodyGap=4.395113",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (30.00, 0.00, 25.00)",
+            "detail": "target=(30.00, 1.08, 25.00), monster=(42.28, 0.08, 30.73), state=Caught, bodyGap=4.395113",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (55.00, 0.00, 95.00)",
+            "detail": "target=(55.00, 1.08, 95.00), monster=(64.16, 0.08, 103.94), state=Caught, bodyGap=4.125542",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (55.00, 0.00, 95.00)",
+            "detail": "target=(55.00, 1.08, 95.00), monster=(64.16, 0.08, 103.94), state=Caught, bodyGap=4.125542",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (60.00, 0.00, 40.00)",
+            "detail": "target=(60.00, 1.08, 40.00), monster=(58.83, 0.08, 27.18), state=Caught, bodyGap=2.378733",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (60.00, 0.00, 40.00)",
+            "detail": "target=(60.00, 1.08, 40.00), monster=(58.83, 0.08, 27.18), state=Caught, bodyGap=2.378733",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (13.88, 4.70, -33.00)",
+            "detail": "target=(13.88, 5.81, -33.00), monster=(2.64, 1.86, -28.15), state=Caught, bodyGap=3.721978",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (13.88, 4.70, -33.00)",
+            "detail": "target=(13.88, 5.81, -33.00), monster=(2.64, 1.86, -28.15), state=Caught, bodyGap=3.721978",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (0.00, 0.00, -70.00)",
+            "detail": "target=(0.00, 1.08, -70.00), monster=(0.00, 0.21, -60.88), state=Caught, bodyGap=0.5159729",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (0.00, 0.00, -70.00)",
+            "detail": "target=(0.00, 1.08, -70.00), monster=(0.00, 0.21, -60.88), state=Caught, bodyGap=0.5159729",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (94.19, 0.00, 57.41)",
+            "detail": "target=(94.19, 1.08, 57.41), monster=(104.51, 0.15, 65.48), state=Caught, bodyGap=4.205899",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (94.19, 0.00, 57.41)",
+            "detail": "target=(94.19, 1.08, 57.41), monster=(104.51, 0.15, 65.48), state=Caught, bodyGap=4.205899",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (90.58, 0.00, 59.85)",
+            "detail": "target=(90.58, 1.08, 59.85), monster=(100.83, 0.15, 68.26), state=Caught, bodyGap=4.375712",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (90.58, 0.00, 59.85)",
+            "detail": "target=(90.58, 1.08, 59.85), monster=(100.83, 0.15, 68.26), state=Caught, bodyGap=4.375712",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (97.85, 0.00, -36.33)",
+            "detail": "target=(97.85, 1.08, -36.33), monster=(109.54, 0.15, -41.72), state=Caught, bodyGap=2.867215",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (97.85, 0.00, -36.33)",
+            "detail": "target=(97.85, 1.08, -36.33), monster=(109.54, 0.15, -41.72), state=Caught, bodyGap=2.867215",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (-44.57, 0.00, 104.38)",
+            "detail": "target=(-44.57, 1.08, 104.38), monster=(-43.48, 0.15, 116.51), state=Caught, bodyGap=2.547083",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (-44.57, 0.00, 104.38)",
+            "detail": "target=(-44.57, 1.08, 104.38), monster=(-43.48, 0.15, 116.51), state=Caught, bodyGap=2.547083",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (95.97, 0.00, -40.79)",
+            "detail": "target=(95.97, 1.08, -40.79), monster=(107.56, 0.15, -47.70), state=Caught, bodyGap=4.539982",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (95.97, 0.00, -40.79)",
+            "detail": "target=(95.97, 1.08, -40.79), monster=(107.56, 0.15, -47.70), state=Caught, bodyGap=4.539982",
+            "passed": true
+        },
+        {
+            "name": "Khezu: native capture at (100.47, 0.00, -40.44)",
+            "detail": "target=(100.47, 1.08, -40.44), monster=(110.35, 0.15, -48.91), state=Caught, bodyGap=4.010496",
+            "passed": true
+        },
+        {
+            "name": "Khezu: continuous pursuit and movement lock at (100.47, 0.00, -40.44)",
+            "detail": "target=(100.47, 1.08, -40.44), monster=(110.35, 0.15, -48.91), state=Caught, bodyGap=4.010496",
+            "passed": true
+        },
+        {
+            "name": "Native close capture still completes cinematic and barrier handoff",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Capture checks do not deduct hearts or disable player controls",
+            "detail": "hearts=3, playerEnabled=True, capsuleEnabled=True, movementLocked=False",
+            "passed": true
+        },
+        {
+            "name": "Pursuit speeds and existing surface distance are unchanged",
+            "detail": "",
+            "passed": true
+        }
+    ]
+}

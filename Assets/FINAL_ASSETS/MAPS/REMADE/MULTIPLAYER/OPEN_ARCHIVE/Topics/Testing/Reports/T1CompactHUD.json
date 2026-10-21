@@ -1,0 +1,134 @@
+{
+  "updated": "2026-10-20T13:28:13.6491185+08:00",
+  "scene": "MultiplayerGameplay",
+  "topic": "T1 Propositional Logic",
+  "objectiveSize": "430 x 248 reference units, height adapts above jump control",
+  "previousSize": "660 x 260",
+  "areaReductionPercent": 37.86,
+  "position": "Right side, below existing hearts, inside screen safe area",
+  "duplicateBottomPromptRemoved": true,
+  "layouts": [
+    {
+      "width": 1600,
+      "height": 1200,
+      "card": "(x:1159.29, y:716.48, width:413.77, height:238.64)",
+      "clippedQuestions": [],
+      "controls": [
+        {
+          "name": "Return_To_Spawn",
+          "overlap": false
+        },
+        {
+          "name": "JumpButton",
+          "overlap": false
+        },
+        {
+          "name": "Joystick",
+          "overlap": false
+        },
+        {
+          "name": "Khezu_Existing_Health_System",
+          "overlap": false
+        },
+        {
+          "name": "InteractButton",
+          "overlap": false
+        }
+      ],
+      "centerClear": true,
+      "readSize": "(144.00, 64.00)"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "card": "(x:1462.00, y:608.00, width:430.00, height:248.00)",
+      "clippedQuestions": [],
+      "controls": [
+        {
+          "name": "Return_To_Spawn",
+          "overlap": false
+        },
+        {
+          "name": "JumpButton",
+          "overlap": false
+        },
+        {
+          "name": "Joystick",
+          "overlap": false
+        },
+        {
+          "name": "Khezu_Existing_Health_System",
+          "overlap": false
+        },
+        {
+          "name": "InteractButton",
+          "overlap": false
+        }
+      ],
+      "centerClear": true,
+      "readSize": "(144.00, 64.00)"
+    },
+    {
+      "width": 2340,
+      "height": 1080,
+      "card": "(x:1834.38, y:587.66, width:474.71, height:245.05)",
+      "clippedQuestions": [],
+      "controls": [
+        {
+          "name": "Return_To_Spawn",
+          "overlap": false
+        },
+        {
+          "name": "JumpButton",
+          "overlap": false
+        },
+        {
+          "name": "Joystick",
+          "overlap": false
+        },
+        {
+          "name": "Khezu_Existing_Health_System",
+          "overlap": false
+        },
+        {
+          "name": "InteractButton",
+          "overlap": false
+        }
+      ],
+      "centerClear": true,
+      "readSize": "(144.00, 64.00)"
+    }
+  ],
+  "all50QuestionsFitEachLayout": true,
+  "noControlOverlap": true,
+  "centerClear": true,
+  "channelFeedback": {
+    "channeling": true,
+    "soundStarted": true,
+    "sparkCount": 1,
+    "sparkCap": 24,
+    "ripple": true,
+    "normalChannelSeconds": 1.35,
+    "temporaryVisualCheckSeconds": 4,
+    "movementFree": true
+  },
+  "readReceivesRaycast": true,
+  "readOpens": true,
+  "correctAnswerBurstParticles": 12,
+  "sfx": [
+    "Short magical channel cue",
+    "Existing correct-answer chime",
+    "Quiet incorrect-answer accent"
+  ],
+  "vfx": [
+    "Small rising rune sparks",
+    "Brief expanding energy ripple"
+  ],
+  "t1GameplayChecksPassed": 78,
+  "unrelatedFilesUnchanged": 2502,
+  "notes": [
+    "A four-second channel was used only for an offline visual sample; the original 1.35 seconds was restored.",
+    "Original Game View size and all temporary custom sizes were restored.",
+    "Android hardware, native gameplay touch input and remote rendered clients were not tested for this presentation update."
+  ]
+}

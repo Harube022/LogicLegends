@@ -77,12 +77,12 @@ namespace LogicLegends.Tests.Khezu
                 Send(Packet(serial,false));Send(Packet(serial,false));Send(Packet(serial,true));
                 Record("PUN-authenticated sender produces one accepted failure, rejecting duplicate/opposite results",h.BarrierResolving && h.ResolvedOutcome==2 && h.ResolvedActor==actor && h.ResolvedSerial==serial && p.IsMovementLocked);
                 end=Time.realtimeSinceStartup+3;while(h.State==KhezuHuntState.Caught && Time.realtimeSinceStartup<end)yield return null;yield return new WaitForEndOfFrame();
-                Record("Network actor receives exactly one heart loss and regains movement",h.health.CurrentHealth==hp-1 && h.health.ActorHearts(actor)==hp-1 && !p.IsMovementLocked && h.State==KhezuHuntState.AttackRecovery);
+                Record("Network actor receives exactly one heart loss and a five-second stun",h.health.CurrentHealth==hp-1 && h.health.ActorHearts(actor)==hp-1 && p.IsMovementLocked && h.FailureStunActive && h.State==KhezuHuntState.AttackRecovery);
                 object saved;var packet=PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(KhezuPhotonSync.SnapshotKey,out saved)?saved as object[]:null;
                 var checkpoint=packet!=null && packet.Length==4?JsonUtility.FromJson<KhezuSnapshot>((string)packet[3]):null;
                 Record("Room checkpoint carries canonical anchor, processed outcome and absolute per-actor health",checkpoint!=null && checkpoint.captureAnchorValid && Vector3.Distance(checkpoint.capturePosition,anchor)<.001f && checkpoint.resolvedSerial==serial && checkpoint.resolvedActor==actor && checkpoint.resolvedOutcome==2 && checkpoint.healthStates.Any(v=>v.actor==actor && v.hearts==hp-1 && v.lastPenaltySerial==serial),checkpoint==null?"No checkpoint":"animation="+checkpoint.animation);
                 if(checkpoint!=null){h.ApplySnapshot(checkpoint,true);h.AuthorityChanged();}
-                Send(Packet(serial,false));yield return null;Record("Checkpoint restoration cannot replay a heart penalty or relock the owner",h.health.CurrentHealth==hp-1 && !p.IsMovementLocked);
+                Send(Packet(serial,false));yield return null;Record("Checkpoint restoration cannot replay a heart penalty or skip the owner's remaining stun",h.health.CurrentHealth==hp-1 && p.IsMovementLocked && h.FailureStunActive);
                 h.Request(KhezuCommand.Sleep);h.ApplySnapshot(Capture(h,actor,serial+1,p.transform.position),true);yield return null;e.OnDisconnected(DisconnectCause.DisconnectByClientLogic);yield return null;
                 Record("Disconnected owner releases the barrier token and hides the UI",!p.IsMovementLocked && !ui.Visible);complete=true;
             }finally{

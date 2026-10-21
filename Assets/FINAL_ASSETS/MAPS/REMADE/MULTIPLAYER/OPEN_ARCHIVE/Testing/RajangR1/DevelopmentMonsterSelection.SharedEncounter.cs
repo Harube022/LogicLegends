@@ -91,6 +91,8 @@ namespace LogicLegends.Tests.Monsters
             cinematic.faceTargetOffset = profile.faceOffset; cinematic.framingDistance = profile.framingDistance;
             var barrier = sharedDriver.GetComponent<KhezuBarrierVfxPresentation>();
             if (barrier != null) barrier.styleOverride = profile.barrierStyle;
+            var encounter = sharedDriver.GetComponent<KhezuCaptureEncounterController>();
+            if (encounter != null) encounter.inferenceBarrier = monster == DevelopmentMonster.Rajang;
             selected = monster;
             sharedDriver.RefreshAssemblyAnchor();
             if (Application.isPlaying)

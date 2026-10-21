@@ -4,7 +4,7 @@ using UnityEngine;
 public class MultiplayerMenuManager : MonoBehaviour
 {
     [SerializeField] private MultiplayerLobbyUI lobbyUI;
-    [SerializeField] private string multiplayerScene = "MultiplayerStage";
+    [SerializeField] private string multiplayerScene = MultiplayerSceneRoutes.GameplayPath;
     public MultiplayerLobbyUI LobbyUI { get => lobbyUI; set => lobbyUI = value; }
     public void OnClickMultiplayerButton()
     {

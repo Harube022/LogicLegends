@@ -20,12 +20,24 @@ namespace LogicLegends.OpenArchive.Topics
         ScrollRect scroll;
         ArchiveTopicStation openStation;
         ArchiveTopicPoint focus;
+        ArchivePropositionUI proposition;
+        ArchiveTruthUI truth;
+        ArchiveInferenceUI inference;
+        ArchiveProofUI proofs;
+        ArchiveMethodUI methods;
+        ArchiveInductionUI induction;
+        ArchiveSetsUI sets;
+        ArchiveMappingUI mapping;
+        ArchiveGraphUI graph;
+        ArchiveTreeUI tree;
+        public ArchiveTopicPoint FocusedPoint => focus;
+        public ArchiveTopicStation ReadingStation => openStation;
         GameInput input;
         int nodeA=-1,nodeB=-1;
         bool dirty,resetScrollOnRefresh;
         int displayedTeamRevision=-1;
         static readonly Color Ink=new Color(.16f,.11f,.07f),Cream=new Color(1,.94f,.79f);
-        void Awake(){Current=this;Build();}
+        void Awake(){Current=this;Build();proposition=gameObject.AddComponent<ArchivePropositionUI>();proposition.Initialize(this);truth=gameObject.AddComponent<ArchiveTruthUI>();truth.Initialize(this);inference=gameObject.AddComponent<ArchiveInferenceUI>();inference.Initialize(this);proofs=gameObject.AddComponent<ArchiveProofUI>();proofs.Initialize(this);methods=gameObject.AddComponent<ArchiveMethodUI>();methods.Initialize(this);induction=gameObject.AddComponent<ArchiveInductionUI>();induction.Initialize(this);sets=gameObject.AddComponent<ArchiveSetsUI>();sets.Initialize(this);mapping=gameObject.AddComponent<ArchiveMappingUI>();mapping.Initialize(this);graph=gameObject.AddComponent<ArchiveGraphUI>();graph.Initialize(this);tree=gameObject.AddComponent<ArchiveTreeUI>();tree.Initialize(this);ArchiveReadingScrollbars.Install(transform);gameObject.AddComponent<ArchiveWorldLabelLayout>();}
         IEnumerator Start()
         {
             while(GameInput.Instance==null)yield return null;
@@ -40,7 +52,7 @@ namespace LogicLegends.OpenArchive.Topics
         void Update()
         {
             bool available=session!=null&&session.Ready&&Player.LocalInstance!=null&&Time.timeScale>0&&session.CanAct(session.LocalActor);
-            if(!available){hint.text="";if(panel.gameObject.activeSelf)Close();return;}
+            if(!available){focus=null;hint.text="";if(openStation!=null)Close();return;}
             var player=Player.LocalInstance;focus=null;float best=5.6f;
             foreach(var station in session.stations)
             {
@@ -49,6 +61,12 @@ namespace LogicLegends.OpenArchive.Topics
                 foreach(var point in station.points)
                 {
                     if(point==null||!point.gameObject.activeInHierarchy)continue;
+                    if(station.topic==0)
+                    {
+                        var state=session.State.stations[0];
+                        if(point.role==ArchivePointRole.Choice&&(state.phase!=1||state.channelActor!=0||!session.Near(session.LocalActor,0,point.transform.localPosition,ArchiveTopicSession.ChoiceUseRadius)))continue;
+                        if(point.role==ArchivePointRole.Book&&!session.Near(session.LocalActor,0,ArchiveTopicStation.BookPosition,ArchiveTopicSession.BookUseRadius))continue;
+                    }
                     if(carrying&&point.role==ArchivePointRole.Item)continue;
                     if(!carrying&&point.role==ArchivePointRole.Slot)continue;
                     var delta=point.transform.position-player.transform.position;delta.y=0;
@@ -58,7 +76,18 @@ namespace LogicLegends.OpenArchive.Topics
                     best=score;focus=point;
                 }
             }
-            hint.text=focus==null?"":"Hand / E: "+focus.caption;
+            hint.text=focus==null||(openStation!=null&&openStation.topic<=9)?"":"Hand / E: "+focus.caption;
+            if(focus!=null&&focus.role==ArchivePointRole.Book&&!string.IsNullOrEmpty(session.TopicLockNotice(focus.station.topic)))hint.text=session.TopicLockNotice(focus.station.topic);
+            if(focus!=null&&focus.station.topic==0&&proposition!=null&&proposition.IsObjectiveVisible)hint.text="";
+            if(focus!=null&&focus.station.topic==1&&truth!=null&&truth.IsObjectiveVisible)hint.text="";
+            if(focus!=null&&focus.station.topic==2&&inference!=null&&inference.IsObjectiveVisible)hint.text="";
+            if(focus!=null&&focus.station.topic==3&&proofs!=null&&proofs.IsObjectiveVisible)hint.text="";
+            if(focus!=null&&focus.station.topic==4&&methods!=null&&methods.IsObjectiveVisible)hint.text="";
+            if(focus!=null&&focus.station.topic==5&&induction!=null&&induction.IsObjectiveVisible)hint.text="";
+            if(focus!=null&&focus.station.topic==6&&sets!=null&&sets.IsObjectiveVisible)hint.text="";
+            if(focus!=null&&focus.station.topic==7&&mapping!=null&&mapping.IsObjectiveVisible)hint.text="";
+            if(focus!=null&&focus.station.topic==8&&graph!=null&&graph.IsObjectiveVisible)hint.text="";
+            if(focus!=null&&focus.station.topic==9&&tree!=null&&tree.IsObjectiveVisible)hint.text="";
             if(displayedTeamRevision!=session.State.revision)
             {
                 displayedTeamRevision=session.State.revision;
@@ -69,6 +98,7 @@ namespace LogicLegends.OpenArchive.Topics
             if(openStation!=null)
             {
                 if(Vector3.Distance(player.transform.position,openStation.transform.position)>40){Close();return;}
+                if(openStation.topic>=0&&openStation.topic<=9)return;
                 if(dirty){dirty=false;Refresh();}
                 var state=session.State.stations[openStation.topic];
                 if(state.channelActor!=0)feedback.text="Channeling "+session.ActorName(state.channelActor)+"  "+Mathf.Clamp01((float)((ArchiveTopicSession.Clock-state.channelStarted)/session.answerChannelSeconds)).ToString("P0");
@@ -77,13 +107,34 @@ namespace LogicLegends.OpenArchive.Topics
         public void Open(ArchiveTopicStation station)
         {
             if(!session.Ready||!session.CanAct(session.LocalActor))return;
+            if(mapping!=null)mapping.Close();
+            if(graph!=null)graph.Close();
+            if(tree!=null)tree.Close();
+            if(sets!=null)sets.Close();
+            if(induction!=null)induction.Close();
+            if(methods!=null)methods.Close();
+            if(proofs!=null)proofs.Close();
+            if(inference!=null)inference.Close();
+            if(station.topic==9){if(proposition!=null)proposition.Close();if(truth!=null)truth.Close();openStation=station;panel.gameObject.SetActive(false);tree.Open();return;}
+            if(station.topic==8){if(proposition!=null)proposition.Close();if(truth!=null)truth.Close();openStation=station;panel.gameObject.SetActive(false);graph.Open();return;}
+            if(station.topic==7){if(proposition!=null)proposition.Close();if(truth!=null)truth.Close();openStation=station;panel.gameObject.SetActive(false);mapping.Open();return;}
+            if(station.topic==6){if(proposition!=null)proposition.Close();if(truth!=null)truth.Close();openStation=station;panel.gameObject.SetActive(false);sets.Open();return;}
+            if(station.topic==5){if(proposition!=null)proposition.Close();if(truth!=null)truth.Close();openStation=station;panel.gameObject.SetActive(false);induction.Open();return;}
+            if(station.topic==4){if(proposition!=null)proposition.Close();if(truth!=null)truth.Close();openStation=station;panel.gameObject.SetActive(false);methods.Open();return;}
+            if(station.topic==3){if(proposition!=null)proposition.Close();if(truth!=null)truth.Close();openStation=station;panel.gameObject.SetActive(false);proofs.Open();return;}
+            if(station.topic==2){if(proposition!=null)proposition.Close();if(truth!=null)truth.Close();openStation=station;panel.gameObject.SetActive(false);inference.Open();return;}
+            if(station.topic==0){if(truth!=null)truth.Close();openStation=station;panel.gameObject.SetActive(false);proposition.Open();return;}
+            if(station.topic==1){if(proposition!=null)proposition.Close();openStation=station;panel.gameObject.SetActive(false);truth.Open();return;}
+            if(truth!=null)truth.Close();
+            if(proposition!=null)proposition.Close();
             if(openStation!=station||!panel.gameObject.activeSelf){nodeA=nodeB=-1;resetScrollOnRefresh=true;}
             openStation=station;panel.gameObject.SetActive(true);Refresh();
         }
-        public void Close(){openStation=null;panel.gameObject.SetActive(false);}
+        public void Close(){openStation=null;panel.gameObject.SetActive(false);if(proposition!=null)proposition.Close();if(truth!=null)truth.Close();if(inference!=null)inference.Close();if(proofs!=null)proofs.Close();if(methods!=null)methods.Close();if(induction!=null)induction.Close();if(sets!=null)sets.Close();if(mapping!=null)mapping.Close();if(graph!=null)graph.Close();if(tree!=null)tree.Close();}
         public void PickNode(ArchiveTopicStation station,int index)
         {
             Open(station);var q=session.Question(station.topic);
+            if(station.topic==9){if(!ArchiveTreeRules.NumberQuestion(q))session.Request(9,ArchiveAction.Select,index);return;}
             if(q.tree==null)return;
             if(q.tree.type==LogicLegends.Trees.TreeChallengeType.Identify){session.Request(station.topic,ArchiveAction.Select,index);return;}
             if(nodeA<0||nodeB>=0){nodeA=index;nodeB=-1;}else nodeB=index;
@@ -126,8 +177,9 @@ namespace LogicLegends.OpenArchive.Topics
                 int round=Math.Min(s.round,ArchiveTopicCatalog.RoundCount(s.topic)-1);
                 heading.text="T7  Sets\n"+(s.phase==2?"All 5 challenges complete":"Challenge "+(round/ArchiveTopicCatalog.SetProblemsPerChallenge+1)+" / "+ArchiveTopicCatalog.SetChallengeCount+" · Problem "+(round%ArchiveTopicCatalog.SetProblemsPerChallenge+1)+" / "+ArchiveTopicCatalog.SetProblemsPerChallenge);
             }
-            feedback.text=s.feedback;
-            startButton.interactable=s.phase==0;
+            string lockNotice=session.TopicLockNotice(s.topic);
+            feedback.text=string.IsNullOrEmpty(lockNotice)?s.feedback:lockNotice;
+            startButton.interactable=session.CanStartTopic(s.topic);
             submitButton.interactable=s.phase==1&&q.activity!=ArchiveActivity.Choice&&s.carries.Count==0;
             returnButton.interactable=s.carries.Any(c=>c.actor==session.LocalActor);
             startButton.gameObject.SetActive(s.phase==0);startButton.GetComponent<RectTransform>().anchorMin=startButton.GetComponent<RectTransform>().anchorMax=new Vector2(.5f,.08f);
@@ -135,7 +187,7 @@ namespace LogicLegends.OpenArchive.Topics
             returnButton.gameObject.SetActive(returnButton.interactable);
             float scrollPosition=resetScrollOnRefresh?1:scroll.verticalNormalizedPosition;resetScrollOnRefresh=false;
             foreach(Transform child in content){child.gameObject.SetActive(false);Destroy(child.gameObject);}
-            if(s.phase!=1){Paragraph(s.phase==2?"Completed for the whole team.":"Approach the Book Statue and use Hand / E or Start to begin the next challenge. The world remains active while you read.");if(!string.IsNullOrEmpty(s.reveal))Paragraph(s.reveal);Canvas.ForceUpdateCanvases();scroll.verticalNormalizedPosition=1;return;}
+            if(s.phase!=1){Paragraph(!string.IsNullOrEmpty(lockNotice)?lockNotice:s.phase==2?"Completed for the whole team.":"Approach the Book Statue and use Hand / E or Start to begin the next challenge. The world remains active while you read.");if(!string.IsNullOrEmpty(s.reveal))Paragraph(s.reveal);Canvas.ForceUpdateCanvases();scroll.verticalNormalizedPosition=1;return;}
             Paragraph(q.title+"\n"+q.prompt);Paragraph(q.instructions);
             if(q.activity==ArchiveActivity.Truth)
                 Paragraph(string.Join("\n",q.slots.Select((name,i)=>name+"  →  "+(s.placements[i]<0?"[empty]":q.items[s.placements[i]]))));
@@ -159,7 +211,7 @@ namespace LogicLegends.OpenArchive.Topics
                     Paragraph("Selected input: "+(own!=null&&own.mappingRound==s.round&&own.mappingInput>=0&&own.mappingInput<q.inputLabels.Length?q.inputLabels[own.mappingInput]:"none")+". Walk to a Domain marker, then a Range marker, using Hand / E at both.");
                     Row(new[]{"Undo Laser"},i=>session.Request(s.topic,ArchiveAction.Undo));
                 }
-                else if(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction)Row(new[]{"Relation Only","Function Only"},i=>session.Request(s.topic,ArchiveAction.Select,i));
+                else if(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction)Row(ArchiveMappingPresentation.ClassificationNames,i=>session.Request(s.topic,ArchiveAction.Select,i));
                 else Row(new[]{"Injective","Surjective","Bijective"},i=>session.Request(s.topic,ArchiveAction.Select,new[]{2,4,8}[i]));
             }
             if(q.activity==ArchiveActivity.Method)Row(new[]{"Direct","Contrapositive","Contradiction"},i=>session.Request(s.topic,ArchiveAction.Select,i));
@@ -169,7 +221,7 @@ namespace LogicLegends.OpenArchive.Topics
             }
             if(q.activity==ArchiveActivity.Method)Paragraph("Selected method: "+(s.selection<0?"none":new[]{"Direct","Contrapositive","Contradiction"}[s.selection]));
             if(q.mapping!=null&&q.mapping.questionKind==MappingQuestionKind.SelectProperties)Paragraph("Selected properties: "+string.Join(", ",new[]{2,4,8}.Where(v=>(s.flags&v)!=0).Select(v=>v==2?"Injective":v==4?"Surjective":"Bijective")));
-            if(q.mapping!=null&&q.mapping.questionKind==MappingQuestionKind.ClassifyFunction)Paragraph("Selected category: "+(s.selection<0?"none":s.selection==0?"Relation Only":"Function Only"));
+            if(q.mapping!=null&&q.mapping.questionKind==MappingQuestionKind.ClassifyFunction)Paragraph("Selected category: "+(s.selection<0?"none":ArchiveMappingPresentation.ClassificationNames[s.selection]));
             if(q.graph!=null&&q.graph.type==LogicLegends.Graph.GraphChallengeType.Degree)Paragraph("Selected degree: "+(s.selection<0?"none":s.selection.ToString()));
             if(q.tree!=null&&(q.tree.type==LogicLegends.Trees.TreeChallengeType.Depth||q.tree.type==LogicLegends.Trees.TreeChallengeType.Height))Paragraph("Selected number: "+(s.flags<0?"none":s.flags.ToString()));
             if(q.slots.Length>0&&q.activity!=ArchiveActivity.Truth)

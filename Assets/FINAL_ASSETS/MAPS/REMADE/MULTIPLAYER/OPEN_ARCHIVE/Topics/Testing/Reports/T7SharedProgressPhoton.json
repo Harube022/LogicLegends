@@ -1,0 +1,144 @@
+{
+    "passed": true,
+    "acceptedRemoteCommands": 162,
+    "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+    "checks": [
+        {
+            "name": "Independent clients share an invisible private room",
+            "passed": true
+        },
+        {
+            "name": "Native player retains local control ownership",
+            "passed": true
+        },
+        {
+            "name": "Remote replica cannot consume host input",
+            "passed": true
+        },
+        {
+            "name": "Guest Book starts the updated shared 18-minute Sets challenge",
+            "passed": true
+        },
+        {
+            "name": "Wrong membership grades red, deducts exactly ten seconds and attributes the authenticated sender",
+            "passed": true
+        },
+        {
+            "name": "Replay cannot add a second Sets penalty or mistake",
+            "passed": true
+        },
+        {
+            "name": "Late join restores physical IDs, review colors and exact deadline",
+            "passed": true
+        },
+        {
+            "name": "A guest cannot forge a completed Sets snapshot",
+            "passed": true
+        },
+        {
+            "name": "A teammate corrects the same work and problem two starts on the same clock",
+            "passed": true
+        },
+        {
+            "name": "Two remote successes reach a stopped Book gate with a fresh 18-minute challenge clock",
+            "passed": true
+        },
+        {
+            "name": "T7 Book gates keep the team topic reserved",
+            "passed": true
+        },
+        {
+            "name": "Photon shares membership problem 3",
+            "passed": true
+        },
+        {
+            "name": "Photon shares membership problem 4",
+            "passed": true
+        },
+        {
+            "name": "Photon shares membership problem 5",
+            "passed": true
+        },
+        {
+            "name": "Photon shares membership problem 6",
+            "passed": true
+        },
+        {
+            "name": "Two players take distinct replenished copies of the same value",
+            "passed": true
+        },
+        {
+            "name": "A player cannot steal the other held copy",
+            "passed": true
+        },
+        {
+            "name": "Handoff preserves two held copies, the 60-ID pool and the exact deadline",
+            "passed": true
+        },
+        {
+            "name": "One shared value occupies full A, full B and intersection as three physical blocks",
+            "passed": true
+        },
+        {
+            "name": "A forged dormant copy ID is rejected even beside its supply",
+            "passed": true
+        },
+        {
+            "name": "Review distinguishes a valid copy from a duplicate in the same tray",
+            "passed": true
+        },
+        {
+            "name": "Returning the duplicate keeps the existing valid block and grade",
+            "passed": true
+        },
+        {
+            "name": "Timeout preserves all placed copy IDs and records one mistake for the Book activator",
+            "passed": true
+        },
+        {
+            "name": "Book retry retains the independent five-region assignments",
+            "passed": true
+        },
+        {
+            "name": "First five-region solution starts its second problem automatically",
+            "passed": true
+        },
+        {
+            "name": "Both five-region problems complete for the room",
+            "passed": true
+        },
+        {
+            "name": "All peers receive the same nine preplaced complement values",
+            "passed": true
+        },
+        {
+            "name": "Capture restores the held complement value inside U and restricts only its owner",
+            "passed": true
+        },
+        {
+            "name": "Captured guest cannot take a nearby complement element",
+            "passed": true
+        },
+        {
+            "name": "Departure restores the complement element while preserving the actor's mistake identity",
+            "passed": true
+        },
+        {
+            "name": "Photon completes complement problem 1",
+            "passed": true
+        },
+        {
+            "name": "Photon completes complement problem 2",
+            "passed": true
+        },
+        {
+            "name": "All ten shared problems freeze the clock and release the next topic",
+            "passed": true
+        },
+        {
+            "name": "Sets network play preserves the other nine topics",
+            "passed": true
+        }
+    ],
+    "errors": []
+}

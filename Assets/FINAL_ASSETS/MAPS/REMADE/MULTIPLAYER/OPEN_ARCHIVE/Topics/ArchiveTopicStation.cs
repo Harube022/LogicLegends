@@ -31,12 +31,14 @@ namespace LogicLegends.OpenArchive.Topics
         {
             var book=new GameObject("Book_Interaction").AddComponent<ArchiveTopicPoint>();book.transform.SetParent(transform,false);book.transform.localPosition=BookPosition;
             book.station=this;book.role=ArchivePointRole.Book;book.caption="Read / start "+ArchiveTopicCatalog.Names[topic];points.Add(book);
+            foreach(var text in new[]{title,board})if(text!=null){var bounds=text.gameObject.AddComponent<ArchiveWorldLabel>();bounds.size=text.rectTransform.rect.size;bounds.floating=false;}
         }
         void LateUpdate()
         {
             if(session==null||!session.Ready)return;
             var state=session.State.stations[topic];
-            string key=state.round+":"+state.subphase+":"+state.phase;
+            string key=state.testResetSerial+":"+state.round+":"+state.subphase+":"+state.phase;
+            if(topic>=0&&topic<=9)key=session.State.seed+":"+key;
             if(key!=assemblyKey){assemblyKey=key;Rebuild(state);shownRevision=-1;}
             if(shownRevision!=state.revision){shownRevision=state.revision;RefreshWork(state);}
             foreach(var held in state.carries)
@@ -52,6 +54,26 @@ namespace LogicLegends.OpenArchive.Topics
             points.RemoveAll(p=>p==null||p.role!=ArchivePointRole.Book);tokens.Clear();lines.Clear();reusableCarries.Clear();reusablePlacements.Clear();
             title.text="T"+(topic+1)+"  "+ArchiveTopicCatalog.Names[topic]+"\n"+ArchiveTopicCatalog.Arenas[topic];
             question=session.Question(topic);
+            var tree=topic==9?GetComponent<ArchiveTreePresentation>():null;
+            if(tree!=null){tree.Build(this,state,question);return;}
+            var graph=topic==8?GetComponent<ArchiveGraphPresentation>():null;
+            if(graph!=null){graph.Build(this,state,question);return;}
+            var mapping=topic==7?GetComponent<ArchiveMappingPresentation>():null;
+            if(mapping!=null){mapping.Build(this,state,question);return;}
+            var sets=topic==6?GetComponent<ArchiveSetsPresentation>():null;
+            if(sets!=null){sets.Build(this,state,question);return;}
+            var induction=topic==5?GetComponent<ArchiveInductionPresentation>():null;
+            if(induction!=null){induction.Build(this,state,question);return;}
+            var methods=topic==4?GetComponent<ArchiveMethodPresentation>():null;
+            if(methods!=null){methods.Build(this,state,question);return;}
+            var proofs=topic==3?GetComponent<ArchiveProofPresentation>():null;
+            if(proofs!=null){proofs.Build(this,state,question);return;}
+            var inference=topic==2?GetComponent<ArchiveInferencePresentation>():null;
+            if(inference!=null){inference.Build(this,state,question);return;}
+            var truth=topic==1?GetComponent<ArchiveTruthPresentation>():null;
+            if(truth!=null){truth.Build(this,state,question);return;}
+            var proposition=topic==0?GetComponent<ArchivePropositionPresentation>():null;
+            if(proposition!=null)proposition.BuildRunes(this,state,question);
             if(topic==6)
             {
                 bool independent=question.slots.Length==5,complement=question.slots.Length==2;
@@ -59,8 +81,8 @@ namespace LogicLegends.OpenArchive.Topics
                 a.gameObject.SetActive(!independent);b.gameObject.SetActive(!independent&&!complement);
                 a.localPosition=new Vector3(complement?-3.4f:-2.2f,.038f,-1.3f);
             }
-            if(state.phase!=1){board.text=state.phase==2?"TOPIC COMPLETE\nShared team success":string.IsNullOrEmpty(state.reveal)?"BOOK STATUE\n"+ArchiveTopicCatalog.Arenas[topic]+"\nInteract to begin":"Correct!\n"+state.reveal+"\nUse the book to continue.";return;}
-            for(int i=0;i<question.items.Length;i++)
+            if(state.phase!=1){board.text=state.timerExpired?"TIME UP\nSolved challenges kept.\nRead the Book to retry.":state.phase==2?"TOPIC COMPLETE\nShared team success":string.IsNullOrEmpty(state.reveal)?"BOOK STATUE\n"+ArchiveTopicCatalog.Arenas[topic]+"\nInteract to begin":"Correct!\n"+state.reveal+"\nUse the book to continue.";return;}
+            for(int i=0;i<question.items.Length&&proposition==null;i++)
             {
                 bool choice=question.activity==ArchiveActivity.Choice;
                 var item=Instantiate(choice?padPrefab:topic==2&&state.subphase==1?crystalPrefab:tokenPrefab,workRoot);
@@ -83,7 +105,7 @@ namespace LogicLegends.OpenArchive.Topics
                 for(int i=0;i<question.inputLabels.Length;i++)Pad("Domain_"+i,InputPosition(i),"Input "+question.inputLabels[i],ArchivePointRole.Input,i,Vector3.one);
                 for(int i=0;i<question.outputLabels.Length;i++)Pad("Range_"+i,OutputPosition(i),"Output "+question.outputLabels[i],ArchivePointRole.Output,i,Vector3.one);
                 if(question.mapping.questionKind==MappingQuestionKind.ClassifyFunction)
-                    for(int i=0;i<2;i++)Pad("Mapping_Class_"+i,new Vector3((i*2-1)*3.1f,0,-6),new[]{"Relation Only","Function Only"}[i],ArchivePointRole.Select,i,Vector3.one);
+                    for(int i=0;i<3;i++)Pad("Mapping_Class_"+i,ArchiveMappingPresentation.AnswerPosition(i),ArchiveMappingPresentation.ClassificationNames[i],ArchivePointRole.Select,i,Vector3.one);
                 if(question.mapping.questionKind==MappingQuestionKind.SelectProperties)
                     for(int i=0;i<3;i++)Pad("Mapping_Property_"+i,new Vector3((i-1)*3.6f,0,-6),new[]{"Injective","Surjective","Bijective"}[i],ArchivePointRole.Select,new[]{2,4,8}[i],Vector3.one);
             }
@@ -104,7 +126,7 @@ namespace LogicLegends.OpenArchive.Topics
             var obj=Instantiate(padPrefab,workRoot);obj.name=name;obj.transform.localPosition=position;obj.transform.localScale=scale;
             var point=obj.AddComponent<ArchiveTopicPoint>();point.station=this;point.role=role;point.index=index;point.caption="Interact: "+text;points.Add(point);
             var labelAnchor=new GameObject(name+"_Label_Anchor").transform;labelAnchor.SetParent(workRoot,false);labelAnchor.localPosition=position;
-            Label(labelAnchor,text,new Vector3(0,.65f,0),new Vector2(2.5f,1.15f),6);return obj;
+            Label(labelAnchor,text,new Vector3(0,.65f,0),new Vector2(2.5f,1.15f),6);labelAnchor.GetComponentInChildren<ArchiveWorldLabel>().point=point;return obj;
         }
         void Label(Transform parent,string value,Vector3 position,Vector2 size,float fontSize)
         {
@@ -113,11 +135,30 @@ namespace LogicLegends.OpenArchive.Topics
             label.rectTransform.sizeDelta=size;label.enableAutoSizing=true;label.fontSizeMin=3;label.fontSizeMax=fontSize;
             label.color=new Color(1,.94f,.78f);label.raycastTarget=false;
             label.gameObject.AddComponent<ArchiveTopicLabelFacing>();
+            var bounds=label.gameObject.AddComponent<ArchiveWorldLabel>();bounds.size=size;bounds.point=parent.GetComponent<ArchiveTopicPoint>();
         }
         void RefreshWork(ArchiveStationState state)
         {
+            var tree=topic==9?GetComponent<ArchiveTreePresentation>():null;
+            if(tree!=null){tree.Refresh(state);return;}
+            var graph=topic==8?GetComponent<ArchiveGraphPresentation>():null;
+            if(graph!=null){graph.Refresh(state);return;}
+            var mapping=topic==7?GetComponent<ArchiveMappingPresentation>():null;
+            if(mapping!=null){mapping.Refresh(state);return;}
+            var sets=topic==6?GetComponent<ArchiveSetsPresentation>():null;
+            if(sets!=null){sets.Refresh(state);return;}
+            var induction=topic==5?GetComponent<ArchiveInductionPresentation>():null;
+            if(induction!=null){induction.Refresh(state);return;}
+            var methods=topic==4?GetComponent<ArchiveMethodPresentation>():null;
+            if(methods!=null){methods.Refresh(state);return;}
+            var proofs=topic==3?GetComponent<ArchiveProofPresentation>():null;
+            if(proofs!=null){proofs.Refresh(state);return;}
+            var inference=topic==2?GetComponent<ArchiveInferencePresentation>():null;
+            if(inference!=null){inference.Refresh(state);return;}
+            var truth=topic==1?GetComponent<ArchiveTruthPresentation>():null;
+            if(truth!=null){truth.Refresh(state);return;}
             if(state.phase!=1)return;
-            board.text=question.title+"\n"+question.prompt;
+            board.text=(question.title+"\n"+question.prompt).Replace("\u22EF","...");
             foreach(var pair in tokens)
             {
                 if(!question.reusableItems&&state.carries.Any(c=>c.item==pair.Key))continue;
@@ -165,6 +206,12 @@ namespace LogicLegends.OpenArchive.Topics
         }
         public Vector3 ItemPosition(int index,ArchiveQuestion q)
         {
+            if(topic==6)return ArchiveSetsPresentation.TokenPosition(index,q);
+            if(topic==5)return ArchiveInductionPresentation.TokenPosition(index,q);
+            if(topic==4)return ArchiveMethodPresentation.TokenPosition(index,q);
+            if(topic==3)return ArchiveProofPresentation.TokenPosition(index,q);
+            if(topic==2)return ArchiveInferencePresentation.TokenPosition(index,q);
+            if(q.activity==ArchiveActivity.Truth)return ArchiveTruthPresentation.TokenPosition(index);
             if(q.activity==ArchiveActivity.Choice)return new[]{new Vector3(-3.8f,.08f,-3.8f),new Vector3(3.8f,.08f,-3.8f),new Vector3(-3.8f,.08f,3),new Vector3(3.8f,.08f,3)}[index];
             if(q.itemOrder.Length==q.items.Length)index=Array.IndexOf(q.itemOrder,index);
             int count=(q.items.Length+1)/2;int row=index%count;
@@ -172,6 +219,8 @@ namespace LogicLegends.OpenArchive.Topics
         }
         public Vector3 CurrentItemPosition(int index,ArchiveQuestion q,ArchiveStationState s)
         {
+            if(topic==6)return ArchiveSetsPresentation.CurrentPosition(index,q,s);
+            if(topic==3)return ArchiveProofPresentation.CurrentPosition(index,q,s);
             if(q.reusableItems)return ItemPosition(index,q);
             int slot=q.regionPlacement?(index<s.placements.Length?s.placements[index]:-1):Array.IndexOf(s.placements,index);
             if(slot<0)return ItemPosition(index,q);
@@ -184,7 +233,12 @@ namespace LogicLegends.OpenArchive.Topics
         }
         public Vector3 SlotPosition(int index,ArchiveQuestion q)
         {
-            if(q.activity==ArchiveActivity.Truth)return new Vector3(index%2==0?-3:3,.08f,index<2?2:-3);
+            if(topic==6)return ArchiveSetsPresentation.RegionPosition(index,q);
+            if(topic==5)return ArchiveInductionPresentation.SocketPosition(index,q);
+            if(topic==4)return ArchiveMethodPresentation.SocketPosition(index,q);
+            if(topic==3)return ArchiveProofPresentation.SocketPosition(index,q);
+            if(topic==2)return ArchiveInferencePresentation.SocketPosition(index,q);
+            if(q.activity==ArchiveActivity.Truth)return ArchiveTruthPresentation.RowPosition(index);
             if(q.regionPlacement)
             {
                 if(q.slots.Length==2)return new Vector3(index==0?-3.4f:3.4f,.08f,-1.3f);

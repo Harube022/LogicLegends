@@ -75,7 +75,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                     else
                     {
                         var route=new List<string>{q.graph.start};if(!FindRoute(q.graph,route))throw new InvalidOperationException("No accepted route in the original graph.");
-                        s.route=route.Select(v=>Array.IndexOf(q.nodeIds,v)).ToList();
+                        s.route=route.Select(v=>Array.IndexOf(q.nodeIds,v)).ToList();s.routeAtVertex=true;
                     }break;
                 case ArchiveActivity.Tree:
                     if(q.tree.type==TreeChallengeType.Build||q.tree.type==TreeChallengeType.Repair)s.links=q.tree.required.Select(e=>Array.IndexOf(q.nodeIds,e.source)*100+Array.IndexOf(q.nodeIds,e.destination)).ToList();

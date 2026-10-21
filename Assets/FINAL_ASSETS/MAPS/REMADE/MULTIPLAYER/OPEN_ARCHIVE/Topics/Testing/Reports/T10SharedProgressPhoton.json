@@ -1,0 +1,132 @@
+{
+    "passed": true,
+    "acceptedRemoteCommands": 57,
+    "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+    "checks": [
+        {
+            "name": "Independent clients share an invisible private room",
+            "passed": true
+        },
+        {
+            "name": "Native player retains local control ownership",
+            "passed": true
+        },
+        {
+            "name": "Remote replica cannot consume host input",
+            "passed": true
+        },
+        {
+            "name": "Guest Book starts the original ten-minute tree clock and reserves T10",
+            "passed": true
+        },
+        {
+            "name": "Wrong tree identification keeps the choice and charges authenticated sender exactly once and ten seconds",
+            "passed": true
+        },
+        {
+            "name": "Replayed tree confirmation cannot charge another mistake",
+            "passed": true
+        },
+        {
+            "name": "Late join restores every branch, selected node and exact remaining deadline",
+            "passed": true
+        },
+        {
+            "name": "Teammate completes identification and all peers enter the same paused Book gate",
+            "passed": true
+        },
+        {
+            "name": "Solved tree Book gate preserves the exact saved time",
+            "passed": true
+        },
+        {
+            "name": "Unfinished Trees cannot be exchanged for a different topic",
+            "passed": true
+        },
+        {
+            "name": "Teammates keep independent pending parent picks in the shared checkpoint",
+            "passed": true
+        },
+        {
+            "name": "A guest cannot borrow another actor's pending endpoint selection",
+            "passed": true
+        },
+        {
+            "name": "Accepted branch clears only its sender's pick and retains the teammate's pick",
+            "passed": true
+        },
+        {
+            "name": "Master handoff preserves physical tree, exact deadline and both actors' pending picks",
+            "passed": true
+        },
+        {
+            "name": "Collaboratively built tree completes through the source validator",
+            "passed": true
+        },
+        {
+            "name": "Authority requires removing the old parent before connecting a replacement",
+            "passed": true
+        },
+        {
+            "name": "Captured player's pending pick clears while the other teammate stays free",
+            "passed": true
+        },
+        {
+            "name": "Captured guest cannot forge a branch edit",
+            "passed": true
+        },
+        {
+            "name": "Remote directed-branch removal accepts either selected endpoint order",
+            "passed": true
+        },
+        {
+            "name": "Departure clears only the former pending pick, retaining repaired branches and mistake identity",
+            "passed": true
+        },
+        {
+            "name": "Teammate can confirm the repaired tree after capture and departure",
+            "passed": true
+        },
+        {
+            "name": "Authority enforces the original number choices zero through five",
+            "passed": true
+        },
+        {
+            "name": "Clear Pick preserves the readonly original tree",
+            "passed": true
+        },
+        {
+            "name": "Timeout keeps solved challenges, branches and number, attributing one mistake to its Book activator",
+            "passed": true
+        },
+        {
+            "name": "Guest Book retry resumes the same depth variant and number in a fresh attempt",
+            "passed": true
+        },
+        {
+            "name": "Source edge-count answer completes the depth challenge",
+            "passed": true
+        },
+        {
+            "name": "Spanning edits cannot invent a branch outside the original graph",
+            "passed": true
+        },
+        {
+            "name": "Guest snapshot spoof cannot force final-topic completion",
+            "passed": true
+        },
+        {
+            "name": "Spanning result contains every vertex and no cycle using source edges",
+            "passed": true
+        },
+        {
+            "name": "All five shared tree challenges finish and release the next topic reservation",
+            "passed": true
+        },
+        {
+            "name": "Tree transport checks preserve all other topic states and clocks",
+            "passed": true
+        }
+    ],
+    "errors": []
+}
