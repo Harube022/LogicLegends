@@ -42,6 +42,7 @@ namespace LogicLegends.Graph
         private static readonly Color MapNodeFill = new Color32(80, 51, 34, 255);
         private static readonly Color MapNodeText = new Color32(255, 242, 212, 255);
         private TMP_FontAsset routeFont;
+        private TMP_Text trialProgress;
         private RectTransform announcement;
         private TMP_Text announcementText;
         private float announcementUntil = -1;
@@ -92,12 +93,17 @@ namespace LogicLegends.Graph
             Place(mapTitle.rectTransform, new Vector2(.5f, 1), new Vector2(0, -24), new Vector2(190, 26), new Vector2(.5f, .5f));
             map = StageUITheme.Rect("Map", mapPanel);
             Inset(map, 36, 20); map.offsetMax = new Vector2(-36, -46);
-            var timerPanel = Panel("Clock", root, Vector2.one, new Vector2(-30, -305), new Vector2(270, 100), Vector2.one);
-            var timerTitle = Text(timerPanel, "Clock title", "TIME LEFT", 18, false);
+            var timerPanel = Panel("Clock", root, Vector2.one, new Vector2(-30, -305), new Vector2(330, 136), Vector2.one);
+            var timerTitle = Text(timerPanel, "Clock title", TrialCatalog.ForScene("Graph").Title, 22, false);
             Place(timerTitle.rectTransform, new Vector2(.5f, 1), new Vector2(0, -23), new Vector2(220, 24), new Vector2(.5f, .5f));
             clock = Text(timerPanel, "Countdown", "10:00", 34, false); Inset(clock.rectTransform, 12, 12);
             clock.rectTransform.offsetMax = new Vector2(-12, -40); clock.color = StageUITheme.ReadingInk;
             clock.enableAutoSizing = false; clock.fontSize = 32;
+            trialProgress = Text(timerPanel, "StageProgress", "", 22, false);
+            StageUITheme.Stretch(timerTitle.rectTransform,new Vector2(.06f,.63f),new Vector2(.94f,.90f));
+            StageUITheme.Stretch(clock.rectTransform,new Vector2(.06f,.15f),new Vector2(.38f,.60f));
+            StageUITheme.Stretch(trialProgress.rectTransform,new Vector2(.40f,.12f),new Vector2(.94f,.60f));
+            StagePresentation.Hud(timerPanel,timerTitle,clock,trialProgress);
             penalty = Text(root, "Timer deduction", "-10", 36, false);
             Place(penalty.rectTransform, Vector2.one, new Vector2(-310, -355), new Vector2(78, 60), new Vector2(1, .5f));
             penalty.color = new Color(1f, .4f, .22f); penalty.gameObject.SetActive(false);
@@ -134,6 +140,7 @@ namespace LogicLegends.Graph
             resultText.enableAutoSizing = true; resultText.fontSizeMin = 23; resultText.fontSizeMax = 31;
             resultCard.Extra.gameObject.SetActive(false);
 
+            StagePresentation.Help(lessonButton, settingsButton);
             BuildHelp();
             BuildAnnouncement();
         }
@@ -242,6 +249,7 @@ namespace LogicLegends.Graph
         }
         public void Refresh()
         {
+            trialProgress.text = "CHALLENGE " + (stage.ChallengeIndex + 1) + " OF " + stage.ChallengeCount;
             if (lesson.activeSelf) LayoutHelp();
             // On tablet ratios the original joystick and hand occupy the lower center.
             // Move only Graph-owned actions into the free left column.
@@ -371,6 +379,7 @@ namespace LogicLegends.Graph
             resultCard.Primary.onClick.RemoveAllListeners();
             if (success) resultCard.Primary.onClick.AddListener(stage.PlayNextStage);
             else resultCard.Primary.onClick.AddListener(stage.RestartStage);
+            if (success) result.GetComponent<StageResultLayout>().Complete(9, stage.PlayNextStage);
             stage.timer.Pause();
             GameInput.Instance?.SetGameplayInputBlocked(true); stage.LocalPlayer?.ToggleControl(false);
             foreach (var camera in FindObjectsByType<CameraTargetController>(FindObjectsSortMode.None)) PauseResultCamera(camera);

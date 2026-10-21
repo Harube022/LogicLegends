@@ -13,12 +13,12 @@ public sealed class StageResultCard
     public static StageResultCard Build(Transform host, UnityAction menuAction)
     {
         var view = new StageResultCard();
-        view.Root = StageUITheme.Rect("StageResultPanel", host);
+        view.Root = StageUITheme.Rect("StageResultPanel", StagePresentation.ResultHost(host));
         StageUITheme.Stretch(view.Root, Vector2.zero, Vector2.one);
         view.Root.gameObject.AddComponent<Image>().color = new Color(.01f,.035f,.045f,.88f);
         view.Card = StageUITheme.Rect("FramedCard", view.Root);
         StageUITheme.Stretch(view.Card, new Vector2(.14f,.12f), new Vector2(.86f,.88f));
-        StageUITheme.Surface(view.Card.gameObject.AddComponent<Image>());
+        StagePresentation.Frame(view.Card.gameObject.AddComponent<Image>(), true);
         view.Stage = StageUITheme.Text("ResultStage", view.Card, "", 27);
         StageUITheme.Stretch(view.Stage.rectTransform, new Vector2(.08f,.77f), new Vector2(.92f,.86f));
         view.Heading = StageUITheme.Text("ResultHeading", view.Card, "", 72);
@@ -34,6 +34,11 @@ public sealed class StageResultCard
         StageUITheme.Stretch((RectTransform)view.Primary.transform, new Vector2(.12f,.17f), new Vector2(.48f,.29f));
         StageUITheme.Stretch((RectTransform)view.Menu.transform, new Vector2(.52f,.17f), new Vector2(.88f,.29f));
         StageUITheme.Stretch((RectTransform)view.Extra.transform, new Vector2(.25f,.04f), new Vector2(.75f,.15f));
+        StagePresentation.ResultCanvas(view.Root.gameObject);
+        var layout = view.Root.gameObject.AddComponent<StageResultLayout>();
+        layout.Card = view.Card; layout.Stage = view.Stage; layout.Heading = view.Heading; layout.Summary = view.Summary;
+        layout.Primary = view.Primary; layout.Menu = view.Menu; layout.Extra = view.Extra;
+        layout.Layout();
         view.Root.gameObject.SetActive(false);
         return view;
     }

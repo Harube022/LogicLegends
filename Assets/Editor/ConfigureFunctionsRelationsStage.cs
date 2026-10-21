@@ -33,7 +33,7 @@ public static class ConfigureFunctionsRelationsStage
             existingBoard.offsetMax = Vector2.zero;
             existingBoard.GetComponent<Image>().color = new Color(.055f, .09f, .15f, 1f);
             var existingManager = GameObject.Find("FunctionsRelationsStageManager").GetComponent<FunctionsRelationsStageManager>();
-            SetInt(existingManager, "stageNumber", 5);
+            SetInt(existingManager, "stageNumber", 8);
             var existingResults = existingBoard.Find("Results Panel").GetComponent<RectTransform>();
             Stretch(existingResults);
             existingResults.GetComponent<Image>().color = new Color(.04f, .08f, .13f, 1f);
@@ -129,7 +129,7 @@ public static class ConfigureFunctionsRelationsStage
         Set(manager, "catalog", AssetDatabase.LoadAssetAtPath<MappingChallengeCatalog>("Assets/Resources/FunctionsRelationsChallenges.asset"));
         Set(manager, "mapping", controller);
         Set(manager, "bookStatue", GameObject.Find("Book_Statue").transform);
-        SetInt(manager, "stageNumber", 5);
+        SetInt(manager, "stageNumber", 8);
         Set(manager, "board", group);
         var existingControls = GameObject.Find("Canvas 1");
         if (existingControls != null)

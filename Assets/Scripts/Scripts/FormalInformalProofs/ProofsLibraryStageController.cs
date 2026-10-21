@@ -123,6 +123,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
 
     private void Start()
     {
+        StagePresentation.AdoptResult(resultsPanel, resultsText, retryButton, menuButton);
         UnlockGameplay();
         carryButton.onClick.AddListener(CarryReadScroll);
         closeButton.onClick.AddListener(CloseReader);
@@ -819,11 +820,12 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
             seconds / 60, seconds % 60, correctCount, mistakeCount) :
             "TIME'S UP\nChallenges completed: " + CompletedChallenges + "/5\nQuestions completed: " + correctCount + "/10\nMistakes: " + mistakeCount;
         resultsPanel.SetActive(true);
+        if (won) StagePresentation.Completed(resultsPanel, 4);
         LockGameplay();
 #if UNITY_EDITOR
-        if (won && !SuppressProgressionForValidation) StageCompleteManager.UnlockStage(Mathf.Min(7, StageSelectionState.LastStage));
+        if (won && !SuppressProgressionForValidation) StageCompleteManager.UnlockStage(Mathf.Min(5, StageSelectionState.LastStage));
 #else
-        if (won) StageCompleteManager.UnlockStage(Mathf.Min(7, StageSelectionState.LastStage));
+        if (won) StageCompleteManager.UnlockStage(Mathf.Min(5, StageSelectionState.LastStage));
 #endif
     }
 

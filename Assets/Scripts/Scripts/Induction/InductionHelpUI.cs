@@ -57,6 +57,7 @@ namespace LogicLegends.Induction
                 helpRect.anchoredPosition=settings.anchoredPosition+new Vector2(settings.rect.width+24,0);helpRect.sizeDelta=new Vector2(160,settings.rect.height);
             }
             else { StageUITheme.Stretch(helpRect,new Vector2(.10f,.84f),new Vector2(.25f,.96f)); }
+            StagePresentation.Help(HelpButton, settings);
             var root=StageUITheme.Rect("Induction How To Play",host);StageUITheme.Stretch(root,Vector2.zero,Vector2.one);Overlay=root.gameObject;
             root.gameObject.AddComponent<Image>().color=new Color(.012f,.025f,.03f,.88f);
             var card=StageUITheme.Rect("TutorialCard",root);StageUITheme.Stretch(card,new Vector2(.08f,.08f),new Vector2(.92f,.92f));card.gameObject.AddComponent<Image>();

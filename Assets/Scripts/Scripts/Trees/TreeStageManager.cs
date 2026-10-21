@@ -104,6 +104,13 @@ namespace LogicLegends.Trees
             }
             Correct++;timer.Pause();State=TreeStageState.CHALLENGE_COMPLETE;Feedback="CHALLENGE COMPLETE";StartCoroutine(Advance());
         }
+        public bool CanDebugClearChallenge => CanAct && State == TreeStageState.ACTIVE;
+        public void DebugClearCurrentChallenge()
+        {
+            if (!CanDebugClearChallenge) return;
+            Correct++; timer.Pause(); State = TreeStageState.CHALLENGE_COMPLETE;
+            Feedback = "Challenge cleared by Admin."; StartCoroutine(Advance());
+        }
         IEnumerator Wrong()
         {
             LocalPlayer.ToggleControl(false);yield return new WaitForSeconds(feedbackSeconds);

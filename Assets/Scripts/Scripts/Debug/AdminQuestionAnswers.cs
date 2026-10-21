@@ -18,7 +18,9 @@ public static class AdminQuestionAnswers
     {
         var pages = new List<AdminAnswerPage>();
         string scene = SceneManager.GetActiveScene().name;
-        if (scene == "RulesOfInference") UnityEngine.Object.FindFirstObjectByType<LogicLegends.Inference.InferenceChallenge>()?.AppendAdminAnswers(pages);
+        if (scene == "Graph") AdminGraphTreeAnswers.Graph(pages);
+        else if (scene == "Trees") AdminGraphTreeAnswers.Trees(pages);
+        else if (scene == "RulesOfInference") UnityEngine.Object.FindFirstObjectByType<LogicLegends.Inference.InferenceChallenge>()?.AppendAdminAnswers(pages);
         else if (scene == "Setssss") UnityEngine.Object.FindFirstObjectByType<SetssssChallengeOne>()?.AppendAdminAnswers(pages);
         else if (scene == "Formal vs. Informal Proofs") UnityEngine.Object.FindFirstObjectByType<ProofsLibraryStageController>()?.AppendAdminAnswers(pages);
         else if (scene == "Direct&Indirect") UnityEngine.Object.FindFirstObjectByType<DirectIndirectProofStageController>()?.AppendAdminAnswers(pages);

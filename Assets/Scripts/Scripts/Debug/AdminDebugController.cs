@@ -47,7 +47,8 @@ public sealed class AdminDebugController : MonoBehaviour
             SceneManager.GetActiveScene().name != "RulesOfInference" &&
             SceneManager.GetActiveScene().name != "Functions and Relations" &&
             SceneManager.GetActiveScene().name != "Induction" &&
-            SceneManager.GetActiveScene().name != "Direct&Indirect")
+            SceneManager.GetActiveScene().name != "Direct&Indirect" &&
+            SceneManager.GetActiveScene().name != "Graph" && SceneManager.GetActiveScene().name != "Trees")
             enabled = false;
     }
 
@@ -82,7 +83,8 @@ public sealed class AdminDebugController : MonoBehaviour
     private void Update()
     {
         if (adminButton != null && (SceneManager.GetActiveScene().name == "Functions and Relations" ||
-            SceneManager.GetActiveScene().name == "Induction"))
+            SceneManager.GetActiveScene().name == "Induction" || SceneManager.GetActiveScene().name == "Graph" || SceneManager.GetActiveScene().name == "Trees" ||
+            SceneManager.GetActiveScene().name == "RulesOfInference"))
             adminButton.gameObject.SetActive(adminButtonEnabled && (panelOpen || !IsAnotherModalBlocking()));
         if (adminButton != null && SceneManager.GetActiveScene().name == "Setssss")
         {
@@ -162,6 +164,18 @@ public sealed class AdminDebugController : MonoBehaviour
                 proofs.State == DirectIndirectProofStageController.TrialState.StageComplete ||
                 proofs.State == DirectIndirectProofStageController.TrialState.GameOver;
         }
+        if (SceneManager.GetActiveScene().name == "Graph")
+        {
+            var stage = FindFirstObjectByType<LogicLegends.Graph.GraphStageManager>();
+            return stage == null || !stage.Ready || stage.HelpOpen || stage.TutorialActive || stage.Moving ||
+                stage.State == LogicLegends.Graph.GraphStageState.STAGE_COMPLETE || stage.State == LogicLegends.Graph.GraphStageState.GAME_OVER;
+        }
+        if (SceneManager.GetActiveScene().name == "Trees")
+        {
+            var stage = FindFirstObjectByType<LogicLegends.Trees.TreeStageManager>();
+            return stage == null || !stage.Ready || stage.LessonOpen || stage.Moving || stage.BoardOpen ||
+                stage.State == LogicLegends.Trees.TreeStageState.STAGE_COMPLETE || stage.State == LogicLegends.Trees.TreeStageState.GAME_OVER;
+        }
         if (SceneManager.GetActiveScene().name != "PRELIM") return true;
         if (StageSelectionState.SelectedStage == 1)
         {
@@ -180,6 +194,10 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private bool CanClearChallenge()
     {
+        if (SceneManager.GetActiveScene().name == "Graph")
+            return FindFirstObjectByType<LogicLegends.Graph.GraphStageManager>()?.CanDebugClearChallenge == true;
+        if (SceneManager.GetActiveScene().name == "Trees")
+            return FindFirstObjectByType<LogicLegends.Trees.TreeStageManager>()?.CanDebugClearChallenge == true;
         if (SceneManager.GetActiveScene().name == "Functions and Relations")
         {
             var stage = FindFirstObjectByType<FunctionsRelationsStageManager>();
@@ -298,6 +316,16 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private bool IsTerminalState()
     {
+        if (SceneManager.GetActiveScene().name == "Graph")
+        {
+            var stage = FindFirstObjectByType<LogicLegends.Graph.GraphStageManager>();
+            return stage == null || stage.State == LogicLegends.Graph.GraphStageState.STAGE_COMPLETE || stage.State == LogicLegends.Graph.GraphStageState.GAME_OVER;
+        }
+        if (SceneManager.GetActiveScene().name == "Trees")
+        {
+            var stage = FindFirstObjectByType<LogicLegends.Trees.TreeStageManager>();
+            return stage == null || stage.State == LogicLegends.Trees.TreeStageState.STAGE_COMPLETE || stage.State == LogicLegends.Trees.TreeStageState.GAME_OVER;
+        }
         if (SceneManager.GetActiveScene().name == "Functions and Relations")
         {
             var stage = FindFirstObjectByType<FunctionsRelationsStageManager>();
@@ -348,7 +376,11 @@ public sealed class AdminDebugController : MonoBehaviour
         // Restore the exact pre-panel pause/input state before the existing
         // completion flow starts. That flow owns the next challenge's state.
         ClosePanel();
-        if (SceneManager.GetActiveScene().name == "Functions and Relations")
+        if (SceneManager.GetActiveScene().name == "Graph")
+            FindFirstObjectByType<LogicLegends.Graph.GraphStageManager>()?.DebugClearCurrentChallenge();
+        else if (SceneManager.GetActiveScene().name == "Trees")
+            FindFirstObjectByType<LogicLegends.Trees.TreeStageManager>()?.DebugClearCurrentChallenge();
+        else if (SceneManager.GetActiveScene().name == "Functions and Relations")
         {
             var stage = FindFirstObjectByType<FunctionsRelationsStageManager>();
             if (stage != null) stage.DebugClearCurrentChallenge();
@@ -424,21 +456,21 @@ public sealed class AdminDebugController : MonoBehaviour
         card.SetParent(panelRoot, false);
         card.anchorMin = card.anchorMax = new Vector2(0.5f, 0.5f);
         card.pivot = new Vector2(0.5f, 0.5f);
-        cardObject.GetComponent<Image>().color = new Color(0.08f, 0.13f, 0.15f, 1f);
+        StagePresentation.Frame(cardObject.GetComponent<Image>(), true);
         var border = cardObject.AddComponent<Outline>();
         border.effectColor = new Color(0.72f, 0.58f, 0.28f, 0.9f);
-        border.effectDistance = new Vector2(3f, -3f);
+        border.effectDistance = new Vector2(3f, -3f); border.enabled = false;
 
         TextMeshProUGUI title = CreateText("AdminDebugTitle", card, font, 52f);
         title.text = "Admin / Debug";
         Place(title.rectTransform, new Vector2(0f, 235f), new Vector2(650f, 78f));
         clearChallengeButton = CreateButton("ClearCurrentChallenge", card, font,
-            "Clear Current Challenge", new Vector2(0f, 120f), ClearCurrentChallenge);
+            "CLEAR CHALLENGE", new Vector2(0f, 120f), ClearCurrentChallenge);
         clearConditionButton = CreateButton("ClearCurrentCondition", card, font,
-            "Clear Current Question", new Vector2(0f, 15f), ClearCurrentCondition);
-        CreateButton("ViewQuestionsAndAnswers", card, font, "View Questions & Answers",
+            "CLEAR QUESTION", new Vector2(0f, 15f), ClearCurrentCondition);
+        CreateButton("ViewQuestionsAndAnswers", card, font, "QUESTIONS & ANSWERS",
             new Vector2(0f, -90f), OpenAnswerViewer);
-        CreateButton("CloseAdminDebug", card, font, "Close",
+        CreateButton("CloseAdminDebug", card, font, "CLOSE",
             new Vector2(0f, -195f), ClosePanel);
         answerViewer = overlay.AddComponent<AdminAnswerViewer>();
         answerViewer.Build(uiCanvas, panelRoot, font, () =>
@@ -462,18 +494,7 @@ public sealed class AdminDebugController : MonoBehaviour
         rect.anchorMin = rect.anchorMax = new Vector2(1f, 0f);
         rect.pivot = new Vector2(1f, 0f);
         rect.anchoredPosition = new Vector2(-40f, 40f);
-        rect.sizeDelta = new Vector2(200f, 90f);
-        if (SceneManager.GetActiveScene().name == "Functions and Relations" || SceneManager.GetActiveScene().name == "Induction" ||
-            SceneManager.GetActiveScene().name == "Direct&Indirect" ||
-            SceneManager.GetActiveScene().name == "RulesOfInference")
-        {
-            // Above the mobile action controls and below this stage's timer.
-            rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
-            rect.pivot = new Vector2(1f, 1f);
-            rect.anchoredPosition = new Vector2(-40f,
-                SceneManager.GetActiveScene().name == "RulesOfInference" ? -360f : -150f);
-            rect.sizeDelta = new Vector2(170f, 72f);
-        }
+        rect.sizeDelta = new Vector2(220f, 88f);
         Image image = go.GetComponent<Image>();
         image.color = new Color(0.08f, 0.23f, 0.21f, 0.95f);
         adminButton = go.GetComponent<Button>();
@@ -482,6 +503,7 @@ public sealed class AdminDebugController : MonoBehaviour
         TextMeshProUGUI label = CreateText("Label", rect, font, 34f);
         label.text = "Admin";
         Stretch(label.rectTransform);
+        StageUITheme.SkinButton(adminButton); adminButton.image.pixelsPerUnitMultiplier = 4.5f;
     }
 
     private void UpdateLayout()
@@ -519,7 +541,8 @@ public sealed class AdminDebugController : MonoBehaviour
             typeof(Image), typeof(Button));
         RectTransform rect = (RectTransform)go.transform;
         rect.SetParent(parent, false);
-        Place(rect, position, new Vector2(610f, 88f));
+        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f,.5f);
+        rect.anchoredPosition = position; rect.sizeDelta = new Vector2(340,88);
         Image image = go.GetComponent<Image>();
         image.color = new Color(0.09f, 0.34f, 0.29f, 1f);
         Button button = go.GetComponent<Button>();
@@ -528,6 +551,9 @@ public sealed class AdminDebugController : MonoBehaviour
         TextMeshProUGUI text = CreateText("Label", rect, font, 34f);
         text.text = caption;
         Stretch(text.rectTransform);
+        StageUITheme.SkinButton(button); button.image.pixelsPerUnitMultiplier = 4.5f;
+        text.rectTransform.offsetMin = new Vector2(24,10); text.rectTransform.offsetMax = new Vector2(-24,-10);
+        text.fontSize = 26; text.fontSizeMin = 22; text.fontSizeMax = 26;
         return button;
     }
 
@@ -543,7 +569,7 @@ public sealed class AdminDebugController : MonoBehaviour
         label.fontStyle = FontStyles.Bold;
         label.alignment = TextAlignmentOptions.Center;
         label.textWrappingMode = TextWrappingModes.NoWrap;
-        label.color = new Color(1f, 0.94f, 0.76f);
+        label.font = StageUITheme.HeadingFont; label.color = StageUITheme.ReadingInk;
         label.raycastTarget = false;
         return label;
     }

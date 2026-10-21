@@ -115,6 +115,7 @@ public sealed class StageJourneyUI : MonoBehaviour
                     if (t.name == "PropositionalHelpButton") propositionalHelp = rt;
                     else truthHelp = rt;
                     PlaceHelp(rt);
+                    StagePresentation.Help(t.GetComponent<Button>(), settingsDock);
                 }
             }
         }
@@ -199,7 +200,7 @@ public sealed class StageJourneyUI : MonoBehaviour
         }
         if(inferenceModalClock!=null)
         {
-            inferenceModalClock.gameObject.SetActive(!resultOpen&&!tutorialOpen&&(inferenceQuizOpen||(inference!=null&&inference.IsBoardOpen)));
+            inferenceModalClock.gameObject.SetActive(!resultOpen && !tutorialOpen && inferenceQuizOpen && !(inference != null && inference.IsBoardOpen));
             inferenceModalClock.text=FormatTime(inferenceRemaining);
         }
     }
@@ -277,6 +278,7 @@ public sealed class StageJourneyUI : MonoBehaviour
         StageUITheme.Stretch(progressLabel.rectTransform, new Vector2(0.32f, 0.08f), new Vector2(0.94f, 0.6f));
         progressLabel.enableAutoSizing = true;
         progressLabel.fontSizeMin = 23f; progressLabel.fontSizeMax = 28f;
+        StagePresentation.Hud(hud, stageLabel, clockLabel, progressLabel);
     }
 
     private void LateUpdate() { LayoutHudDock(); }
@@ -334,24 +336,7 @@ public sealed class StageJourneyUI : MonoBehaviour
         PlaceHelp(propositionalHelp);
         PlaceHelp(truthHelp);
         if (inferenceHelp != null) PlaceHelp((RectTransform)inferenceHelp.transform);
-        if(stage==3&&inferenceHelp!=null)LayoutInferenceAdmin();
     }
-    void LayoutInferenceAdmin()
-    {
-        if(inferenceAdmin==null)
-            foreach(var button in FindObjectsByType<Button>(FindObjectsInactive.Include,FindObjectsSortMode.None))
-                if(button.name=="AdminButton"){inferenceAdmin=(RectTransform)button.transform;break;}
-        if(inferenceAdmin==null)return;
-        var help=(RectTransform)inferenceHelp.transform;
-        help.GetWorldCorners(dockCorners);
-        float scale=help.lossyScale.x;
-        inferenceAdmin.anchorMin=inferenceAdmin.anchorMax=inferenceAdmin.pivot=new Vector2(0,1);
-        inferenceAdmin.sizeDelta=new Vector2(200,74);
-        inferenceAdmin.localScale=Vector3.one*scale/Mathf.Max(.001f,inferenceAdmin.parent.lossyScale.x);
-        inferenceAdmin.position=Screen.height>Screen.width?dockCorners[0]-Vector3.up*18*scale:
-            dockCorners[2]+Vector3.right*24*scale;
-    }
-
     private void PlaceHelp(RectTransform rect)
     {
         if (rect == null) return;
@@ -400,6 +385,7 @@ public sealed class StageJourneyUI : MonoBehaviour
     {
         if (resultOpen) return;
         ShowResult(stage, "STAGE COMPLETE", summary, stage < 3 ? "NEXT STAGE" : "PLAY AGAIN", stage < 3 ? NextStage : RestartInference);
+        StagePresentation.Completed(modal.gameObject, stage, stage < 3 ? (UnityEngine.Events.UnityAction)NextStage : null);
         WorldStageAudio.PlayStageCompletion();
     }
 
@@ -494,7 +480,8 @@ public sealed class StageJourneyUI : MonoBehaviour
         if (inference != null) inference.CloseBoard();
         inferenceNotice?.Hide();
         ShowResult(3, "All challenges completed!", "Argument mastered!\nRules solved: " + inference.SolvedRounds +
-            "\nTime remaining: " + FormatTime(inferenceRemaining), "PLAY AGAIN", RestartInference);
+            "\nTime remaining: " + FormatTime(inferenceRemaining), "NEXT STAGE", () => StagePresentation.NextTrial(3));
+        StagePresentation.Completed(modal.gameObject, 3);
         WorldStageAudio.PlayStageCompletion();
     }
 
@@ -540,6 +527,7 @@ public sealed class StageJourneyUI : MonoBehaviour
         var rt = (RectTransform)inferenceHelp.transform;
         rt.sizeDelta = new Vector2(220, 88);
         PlaceHelp(rt);
+        StagePresentation.Help(inferenceHelp, settingsDock);
     }
 
     public void OpenInferenceTutorial()

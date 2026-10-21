@@ -42,6 +42,8 @@ namespace LogicLegends.Induction
             title.fontSizeMin=22;title.textWrappingMode=TextWrappingModes.Normal;
             clock = Text("Shared Countdown",hud,"18:00",48); Place(clock.rectTransform,.05f,.12f,.27f,.52f);
             progress = Text("Challenge Progress",hud,"Challenge 1 of 5\nWaiting for book",29); Place(progress.rectTransform,.3f,.12f,.94f,.52f);
+            PrelimUIPresentation.CompactHud(hud, (RectTransform)Root, title, clock, progress);
+            StagePresentation.Hud(hud, title, clock, progress);
             feedback = Text("Submission Feedback",Root,"",30,true); Place(feedback.rectTransform,.28f,.74f,.75f,.84f);
             var outline = feedback.gameObject.AddComponent<Outline>(); outline.effectColor=Color.black; outline.effectDistance=new Vector2(1,-1);
             carry = Text("Held Formula",Root,"",29,true); Place(carry.rectTransform,.40f,.43f,.80f,.52f);
@@ -234,6 +236,7 @@ namespace LogicLegends.Induction
             Result.Primary.GetComponentInChildren<TMP_Text>().text=hasNext?"Play Next Stage":"Try Again";
             Result.Menu.GetComponentInChildren<TMP_Text>().text="Go to Menu";
             Result.Primary.onClick.RemoveAllListeners();Result.Primary.onClick.AddListener(()=>{if(hasNext)stage.Navigate(stage.nextScene);else stage.Restart();});Result.Extra.gameObject.SetActive(false);
+            if (win) Result.Root.GetComponent<StageResultLayout>().Complete(6);
         }
         static void Place(RectTransform rect,float x,float y,float X,float Y)=>StageUITheme.Stretch(rect,new Vector2(x,y),new Vector2(X,Y));
         static RectTransform Panel(string name,Transform parent,Vector2 min,Vector2 max)
