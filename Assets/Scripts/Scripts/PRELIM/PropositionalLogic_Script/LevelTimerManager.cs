@@ -236,7 +236,7 @@ public class LevelTimerManager : MonoBehaviour
         Time.timeScale = 1f;
         GameInput.Instance?.SetGameplayInputBlocked(false);
         PrepareStartOverState();
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        TeleportManager.Navigate(SceneManager.GetActiveScene().name);
     }
 
     public void OnMiddleActionClicked()
@@ -245,7 +245,7 @@ public class LevelTimerManager : MonoBehaviour
         {
             Time.timeScale = 1f;
             GameInput.Instance?.SetGameplayInputBlocked(false);
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            TeleportManager.Navigate(SceneManager.GetActiveScene().name);
             return;
         }
 
@@ -262,7 +262,7 @@ public class LevelTimerManager : MonoBehaviour
         Time.timeScale = 1f;
         GameInput.Instance?.SetGameplayInputBlocked(false);
         ResetSession();
-        SceneManager.LoadScene(logicGardenSceneName);
+        TeleportManager.Navigate(logicGardenSceneName);
     }
 
     public void PrepareStartOverState()
@@ -302,7 +302,7 @@ public class LevelTimerManager : MonoBehaviour
         Time.timeScale = 1f; 
         GameInput.Instance?.SetGameplayInputBlocked(false);
         ResetSession();
-        SceneManager.LoadScene(mainMenuSceneName);
+        TeleportManager.Navigate(mainMenuSceneName);
     }
 
     private void UpdateGameOverOptions()

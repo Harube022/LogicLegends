@@ -141,7 +141,7 @@ namespace LogicLegends.Trees
         }
         public void Restart()=>Navigate("Trees");
         public void Return()=>Navigate("Main Menu");
-        void Navigate(string scene){CloseBoard(false);Time.timeScale=1;input?.SetGameplayInputBlocked(false);TeleportManager.Instance.LoadSceneWithFade(scene);}
+        void Navigate(string scene){CloseBoard(false);Time.timeScale=1;input?.SetGameplayInputBlocked(false);TeleportManager.EnsureExists().LoadSceneWithFade(scene);}
         void ChooseVariant()
         {
             if(catalog==null||catalog.variantSets==null||ChallengeIndex>=catalog.variantSets.Count||

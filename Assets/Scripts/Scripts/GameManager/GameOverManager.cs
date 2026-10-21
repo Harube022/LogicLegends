@@ -28,7 +28,7 @@ public class GameOverManager : MonoBehaviourPun
                 Time.timeScale = 1;
                 GameInput.Instance?.SetGameplayInputBlocked(false);
                 StageSelectionState.Select(3);
-                SceneManager.LoadScene("RulesOfInference");
+                TeleportManager.Navigate("RulesOfInference");
             });
         else if (gameOverPanel != null) gameOverPanel.SetActive(true);
         if (gameplayInterfacePanel != null) gameplayInterfacePanel.SetActive(false);
@@ -105,6 +105,6 @@ public class GameOverManager : MonoBehaviourPun
     public void ReturnToMenu()
     {
         if (PhotonNetwork.InRoom) PhotonNetwork.LeaveRoom();
-        SceneManager.LoadScene(mainMenuSceneName);
+        TeleportManager.Navigate(mainMenuSceneName);
     }
 }

@@ -42,6 +42,7 @@ public sealed class AdminDebugController : MonoBehaviour
             return;
         }
         if (SceneManager.GetActiveScene().name != "PRELIM" &&
+            SceneManager.GetActiveScene().name != "TruthTable" &&
             SceneManager.GetActiveScene().name != "Setssss" &&
             SceneManager.GetActiveScene().name != "Formal vs. Informal Proofs" &&
             SceneManager.GetActiveScene().name != "RulesOfInference" &&
@@ -114,7 +115,7 @@ public sealed class AdminDebugController : MonoBehaviour
     {
         // An unanswered pop quiz is itself the current question. Its own input
         // lock remains in place when this nested Admin view closes.
-        if (SceneManager.GetActiveScene().name == "PRELIM" && StageSelectionState.SelectedStage == 2 && Time.timeScale > 0f)
+        if ((SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "TruthTable") && StageSelectionState.SelectedStage == 2 && Time.timeScale > 0f)
         {
             var quiz = FindFirstObjectByType<TruthTableDoorInteraction>();
             var clock = quiz != null ? quiz.GetComponent<TruthTableStageClock>() : null;
@@ -176,7 +177,7 @@ public sealed class AdminDebugController : MonoBehaviour
             return stage == null || !stage.Ready || stage.LessonOpen || stage.Moving || stage.BoardOpen ||
                 stage.State == LogicLegends.Trees.TreeStageState.STAGE_COMPLETE || stage.State == LogicLegends.Trees.TreeStageState.GAME_OVER;
         }
-        if (SceneManager.GetActiveScene().name != "PRELIM") return true;
+        if (SceneManager.GetActiveScene().name != "PRELIM" && SceneManager.GetActiveScene().name != "TruthTable") return true;
         if (StageSelectionState.SelectedStage == 1)
         {
             PropositionalLogicTutorial tutorial = FindFirstObjectByType<PropositionalLogicTutorial>();
@@ -269,7 +270,7 @@ public sealed class AdminDebugController : MonoBehaviour
         previousTimeScale = Time.timeScale;
         previousCursorLock = Cursor.lockState;
         previousCursorVisible = Cursor.visible;
-        if (SceneManager.GetActiveScene().name == "PRELIM")
+        if (SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "TruthTable")
         {
             if (StageSelectionState.SelectedStage == 1)
             {

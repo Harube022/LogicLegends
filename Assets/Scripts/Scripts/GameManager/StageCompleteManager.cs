@@ -153,15 +153,15 @@ public class StageCompleteManager : MonoBehaviour
         else
         {
             // Fallback just in case the TeleportManager is missing
-            Debug.LogWarning("TeleportManager not found! Loading scene instantly.");
+            Debug.LogWarning("TeleportManager not found. Using the scene navigation fallback.");
             if (PhotonNetwork.InRoom) PhotonNetwork.LoadLevel(nextSceneName);
-            else SceneManager.LoadScene(nextSceneName);
+            else TeleportManager.Navigate(nextSceneName);
         }
     }
 
     public void ReturnToMenu()
     {
         if (PhotonNetwork.InRoom) PhotonNetwork.LeaveRoom();
-        SceneManager.LoadScene(mainMenuSceneName);
+        TeleportManager.Navigate(mainMenuSceneName);
     }
 }

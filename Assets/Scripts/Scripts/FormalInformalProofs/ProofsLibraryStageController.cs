@@ -833,13 +833,13 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
     {
         UnlockGameplay();
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        TeleportManager.Navigate(SceneManager.GetActiveScene().name);
     }
 
     public void ReturnToMenu()
     {
         UnlockGameplay();
         Time.timeScale = 1f;
-        SceneManager.LoadScene("Main Menu");
+        TeleportManager.Navigate("Main Menu");
     }
 }

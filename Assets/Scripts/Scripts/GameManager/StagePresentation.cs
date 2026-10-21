@@ -39,8 +39,8 @@ public static class StagePresentation
     }
     public static Transform ResultHost(Transform host)
     {
-        var canvas = host.GetComponentInParent<Canvas>(true);
-        return canvas != null ? canvas.rootCanvas.transform : host;
+        var canvas = StageFullScreenPanels.RootCanvas(host);
+        return canvas != null ? canvas.transform : host;
     }
     public static void AdoptResult(GameObject panel, TMP_Text summary, Button primary, Button menu)
     {
@@ -82,7 +82,7 @@ public static class StagePresentation
         GameInput.Instance?.SetGameplayInputBlocked(false);
         StageSelectionState.Select(destination.Number);
         if (TeleportManager.Instance != null) TeleportManager.Instance.LoadSceneWithFade(destination.Scene);
-        else UnityEngine.SceneManagement.SceneManager.LoadScene(destination.Scene);
+        else TeleportManager.Navigate(destination.Scene);
     }
     public static void ResultCanvas(GameObject root)
     {

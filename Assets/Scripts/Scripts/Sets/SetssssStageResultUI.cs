@@ -45,7 +45,7 @@ public sealed class SetssssStageResultUI : MonoBehaviour
         Time.timeScale = 1f;
         GameInput.Instance?.SetGameplayInputBlocked(false);
         if (Photon.Pun.PhotonNetwork.InRoom) Photon.Pun.PhotonNetwork.LeaveRoom();
-        SceneManager.LoadScene("Main Menu");
+        TeleportManager.Navigate("Main Menu");
     }
 
     private void OnDestroy()

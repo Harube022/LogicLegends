@@ -44,16 +44,9 @@ public class AreaVisibilityManager : MonoBehaviour
     {
         if (StageSelectionState.SelectedStage != 1) return;
 
-        if (Player.LocalInstance == null || truthTableSpawnPoint == null) return;
-        TeleportManager.EnsureExists().StartTeleport(Player.LocalInstance.gameObject, truthTableSpawnPoint, () =>
-        {
-            // Swap the area and its UI only after the black frame has rendered.
-            EnvironmentAudioManager.Instance?.DeactivateAllLayers();
-            StageSelectionState.Select(2);
-            StageCompleteManager.UnlockStage(2);
-            ActivateOnly(2);
-            ConfigureSelectedStageUI();
-        });
+        StageSelectionState.Select(2);
+        StageCompleteManager.UnlockStage(2);
+        TeleportManager.EnsureExists().LoadSceneWithFade("TruthTable");
     }
 
     public void TransitionToRulesOfInference()

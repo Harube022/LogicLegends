@@ -27,7 +27,7 @@ public static class AdminQuestionAnswers
         else if (scene == "Functions and Relations") UnityEngine.Object.FindFirstObjectByType<FunctionsRelationsStageManager>()?.AppendAdminAnswers(pages);
         else if (scene == "Induction") UnityEngine.Object.FindFirstObjectByType<LogicLegends.Induction.InductionStageManager>()?.AppendAdminAnswers(pages);
         else if (scene == "PRELIM" && StageSelectionState.SelectedStage == 1) UnityEngine.Object.FindFirstObjectByType<QuizManager>()?.AppendAdminAnswers(pages);
-        else if (scene == "PRELIM" && StageSelectionState.SelectedStage == 2)
+        else if ((scene == "PRELIM" || scene == "TruthTable") && StageSelectionState.SelectedStage == 2)
         {
             UnityEngine.Object.FindFirstObjectByType<DynamicLogicPuzzle>()?.AppendAdminAnswers(pages);
             UnityEngine.Object.FindFirstObjectByType<TruthTableDoorInteraction>()?.AppendAdminAnswers(pages);

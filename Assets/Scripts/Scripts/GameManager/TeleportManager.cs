@@ -20,8 +20,27 @@ public class TeleportManager : MonoBehaviourPun
     [SerializeField, Min(0f)] private float blackHoldDuration = 0.15f;
     private PrelimTeleportTransition prelimTransition;
     private bool startSequenceStarted;
+    public static bool IsTrialScene(string sceneName)
+    {
+        for (int i = 1; i <= TrialCatalog.Count; i++)
+            if (TrialCatalog.Get(i).Scene == sceneName) return true;
+        return false;
+    }
+
+    // Keep legacy scenes outside stage selection on their existing navigation path.
+    public static void Navigate(string sceneName)
+    {
+        string current = SceneManager.GetActiveScene().name;
+        if (IsTrialScene(current) || current == "Main Menu")
+            EnsureExists().LoadSceneWithFade(sceneName);
+        else SceneManager.LoadScene(sceneName);
+    }
+
     public static bool UsesCoveredTransitions =>
+        IsTrialScene(SceneManager.GetActiveScene().name) ||
+        SceneManager.GetActiveScene().name == "Main Menu" ||
         SceneManager.GetSceneByName("PRELIM").isLoaded ||
+        SceneManager.GetSceneByName("TruthTable").isLoaded ||
         SceneManager.GetSceneByName("RulesOfInference").isLoaded ||
         SceneManager.GetActiveScene().name == "LogicGarden" ||
         SceneManager.GetActiveScene().name == "Graph" ||
@@ -44,7 +63,7 @@ public class TeleportManager : MonoBehaviourPun
 
     private static void EnsurePrelimManager(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name != "PRELIM" && scene.name != "RulesOfInference" && !MultiplayerSceneRoutes.IsOpenArchive(scene)) return;
+        if (!IsTrialScene(scene.name) && scene.name != "Main Menu" && !MultiplayerSceneRoutes.IsOpenArchive(scene)) return;
         EnsureExists().EnsureCoveredTransition();
     }
 
@@ -82,8 +101,7 @@ public class TeleportManager : MonoBehaviourPun
 
     private void EnsureCoveredTransition()
     {
-        bool belongsToCoveredScene = gameObject.scene.name == "PRELIM" ||
-            gameObject.scene.name == "RulesOfInference";
+        bool belongsToCoveredScene = IsTrialScene(gameObject.scene.name) || gameObject.scene.name == "Main Menu";
         if (prelimTransition != null || (!UsesCoveredTransitions && !belongsToCoveredScene)) return;
 
         prelimTransition = GetComponent<PrelimTeleportTransition>();
@@ -119,6 +137,10 @@ public class TeleportManager : MonoBehaviourPun
                 Debug.LogError("TeleportManager: scene is missing from the build scene list: " + sceneName);
                 return;
             }
+            // Result/pause buttons can navigate while their modal has stopped time.
+            // The transition owns the temporary input lock until the old scene unloads.
+            Time.timeScale = 1f;
+            GameInput.Instance?.SetGameplayInputBlocked(false);
             if (PhotonNetwork.InRoom && photonView != null && photonView.ViewID != 0)
                 photonView.RPC("RPC_NetworkFadeAndLoad", RpcTarget.All, sceneName);
             else

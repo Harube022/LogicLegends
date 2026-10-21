@@ -385,7 +385,7 @@ namespace LogicLegends.Graph
             Time.timeScale = 1; input?.SetGameplayInputBlocked(false);
             if (destinationStage > 0) StageSelectionState.Select(destinationStage);
             if (TeleportManager.Instance != null) TeleportManager.Instance.LoadSceneWithFade(scene);
-            else SceneManager.LoadScene(scene);
+            else TeleportManager.Navigate(scene);
         }
     }
 }

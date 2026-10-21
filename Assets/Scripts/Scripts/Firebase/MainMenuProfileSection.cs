@@ -29,6 +29,7 @@ public sealed class MainMenuProfileSection : MonoBehaviour
     [SerializeField] private RenderTexture portraitTexture;
 
     private readonly Dictionary<GameObject, bool> previousStates = new Dictionary<GameObject, bool>();
+    private readonly Dictionary<SkinnedMeshRenderer, bool> previousOffscreenUpdates = new Dictionary<SkinnedMeshRenderer, bool>();
     private FirebaseAuth auth;
     private string userId;
     private int requestVersion;
@@ -152,9 +153,20 @@ public sealed class MainMenuProfileSection : MonoBehaviour
                 model.model.SetActive(model == selected);
             maleMannequin.SetActive(body == maleMannequin);
             femaleMannequin.SetActive(body == femaleMannequin);
+            // This mannequin is outside the world camera. Keep its skinning up
+            // to date while the Android portrait render target is initialized.
+            foreach (var renderer in selected.model.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                if (!previousOffscreenUpdates.ContainsKey(renderer))
+                    previousOffscreenUpdates.Add(renderer, renderer.updateWhenOffscreen);
+                renderer.updateWhenOffscreen = true;
+            }
             previousTexture = previewCamera.targetTexture;
             previousAspect = previewCamera.aspect;
             capturedTexture = true;
+            // Allocate the portrait before assigning it to the shared URP camera.
+            // The profile uses the same non-MSAA format as the working shop preview.
+            if (!portraitTexture.IsCreated()) portraitTexture.Create();
             previewCamera.targetTexture = portraitTexture;
             previewCamera.aspect = (float)portraitTexture.width / portraitTexture.height;
             characterImage.texture = portraitTexture;
@@ -171,7 +183,7 @@ public sealed class MainMenuProfileSection : MonoBehaviour
         version == requestVersion && auth != null && auth.CurrentUser?.UserId == id;
     private IEnumerator RevealCharacter(int version, string id)
     {
-        yield return null;
+        yield return new WaitForEndOfFrame();
         if (Current(version, id))
         {
             characterImage.gameObject.SetActive(true);
@@ -209,6 +221,9 @@ public sealed class MainMenuProfileSection : MonoBehaviour
         }
         capturedTexture = false;
         characterImage.gameObject.SetActive(false);
+        foreach (var state in previousOffscreenUpdates)
+            if (state.Key != null) state.Key.updateWhenOffscreen = state.Value;
+        previousOffscreenUpdates.Clear();
         foreach (var state in previousStates) if (state.Key != null) state.Key.SetActive(state.Value);
         previousStates.Clear();
     }

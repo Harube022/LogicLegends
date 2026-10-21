@@ -72,8 +72,8 @@ public class LevelMenu : MonoBehaviourPunCallbacks
         }
         else
         {
-            // If we are just testing solo and aren't connected, load the menu immediately
-            SceneManager.LoadScene("Main Menu");
+            // Solo stages return through the same covered scene transition.
+            TeleportManager.Navigate("Main Menu");
         }
     }
 
@@ -83,7 +83,7 @@ public class LevelMenu : MonoBehaviourPunCallbacks
     {
         // The persistent online session already owns returning to the menu.
         if (MultiplayerLobbyService.Instance != null && !PhotonNetwork.OfflineMode) return;
-        SceneManager.LoadScene("Main Menu");
+        TeleportManager.Navigate("Main Menu");
     }
 
     public void QuitGame()

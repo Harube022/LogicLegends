@@ -227,7 +227,7 @@ public class MainMenuManager : MonoBehaviour
 
         string targetScene = termStageSelection != null
             ? termStageSelection.GetSceneName(stageNumber)
-            : stageNumber == 4 ? "Setssss" : stageNumber == 3 ? "RulesOfInference" : stageNumber <= 2 ? prelimSceneName : string.Empty;
+            : stageNumber == 4 ? "Setssss" : stageNumber == 3 ? "RulesOfInference" : stageNumber == 2 ? "TruthTable" : stageNumber == 1 ? prelimSceneName : string.Empty;
         if (string.IsNullOrWhiteSpace(targetScene) || !Application.CanStreamedLevelBeLoaded(targetScene))
         {
             progressMessage = "This trial is coming soon. Choose Propositional Logic, Truth Table, Rules of Inference, or Sets.";
@@ -239,7 +239,7 @@ public class MainMenuManager : MonoBehaviour
         RefreshStageSelectionUI();
         StageSelectionState.Select(stageNumber);
 
-        SceneManager.LoadScene(targetScene);
+        TeleportManager.Navigate(targetScene);
     }
 
     private void LoadUnlockedStage()
@@ -307,7 +307,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void LoadLogicGarden()
     {
-        SceneManager.LoadScene("LogicGarden");
+        TeleportManager.Navigate("LogicGarden");
     }
 
     public void QuitGame()

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Image))]
-public sealed class PasswordVisibilityToggle : MonoBehaviour, IPointerClickHandler
+public sealed class PasswordVisibilityToggle : MonoBehaviour, IPointerDownHandler, IPointerClickHandler
 {
     [SerializeField] private TMP_InputField inputField;
     [SerializeField] private Image iconImage;
@@ -41,6 +41,10 @@ public sealed class PasswordVisibilityToggle : MonoBehaviour, IPointerClickHandl
         passwordShownSprite = shownSprite;
         SetPasswordVisible(false);
     }
+
+    // Handle the press here instead of letting TMP_InputField.OnPointerDown
+    // receive it from this child and open the Android keyboard.
+    public void OnPointerDown(PointerEventData eventData) => eventData.Use();
 
     public void OnPointerClick(PointerEventData eventData)
     {
