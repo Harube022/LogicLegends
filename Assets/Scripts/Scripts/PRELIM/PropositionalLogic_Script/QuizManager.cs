@@ -100,6 +100,7 @@ public partial class QuizManager : MonoBehaviour
 
     public bool DebugClearCurrentChallenge()
     {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return false;
         if (!CanDebugClearChallenge) return false;
         ShowAnswerFeedback(true);
         FinalizeChallengeCompletion();

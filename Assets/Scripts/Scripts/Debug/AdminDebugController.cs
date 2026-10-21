@@ -8,11 +8,11 @@ using UnityEngine.UI;
 public sealed class AdminDebugController : MonoBehaviour
 {
     [Header("Availability")]
-    [SerializeField] private bool featureEnabled = true;
-    [SerializeField] private bool allowInPlayerBuilds;
+    [SerializeField, HideInInspector] private bool featureEnabled = true;
+    [SerializeField, HideInInspector] private bool allowInPlayerBuilds;
     [Header("UI")]
     [SerializeField] private Canvas uiCanvas;
-    [SerializeField] private bool adminButtonEnabled;
+    [SerializeField, HideInInspector] private bool adminButtonEnabled;
 
     private GameInput input;
     private Player player;
@@ -25,6 +25,7 @@ public sealed class AdminDebugController : MonoBehaviour
     private Button clearConditionButton;
     private AdminAnswerViewer answerViewer;
     private bool panelOpen;
+    private bool adminActionPending;
     private bool clearConsumed;
     private bool challengeEligibleAtOpen;
     private bool conditionEligibleAtOpen;
@@ -36,11 +37,6 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private void Awake()
     {
-        if (!featureEnabled || (!Application.isEditor && !allowInPlayerBuilds))
-        {
-            enabled = false;
-            return;
-        }
         if (SceneManager.GetActiveScene().name != "PRELIM" &&
             SceneManager.GetActiveScene().name != "TruthTable" &&
             SceneManager.GetActiveScene().name != "Setssss" &&
@@ -72,7 +68,7 @@ public sealed class AdminDebugController : MonoBehaviour
         }
         BuildPanel();
         BuildAdminButton();
-        adminButton.gameObject.SetActive(adminButtonEnabled);
+        adminButton.gameObject.SetActive(AdminAuthorization.IsAuthorized);
     }
 
     private void BindInput()
@@ -83,25 +79,16 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private void Update()
     {
-        if (adminButton != null && (SceneManager.GetActiveScene().name == "Functions and Relations" ||
-            SceneManager.GetActiveScene().name == "Induction" || SceneManager.GetActiveScene().name == "Graph" || SceneManager.GetActiveScene().name == "Trees" ||
-            SceneManager.GetActiveScene().name == "RulesOfInference"))
-            adminButton.gameObject.SetActive(adminButtonEnabled && (panelOpen || !IsAnotherModalBlocking()));
-        if (adminButton != null && SceneManager.GetActiveScene().name == "Setssss")
-        {
-            bool visible = adminButtonEnabled && (SetssssControlsOnboarding.Active == null ||
-                           !SetssssControlsOnboarding.Active.IsActive) &&
-                           (SetssssChallengeOne.ActiveInstance == null || SetssssChallengeOne.ActiveInstance.Introductions == null ||
-                            !SetssssChallengeOne.ActiveInstance.Introductions.IsOpen);
-            if (adminButton.gameObject.activeSelf != visible) adminButton.gameObject.SetActive(visible);
-        }
+        if (!AdminAuthorization.IsAuthorized && panelOpen) ClosePanel();
+        if (adminButton != null)
+            adminButton.gameObject.SetActive(AdminAuthorization.IsAuthorized && (panelOpen || !IsAnotherModalBlocking()));
         if (panelOpen) UpdateLayout();
     }
 
     public void AdminButtonOn()
     {
         adminButtonEnabled = true;
-        if (adminButton != null && enabled) adminButton.gameObject.SetActive(true);
+        if (adminButton != null && enabled) adminButton.gameObject.SetActive(AdminAuthorization.IsAuthorized);
     }
 
     public void AdminButtonOff()
@@ -255,7 +242,7 @@ public sealed class AdminDebugController : MonoBehaviour
     private void OpenPanel()
     {
         BindInput();
-        if (panelOpen || panelRoot == null || IsAnotherModalBlocking()) return;
+        if (!AdminAuthorization.IsAuthorized || panelOpen || panelRoot == null || IsAnotherModalBlocking()) return;
         clearConsumed = false;
         // Capture eligibility before this modal pauses gameplay. The pause must
         // not make an otherwise active challenge's clear buttons unavailable.
@@ -368,8 +355,13 @@ public sealed class AdminDebugController : MonoBehaviour
         return true;
     }
 
-    private void ClearCurrentChallenge()
+    private async void ClearCurrentChallenge()
     {
+        if (!AdminAuthorization.IsAuthorized || adminActionPending || !panelOpen || clearConsumed || !challengeEligibleAtOpen) return;
+        adminActionPending = true;
+        bool granted = await TrialRewards.PrepareAdminAction();
+        adminActionPending = false;
+        if (!granted || this == null || !AdminAuthorization.IsAuthorized) return;
         if (!panelOpen || clearConsumed || !challengeEligibleAtOpen) return;
         clearConsumed = true;
         clearChallengeButton.interactable = false;
@@ -424,8 +416,13 @@ public sealed class AdminDebugController : MonoBehaviour
         }
     }
 
-    private void ClearCurrentCondition()
+    private async void ClearCurrentCondition()
     {
+        if (!AdminAuthorization.IsAuthorized || adminActionPending || !panelOpen || clearConsumed || !conditionEligibleAtOpen) return;
+        adminActionPending = true;
+        bool granted = await TrialRewards.PrepareAdminAction();
+        adminActionPending = false;
+        if (!granted || this == null || !AdminAuthorization.IsAuthorized) return;
         if (!panelOpen || clearConsumed || !conditionEligibleAtOpen) return;
         clearConsumed = true;
         clearChallengeButton.interactable = false;
@@ -529,6 +526,7 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private void OpenAnswerViewer()
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         // Only the already-authorized Admin modal exposes this read-only viewer.
         if (!panelOpen || answerViewer == null) return;
         answerViewer.Show(AdminQuestionAnswers.Capture());

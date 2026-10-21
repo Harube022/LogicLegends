@@ -235,6 +235,7 @@ public class MainMenuManager : MonoBehaviour
             return;
         }
 
+        TrialRewards.PrepareNewAttempt(stageNumber);
         isLoadingStage = true;
         RefreshStageSelectionUI();
         StageSelectionState.Select(stageNumber);

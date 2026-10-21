@@ -4,6 +4,7 @@ using Photon.Pun;
 
 public class GameOverManager : MonoBehaviourPun
 {
+    private bool retryProcessed;
     [Header("UI Panels")]
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private GameObject gameplayInterfacePanel;
@@ -19,12 +20,14 @@ public class GameOverManager : MonoBehaviourPun
     // Called by LevelManager when hearts hit 0
     public void ShowGameOver()
     {
+        retryProcessed = false;
         Debug.Log("Game Over! Showing panel and hiding controls.");
 
         // EXISTING LOGIC (UNCHANGED)
         if (StageJourneyUI.Instance != null && UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RulesOfInference")
             StageJourneyUI.Instance.ShowFailure(3, "You ran out of hearts.\nRestart the stage to build a new argument.", () =>
             {
+                TrialRewards.RecordRetry(3);
                 Time.timeScale = 1;
                 GameInput.Instance?.SetGameplayInputBlocked(false);
                 StageSelectionState.Select(3);
@@ -93,6 +96,8 @@ public class GameOverManager : MonoBehaviourPun
     [PunRPC]
     public void RPC_RetryChallenge()
     {
+        if (retryProcessed) return;
+        retryProcessed = true;
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (gameplayInterfacePanel != null) gameplayInterfacePanel.SetActive(true);
 

@@ -107,6 +107,7 @@ namespace LogicLegends.Trees
         public bool CanDebugClearChallenge => CanAct && State == TreeStageState.ACTIVE;
         public void DebugClearCurrentChallenge()
         {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return;
             if (!CanDebugClearChallenge) return;
             Correct++; timer.Pause(); State = TreeStageState.CHALLENGE_COMPLETE;
             Feedback = "Challenge cleared by Admin."; StartCoroutine(Advance());
@@ -139,7 +140,7 @@ namespace LogicLegends.Trees
             LessonOpen=open;LocalPlayer.ToggleControl(!open&&!BoardOpen);input.SetGameplayInputBlocked(open||BoardOpen);
             if(State==TreeStageState.ACTIVE){if(open)timer.Pause();else timer.Resume();}ui.ShowLesson(open);
         }
-        public void Restart()=>Navigate("Trees");
+        public void Restart() { TrialRewards.RecordRetry(10); Navigate("Trees"); }
         public void Return()=>Navigate("Main Menu");
         void Navigate(string scene){CloseBoard(false);Time.timeScale=1;input?.SetGameplayInputBlocked(false);TeleportManager.EnsureExists().LoadSceneWithFade(scene);}
         void ChooseVariant()

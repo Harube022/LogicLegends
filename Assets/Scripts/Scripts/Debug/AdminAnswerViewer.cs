@@ -72,12 +72,14 @@ public sealed class AdminAnswerViewer : MonoBehaviour
 
     public void Show(IReadOnlyList<AdminAnswerPage> snapshot)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         pages = snapshot; visible = true; root.gameObject.SetActive(true); root.SetAsLastSibling();
         Layout(); ShowPage(0);
     }
     public void Hide() { visible = false; if (root != null) root.gameObject.SetActive(false); }
     void LateUpdate()
     {
+        if (!AdminAuthorization.IsAuthorized) { Hide(); return; }
         if (!visible) return;
         Vector2 oldSize = root.sizeDelta;
         Layout();

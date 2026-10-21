@@ -267,6 +267,7 @@ public class LevelTimerManager : MonoBehaviour
 
     public void PrepareStartOverState()
     {
+        TrialRewards.RecordRetry(1);
         ResetSession();
         currentTimer = initialLevelDuration;
         savedRemainingTime = initialLevelDuration;
@@ -285,6 +286,7 @@ public class LevelTimerManager : MonoBehaviour
 
     public void PrepareRetryState()
     {
+        TrialRewards.RecordRetry(1);
         isRespawningFromFail = true;
         float retryDuration = savedTopicIndex < 3
             ? retryLevelDuration

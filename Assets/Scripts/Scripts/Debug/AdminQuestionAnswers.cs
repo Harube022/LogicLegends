@@ -17,6 +17,7 @@ public static class AdminQuestionAnswers
     public static List<AdminAnswerPage> Capture()
     {
         var pages = new List<AdminAnswerPage>();
+        if (!AdminAuthorization.IsAuthorized) return pages;
         string scene = SceneManager.GetActiveScene().name;
         if (scene == "Graph") AdminGraphTreeAnswers.Graph(pages);
         else if (scene == "Trees") AdminGraphTreeAnswers.Trees(pages);
@@ -51,6 +52,7 @@ public partial class QuizManager
     readonly HashSet<LogicQuestion> adminDrawnQuestions = new HashSet<LogicQuestion>();
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         var now = new StringBuilder();
         now.AppendLine("Challenge order: " + string.Join(" → ", challengeOrder.Select(i => challenges[i].topicName)));
         now.AppendLine(currentQuestion == null ? "Waiting for the book. No question has been drawn." :
@@ -78,6 +80,7 @@ public partial class DynamicLogicPuzzle
 {
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         if (challengePhase != null) challengePhase.AppendAdminAnswers(pages);
         else
         {
@@ -94,11 +97,13 @@ public sealed partial class TruthTableChallengePhase
         string.Join(", ", Enumerable.Range(0, 4).Select(r => q.EvaluateRow(r) ? "True" : "False"));
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         pages.Add(new AdminAnswerPage("Current question — Truth Table", "Challenge " + ChallengeNumber + ", column " + ColumnNumber + "\n" + AdminRows(selected[challengeIndex, columnIndex])));
         AppendAdminBanks(pages, this);
     }
     public static void AppendAdminBanks(List<AdminAnswerPage> pages, TruthTableChallengePhase phase)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         for (int d = 0; d < TruthTableChallengeQuestions.Banks.Length; d++)
         {
             var text = new StringBuilder("Three expressions are selected for this difficulty.\n\n");
@@ -121,6 +126,7 @@ public partial class TruthTableDoorInteraction
     public bool AdminQuestionOpen => panelOpen && !answerSubmitted;
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         if (questionBank == null) return;
         if (panelOpen && currentDoorIndex >= 0 && assignedQuestions != null)
         {
@@ -160,6 +166,7 @@ public sealed partial class ProofsLibraryStageController
     }
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         pages.Add(new AdminAnswerPage("Current question — Proofs Library", activeChallenge == null ? "Waiting for book activation. Two distinct questions per challenge are selected for this run." : "Challenge " + ChallengeNumber + " — Question " + QuestionNumber + " of " + QuestionsPerChallenge + "\n" + AdminSolution(activeChallenge)));
         for (int c = 0; c < catalog.variantSets.Length; c++)
         {
@@ -188,6 +195,7 @@ public sealed partial class DirectIndirectProofStageController
     }
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
           pages.Add(new AdminAnswerPage("Current question — Direct & Indirect", activeChallenge == null ? "Waiting for book activation. Two distinct questions are preselected per challenge." : "Challenge " + ChallengeNumber + ", question " + QuestionNumber + " of 2\n" + AdminSolution(activeChallenge)));
         for (int c = 0; c < catalog.variantSets.Length; c++)
         {
@@ -234,6 +242,7 @@ public sealed partial class SetssssChallengeOne
     }
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         pages.Add(new AdminAnswerPage("Current question — Sets", !HasActiveQuestion ? "Waiting for book activation. No current question." : "Challenge " + challengeNumber + ", question " + (conditionIndex + 1) + " of " + QuestionsPerChallenge + "\n" + AdminSolution(challengeNumber, activeCondition, activeComplement)));
         for (int c = 1; c <= 5; c++)
         {
@@ -268,6 +277,7 @@ namespace LogicLegends.Inference
         }
         public void AppendAdminAnswers(List<AdminAnswerPage> pages)
         {
+        if (!AdminAuthorization.IsAuthorized) return;
             InferenceQuestion current = Question ?? (stageQuestions != null && SolvedRounds < stageQuestions.Length ? stageQuestions[SolvedRounds] : null);
             pages.Add(new AdminAnswerPage("Current question — Rules of Inference", current == null ? "No current question." : "Challenge " + (SolvedRounds + 1) + (HasStarted ? " (active)" : " (waiting for book)") + "\n" + AdminSolution(current)));
             for (int c = 0; c < InferenceStageQuestions.Banks.Length; c++)

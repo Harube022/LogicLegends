@@ -83,7 +83,7 @@ Create/update the **live** PayMongo webhook to `https://YOUR-HOST/webhook`. Chan
 
 `database.rules.json` is a **reviewable commerce protection baseline**, not automatically deployed. It permits owner reads, integer coin rewards, stage progression, and selected profile/equipment writes. It blocks direct client writes to gems, inventory, payment-grant markers and orders. Review/merge it with the actual database rules and other app features. Broad root or user-level `.write` grants in other rules would bypass narrower protection, so they must be removed. Database rules must be deployed separately; this backend never changes them by itself.
 
-The updated StageCompleteManager, Coin and GraphCompletion scripts grant only **coins** and stage progression. Those fields remain client controlled to preserve the existing gameplay; this is not a coin/progression anti-cheat system. The server catalog uses gems for the active clothing items, and there is no coin-to-gem conversion endpoint. Gem purchases, spending, ownership and payment-grant markers are server controlled.
+Trial completion coins now use the authenticated trial endpoints described below. The existing `Coin` world pickup and stage progression paths remain compatible; they never grant gems. This is not a server-authoritative validation of puzzle answers or world pickups. The server catalog uses gems for the active clothing items, and there is no coin-to-gem conversion endpoint. Gem purchases, spending, ownership and payment-grant markers are server controlled.
 
 Keep `COMMERCE_ENABLED=false` on Render until the updated reward scripts, backend and protected rules are deployed together and verified. Older game builds still attempt client gem writes or whole-account transactions and must be updated. No stage scene files need to be edited to apply the zero-gem reward policy.
 
@@ -105,3 +105,75 @@ npm.cmd test
 ```
 
 The suite checks webhook signatures and modes, exact payment amounts, ID-based server pricing, insufficient balances, character eligibility, duplicate grants, ownership/equipment, cross-player order access and simultaneous spending. HTTP integration tests mock only PayMongo and token verification; they use real database emulator transactions. Completing a PayMongo sandbox checkout from Unity is still the final manual integration check for this updated UI.
+
+
+## Trial completion coins and authenticated Admin
+
+The same service now provides `/trials/access`, `/trials/start`, `/trials/retry`,
+`/trials/admin-used`, and `/trials/complete`. They use the existing Firebase ID token,
+account UID, service credentials, and `users/<uid>/coins` balance. There is no second
+wallet. Deploy the updated **Backend/commerce** service together with the new Unity
+build. The existing `CommerceSettings` URL stays the same; no extra public service,
+payment configuration, or gem migration is required. This repository change does
+not redeploy the live host.
+
+The base trial reward is 1,000 coins. The server computes
+`floor(1000 * 0.75^retryCount)` after the entire trial: 1,000, 750, 562, 421, 316,
+and so on. Individual questions/challenges do not call this reward path. Explicit
+checkpoint retry, start-over, and Game Over restart actions add an idempotent retry
+operation. Help, reading, ordinary answer corrections, and tutorial replay/skip do
+not add retries. A deliberate new trial selection/replay starts a new attempt.
+
+Each account's attempt ledger is stored below `users/<uid>/trialRuns/<trial>`.
+The completion receipt and coin increment commit in a single account transaction.
+Repeated completion requests, result-panel reopen, scene reload, and a lost response
+after a successful commit return the same receipt without a second increment.
+Unfinished Unity requests persist in an account-scoped local outbox and reconnect
+after login, including from the main menu. No balance is saved locally. Old pending
+completions finish before a new run replaces their active-attempt pointer. Existing
+gems, inventory, equipment, and progression fields survive the transaction.
+
+Admin access is granted only to authenticated Firebase account records with one of
+these normalized emails:
+
+- `sngbdsa137@gmail.com`
+- `russelbarrameda593@gmail.com`
+- `famatigabrrameda@gmail.com`
+
+The backend verifies the ID token, including revocation, then reads the Firebase
+Auth user record. Request-body email, profile email, and Unity visibility/build
+switches cannot grant access. Both Auth and Database apps use the configured service
+identity, including when supplied through `FIREBASE_SERVICE_ACCOUNT_JSON`. Unity
+keeps a short-lived backend decision, invalidates it on identity/session or scene
+changes, and closes an Admin panel if access is lost. Account services must be
+reachable to obtain or refresh Admin permission; there is no local-email fallback.
+
+Every Admin mutation requires the shared authorization check. A clear/skip waits
+for `/trials/admin-used` to persist the exclusion **before** invoking gameplay.
+That exclusion survives retries/reloads and makes the entire attempt's normal coin
+reward zero. Opening the read-only question viewer does not itself clear content,
+change progression, count as a retry, or grant coins. A later deliberate new run is
+eligible again. Existing Admin progression behavior remains unchanged.
+
+The supplied database rules already deny client writes to the new `trialRuns`
+ledger through their default-deny policy. Do not add a broad write permission at
+`users/<uid>`, because that would also let clients forge receipts. The older
+world-pickup coin/progression permissions are unchanged. Completion remains a
+report from the shipped game; these endpoints do not independently solve or grade
+the stage's proof, placement, or connection data.
+
+### Trial verification
+
+`node --test` covers the pure reward/authorization rules. With the local database
+emulator on `127.0.0.1:9000`, set `RUN_EMULATOR_TESTS=1` and run `node --test` to also
+exercise real Firebase transactions and the authenticated HTTP routes. The suite
+uses generated fixture UIDs and mocked Auth records/token verification, never real
+accounts. It checks all ten trials and all three approved identities, ordinary and
+disabled accounts, spoofed email fields, duplicate and concurrent completions,
+retries, receipt recovery, and preservation of existing wallet/profile fields.
+
+In the Unity Editor, `TrialAccountPlayChecks.Begin()` runs isolated Play Mode client
+checks using a transport compiled only into the Editor. It checks the durable
+outbox, retries and lost responses, account switches, all Admin mutation entry
+points, and portrait/landscape coin text. Reports are written to
+`Library/TrialAccountChecks.txt`; fake-account preferences are removed afterward.

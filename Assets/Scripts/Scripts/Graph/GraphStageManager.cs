@@ -263,6 +263,7 @@ namespace LogicLegends.Graph
         public bool CanDebugClearChallenge => CanAct && State == GraphStageState.ACTIVE;
         public void DebugClearCurrentChallenge()
         {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return;
             if (!CanDebugClearChallenge) return;
             Correct++; timer.Pause(); State = GraphStageState.CHALLENGE_COMPLETE;
             Feedback = "Challenge cleared by Admin."; StartCoroutine(Advance());
@@ -364,6 +365,7 @@ namespace LogicLegends.Graph
         }
         public void RestartStage()
         {
+        TrialRewards.RecordRetry(9);
             Navigate("Graph", 9);
         }
         public void ReturnToMenu()
@@ -373,6 +375,7 @@ namespace LogicLegends.Graph
         public void PlayNextStage()
         {
             if (State != GraphStageState.STAGE_COMPLETE) return;
+            TrialRewards.PrepareNewAttempt(10);
             Navigate(NextStageScene, 10);
         }
         private void Navigate(string scene, int destinationStage)

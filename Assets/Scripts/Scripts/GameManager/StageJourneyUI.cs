@@ -466,6 +466,7 @@ public sealed class StageJourneyUI : MonoBehaviour
 
     private void RestartInference()
     {
+        TrialRewards.RecordRetry(3);
         if (navigating) return; navigating = true;
         Time.timeScale = 1; GameInput.Instance?.SetGameplayInputBlocked(false);
         StageSelectionState.Select(3);

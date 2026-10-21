@@ -78,6 +78,7 @@ public static class StagePresentation
         var destination = TrialCatalog.Get(trial + 1);
         if (!Application.CanStreamedLevelBeLoaded(destination.Scene))
         { Debug.LogError("Next trial is missing from Build Settings: " + destination.Scene); return; }
+        TrialRewards.PrepareNewAttempt(destination.Number);
         Time.timeScale = 1;
         GameInput.Instance?.SetGameplayInputBlocked(false);
         StageSelectionState.Select(destination.Number);

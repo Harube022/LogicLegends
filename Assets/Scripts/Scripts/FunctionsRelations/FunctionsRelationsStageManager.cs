@@ -832,6 +832,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     public void RetryStage()
     {
+        TrialRewards.RecordRetry(8);
         Time.timeScale = 1f;
         if (input != null) input.SetGameplayInputBlocked(false);
         TeleportManager.Navigate(SceneManager.GetActiveScene().name);

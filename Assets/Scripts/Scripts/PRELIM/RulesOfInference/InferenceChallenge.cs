@@ -126,6 +126,7 @@ namespace LogicLegends.Inference
 
         public bool DebugClearCurrentChallenge()
         {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return false;
             if (!HasStarted || PuzzleCompleted) return false;
             CompleteRound();
             return true;

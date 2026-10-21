@@ -20,10 +20,10 @@ public class StageCompleteManager : MonoBehaviour
     [SerializeField] private TMP_Text gemsRewardText;
 
     [Header("Reward Settings")]
-    [SerializeField] private int baseCoins = 500;
+    [SerializeField, HideInInspector] private int baseCoins = 1000;
     // Retained for serialized scene compatibility. Stage completions award no gems.
     [SerializeField, HideInInspector] private int baseGems = 0;
-    [SerializeField] private int coinPenaltyPerHeart = 50;
+    [SerializeField, HideInInspector] private int coinPenaltyPerHeart = 50;
     [SerializeField, HideInInspector] private int gemPenaltyPerHeart = 0;
     private bool completed;
 #if UNITY_EDITOR
@@ -57,8 +57,8 @@ public class StageCompleteManager : MonoBehaviour
         float timeTaken = LevelManager.Instance != null ? LevelManager.Instance.totalStageTime : 0f;
         int heartsLost = LevelManager.Instance != null ? LevelManager.Instance.totalHeartsLostThisStage : 0;
 
-        // 4. Calculate Final Rewards (Mathf.Max ensures it never drops below 0!)
-        int finalCoins = Mathf.Max(0, baseCoins - (heartsLost * coinPenaltyPerHeart));
+        // 4. The shared attempt service determines completion coins from retries.
+        int trial = TrialRewards.CurrentTrial > 0 ? TrialRewards.CurrentTrial : thisStageNumber;
         // Ignore legacy nonzero scene values, including negative penalties.
         const int finalGems = 0;
 
@@ -68,14 +68,14 @@ public class StageCompleteManager : MonoBehaviour
         if (timeText != null) timeText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
 
         if (heartsLostText != null) heartsLostText.text = heartsLost.ToString();
-        if (coinsRewardText != null) coinsRewardText.text = "+" + finalCoins.ToString();
+        if (coinsRewardText != null) coinsRewardText.text = TrialRewards.Status(trial);
         if (gemsRewardText != null) gemsRewardText.text = "+" + finalGems.ToString();
 
         // 6. Push to Google Firebase
-        SaveProgressToFirebase(finalCoins);
+        SaveProgressToFirebase(trial);
     }
 
-    private void SaveProgressToFirebase(int coinsEarned)
+    private void SaveProgressToFirebase(int trial)
     {
 #if UNITY_EDITOR
         if (SuppressPersistenceForValidation) return;
@@ -86,7 +86,8 @@ public class StageCompleteManager : MonoBehaviour
 
         // Only coins are awarded by gameplay. Never rewrite the gem balance,
         // even with +0: a stale write could erase a confirmed top-up.
-        AwardCoins(coinsEarned);
+        TrialRewards.Complete(trial);
+        if (coinsRewardText != null) TrialLegacyRewardDisplay.Bind(coinsRewardText, trial);
     }
 
     public static void AwardCoins(int amount)
@@ -144,6 +145,8 @@ public class StageCompleteManager : MonoBehaviour
     // --- BUTTON ACTIONS ---
     public void LoadNextStage()
     {
+        try { TrialRewards.PrepareNewAttempt(TrialCatalog.ForScene(nextSceneName).Number); }
+        catch (System.ArgumentException) { /* Non-trial destinations keep their existing navigation. */ }
         // Check if TeleportManager exists in the scene to prevent null reference errors
         if (TeleportManager.Instance != null)
         {

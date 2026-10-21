@@ -44,6 +44,7 @@ public class AreaVisibilityManager : MonoBehaviour
     {
         if (StageSelectionState.SelectedStage != 1) return;
 
+        TrialRewards.PrepareNewAttempt(2);
         StageSelectionState.Select(2);
         StageCompleteManager.UnlockStage(2);
         TeleportManager.EnsureExists().LoadSceneWithFade("TruthTable");
@@ -51,6 +52,7 @@ public class AreaVisibilityManager : MonoBehaviour
 
     public void TransitionToRulesOfInference()
     {
+        TrialRewards.PrepareNewAttempt(3);
         StageSelectionState.Select(3);
         StageCompleteManager.UnlockStage(3);
 

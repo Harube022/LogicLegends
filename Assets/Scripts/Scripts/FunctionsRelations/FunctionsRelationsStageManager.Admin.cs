@@ -9,6 +9,7 @@ public sealed partial class FunctionsRelationsStageManager
 
     public bool DebugClearCurrentChallenge()
     {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return false;
         if (!CanDebugClearChallenge) return false;
         state = FunctionsRelationsState.VALIDATING;
         CloseDiamondChoices();
@@ -45,6 +46,7 @@ public sealed partial class FunctionsRelationsStageManager
 
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         if (catalog == null) return;
         pages.Add(new AdminAnswerPage("Current question — Functions and Relations",
             "Challenge " + (challengeIndex + 1) + " of " + ChallengeCount + " — " + state + "\n" +

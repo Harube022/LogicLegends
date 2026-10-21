@@ -183,6 +183,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
     private void RestartStage()
     {
         if (state != StageState.GameOver) return;
+        TrialRewards.RecordRetry(2);
         LastCompletedRemainingSeconds = 0f;
         TruthTableDoorInteraction.ClearSessionForRestart();
         GameInput input = FindFirstObjectByType<GameInput>();

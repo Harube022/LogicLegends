@@ -96,6 +96,7 @@ public sealed partial class TruthTableChallengePhase : IPuzzlePhase
 
     public void DebugCompleteCurrentChallenge()
     {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return;
         if (puzzle.PuzzleCompleted) return;
         puzzle.ClearActiveBlocksForDebug();
         Array.Clear(placedBlocks, 0, placedBlocks.Length);
