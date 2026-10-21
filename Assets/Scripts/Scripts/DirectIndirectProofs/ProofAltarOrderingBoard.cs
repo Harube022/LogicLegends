@@ -6,14 +6,14 @@ using UnityEngine.UI;
 /// <summary>Touch and mouse ordering surface shown when a player uses a proof altar.</summary>
 public sealed class ProofAltarOrderingBoard : MonoBehaviour
 {
-    private readonly ProofStepDragCard[] cards = new ProofStepDragCard[5];
+    [SerializeField] private ProofStepDragCard[] cards = new ProofStepDragCard[5];
     private Canvas canvas;
     private RectTransform panel;
     private CanvasGroup group;
     private TMP_Text heading;
     private TMP_Text instruction;
     private Button closeButton;
-    private readonly Button[] strategyButtons = new Button[3];
+    [SerializeField] private Button[] strategyButtons = new Button[3];
     private DirectIndirectProofStageController stage;
     private TrialProofTabletData[] steps;
     private int[] order;
@@ -35,6 +35,24 @@ public sealed class ProofAltarOrderingBoard : MonoBehaviour
         if (canvas == null) { enabled = false; return; }
         Build();
         panel.parent.gameObject.SetActive(false);
+    }
+
+    private void OnEnable()
+    {
+        // Retain runtime-built row references across an Editor script reload.
+        if (panel == null) return;
+        for (int row = 0; row < cards.Length; row++)
+            if (cards[row] == null)
+            {
+                var child = panel.Find("Draggable Step " + (row + 1));
+                if (child != null) cards[row] = child.GetComponent<ProofStepDragCard>();
+            }
+        for (int method = 0; method < strategyButtons.Length; method++)
+            if (strategyButtons[method] == null)
+            {
+                var child = panel.Find("Strategy " + method);
+                if (child != null) strategyButtons[method] = child.GetComponent<Button>();
+            }
     }
 
     private void Update()
@@ -116,13 +134,15 @@ public sealed class ProofAltarOrderingBoard : MonoBehaviour
 
     public void Swap(int from, Vector2 screenPoint, Camera eventCamera)
     {
-        if (!open || from < 0 || from >= order.Length ||
-            !RectTransformUtility.ScreenPointToLocalPointInRectangle(panel, screenPoint, eventCamera,
-                out Vector2 local))
-        { Render(); return; }
-        if (Mathf.Abs(local.x) > 530f || local.y > 265f || local.y < -290f)
-        { Render(); return; }
-        int to = Mathf.Clamp(Mathf.RoundToInt((200f - local.y) / 105f), 0, order.Length - 1);
+        if (!open || order == null || from < 0 || from >= order.Length) { Render(); return; }
+        Camera camera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : eventCamera != null ? eventCamera : canvas.worldCamera;
+        int to = from;
+        for (int row = 0; row < order.Length; row++)
+        {
+            if (row == from || !cards[row].gameObject.activeInHierarchy) continue;
+            if (RectTransformUtility.RectangleContainsScreenPoint((RectTransform)cards[row].transform, screenPoint, camera))
+            { to = row; break; }
+        }
         if (to != from)
         {
             int id = order[from];
@@ -273,15 +293,15 @@ public sealed class ProofStepDragCard : MonoBehaviour, IBeginDragHandler, IDragH
     }
 
     public void SetText(string value) { label.text = value; }
-    public void ResetPosition() { rect.anchoredPosition = home; group.alpha = 1f; }
-    public void OnBeginDrag(PointerEventData eventData) { group.alpha = .78f; transform.SetAsLastSibling(); }
+    public void ResetPosition() { rect.anchoredPosition = home; group.alpha = 1f; group.blocksRaycasts = true; }
+    public void OnBeginDrag(PointerEventData eventData) { group.alpha = .78f; group.blocksRaycasts = false; transform.SetAsLastSibling(); }
     public void OnDrag(PointerEventData eventData)
     {
         rect.anchoredPosition += eventData.delta / Mathf.Max(.01f, rect.parent.lossyScale.x);
     }
     public void OnEndDrag(PointerEventData eventData)
     {
-        group.alpha = 1f;
+        group.alpha = 1f; group.blocksRaycasts = true;
         board.Swap(index, eventData.position, eventData.pressEventCamera);
     }
 }

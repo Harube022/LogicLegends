@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,6 +24,7 @@ public sealed class FunctionsRelationsPresentation : MonoBehaviour
         labels = GetComponentsInChildren<TMP_Text>(true);
         var title=hud!=null?hud.Find("CurrentStageLabel")?.GetComponent<TMP_Text>():null;
         if(title!=null)title.text=TrialCatalog.ForScene("Functions and Relations").Title;
+        if (hud != null) StagePresentation.Hud(hud, title, hud.GetComponentsInChildren<TMP_Text>(true).FirstOrDefault(t => t.name == "StageCountdown"), progress);
     }
 
     private void LateUpdate()
@@ -32,7 +34,7 @@ public sealed class FunctionsRelationsPresentation : MonoBehaviour
             progress.text = "CHALLENGE " + Mathf.Min(stage.ChallengeIndex + 1, stage.ChallengeCount) + " OF " + stage.ChallengeCount;
         hud.gameObject.SetActive(!stage.IsBoardOpen);
         float width = safeArea.rect.width;
-        Place(hud, new Vector2(.5f, 1f), new Vector2(0f, -24f), new Vector2(580f, 164f), new Vector2(.5f, 1f));
+        Place(hud, Vector2.one, new Vector2(-24f, -24f), new Vector2(500f, 136f), Vector2.one);
         Place(status, new Vector2(.5f, 1f), new Vector2(0f, -204f), new Vector2(Mathf.Min(880f, width - 64f), 94f), new Vector2(.5f, 1f));
         Place(interaction, new Vector2(.5f, 0f), new Vector2(0f, 32f), new Vector2(Mathf.Min(680f, width * .42f), 100f), new Vector2(.5f, 0f));
         Place(viewBoard, new Vector2(.5f, 0f), new Vector2(0f, 148f), new Vector2(240f, 88f), new Vector2(.5f, 0f));

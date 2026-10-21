@@ -260,6 +260,13 @@ namespace LogicLegends.Graph
             else ui.HideAnnouncement();
             StartCoroutine(Advance());
         }
+        public bool CanDebugClearChallenge => CanAct && State == GraphStageState.ACTIVE;
+        public void DebugClearCurrentChallenge()
+        {
+            if (!CanDebugClearChallenge) return;
+            Correct++; timer.Pause(); State = GraphStageState.CHALLENGE_COMPLETE;
+            Feedback = "Challenge cleared by Admin."; StartCoroutine(Advance());
+        }
         private IEnumerator WrongFeedback()
         {
             LocalPlayer.ToggleControl(false);

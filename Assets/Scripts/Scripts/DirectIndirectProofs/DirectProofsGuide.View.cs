@@ -47,6 +47,7 @@ public sealed partial class DirectProofsGuide
     {
         HelpButton = Instantiate(Resources.Load<GameObject>("StageUI/PrelimHelpButton"), SafeArea, false).GetComponent<Button>();
         HelpButton.name = "Direct Proofs Help"; HelpButton.onClick.AddListener(OpenHelp);
+        StagePresentation.Help(HelpButton, settings);
         root = StageUITheme.Rect("Direct Proofs Guide Overlay", SafeArea); StageUITheme.Stretch(root, Vector2.zero, Vector2.one);
         shade = root.gameObject.AddComponent<Image>(); shade.color = new Color(.01f,.035f,.045f,.88f);
         helpCard = Instantiate(Resources.Load<GameObject>("StageUI/PrelimHelpBook"), root, false).GetComponent<RectTransform>();

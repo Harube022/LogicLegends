@@ -62,6 +62,7 @@ public sealed class ProofsStageUI : MonoBehaviour
         StageUITheme.Stretch(Progress.rectTransform, new Vector2(.32f, .08f), new Vector2(.94f, .6f));
         Progress.enableAutoSizing=true;Progress.fontSizeMin=22;Progress.fontSizeMax=24;
         Progress.color = StageUITheme.Ink;
+        StagePresentation.Hud(Hud, title, clock, Progress);
         ViewButton = StageUITheme.Button("Proofs View Board", SafeArea, "View Board", RequestBoard);
         ViewButton.image.pixelsPerUnitMultiplier = 4.5f;
         Bottom((RectTransform)ViewButton.transform, new Vector2(0, 190), new Vector2(280, 88));

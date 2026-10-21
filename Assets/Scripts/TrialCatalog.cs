@@ -1,6 +1,6 @@
 using System;
 
-/// <summary>Display order from the main menu. Gameplay/save IDs remain unchanged.</summary>
+/// <summary>Trial numbers shared by the main menu, HUDs, and saved progression.</summary>
 public static class TrialCatalog
 {
     public sealed class Trial
@@ -22,6 +22,7 @@ public static class TrialCatalog
         new Trial(9,"Graph","Graphs"),
         new Trial(10,"Trees","Trees")
     };
+    public static int Count => trials.Length;
     public static Trial Get(int number)
     {
         if(number<1||number>trials.Length)throw new ArgumentOutOfRangeException(nameof(number));

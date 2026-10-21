@@ -150,6 +150,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     private void Start()
     {
+        StagePresentation.AdoptResult(resultsPanel, resultsText, retryButton, menuButton);
         if (!enabled) return;
         var trialHud=StageUITheme.Rect("CurrentStageHud",timerText.transform.parent);
         StageUITheme.CompactSurface(trialHud.gameObject.AddComponent<Image>());
@@ -157,6 +158,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         var trialTitle=StageUITheme.Text("CurrentStageLabel",trialHud,TrialCatalog.ForScene("Direct&Indirect").Title,26);
         timerText.transform.SetParent(trialHud,false);progressText.transform.SetParent(trialHud,false);
         PrelimUIPresentation.CompactHud(trialHud,(RectTransform)trialHud.parent,trialTitle,timerText,progressText);
+        StagePresentation.Hud(trialHud, trialTitle, timerText, progressText);
         selectTabletButton.onClick.AddListener(SelectReadTablet);
         closeReaderButton.onClick.AddListener(CloseReader);
         retryButton.onClick.AddListener(RetryStage);
@@ -726,6 +728,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
             played / 60, played % 60, correctCount, mistakeCount) :
             "TIME'S UP\nQuestions completed: " + correctCount + "/10\nChallenges completed: " + Mathf.Min(challengeIndex, 5) + "/5\nMistakes: " + mistakeCount;
         resultsPanel.SetActive(true);
+        if (won) StagePresentation.Completed(resultsPanel, 5);
         if (!won) return;
 #if UNITY_EDITOR
         if (SuppressProgressionForValidation) return;

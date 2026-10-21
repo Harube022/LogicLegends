@@ -43,6 +43,7 @@ public sealed class SetssssHudView : MonoBehaviour
         Style(Challenge, true, 22f, 24f);
         Title = StageUITheme.Text("CurrentStageLabel", Hud, TrialCatalog.ForScene("Setssss").Title, 26f);
         Style(Title, false, 22f, 26f);
+        StagePresentation.Hud(Hud, Title, Timer, Challenge);
         // The legacy reminder duplicates the Information Board. Retain its
         // serialized reference, but never show it as another problem display.
         if (problem != null) problem.gameObject.SetActive(false);

@@ -90,6 +90,8 @@ public sealed class FunctionsRelationsHelpUI : MonoBehaviour
             helpRect.sizeDelta = new Vector2(160f, 110f);
         }
 
+        StagePresentation.Help(helpButton, settings as RectTransform);
+
         RectTransform root = StageUITheme.Rect("FunctionsRelations How To Play Overlay", safeArea);
         StageUITheme.Stretch(root, Vector2.zero, Vector2.one);
         Image dimmer = root.gameObject.AddComponent<Image>();

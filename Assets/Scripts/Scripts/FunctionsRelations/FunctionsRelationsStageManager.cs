@@ -30,7 +30,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
     [SerializeField, Min(0f)] private float wrongAnswerPenalty = 10f;
     [SerializeField, Min(0f)] private float wrongFlashSeconds = .65f;
     [SerializeField, Min(0f)] private float challengeCompleteSeconds = 1.5f;
-    [SerializeField, Min(1)] private int stageNumber = 5;
+    [SerializeField, Min(1)] private int stageNumber = 8;
 
     [Header("Board UI")]
     [SerializeField] private CanvasGroup board;
@@ -199,6 +199,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     private void Start()
     {
+        StagePresentation.AdoptResult(resultsPanel, resultsText, retryButton, menuButton);
         BindInput();
         player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
         if (catalog == null || catalog.ChallengeCount != 5 || mapping == null || board == null || bookStatue == null ||
@@ -739,6 +740,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         if (propertyChoices != null) propertyChoices.SetActive(false);
         if (statusText != null) statusText.text = "Stage complete";
         StageCompleteManager.UnlockStage(Mathf.Min(stageNumber + 1, StageSelectionState.LastStage));
+        StagePresentation.Completed(resultsPanel, 8);
         onStageComplete?.Invoke();
     }
 

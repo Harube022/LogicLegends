@@ -24,6 +24,7 @@ namespace LogicLegends.Trees
         Button focusConfirm, focusConnect, focusRemove, focusClear, focusExit, focusGuide;
         readonly Dictionary<string,Button> focusNodes=new Dictionary<string,Button>();
         bool resultVisible;
+        TMP_Text trialProgress;
         string laidOutTitle,laidOutObjective;
         float laidOutWidth;
         string laidOutFeedback;
@@ -45,8 +46,12 @@ namespace LogicLegends.Trees
             map.localScale=Vector3.one*.86f; ExpandableMinimap.Attach(map);
             var caption=Text(map,"Diagram title",new Vector2(.15f,.84f),new Vector2(.85f,.94f),24);caption.text=TrialCatalog.ForScene("Trees").Title;
             diagram=StageUITheme.Rect("Editable diagram",map);StageUITheme.Stretch(diagram,new Vector2(.13f,.13f),new Vector2(.87f,.82f));
-            var time=Panel("Shared countdown",mapDock,new Vector2(1,1),new Vector2(-185,-385),new Vector2(330,85));mapTimer=time;
+            var time=Panel("Shared countdown",mapDock,new Vector2(1,1),new Vector2(-185,-385),new Vector2(330,136));mapTimer=time;
             clock=Text(time,"Timer",new Vector2(.1f,.1f),new Vector2(.9f,.9f),32);
+            var trialTitle=Text(time,"CurrentStageLabel",new Vector2(.06f,.63f),new Vector2(.94f,.90f),22);trialTitle.text=TrialCatalog.ForScene("Trees").Title;
+            trialProgress=Text(time,"StageProgress",new Vector2(.40f,.12f),new Vector2(.94f,.60f),22);
+            StageUITheme.Stretch(clock.rectTransform,new Vector2(.06f,.15f),new Vector2(.38f,.60f));
+            StagePresentation.Hud(time,trialTitle,clock,trialProgress);
             actions=StageUITheme.Rect("Tree actions",owned);Place(actions,new Vector2(.5f,0),new Vector2(0,125),new Vector2(780,175));
             selection=Text(actions,"Selected endpoints",new Vector2(0,.02f),new Vector2(1,.25f),24,true);
             Place(selection.rectTransform,new Vector2(.5f,.5f),new Vector2(0,-75),new Vector2(780,40));
@@ -57,6 +62,7 @@ namespace LogicLegends.Trees
             Place((RectTransform)guide.transform,new Vector2(0,1),new Vector2(320,-90),new Vector2(280,88));
             numberRow=StageUITheme.Rect("Number answers",actions);Place(numberRow,new Vector2(.5f,.5f),new Vector2(0,-22),new Vector2(720,65));
             for(int i=0;i<=5;i++){int answer=i;Action("Answer "+i,numberRow,i.ToString(),new Vector2(-300+i*120,0),new Vector2(110,65),()=>stage.SelectAnswer(answer));}
+            StagePresentation.Help(guide, settingsButton);
             BuildFocus();BuildBook();RebuildDiagram();Refresh();
         }
         RectTransform Panel(string name,Transform parent,Vector2 anchor,Vector2 position,Vector2 size,Sprite artwork=null)
@@ -218,6 +224,7 @@ namespace LogicLegends.Trees
         public void RefreshDiagram()=>RebuildDiagram();
         public void Refresh()
         {
+            trialProgress.text="CHALLENGE "+(stage.ChallengeIndex+1)+" OF "+stage.catalog.challenges.Count;
             objectiveProgress.text="TREES  /  "+(stage.ChallengeIndex+1)+" OF "+stage.catalog.challenges.Count;
             objectiveTitle.text=stage.Challenge.title.ToUpperInvariant();objective.text=stage.Challenge.objective;
             feedback.text=stage.Feedback;
@@ -269,12 +276,14 @@ namespace LogicLegends.Trees
         public void ShowResult(bool success)
         {
             resultVisible=true;lesson.SetActive(false);RefreshVisibility();
-            var overlay=StageUITheme.Rect("Trees Result",host);StageUITheme.Stretch(overlay,Vector2.zero,Vector2.one);overlay.gameObject.AddComponent<Image>().color=new Color(0,0,0,.8f);
-            var panel=Panel("Result wood",overlay,new Vector2(.5f,.5f),Vector2.zero,new Vector2(1040,690),hudMap);
-            var title=Text(panel,"Result title",new Vector2(.08f,.72f),new Vector2(.92f,.9f),46);title.text=success?"TREES STAGE COMPLETE!":"TIME IS UP";
-            var stats=Text(panel,"Statistics",new Vector2(.12f,.3f),new Vector2(.88f,.7f),34,true);int seconds=Mathf.FloorToInt(stage.timer.ActiveSeconds);stats.text="Time Played: "+(seconds/60).ToString("00")+":"+(seconds%60).ToString("00")+"\nCorrect: "+stage.Correct+"\nMistakes: "+stage.Mistakes;
-            Action("NextOrRetryButton",panel,"PLAY AGAIN",new Vector2(-210,-225),new Vector2(360,80),stage.Restart);
-            Action("MainMenuButton",panel,"MAIN MENU",new Vector2(210,-225),new Vector2(360,80),stage.Return);result=overlay.gameObject;
+            var view=StageResultCard.Build(host,stage.Return);
+            view.Stage.text=TrialCatalog.ForScene("Trees").Title;
+            view.Heading.text=success?"STAGE COMPLETE":"TIME IS UP";
+            view.Summary.text="Time Played: "+StageJourneyUI.FormatTime(stage.timer.ActiveSeconds)+"\nCorrect: "+stage.Correct+"\nMistakes: "+stage.Mistakes;
+            view.Primary.GetComponentInChildren<TMP_Text>().text="PLAY AGAIN";
+            view.Primary.onClick.AddListener(stage.Restart);view.Extra.gameObject.SetActive(false);
+            result=view.Root.gameObject;result.SetActive(true);
+            if (success) result.GetComponent<StageResultLayout>().Complete(10);
         }
     }
 }
