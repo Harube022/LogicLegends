@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('node:crypto');
 const { catalog, fail, signature, validatePayment, grant, buy, present, mutate } = require('./wallet');
+const trials = require('./trials');
 
 function createApp(env = process.env, integrations = {}) {
   // Let a new hosting service obtain its HTTPS URL before private credentials
@@ -32,10 +33,11 @@ function createApp(env = process.env, integrations = {}) {
   const projectId = env.FIREBASE_PROJECT_ID;
   if (!projectId) throw new Error('FIREBASE_PROJECT_ID is required.');
   if (!sandbox && env.LIVE_WALLET_READY !== 'true') throw new Error('Deploy protected gem and inventory rules and the zero-gem stage reward update before enabling LIVE_WALLET_READY.');
-  const authApp = getApps().find(a => a.name === 'commerce-auth') || initializeApp({ projectId }, 'commerce-auth');
+  const credential = !sandbox && env.FIREBASE_SERVICE_ACCOUNT_JSON ? cert(JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON)) : undefined;
+  const authApp = getApps().find(a => a.name === 'commerce-auth') || initializeApp({ projectId, ...(credential ? { credential } : {}) }, 'commerce-auth');
   const options = sandbox ? { projectId: 'demo-logic-legends', databaseURL: 'http://127.0.0.1:9000?ns=demo-logic-legends-default-rtdb' }
     : { projectId, databaseURL: env.FIREBASE_DATABASE_URL,
-        ...(env.FIREBASE_SERVICE_ACCOUNT_JSON ? { credential: cert(JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON)) } : {}) };
+        ...(credential ? { credential } : {}) };
   if (!sandbox && !env.FIREBASE_DATABASE_URL?.startsWith('https://')) throw new Error('Real Firebase database URL is required.');
   const dataApp = getApps().find(a => a.name === 'commerce-data') || initializeApp(options, 'commerce-data');
   const db = getDatabase(dataApp);
@@ -103,13 +105,33 @@ function createApp(env = process.env, integrations = {}) {
   app.use(asyncRoute(async (req, res) => {
     const token = /^Bearer (.+)$/.exec(req.get('Authorization') || '')?.[1];
     let uid;
-    try { uid = (await (integrations.verifyIdToken || (t => auth.verifyIdToken(t)))(token || '')).uid; } catch { throw fail('Please sign in again.', 401); }
+    try { uid = (await (integrations.verifyIdToken || (t => auth.verifyIdToken(t, true)))(token || '')).uid; } catch { throw fail('Please sign in again.', 401); }
+    if (!uid) throw fail('Please sign in again.', 401);
     const now = Date.now();
     for (const [key, value] of buckets) if (value.until < now) buckets.delete(key);
     const bucket = buckets.get(uid) || { until: now + 60000, count: 0 };
     if (++bucket.count > 90) throw fail('Please wait before trying again.', 429);
     buckets.set(uid, bucket);
     const userRef = users.child(uid);
+    if (req.path.startsWith('/trials/')) {
+      // Email comes from Firebase's account record, never request fields or profile text.
+      const user = await (integrations.getUser || (id => auth.getUser(id)))(uid);
+      const admin = !user.disabled && trials.isAdminEmail(user.email);
+      if (req.method === 'GET' && req.path === '/trials/access')
+        return res.json({ admin, uid });
+      const operations = { '/trials/start': trials.startAttempt, '/trials/retry': trials.retryAttempt,
+        '/trials/admin-used': trials.markAdmin, '/trials/complete': trials.finishAttempt };
+      const operation = operations[req.path];
+      if (req.method !== 'POST' || !operation) throw fail('Unknown trial endpoint.', 404);
+      if (user.disabled) throw fail('Please sign in again.', 401);
+      if (req.path === '/trials/admin-used' && !admin) throw fail('Admin access is required.', 403);
+      // The SDK may first invoke a transaction with an empty local cache.
+      // Preserve that value so it can fetch the server account and retry.
+      const result = await mutate(userRef, account => account == null ? account : operation(account, req.body || {}));
+      if (!result.committed) throw fail('Could not save this trial attempt. Please retry.', 409);
+      const id = req.path === '/trials/start' && req.body.newAttempt !== true ? null : req.body.attemptId;
+      return res.json(trials.presentAttempt(result.snapshot.val(), req.body.trial, id));
+    }
     // Only the local sandbox may bootstrap an empty test wallet from the
     // character selected by the already authenticated client. No coins or gems
     // are accepted from the client, and no real profile is copied or changed.
