@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using LogicLegends.Inference;
 using TMPro;
 using UnityEngine;
@@ -67,7 +67,7 @@ public sealed class StageJourneyUI : MonoBehaviour
 
     private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name != "PRELIM" && scene.name != "RulesOfInference") return;
+        if (scene.name != "PRELIM" && scene.name != "TruthTable" && scene.name != "RulesOfInference") return;
         if (FindFirstObjectByType<StageJourneyUI>() != null) return;
         var go = new GameObject("StageJourneyUI", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
         SceneManager.MoveGameObjectToScene(go, scene);
@@ -461,15 +461,16 @@ public sealed class StageJourneyUI : MonoBehaviour
         if (navigating) return; navigating = true;
         Time.timeScale = 1; GameInput.Instance?.SetGameplayInputBlocked(false);
         LevelTimerManager.ResetSession();
-        SceneManager.LoadScene("Main Menu");
+        TeleportManager.Navigate("Main Menu");
     }
 
     private void RestartInference()
     {
+        TrialRewards.RecordRetry(3);
         if (navigating) return; navigating = true;
         Time.timeScale = 1; GameInput.Instance?.SetGameplayInputBlocked(false);
         StageSelectionState.Select(3);
-        SceneManager.LoadScene("RulesOfInference");
+        TeleportManager.Navigate("RulesOfInference");
     }
 
     private void OnInferenceComplete()

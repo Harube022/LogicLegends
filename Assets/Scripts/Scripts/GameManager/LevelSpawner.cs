@@ -127,6 +127,12 @@ public class LevelSpawner : MonoBehaviour
 
     private void SetupPlayer(GameObject playerObject)
     {
+        // Stage 2's spawn faces the table. Start the orbit behind that facing,
+        // rather than carrying the old room's world-space camera direction.
+        if (gameObject.scene.name == "TruthTable")
+            foreach (var look in playerObject.GetComponentsInChildren<CameraTargetController>(true))
+                look.SetViewAngles(15f, playerObject.transform.eulerAngles.y);
+
         Transform cameraTarget = playerObject.transform.Find("CameraTarget");
         Transform targetToFollow = cameraTarget != null ? cameraTarget : playerObject.transform;
 

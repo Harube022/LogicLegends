@@ -17,6 +17,7 @@ public partial class DynamicLogicPuzzle : MonoBehaviour
 
     public bool DebugClearCurrentChallenge()
     {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return false;
         if (!CanDebugClearChallenge) return false;
         ClearColumnFeedback();
         challengePhase.DebugCompleteCurrentChallenge();
@@ -351,6 +352,7 @@ public partial class DynamicLogicPuzzle : MonoBehaviour
 
     public void ClearActiveBlocksForDebug()
     {
+        if (!AdminAuthorization.TryUseGameplayAdmin()) return;
         if (blockSpawner != null) blockSpawner.ClearActiveBlocks(true);
     }
 

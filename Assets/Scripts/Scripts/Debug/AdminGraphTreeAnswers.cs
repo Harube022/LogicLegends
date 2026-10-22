@@ -9,6 +9,7 @@ public static class AdminGraphTreeAnswers
 {
     public static void Graph(List<AdminAnswerPage> pages)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         var stage = Object.FindFirstObjectByType<GraphStageManager>(); if (stage == null || !stage.Ready) return;
         var c = stage.Challenge;
         var path = new List<string> { c.start };
@@ -30,6 +31,7 @@ public static class AdminGraphTreeAnswers
     }
     public static void Trees(List<AdminAnswerPage> pages)
     {
+        if (!AdminAuthorization.IsAuthorized) return;
         var stage = Object.FindFirstObjectByType<TreeStageManager>(); if (stage == null || !stage.Ready) return;
         var c = stage.Challenge; string answer = "";
         if (c.type == TreeChallengeType.Identify)

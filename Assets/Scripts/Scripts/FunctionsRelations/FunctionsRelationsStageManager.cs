@@ -832,16 +832,17 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     public void RetryStage()
     {
+        TrialRewards.RecordRetry(8);
         Time.timeScale = 1f;
         if (input != null) input.SetGameplayInputBlocked(false);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        TeleportManager.Navigate(SceneManager.GetActiveScene().name);
     }
 
     public void ReturnToMenu()
     {
         Time.timeScale = 1f;
         if (input != null) input.SetGameplayInputBlocked(false);
-        SceneManager.LoadScene("Main Menu");
+        TeleportManager.Navigate("Main Menu");
     }
 
     private void SetBoardOpen(bool value)

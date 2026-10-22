@@ -339,8 +339,8 @@ namespace LogicLegends.Induction
         public void Navigate(string scene)
         {
             if (Reading) CloseReading(); Time.timeScale = 1; GameInput.Instance?.SetGameplayInputBlocked(false);
-            if (TeleportManager.Instance != null) TeleportManager.Instance.LoadSceneWithFade(scene); else SceneManager.LoadScene(scene);
+            if (TeleportManager.Instance != null) TeleportManager.Instance.LoadSceneWithFade(scene); else TeleportManager.Navigate(scene);
         }
-        public void Restart() => Navigate("Induction");
+        public void Restart() { TrialRewards.RecordRetry(6); Navigate("Induction"); }
     }
 }

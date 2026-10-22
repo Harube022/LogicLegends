@@ -12,7 +12,7 @@ public static class TrialCatalog
     }
     private static readonly Trial[] trials = {
         new Trial(1,"PRELIM","Propositional Logic"),
-        new Trial(2,"PRELIM","Truth Table"),
+        new Trial(2,"TruthTable","Truth Table"),
         new Trial(3,"RulesOfInference","Rules of Inference"),
         new Trial(4,"Formal vs. Informal Proofs","Formal vs Informal Proofs"),
         new Trial(5,"Direct&Indirect","Direct and Indirect Proofs"),
