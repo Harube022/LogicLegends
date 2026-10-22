@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Photon.Pun;
 using TMPro;
 using UnityEngine;
@@ -106,14 +107,14 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         back.interactable = cancelJoin.interactable = !service.Busy;
         if (!inRoom) return;
         code.text = PhotonNetwork.CurrentRoom.Name;
-        var players = service.Players;
+        var players = PhotonNetwork.PlayerList.OrderBy(p => p.ActorNumber).ToArray();
         count.text = players.Length + " / 4 PLAYERS";
         for (int i = 0; i < slots.Length; i++)
         {
             if (i >= players.Length) { slots[i].text = "OPEN SLOT\nWaiting for an adventurer..."; slots[i].color = new Color(.45f, .36f, .25f); continue; }
             var player = players[i];
             slots[i].text = LobbyRules.DisplayName(player) + "\n" + (player.IsMasterClient ? "HOST · " : "") +
-                (player.IsLocal ? "YOU · " : "") + (LobbyRules.IsReady(player) ? "READY" : "NOT READY");
+                (player.IsLocal ? "YOU · " : "") + (player.IsInactive ? "RECONNECTING" : LobbyRules.IsReady(player) ? "READY" : "NOT READY");
             slots[i].color = StageUITheme.ReadingInk;
         }
         ready.interactable = !service.Starting && !service.Busy;
@@ -121,7 +122,7 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         start.gameObject.SetActive(PhotonNetwork.IsMasterClient);
         start.interactable = service.CanStart && !service.Busy;
         leave.interactable = !service.Busy;
-        startHint.text = service.Starting ? "Starting together..." : players.Length < 2 ? "Invite at least one friend to start."
+        startHint.text = service.Starting ? "Starting together..." : service.Players.Length < 2 ? "Invite at least one friend to start."
             : service.CanStart ? "Everyone is ready. The host can start!" : "Everyone must be ready. Only the host can start.";
     }
 

@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-21",
+  "implementation": "Bounded recovery implemented; full live verification remains partial",
+  "fullyVerified": false,
+  "productionTransport": "Udp",
+  "earlierCoreRun": {
+    "passed": true,
+    "checks": 33,
+    "gameplayErrors": 0,
+    "expectedInjectedTransportTimeouts": 6,
+    "evidence": "Observed native Unity QA tool result earlier in this task; its checks.json was subsequently overwritten by expanded reruns",
+    "covered": [
+      "Online Settings and zero-timescale dispatch",
+      "Inactive guest identity, hearts, hunt history and survivor count",
+      "Same-actor guest rejoin without duplicate avatars",
+      "Former-host recovery and authority migration",
+      "Retained topic progress and mistake attribution",
+      "Captured-player recovery with movement restrictions",
+      "30-second failure exit and bounded private diagnostics"
+    ]
+  },
+  "latestExpandedRun": {
+    "passed": false,
+    "scope": "Rendered PUN client plus independent live Realtime peer. Transport: Tcp. Simulated 100% SDK packet loss; no physical Android/carrier testing.",
+    "checks": [
+      "PASS Real lobby reserves player and room for 45 seconds around the 30-second recovery window",
+      "PASS Waiting lobby also presents bounded recovery instead of discarding its room",
+      "PASS Lobby rejoin preserves the same actor and original readiness"
+    ],
+    "errors": [
+      "Receiving failed. SocketException: TimedOut\nUnityEngine.Debug:LogError (object)\nPhoton.Realtime.LoadBalancingClient:DebugReturn (ExitGames.Client.Photon.DebugLevel,string) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2739)\nExitGames.Client.Photon.PeerBase/<>c__DisplayClass108_0:<EnqueueDebugReturn>b__0 ()\nExitGames.Client.Photon.TPeer:DispatchIncomingCommands ()\nExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands ()\nPhoton.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)\nPhoton.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)\n",
+      "Connection lost. OnStatusChanged to ExceptionOnReceive. Client state was: Joined. SCS v0 TCP SocketErrorCode: 0 WinSock\nUnityEngine.Debug:LogError (object)\nPhoton.Realtime.LoadBalancingClient:DebugReturn (ExitGames.Client.Photon.DebugLevel,string) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2739)\nPhoton.Realtime.LoadBalancingClient:OnStatusChanged (ExitGames.Client.Photon.StatusCode) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3342)\nExitGames.Client.Photon.PeerBase/<>c__DisplayClass109_0:<EnqueueStatusCallback>b__0 ()\nExitGames.Client.Photon.TPeer:DispatchIncomingCommands ()\nExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands ()\nPhoton.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)\nPhoton.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)\n",
+      "Waiting lobby recovery: System.TimeoutException: Lobby authority restored for gameplay checks; PUN=Joined; status=Reconnected to the same lobby. Your ready status was kept.\r\n  at MultiplayerRecoveryChecks+<Wait>d__18.MoveNext () [0x0003f] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:77 \r\n  at MultiplayerRecoveryChecks.Tick () [0x00051] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:61 "
+    ],
+    "transportTimeouts": []
+  },
+  "otherFailedRuns": [
+    {
+      "run": "game-server-timeout-20261021-214149",
+      "passed": false,
+      "checks": 0,
+      "errors": [
+        "Starting: System.TimeoutException: Host room created; PUN=Disconnected; status=The connection timed out. Check your connection, then host or join again. Reason: ClientTimeout.\r\n  at MultiplayerRecoveryChecks+<Wait>d__18.MoveNext () [0x0003f] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:75 \r\n  at MultiplayerRecoveryChecks.Tick () [0x00051] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:59 "
+      ],
+      "transportTimeouts": 1
+    },
+    {
+      "run": "initial-connection-timeout-20261021-122122",
+      "passed": false,
+      "checks": 0,
+      "errors": [
+        "Connection lost. OnStatusChanged to TimeoutDisconnect. Client state was: ConnectingToMasterServer. SCS v0 UDP SocketErrorCode: 0 WinSock\nUnityEngine.Debug:LogError (object)\nPhoton.Realtime.LoadBalancingClient:DebugReturn (ExitGames.Client.Photon.DebugLevel,string) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2739)\nPhoton.Realtime.LoadBalancingClient:OnStatusChanged (ExitGames.Client.Photon.StatusCode) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3359)\nExitGames.Client.Photon.PeerBase/<>c__DisplayClass109_0:<EnqueueStatusCallback>b__0 ()\nExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands ()\nExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands ()\nPhoton.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)\nPhoton.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)\n",
+        "Starting: System.TimeoutException: Host room created; PUN=Disconnected; status=The connection timed out. Check your connection, then host or join again. Reason: ClientTimeout.\r\n  at MultiplayerRecoveryChecks+<Wait>d__18.MoveNext () [0x0003f] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:75 \r\n  at MultiplayerRecoveryChecks.Tick () [0x00051] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:59 "
+      ],
+      "transportTimeouts": 1
+    },
+    {
+      "run": "initial-timeout-20261021-213352",
+      "passed": false,
+      "checks": 0,
+      "errors": [
+        "Starting: System.TimeoutException: Host room created; PUN=Disconnected; status=The connection timed out. Check your connection, then host or join again. Reason: ClientTimeout.\r\n  at MultiplayerRecoveryChecks+<Wait>d__18.MoveNext () [0x0003f] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:75 \r\n  at MultiplayerRecoveryChecks.Tick () [0x00051] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:59 "
+      ],
+      "transportTimeouts": 1
+    },
+    {
+      "run": "lobby-readiness-20261021-123429",
+      "passed": false,
+      "checks": 3,
+      "errors": [
+        "Connection lost. OnStatusChanged to TimeoutDisconnect. Client state was: ConnectingToGameServer. SCS v0 UDP SocketErrorCode: 0 WinSock\nUnityEngine.Debug:LogError (object)\nPhoton.Realtime.LoadBalancingClient:DebugReturn (ExitGames.Client.Photon.DebugLevel,string) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2739)\nPhoton.Realtime.LoadBalancingClient:OnStatusChanged (ExitGames.Client.Photon.StatusCode) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3359)\nExitGames.Client.Photon.PeerBase/<>c__DisplayClass109_0:<EnqueueStatusCallback>b__0 ()\nExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands ()\nExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands ()\nPhoton.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)\nPhoton.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)\n",
+        "Connection lost. OnStatusChanged to TimeoutDisconnect. Client state was: Joined. SCS v0 UDP SocketErrorCode: 0 WinSock\nUnityEngine.Debug:LogError (object)\nPhoton.Realtime.LoadBalancingClient:DebugReturn (ExitGames.Client.Photon.DebugLevel,string) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2739)\nPhoton.Realtime.LoadBalancingClient:OnStatusChanged (ExitGames.Client.Photon.StatusCode) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3359)\nExitGames.Client.Photon.PeerBase/<>c__DisplayClass109_0:<EnqueueStatusCallback>b__0 ()\nExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands ()\nExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands ()\nExitGames.Client.Photon.PhotonPeer:Service ()\nPhoton.Realtime.LoadBalancingClient:Service () (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:1525)\nMultiplayerRecoveryChecks:Tick () (at Assets/Editor/MultiplayerRecoveryChecks.cs:55)\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions ()\n",
+        "Connection lost. OnStatusChanged to TimeoutDisconnect. Client state was: Joined. SCS v0 UDP SocketErrorCode: 0 WinSock\nUnityEngine.Debug:LogError (object)\nPhoton.Realtime.LoadBalancingClient:DebugReturn (ExitGames.Client.Photon.DebugLevel,string) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:2739)\nPhoton.Realtime.LoadBalancingClient:OnStatusChanged (ExitGames.Client.Photon.StatusCode) (at Assets/Photon/PhotonRealtime/Code/LoadBalancingClient.cs:3359)\nExitGames.Client.Photon.PeerBase/<>c__DisplayClass109_0:<EnqueueStatusCallback>b__0 ()\nExitGames.Client.Photon.EnetPeer:DispatchIncomingCommands ()\nExitGames.Client.Photon.PhotonPeer:DispatchIncomingCommands ()\nPhoton.Pun.PhotonHandler:Dispatch () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:236)\nPhoton.Pun.PhotonHandler:FixedUpdate () (at Assets/Photon/PhotonUnityNetworking/Code/PhotonHandler.cs:156)\n",
+        "Waiting lobby recovery: System.TimeoutException: Room ready; PUN=Joined; status=Reconnected to the same lobby. Your ready status was kept.\r\n  at MultiplayerRecoveryChecks+<Wait>d__18.MoveNext () [0x0003f] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:75 \r\n  at MultiplayerRecoveryChecks.Tick () [0x00051] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:59 "
+      ],
+      "transportTimeouts": 1
+    },
+    {
+      "run": "peer-timeout-20261021-212424",
+      "passed": false,
+      "checks": 3,
+      "errors": [
+        "Waiting lobby recovery: System.NullReferenceException: Object reference not set to an instance of an object\r\n  at MultiplayerRecoveryChecks+<Flow>d__20.MoveNext () [0x0038f] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:109 \r\n  at MultiplayerRecoveryChecks.Tick () [0x00051] in C:\\Users\\jhayf\\OneDrive\\Documents\\GitHub\\LogicLegends\\Assets\\Editor\\MultiplayerRecoveryChecks.cs:59 "
+      ],
+      "transportTimeouts": 2
+    }
+  ],
+  "notVerified": [
+    "Successful completion of the expanded waiting-lobby and all-inactive suite",
+    "Complete normal Host/Join/Start regression rerun under the current network conditions",
+    "Two rendered devices and real Android mobile-data networks",
+    "OS suspension, carrier handover and process termination"
+  ]
+}

@@ -17,6 +17,11 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField, Range(-30f, 60f)] private float initialCameraPitch = 18f;
     public GameObject SpawnedPlayer { get; private set; }
     public string Status { get; private set; } = "Waiting for the multiplayer room.";
+    public void BindRecoveredPlayer(Player player)
+    {
+        SpawnedPlayer = player.gameObject;
+        Status = "Your player reconnected.";
+    }
 
     private IEnumerator Start()
     {

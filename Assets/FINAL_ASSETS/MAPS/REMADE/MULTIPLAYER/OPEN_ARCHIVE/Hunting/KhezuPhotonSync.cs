@@ -103,6 +103,10 @@ namespace LogicLegends.OpenArchive.Hunting
                 state.encounterPhase < 0 || state.encounterPhase > 4 || double.IsNaN(state.captureStartedAt) || double.IsInfinity(state.captureStartedAt) ||
                 !Enum.IsDefined(typeof(KhezuHuntState), state.state)) return;
             if(!Finite(state.capturePosition) || !Finite(state.resolvedAt) || !Finite(state.releaseAt) || !Finite(state.sleepEndsAt) || !Finite(state.nestArrivedAt) || !Finite(state.attackEndsAt) ||
+                state.counterPhase<0 || state.counterPhase>3 || state.counterSerial<0 || !Finite(state.counterStartedAt) || !Finite(state.counterCooldownUntil) ||
+                !Finite(state.counterAim) || !Finite(state.counterLungeMoved) || state.counterLungeMoved<0 || state.counterLungeMoved>5.1f ||
+                (state.counterPhase>0 && (state.counterTarget!=state.target || state.counterAim.sqrMagnitude<.5f || state.counterAim.sqrMagnitude>1.5f ||
+                    (state.state!=(int)KhezuHuntState.Hunting && state.state!=(int)KhezuHuntState.NavigationBlocked))) ||
                 !Finite(state.barrierStartedAt) || !Finite(state.barrierDeadline) || !Finite(state.attackHitAt) || !Finite(state.barrierDissolveAt) || !Finite(state.stunEndsAt) ||
                 state.barrierTimerSerial<0 || state.barrierTimerSerial>state.captureSerial || state.barrierDeadline<state.barrierStartedAt ||
                 state.knockbackPath==null || state.knockbackPath.Length>33 || state.knockbackPath.Any(v=>!Finite(v)) ||
@@ -121,6 +125,21 @@ namespace LogicLegends.OpenArchive.Hunting
             if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(SnapshotKey, out var value) && value is object[])
                 Receive((object[])value, controller.IsAuthority);
             controller.AuthorityChanged();
+        }
+        public bool RestoreRecoveryCheckpoint()
+        {
+            if (!PhotonNetwork.InRoom || controller == null || !controller.Initialized) return false;
+            if (!PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(SnapshotKey, out var data) || !(data is object[] packet)) return false;
+            // A live snapshot can be newer than the periodic room checkpoint.
+            if (received && latest != null && Equals(latest[1], PhotonNetwork.MasterClient.ActorNumber))
+            {
+                if (packet.Length == 4 && Equals(packet[1], latest[1]) && packet[2] is int newer && newer > receivedSequence) Receive(packet, true);
+                return true;
+            }
+            received = false; receivedSequence = -1;
+            // A room checkpoint can have been written by the previous Master before migration.
+            Receive(packet, true);
+            return received;
         }
         public override void OnJoinedRoom() { received = false; receivedSequence = -1; LoadCheckpoint(); }
         public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)

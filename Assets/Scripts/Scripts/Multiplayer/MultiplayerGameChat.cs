@@ -67,7 +67,7 @@ public sealed class MultiplayerGameChat : MonoBehaviour
     }
     private void Refresh()
     {
-        bool available=MultiplayerSceneRoutes.IsGameplay(gameObject.scene)&&service!=null&&service.InLobby;
+        bool available=MultiplayerSceneRoutes.IsGameplay(gameObject.scene)&&service!=null&&service.InLobby&&!MultiplayerLobbyService.IsGameplayRecovering;
         toggle.gameObject.SetActive(available&&!IsOpen);
         if(!available) { unread=0;Close(); }
         unreadLabel.transform.parent.gameObject.SetActive(unread>0);
@@ -78,7 +78,7 @@ public sealed class MultiplayerGameChat : MonoBehaviour
     public void Toggle() { if(IsOpen)Close();else Open(); }
     public void Open()
     {
-        if(IsOpen||service==null||!service.InLobby||!MultiplayerSceneRoutes.IsGameplay(gameObject.scene)||Time.timeScale<=0)return;
+        if(IsOpen||service==null||!service.InLobby||MultiplayerLobbyService.IsGameplayRecovering||!MultiplayerSceneRoutes.IsGameplay(gameObject.scene)||Time.timeScale<=0)return;
         blockedInput=GameInput.Instance;
         if(blockedInput!=null) { previousBlock=blockedInput.GameplayInputBlocked;blockedInput.SetGameplayInputBlocked(true);ownsBlock=true; }
         MobileInputUI.FindJoystick()?.ResetJoystick();

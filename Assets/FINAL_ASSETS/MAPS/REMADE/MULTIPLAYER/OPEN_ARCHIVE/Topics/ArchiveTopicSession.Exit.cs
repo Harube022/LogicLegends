@@ -36,14 +36,14 @@ namespace LogicLegends.OpenArchive.Topics
             }
             // A connected living player still counts while their avatar is loading.
             foreach (var member in PhotonNetwork.CurrentRoom.Players.Values)
-                if (!member.IsInactive && ActorAlive(member.ActorNumber)) yield return member.ActorNumber;
+                if (ActorAlive(member.ActorNumber)) yield return member.ActorNumber;
         }
         bool ActorAlive(int actor)
         {
             if (PhotonNetwork.InRoom)
             {
                 var member = PhotonNetwork.CurrentRoom.GetPlayer(actor);
-                if (member == null || member.IsInactive) return false;
+                if (member == null) return false;
                 // Owner-writable lobby flags must never remove a living teammate from the exit requirement.
                 if (hunting != null && hunting.health != null && hunting.health.HasAuthoritativeActorHealth)
                     return hunting.health.IsActorAlive(actor);

@@ -30,13 +30,13 @@ public partial class HealthManager
     public bool IsActorAlive(int actor){ActorHealth state;return !actorHealth.TryGetValue(actor,out state) || state.hearts>0;}
     public int ActorHearts(int actor){ActorHealth state;return actorHealth.TryGetValue(actor,out state)?state.hearts:MaximumHealth;}
     public bool DamageAuthoritativeActor(int actor){
-        if(!HasAuthoritativeActorHealth || (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) || actor==0)return false;
+        if(MultiplayerLobbyService.IsGameplayRecovering || !HasAuthoritativeActorHealth || (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) || actor==0)return false;
         InitializeHealth();ActorHealth state;if(!actorHealth.TryGetValue(actor,out state))actorHealth[actor]=state=new ActorHealth{actor=actor,hearts=actor==LocalActor?currentHealth:MaximumHealth};
         if(state.hearts<=0)return false;
         state.hearts--;if(actor==LocalActor)SetAuthoritativeLocalHealth(state.hearts);return true;
     }
     public bool DeductAuthoritativeBarrierHeart(int actor,int captureSerial){
-        if(!HasAuthoritativeActorHealth || (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) || actor==0 || captureSerial<=0)return false;
+        if(MultiplayerLobbyService.IsGameplayRecovering || !HasAuthoritativeActorHealth || (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) || actor==0 || captureSerial<=0)return false;
         ActorHealth state;if(!actorHealth.TryGetValue(actor,out state))actorHealth[actor]=state=new ActorHealth{actor=actor,hearts=MaximumHealth};
         if(captureSerial<=state.lastPenaltySerial)return captureSerial==state.lastPenaltySerial;
         state.lastPenaltySerial=captureSerial;DamageAuthoritativeActor(actor);

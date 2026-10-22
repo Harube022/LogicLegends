@@ -38,7 +38,7 @@ namespace LogicLegends.OpenArchive.Topics
         public ArchiveTeamState State { get; private set; }
         public static ArchiveTopicSession Current { get; private set; }
         public bool Ready => State != null;
-        public bool IsAuthority => !PhotonNetwork.InRoom || PhotonNetwork.IsMasterClient;
+        public bool IsAuthority => !MultiplayerLobbyService.IsGameplayRecovering && (!PhotonNetwork.InRoom || PhotonNetwork.IsMasterClient);
         public int LocalActor => PhotonNetwork.InRoom ? PhotonNetwork.LocalPlayer.ActorNumber : -1;
         // Derive the team reservation from checkpointed progress, including Book gates and timeouts.
         // No separate client lock or second topic-progress tracker is needed.
@@ -146,6 +146,8 @@ namespace LogicLegends.OpenArchive.Topics
         }
         public bool CanAct(int actor)
         {
+            if (MultiplayerLobbyService.IsGameplayRecovering) return false;
+            if (PhotonNetwork.InRoom && (PhotonNetwork.CurrentRoom.GetPlayer(actor) == null || PhotonNetwork.CurrentRoom.GetPlayer(actor).IsInactive)) return false;
             if (HasEscapedActor(actor) || TeamWon) return false;
             var player = ActorPlayer(actor);
             if (player == null || !player.gameObject.activeInHierarchy || player.IsMovementLocked) return false;
@@ -459,8 +461,14 @@ namespace LogicLegends.OpenArchive.Topics
             if(!Ready&&PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(CheckpointKey,out var value)&&value is string json)Receive(json,true);
             if(Ready){foreach(var s in State.stations){if(s.topic!=8)s.routeSampleValid=false;s.channelActor=0;}Commit();}
         }
-        public override void OnLeftRoom(){ReleaseEscapedPlayers();State=null;Changed?.Invoke();}
-        public override void OnDisconnected(DisconnectCause cause){ReleaseEscapedPlayers();State=null;Changed?.Invoke();}
+        public bool RestoreRecoveryCheckpoint()
+        {
+            if (!PhotonNetwork.InRoom || !PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(CheckpointKey, out var value) || !(value is string json)) return false;
+            Receive(json, true); roomMode = true;
+            return Ready;
+        }
+        public override void OnLeftRoom(){if(MultiplayerLobbyService.IsGameplayRecovering)return;ReleaseEscapedPlayers();State=null;Changed?.Invoke();}
+        public override void OnDisconnected(DisconnectCause cause){if(MultiplayerLobbyService.IsGameplayRecovering)return;ReleaseEscapedPlayers();State=null;Changed?.Invoke();}
         void OnDestroy(){UnbindLearningEncounter();ReleaseEscapedPlayers();if(Current==this)Current=null;}
     }
 }

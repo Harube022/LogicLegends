@@ -28,7 +28,8 @@ public class LevelMenu : MonoBehaviourPunCallbacks
         MobileLookInput.ResetDelta();
         pausePanel.transform.SetAsLastSibling();
         pausePanel.SetActive(true);
-        Time.timeScale = 0f;
+        // Settings blocks this player's controls while the online match keeps running.
+        if (!PhotonNetwork.InRoom) Time.timeScale = 0f;
     }
 
     public void ClosePause()

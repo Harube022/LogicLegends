@@ -6,8 +6,11 @@ using NetPlayer = Photon.Realtime.Player;
 public static class LobbyRules
 {
     public const string CodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    // Earlier builds do not include the Open Archive scene or its encounter protocol.
-    public const string Protocol = "LL-private-lobby-4";
+    // All clients must initialize the same room-selected monster and recovery protocol.
+    public const string Protocol = "LL-private-lobby-7";
+    public const int RecoverySeatMilliseconds = 45000;
+    public const float RecoverySeconds = 30f;
+    public const int RecoveryAttempts = 4;
     public const string ReadyKey = "ll.ready", VersionKey = "ll.version", StateKey = "ll.state", SceneKey = "ll.scene";
     public const string Waiting = "waiting", Locking = "locking", Loading = "loading";
     public const byte ChatEvent = 74;

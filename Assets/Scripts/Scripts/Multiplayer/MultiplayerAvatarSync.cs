@@ -22,7 +22,7 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
     {
         if (PhotonNetwork.InRoom && GetComponent<MultiplayerAvatarNameplate>() == null)
             gameObject.AddComponent<MultiplayerAvatarNameplate>();
-        if (photonView.IsMine) return;
+        if (photonView.Owner != null && photonView.Owner.IsLocal) return;
         // Remote movement is received from its owner; it never consumes local input/physics.
         if (player != null) player.enabled = false;
         var controller = GetComponent<CharacterController>();
@@ -35,7 +35,7 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
     }
     private void Update()
     {
-        if (photonView.IsMine || !received) return;
+        if ((photonView.Owner != null && photonView.Owner.IsLocal) || !received || MultiplayerLobbyService.IsGameplayRecovering) return;
         if (player != null && player.IsMovementLocked)
         {
             targetPosition = player.MovementLockPosition;
@@ -60,6 +60,7 @@ public sealed class MultiplayerAvatarSync : MonoBehaviourPun, IPunObservable
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
+        if (stream.IsWriting && (MultiplayerLobbyService.IsGameplayRecovering || photonView.Owner == null || !photonView.Owner.IsLocal || photonView.Owner.IsInactive)) return;
         if (!stream.IsWriting && info.Sender != photonView.Owner) return;
         if (stream.IsWriting)
         {

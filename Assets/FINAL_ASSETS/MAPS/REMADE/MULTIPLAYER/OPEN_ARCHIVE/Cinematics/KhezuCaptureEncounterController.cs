@@ -107,7 +107,7 @@ namespace LogicLegends.OpenArchive.Cinematics
         public override void OnJoinedRoom() { disconnected = false; }
         public override void OnPlayerLeftRoom(Photon.Realtime.Player other)
         {
-            if (hunting.IsAuthority && hunting.State == KhezuHuntState.Caught && other.ActorNumber == hunting.CaughtPlayerId)
+            if (!other.IsInactive && hunting.IsAuthority && hunting.State == KhezuHuntState.Caught && other.ActorNumber == hunting.CaughtPlayerId)
             {hunting.Request(KhezuCommand.ResetHunt);hunting.Request(KhezuCommand.StartHunting);}
         }
         // Called only by a host-owned challenge service after it has decided the outcome.

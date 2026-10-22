@@ -26,7 +26,12 @@ namespace LogicLegends.Tests.Khezu
             if (!PhotonNetwork.InRoom) yield break;
             while (PhotonNetwork.InRoom && global::Player.LocalInstance == null) yield return null;
             if (global::Player.LocalInstance == null) yield break;
-            exploration.Configure(global::Player.LocalInstance, spawn, followCamera, true);
+            BindOwnedPlayer(global::Player.LocalInstance);
+        }
+        public void BindOwnedPlayer(global::Player player)
+        {
+            exploration.Configure(player, spawn, followCamera, true);
+            player.SetRunningEnabled(true);
             exploration.enabled = true;
         }
     }
