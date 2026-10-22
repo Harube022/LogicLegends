@@ -58,9 +58,9 @@ namespace LogicLegends.Tests.Monsters
             SelectSharedEncounter(DevelopmentMonster.Rajang);
         }
         public void SwapMonster() { if (CanSwap) Select(selected == DevelopmentMonster.Rajang ? DevelopmentMonster.Khezu : DevelopmentMonster.Rajang); }
-        void SelectSharedEncounter(DevelopmentMonster monster)
+        void SelectSharedEncounter(DevelopmentMonster monster, bool initializingMatch = false)
         {
-            if (!CanSwap) return;
+            if (!initializingMatch && !CanSwap) return;
             var profile = monster == DevelopmentMonster.Rajang ? rajangProfile : khezuProfile;
             if (profile == null || profile.avatar == null || profile.controller == null || sharedSpawn == null)
             { Debug.LogError("Assign both existing monster rig profiles to the development selector.", this); return; }

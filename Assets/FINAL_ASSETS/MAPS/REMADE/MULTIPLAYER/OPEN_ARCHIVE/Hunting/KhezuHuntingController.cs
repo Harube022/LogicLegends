@@ -31,6 +31,10 @@ namespace LogicLegends.OpenArchive.Hunting
         public bool barrierTimedOut,failureHitApplied;
         public Vector3[] knockbackPath=new Vector3[0];
         public HealthManager.ActorHealth[] healthStates=new HealthManager.ActorHealth[0];
+        public int counterPhase, counterSerial, counterTarget;
+        public double counterStartedAt, counterCooldownUntil;
+        public Vector3 counterAim;
+        public float counterLungeMoved;
     }
 
     [DefaultExecutionOrder(50), DisallowMultipleComponent]
@@ -79,7 +83,7 @@ namespace LogicLegends.OpenArchive.Hunting
         public static double EncounterClock { get { return PhotonNetwork.InRoom ? PhotonNetwork.Time : Time.unscaledTimeAsDouble; } }
         public string Status { get; private set; } = "Sleeping in nest";
         public IReadOnlyCollection<int> HuntedPlayerIds { get { return rotation.HuntedPlayerIds; } }
-        public bool IsAuthority { get { return !PhotonNetwork.InRoom || PhotonNetwork.IsMasterClient; } }
+        public bool IsAuthority { get { return !MultiplayerLobbyService.IsGameplayRecovering && (!PhotonNetwork.InRoom || PhotonNetwork.IsMasterClient); } }
         public bool Initialized { get; private set; }
         public NavMeshAgent Agent { get { return agent != null ? agent : GetComponent<NavMeshAgent>(); } }
         public int Mistakes { get { return driver == null ? 0 : driver.Mistakes; } }
@@ -135,6 +139,7 @@ namespace LogicLegends.OpenArchive.Hunting
         }
         void OnDestroy()
         {
+            DisposeCloseCounterPresentation();
             if (driver != null) { driver.MistakeRequested -= RequestMistake; driver.SleepRequested -= RequestSleep; }
             if (active == this) active = null;
         }
@@ -165,12 +170,14 @@ namespace LogicLegends.OpenArchive.Hunting
                     else BeginHunt();
                     break;
                 case KhezuCommand.ResetHunt:
+                    ResetCloseCounter(true);
                     CancelBarrierSequence();
                     StopNavigation(); animator.speed = 1; TargetPlayerId = CaughtPlayerId = 0; pending = false;
                     State = fullyAwake ? KhezuHuntState.Ready : driver.Mistakes > 0 ? KhezuHuntState.Waking : KhezuHuntState.Sleeping;
                     if (fullyAwake) Blend("Idle");
                     break;
                 case KhezuCommand.ResetRotation:
+                    ResetCloseCounter(true);
                     CancelBarrierSequence();
                     StopNavigation(); animator.speed = 1; TargetPlayerId = CaughtPlayerId = 0; pending = false;
                     rotation.HuntedPlayerIds.Clear();
@@ -178,6 +185,7 @@ namespace LogicLegends.OpenArchive.Hunting
                     if (fullyAwake) Blend("Idle");
                     break;
                 case KhezuCommand.Sleep:
+                    ResetCloseCounter(true);
                     CancelBarrierSequence();
                     StopNavigation(); TargetPlayerId = CaughtPlayerId = 0; pending = fullyAwake = false;
                     State = KhezuHuntState.Sleeping; animator.speed = 1; driver.ApplySharedMistakes(0);
@@ -196,6 +204,7 @@ namespace LogicLegends.OpenArchive.Hunting
         void Update()
         {
             if (!Initialized) return;
+            if (MultiplayerLobbyService.IsGameplayRecovering) { StopNavigation(); return; }
             if (previousAuthority != IsAuthority) AuthorityChanged();
             if (Time.time >= nextRoster) { nextRoster = Time.time + rosterInterval; RefreshPlayers(); }
             if (!IsAuthority) return;
@@ -210,12 +219,14 @@ namespace LogicLegends.OpenArchive.Hunting
             if (State != KhezuHuntState.Hunting && State != KhezuHuntState.NavigationBlocked) return;
             Target target;
             if (!targets.TryGetValue(TargetPlayerId, out target) || target.transform == null || !target.transform.gameObject.activeInHierarchy || EscapedArchivePlayer(TargetPlayerId))
-            { StopNavigation(); TargetPlayerId = 0; BeginHunt(); return; }
+            { ResetCloseCounter(false); StopNavigation(); TargetPlayerId = 0; BeginHunt(); return; }
+            if (UpdateCloseCounter(target)) return;
             float gap = TargetSurfaceGap(target);
             float catchUp = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(closePressureDistance, Mathf.Max(closePressureDistance + 1, catchUpDistance), gap));
             float closeMultiplier = Mathf.Clamp(closeChaseSpeedMultiplier, 1, Mathf.Max(1, chaseSpeedMultiplier));
             agent.speed = normalPlayerRunSpeed * Mathf.Lerp(closeMultiplier, chaseSpeedMultiplier, catchUp);
-            agent.angularSpeed = turnSpeed; agent.acceleration = acceleration;
+            float pursuitTurn = Mathf.Lerp(Mathf.Max(turnSpeed, closeTurnSpeed), turnSpeed, catchUp);
+            agent.angularSpeed = pursuitTurn; agent.acceleration = acceleration;
             // A live pursuit must not brake to a stop at the target's last sampled position.
             agent.autoBraking = false;
             if (Time.time >= nextDestination)
@@ -228,10 +239,11 @@ namespace LogicLegends.OpenArchive.Hunting
             if (agent.enabled && agent.isOnNavMesh)
             {
                 bool arrived = agent.isStopped || (!agent.pathPending && (!agent.hasPath || agent.remainingDistance < .85f));
-                agent.updateRotation = !arrived;
+                bool close = gap <= closePressureDistance;
+                agent.updateRotation = !arrived && !close;
                 Vector3 toward = target.transform.position - transform.position; toward.y = 0;
-                if (arrived && toward.sqrMagnitude > .1f)
-                    transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(toward), turnSpeed * Time.deltaTime);
+                if ((arrived || close) && toward.sqrMagnitude > .1f)
+                    transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(toward), pursuitTurn * Time.deltaTime);
             }
             bool moving = agent.enabled && agent.isOnNavMesh && !agent.isStopped && agent.velocity.sqrMagnitude > .09f;
             Blend(moving ? "Chase" : "Idle");
@@ -241,23 +253,14 @@ namespace LogicLegends.OpenArchive.Hunting
                 nextCatch = Time.time + catchInterval;
                 if (CanCatch(target))
                 {
-                    CapturePosition=target.transform.position;CaptureAnchorValid=true;
-                    StopNavigation(); Blend("Idle"); animator.speed = 1;
-                    CancelBarrierSequence();
-                    State = KhezuHuntState.Caught; CaughtPlayerId = TargetPlayerId; CaptureSerial++;
-                    CaptureStartedAt = EncounterClock; EncounterPhase = 0;
-                    Status = "Caught " + TargetName;
-                    var encounter=GetComponent<LogicLegends.OpenArchive.Cinematics.KhezuCaptureEncounterController>();
-                    if(encounter!=null)encounter.SynchronizeBarrierMovement();
-                    PlayerCaught?.Invoke(CaughtPlayerId);
-                    Debug.Log("Khezu caught actor " + CaughtPlayerId + " (hunt " + HuntSerial + ").", this);
-                    SnapshotChanged?.Invoke();
+                    CatchTarget(target);
                 }
             }
         }
         void LateUpdate()
         {
-            if (!Initialized || IsAuthority || replica == null) return;
+            UpdateCloseCounterPresentation();
+            if (!Initialized || IsAuthority || replica == null || MultiplayerLobbyService.IsGameplayRecovering) return;
             float alpha = 1 - Mathf.Exp(-18 * Time.deltaTime);
             transform.position = Vector3.Lerp(transform.position, replica.position, alpha);
             transform.rotation = Quaternion.Slerp(transform.rotation, replica.rotation, alpha);
@@ -268,13 +271,15 @@ namespace LogicLegends.OpenArchive.Hunting
             driver.SetHuntingControl(true, !IsAuthority);
             StopNavigation();
             nextRoster = nextDestination = nextCatch = 0;
+            ResetOrbitTracking();
         }
         void RefreshPlayers()
         {
             targets.Clear();
             var connected = PhotonNetwork.InRoom ? PhotonNetwork.PlayerList.Where(p => !p.IsInactive).Select(p => p.ActorNumber).ToArray() : new[] { -1 };
-            if (IsAuthority) rotation.RemoveDisconnected(connected);
-            if(IsAuthority && health!=null)health.RegisterActors(connected);
+            var reserved = PhotonNetwork.InRoom ? PhotonNetwork.PlayerList.Select(p => p.ActorNumber).ToArray() : connected;
+            if (IsAuthority) rotation.RemoveDisconnected(reserved);
+            if(IsAuthority && health!=null)health.RegisterActors(reserved);
             foreach (var p in FindObjectsByType<global::Player>(FindObjectsSortMode.None))
             {
                 var view = p.GetComponent<PhotonView>();
@@ -298,6 +303,7 @@ namespace LogicLegends.OpenArchive.Hunting
         void BeginHunt()
         {
             if (!IsAuthority || !fullyAwake) return;
+            ResetCloseCounter(false);
             RefreshPlayers();
             TargetPlayerId = rotation.Select(targets.Keys, n => UnityEngine.Random.Range(0, n),avoidNextTarget);
             if (TargetPlayerId == 0) { State = KhezuHuntState.WaitingForPlayers; Status = "Waiting for an eligible player"; Blend("Idle"); SnapshotChanged?.Invoke(); return; }
@@ -415,7 +421,9 @@ namespace LogicLegends.OpenArchive.Hunting
                 normalizedTime = animationTime, animationSpeed = animator.speed,
                 pending = pending, awake = fullyAwake, huntSerial = HuntSerial, captureSerial = CaptureSerial,
                 captureStartedAt = CaptureStartedAt, encounterPhase = EncounterPhase };
-            FillBarrierSnapshot(snapshot);return snapshot;
+            FillBarrierSnapshot(snapshot);
+            FillCloseCounterSnapshot(snapshot);
+            return snapshot;
         }
         public void SetEncounterPhase(int value)
         {
@@ -428,6 +436,7 @@ namespace LogicLegends.OpenArchive.Hunting
         {
             if (!Initialized) return;
             RestoreBarrierSnapshot(s);
+            RestoreCloseCounterSnapshot(s);
             bool notifyCatch = !initial && s.captureSerial > CaptureSerial;
             State = (KhezuHuntState)s.state; TargetPlayerId = s.target; CaughtPlayerId = s.caught;
             HuntSerial = s.huntSerial; CaptureSerial = s.captureSerial; pending = s.pending; fullyAwake = s.awake;

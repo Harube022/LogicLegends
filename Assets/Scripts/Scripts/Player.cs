@@ -497,7 +497,8 @@ public partial class Player : MonoBehaviourPun
     private bool IsLocalPlayer()
     {
         if (photonView == null || !PhotonNetwork.InRoom) return true;
-        return photonView.IsMine;
+        // IsMine also becomes true on the Master for an inactive owner's avatar.
+        return photonView.Owner != null && photonView.Owner.IsLocal;
     }
 
     private void OnDestroy()

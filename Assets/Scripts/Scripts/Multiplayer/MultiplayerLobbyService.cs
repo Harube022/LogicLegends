@@ -13,7 +13,8 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 using NetPlayer = Photon.Realtime.Player;
 
 /// <summary>Persistent room owner; exposes bounded room chat for future gameplay UI too.</summary>
-public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEventCallback
+[DefaultExecutionOrder(-400)]
+public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEventCallback
 {
     public static MultiplayerLobbyService Instance { get; private set; }
     public event Action Changed;
@@ -55,10 +56,12 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this; DontDestroyOnLoad(gameObject);
         SceneManager.sceneLoaded += SceneLoaded;
+        InitializeConnectionRecovery();
     }
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= SceneLoaded;
+        DisposeConnectionRecovery();
         if (Instance == this) Instance = null;
     }
     private void SceneLoaded(Scene scene, LoadSceneMode mode)
@@ -71,6 +74,8 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
     }
     private void Update()
     {
+        TickConnectionRecovery();
+        if (IsRecovering) return;
         if (Busy && !Starting && deadline > 0 && Time.realtimeSinceStartup > deadline)
         {
             pending = Request.None; requestVersion++;
@@ -92,6 +97,7 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
     private void Begin(Request request, string code)
     {
         if (Busy || PhotonNetwork.InRoom) return;
+        ClearRecoverySession();
         Busy = true; leaving = false; committed = false; disconnectNotice = null;
         pending = request; pendingCode = code; createAttempts = 0;
         deadline = Time.realtimeSinceStartup + 30f; requestVersion++;
@@ -104,6 +110,7 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
             return;
         }
         if (PhotonNetwork.OfflineMode) PhotonNetwork.OfflineMode = false;
+        ConfigureOnlineTransport();
         PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey] = false });
         profileReady = false;
         StartCoroutine(ResolveProfile(requestVersion));
@@ -166,18 +173,20 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
             if (!PhotonNetwork.ConnectUsingSettings(settings)) Fail("Couldn't connect to multiplayer. Please try again.");
         }
     }
-    public override void OnConnectedToMaster() { ConnectOrDispatch(); }
+    public override void OnConnectedToMaster() { if (IsRecovering) RejoinFromMaster(); else ConnectOrDispatch(); }
     private void CreatePrivateRoom()
     {
         createAttempts++;
         var options = new RoomOptions
         {
             MaxPlayers = LobbyRules.Capacity, IsVisible = false, IsOpen = true,
-            PlayerTtl = 0, EmptyRoomTtl = 0, CleanupCacheOnLeave = true, BroadcastPropsChangeToAll = true,
+            PlayerTtl = LobbyRules.RecoverySeatMilliseconds, EmptyRoomTtl = LobbyRules.RecoverySeatMilliseconds,
+            CleanupCacheOnLeave = true, BroadcastPropsChangeToAll = true,
             CustomRoomProperties = new Hashtable
             {
                 [LobbyRules.VersionKey] = LobbyRules.Protocol, [LobbyRules.StateKey] = LobbyRules.Waiting,
-                [LobbyRules.SceneKey] = TargetScene
+                [LobbyRules.SceneKey] = TargetScene,
+                [MultiplayerMonsterRotation.RoomKey] = (int)MultiplayerMonsterRotation.NextHostedMonster
             }
         };
         Notify("Creating your private lobby...");
@@ -188,18 +197,25 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
         if (returnCode == ErrorCode.GameIdAlreadyExists && createAttempts < 5) { CreatePrivateRoom(); return; }
         Fail(returnCode == ErrorCode.GameIdAlreadyExists ? "Couldn't reserve a code. Please try again." : LobbyRules.JoinError(returnCode));
     }
-    public override void OnJoinRoomFailed(short returnCode, string message) { Fail(LobbyRules.JoinError(returnCode)); }
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        if (IsRecovering) RecoveryJoinFailed(returnCode);
+        else Fail(LobbyRules.JoinError(returnCode));
+    }
     public override void OnJoinedRoom()
     {
         if (PhotonNetwork.OfflineMode) { Busy = false; pending = Request.None; PhotonNetwork.LoadLevel("Stage 1"); return; }
+        if (IsRecovering) { AcceptRecoveredRoom(); return; }
         var room = PhotonNetwork.CurrentRoom;
-        if (leaving || !room.CustomProperties.TryGetValue(LobbyRules.VersionKey, out var protocol) || !Equals(protocol, LobbyRules.Protocol))
+        if (leaving || !room.CustomProperties.TryGetValue(LobbyRules.VersionKey, out var protocol) || !Equals(protocol, LobbyRules.Protocol) ||
+            !MultiplayerMonsterRotation.TryRead(room.CustomProperties, out _))
         {
             Notify("This lobby uses an incompatible game version. Update to the same version as the host.");
             leaving = true; PhotonNetwork.LeaveRoom(); return;
         }
         if (RoomState != LobbyRules.Waiting) { leaving = true; Notify("This game is already starting."); PhotonNetwork.LeaveRoom(); return; }
         Busy = false; deadline = 0; pending = Request.None; committed = false; onlineSession = true;
+        RememberRecoveryRoom();
         messages.Clear(); chatMessages.Clear(); lastReceived.Clear(); lastSent = -100f;
         PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey] = false });
         AddSystem(LobbyRules.DisplayName(PhotonNetwork.LocalPlayer) + " joined the lobby.");
@@ -215,6 +231,8 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
         if (!CanStart || startRoutine != null || committed) { Notify("The host can start when 2–4 players are all ready."); return; }
         string target = PhotonNetwork.CurrentRoom.CustomProperties[LobbyRules.SceneKey] as string;
         if (string.IsNullOrEmpty(target) || !Application.CanStreamedLevelBeLoaded(target)) { Notify("The multiplayer scene is unavailable in this build."); return; }
+        if (!MultiplayerMonsterRotation.TryRead(PhotonNetwork.CurrentRoom.CustomProperties, out _))
+        { Notify("The lobby's monster selection is unavailable. Please host a new party."); return; }
         Busy = true; deadline = 0;
         PhotonNetwork.CurrentRoom.IsOpen = false;
         PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { [LobbyRules.StateKey] = LobbyRules.Locking },
@@ -235,6 +253,8 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
         if (!InLobby || !PhotonNetwork.IsMasterClient) { startRoutine = null; Busy = false; yield break; }
         if (RoomState != LobbyRules.Loading || !LobbyRules.CanStart(Players)) { AbortStart(); yield break; }
         committed = true; startRoutine = null; Busy = false;
+        if (MultiplayerMonsterRotation.TryRead(PhotonNetwork.CurrentRoom.CustomProperties, out var matchMonster))
+            MultiplayerMonsterRotation.RecordStartedMatch(matchMonster);
         Notify("Starting game...");
         // PUN compares synchronized strings to Scene.name, so a full asset path would
         // reload on later room-property updates. Resolve that unambiguous path once
@@ -257,6 +277,7 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
     public void LeaveLobby()
     {
         if (leaving) return;
+        EndRecoveryPresentation(); onlineSession = false; recovering = false; recoveryTerminalNotice = null;
         leaving = true; pending = Request.None; requestVersion++;
         if (startRoutine != null) { StopCoroutine(startRoutine); startRoutine = null; }
         Busy = true; deadline = Time.realtimeSinceStartup + 10f;
@@ -265,32 +286,44 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
         else if (PhotonNetwork.IsConnected) PhotonNetwork.Disconnect();
         else FinishLeaving();
     }
-    public override void OnLeftRoom() { FinishLeaving(); }
+    public override void OnLeftRoom()
+    {
+        // Some SDK transports deliver this before OnDisconnected. Only an
+        // explicit leave should discard a live gameplay session here.
+        if (!leaving && onlineSession) return;
+        FinishLeaving();
+    }
     private void FinishLeaving()
     {
         Busy = false; deadline = 0; committed = false; pending = Request.None; onlineSession = false;
         messages.Clear(); chatMessages.Clear(); lastReceived.Clear();
         PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey] = false });
         bool requested = leaving; leaving = false;
-        if (requested && !Status.Contains("incompatible") && !Status.Contains("already starting")) Status = "You left the lobby. Host or join another game.";
+        if (!string.IsNullOrEmpty(recoveryTerminalNotice)) Status = recoveryTerminalNotice;
+        else if (requested && !Status.Contains("incompatible") && !Status.Contains("already starting")) Status = "You left the lobby. Host or join another game.";
         Changed?.Invoke();
         if (SceneManager.GetActiveScene().name != "Main Menu") SceneManager.LoadScene("Main Menu");
     }
     public override void OnDisconnected(DisconnectCause cause)
     {
+        if (ConnectionHandler.AppQuits || cause == DisconnectCause.ApplicationQuit)
+        { onlineSession = false; ClearRecoverySession(); return; }
+        RecordConnectionLoss(cause);
+        if (!string.IsNullOrEmpty(recoveryTerminalNotice)) { Fail(recoveryTerminalNotice); return; }
+        if (ContinueOrBeginRecovery(cause)) return;
         if (pending == Request.Solo) { EnterSolo(); return; }
         if (pending != Request.None && !leaving && cause == DisconnectCause.DisconnectByClientLogic) { ConnectOrDispatch(); return; }
         bool wasOnlineSession = onlineSession; onlineSession = false;
         messages.Clear(); chatMessages.Clear(); lastReceived.Clear(); committed = false;
         if (startRoutine != null) { StopCoroutine(startRoutine); startRoutine = null; }
         bool requested = leaving; leaving = false;
-        Fail(disconnectNotice ?? (requested ? "You left the lobby." : "Disconnected from multiplayer. Check your connection, then host or join again."));
+        Fail(disconnectNotice ?? (requested ? "You left the lobby." : DisconnectExplanation(cause)));
         disconnectNotice = null;
         if (wasOnlineSession && SceneManager.GetActiveScene().name != "Main Menu") StartCoroutine(ReturnAfterDisconnect());
     }
     private IEnumerator ReturnAfterDisconnect()
     {
-        yield return SceneManager.LoadSceneAsync("Main Menu");
+        if (SceneManager.GetActiveScene().name != "Main Menu") yield return SceneManager.LoadSceneAsync("Main Menu");
         yield return null;
         var menu = FindFirstObjectByType<MultiplayerMenuManager>();
         if (menu != null && menu.LobbyUI != null) menu.LobbyUI.Open();
@@ -302,14 +335,14 @@ public sealed class MultiplayerLobbyService : MonoBehaviourPunCallbacks, IOnEven
     }
     public override void OnPlayerEnteredRoom(NetPlayer player)
     {
-        AddSystem(LobbyRules.DisplayName(player) + " joined the lobby.");
-        if (Starting && PhotonNetwork.IsMasterClient && !committed) AbortStart();
+        AddSystem(LobbyRules.DisplayName(player) + (player.HasRejoined ? " reconnected." : " joined the lobby."));
+        if (Starting && PhotonNetwork.IsMasterClient && !committed && SceneManager.GetActiveScene().name == "Main Menu") AbortStart();
         Changed?.Invoke();
     }
     public override void OnPlayerLeftRoom(NetPlayer player)
     {
-        AddSystem(LobbyRules.DisplayName(player) + " left the lobby."); lastReceived.Remove(player.ActorNumber);
-        if (Starting && PhotonNetwork.IsMasterClient && !committed) AbortStart();
+        AddSystem(LobbyRules.DisplayName(player) + (player.IsInactive ? " lost connection. Their place is reserved." : " left the lobby.")); lastReceived.Remove(player.ActorNumber);
+        if (Starting && PhotonNetwork.IsMasterClient && !committed && SceneManager.GetActiveScene().name == "Main Menu") AbortStart();
         Changed?.Invoke();
     }
     public override void OnMasterClientSwitched(NetPlayer player)

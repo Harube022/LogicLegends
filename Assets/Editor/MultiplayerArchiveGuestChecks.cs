@@ -80,6 +80,7 @@ public static class MultiplayerArchiveGuestChecks
             MaxPlayers = 4, IsVisible = false, IsOpen = true, PlayerTtl = 0, EmptyRoomTtl = 0,
             CustomRoomProperties = new Hashtable {
                 [LobbyRules.VersionKey] = LobbyRules.Protocol, [LobbyRules.StateKey] = LobbyRules.Waiting,
+                [MultiplayerMonsterRotation.RoomKey] = (int)LogicLegends.Tests.Monsters.DevelopmentMonster.Rajang,
                 [LobbyRules.SceneKey] = MultiplayerSceneRoutes.GameplayPath,
                 [ArchiveTopicSession.CheckpointKey] = JsonUtility.ToJson(checkpoint)
             } } });

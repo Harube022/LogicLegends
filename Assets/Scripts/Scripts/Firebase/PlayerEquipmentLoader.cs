@@ -30,7 +30,7 @@ public class PlayerEquipmentLoader : MonoBehaviourPun
         // fallback immediately so the player is visible while Firebase loads (and
         // also during offline/editor play).
         if (!receivedNetworkEquipment) ApplyEquipment(defaultClothesID, clothesModels);
-        if (IsNetworkAvatar && !photonView.IsMine) return;
+        if (IsNetworkAvatar && (photonView.Owner == null || !photonView.Owner.IsLocal)) return;
         PublishEquipment();
 
         // 1. Double check that we are actually logged in
@@ -66,7 +66,7 @@ public class PlayerEquipmentLoader : MonoBehaviourPun
         {
             if (this == null || !isActiveAndEnabled || !FirebaseManager.IsReady ||
                 FirebaseAuth.DefaultInstance.CurrentUser?.UserId != userId ||
-                (IsNetworkAvatar && !photonView.IsMine)) return;
+                (IsNetworkAvatar && (photonView.Owner == null || !photonView.Owner.IsLocal))) return;
             if (task.IsFaulted || task.IsCanceled)
             {
                 Debug.LogError("Failed to load user data. Applying default fallback.");
@@ -165,7 +165,7 @@ public class PlayerEquipmentLoader : MonoBehaviourPun
     }
     private void PublishEquipment()
     {
-        if (IsNetworkAvatar && photonView.IsMine)
+        if (IsNetworkAvatar && photonView.Owner != null && photonView.Owner.IsLocal)
             photonView.RPC(nameof(SyncEquipmentRPC), RpcTarget.OthersBuffered, SelectedID(clothesModels), SelectedID(petModels));
     }
     [PunRPC]

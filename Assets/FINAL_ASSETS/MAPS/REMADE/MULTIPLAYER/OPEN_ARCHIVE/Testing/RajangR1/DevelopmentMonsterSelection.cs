@@ -1,11 +1,12 @@
 using LogicLegends.Tests.Khezu;
+using Photon.Pun;
 using UnityEngine;
 
 namespace LogicLegends.Tests.Monsters
 {
     public enum DevelopmentMonster { Khezu, Rajang }
 
-    /// <summary>Local animation-test selection only. Does not spawn or manage multiplayer encounters.</summary>
+    /// <summary>Initializes the existing encounter's room-selected rig. Manual swaps remain offline tests.</summary>
     [DisallowMultipleComponent, DefaultExecutionOrder(-10000)]
     public sealed partial class DevelopmentMonsterSelection : MonoBehaviour
     {
@@ -24,7 +25,26 @@ namespace LogicLegends.Tests.Monsters
             Select(DevelopmentMonster.Rajang);
         }
 
-        void Awake() { Select(selected); }
+        void Awake()
+        {
+            if (HasSharedEncounter && PhotonNetwork.InRoom)
+            {
+                if (MultiplayerMonsterRotation.TryRead(PhotonNetwork.CurrentRoom.CustomProperties, out var matchMonster))
+                {
+                    // Apply before the hunting/animation components initialize. Rejoins
+                    // and Master changes do not call this or reset an active encounter.
+                    SelectSharedEncounter(matchMonster, true);
+                    return;
+                }
+                if (!PhotonNetwork.OfflineMode)
+                {
+                    Debug.LogError("The multiplayer room has no valid monster selection. Update all players and host a new party.", this);
+                    enabled = false;
+                    return;
+                }
+            }
+            Select(selected);
+        }
 
         public void Select(DevelopmentMonster monster)
         {

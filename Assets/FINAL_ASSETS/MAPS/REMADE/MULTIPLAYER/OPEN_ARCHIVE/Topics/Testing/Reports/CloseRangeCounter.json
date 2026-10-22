@@ -1,0 +1,188 @@
+{
+  "passed": true,
+  "scope": "Both existing rigs in native offline Play Mode, actual navigation/physics and existing capture. Live remote clients and Android remain unverified.",
+  "checks": [
+    {
+      "name": "Rajang: standing nearby does not trigger anti-circle counter",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: sustained circling triggers warning",
+      "detail": "elapsed=1.80914720096372",
+      "passed": true
+    },
+    {
+      "name": "Rajang: visible colored warning and existing growl are available",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: counter uses the selected monster profile and palette",
+      "detail": "RGBA(1.000, 0.340, 0.025, 1.000)",
+      "passed": true
+    },
+    {
+      "name": "Rajang: warning cannot capture or deduct hearts",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: snapshot restores warning without resetting its deadline",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: strike aim stays committed when target dodges behind",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: strike uses the correct sweep or short lunge",
+      "detail": "travel=0",
+      "passed": true
+    },
+    {
+      "name": "Rajang: missed counter grants recovery without a capture",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: cooldown remains after recovery",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: visible target inside strike reach can be hit",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: distant target is outside strike reach",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: solid wall prevents a strike hit",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: platform above the body is outside strike reach",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: counter hit uses the existing capture once",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: hit waits for the complete warning",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Rajang: counter adds no heart penalty",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: standing nearby does not trigger anti-circle counter",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: sustained circling triggers warning",
+      "detail": "elapsed=1.80523550170068",
+      "passed": true
+    },
+    {
+      "name": "Khezu: visible colored warning and existing growl are available",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: counter uses the selected monster profile and palette",
+      "detail": "RGBA(1.000, 0.080, 0.160, 1.000)",
+      "passed": true
+    },
+    {
+      "name": "Khezu: warning cannot capture or deduct hearts",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: snapshot restores warning without resetting its deadline",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: strike aim stays committed when target dodges behind",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: strike uses the correct sweep or short lunge",
+      "detail": "travel=3.00008",
+      "passed": true
+    },
+    {
+      "name": "Khezu: missed counter grants recovery without a capture",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: cooldown remains after recovery",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: visible target inside strike reach can be hit",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: distant target is outside strike reach",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: solid wall prevents a strike hit",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: platform above the body is outside strike reach",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: counter hit uses the existing capture once",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: hit waits for the complete warning",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Khezu: counter adds no heart penalty",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "name": "Native chase capture still completes cinematic and barrier handoff",
+      "detail": "",
+      "passed": true
+    }
+  ],
+  "protocol": "LL-private-lobby-7",
+  "verifiedAtUtc": "2026-10-21T15:57:01.9020788Z",
+  "unityErrors": 0,
+  "reusedAnimations": [
+    "Existing Khezu Attack",
+    "Existing Rajang Attack"
+  ]
+}

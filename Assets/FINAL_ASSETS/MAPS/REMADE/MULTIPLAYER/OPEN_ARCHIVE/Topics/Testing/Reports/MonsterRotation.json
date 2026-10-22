@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-21",
+  "protocol": "LL-private-lobby-6",
+  "passed": true,
+  "sequence": [
+    "Rajang",
+    "Khezu",
+    "Rajang",
+    "Khezu"
+  ],
+  "persistence": "Per host device; advanced only by confirmed match Start",
+  "roomProperty": "ll.monster",
+  "logicChecks": [
+    "PASS Rajang room metadata, guest read and persistence",
+    "PASS Khezu room metadata, guest read and persistence",
+    "PASS Third match returns to Rajang",
+    "PASS Fourth match returns to Khezu",
+    "PASS Invalid and missing metadata rejected"
+  ],
+  "hostPreferenceRestored": true,
+  "sceneChecks": [
+    {
+      "monster": "Rajang",
+      "selected": "Rajang",
+      "visualRootsCorrect": true,
+      "originalRigCorrect": true,
+      "barrierAndChallengeCorrect": true,
+      "barrierStyle": "Rajang_Orange_Barrier_Style",
+      "animation": "Sleep",
+      "sleep": true,
+      "sharedEncounterCount": 1,
+      "midMatchSwapBlocked": true,
+      "passed": true,
+      "scope": "Actual gameplay scene initialization in a local PUN room; no live Cloud or second rendered device"
+    },
+    {
+      "monster": "Khezu",
+      "selected": "Khezu",
+      "visualRootsCorrect": true,
+      "originalRigCorrect": true,
+      "barrierAndChallengeCorrect": true,
+      "barrierStyle": "Crimson_Barrier_Style",
+      "animation": "Sleep",
+      "sleep": true,
+      "sharedEncounterCount": 1,
+      "midMatchSwapBlocked": true,
+      "passed": true,
+      "scope": "Actual gameplay scene initialization in a local PUN room; no live Cloud or second rendered device"
+    }
+  ],
+  "unityErrors": 0,
+  "notVerified": [
+    "Live Photon Cloud replication for this change",
+    "Separate Android devices"
+  ]
+}
