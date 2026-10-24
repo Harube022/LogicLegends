@@ -73,7 +73,7 @@ public sealed partial class DirectProofsGuide
     {
         StartCamera(); if (!guiding) return;
         focusBounds = ObjectBounds(subject); worldSubject = subject;
-        closeDirection = practiceObject != null && subject == practiceObject.transform ? -subject.forward : Vector3.forward;
+        closeDirection = Vector3.forward;
         SetCameraGoal(overhead);
     }
     void FocusOverview()

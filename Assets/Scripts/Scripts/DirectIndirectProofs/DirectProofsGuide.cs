@@ -22,7 +22,7 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
     public bool NeedsIntroduction => stage != null && !stage.Finished && !stage.OnboardingPending &&
         stage.State == DirectIndirectProofStageController.TrialState.WaitingForActivation && !seen[stage.ChallengeNumber - 1];
     public bool IntroductionSeen(int challenge) => seen[challenge - 1];
-    public GameObject PracticeObject => practiceObject;
+    public GameObject PracticeObject => null;
     public Button HelpButton { get; private set; }
     public Button NextButton { get; private set; }
     public Button BeginButton { get; private set; }
@@ -43,7 +43,6 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
     CursorLockMode oldLock;
     Vector3 startPosition, movementStart;
     Quaternion startRotation;
-    GameObject practiceObject;
     PrelimTutorialSkipControl skip;
     Button adminButton;
     int page;
@@ -160,7 +159,7 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
                 { mobile.ResetJoystick(); ShowStep(DirectProofsPracticeStep.Jump, "Tap this button to jump.", jump); }
             }
             else if (Step == DirectProofsPracticeStep.Jump && jumped && player.IsJumping() && player.transform.position.y > jumpHeight + .1f)
-            { CreatePracticeObject(); Focus(practiceObject.transform, false); ShowStep(DirectProofsPracticeStep.Interaction, "Use this button to interact with nearby objects. Face the practice stand marked ‘Interact with me’ and tap the hand.", hand, false, practiceObject.transform); }
+            { ShowStep(DirectProofsPracticeStep.Interaction, "Tap the hand button to interact with nearby objects.", hand); }
         }
         if (mode != Mode.Help && NextButton.gameObject.activeSelf) NextButton.interactable = Readable;
     }
@@ -182,11 +181,9 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
     }
     public bool TryPracticeInteraction()
     {
-        if (!IsPractice || !Readable || input == null || input.GameplayInputBlocked) return false;
+        if (!IsPractice || (Step != DirectProofsPracticeStep.Interaction && !Readable) || input == null || input.GameplayInputBlocked) return false;
         if (Step == DirectProofsPracticeStep.Interaction)
         {
-            var delta = practiceObject.transform.position - player.transform.position; delta.y = 0;
-            if (delta.magnitude > 3.5f || Vector3.Dot(player.transform.forward, delta.normalized) < .25f) return false;
             CleanPractice(); RestoreCamera(); ShowStep(DirectProofsPracticeStep.Timer, "The book starts or resumes one shared " + StageJourneyUI.FormatTime(stage.StartingSeconds) + " countdown. Correct answers pause it; it never resets between questions. Help and tutorials use no countdown time.", stage.Clock.rectTransform, true); return true;
         }
         if (Step == DirectProofsPracticeStep.Book)
@@ -254,20 +251,10 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
         }
         ShowStep(DirectProofsPracticeStep.Correction, "Practice arrangement complete. Back returns to the room without submitting. During a real question, reopen the same altar to swap any misplaced rows; your work is retained after an incorrect confirmation. In Challenge 5, also select a strategy on the board.", null, true);
     }
-    void CreatePracticeObject()
-    {
-        practiceObject = Instantiate(stage.PracticeTemplate.gameObject); practiceObject.name = "Direct Proofs PRACTICE — Interact with me";
-        practiceObject.transform.position = player.transform.position + player.transform.forward * 2.2f;
-        var point = practiceObject.transform.position; point.y = startPosition.y; practiceObject.transform.position = point;
-        practiceObject.transform.rotation = player.transform.rotation;
-        practiceObject.GetComponent<ProofWorldPedestal>().SetContent("PRACTICE ONLY", "Interact with me");
-        foreach (var collider in practiceObject.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
-        practiceObject.SetActive(true);
-    }
+
     void CleanPractice()
     {
         if (stage != null && stage.OrderingBoard != null && stage.OrderingBoard.IsPractice) stage.OrderingBoard.ForceClose();
-        if (practiceObject != null) { practiceObject.SetActive(false); Destroy(practiceObject); practiceObject = null; }
     }
     public void Skip()
     { if (mode == Mode.Introduction) EndIntroduction(); else if (IsPractice && Step != DirectProofsPracticeStep.Confirmation) Confirm(); }

@@ -268,7 +268,7 @@ namespace LogicLegends.Induction
         public void SkipTutorial(){if(IsActive&&CurrentStep!=InductionTutorialStep.Confirm)ShowConfirmation();}
         void ShowConfirmation()
         {
-            ResetGuide();DestroyPractice();mobile.ResetJoystick();CurrentStep=InductionTutorialStep.Confirm;stage.ui.Refresh();
+            ResetGuide();mobile.ResetJoystick();CurrentStep=InductionTutorialStep.Confirm;stage.ui.Refresh();
             instructions.gameObject.SetActive(false);highlight.gameObject.SetActive(false);worldObstacle.gameObject.SetActive(false);
             foreach(var control in visibility.Keys)control.SetActive(false);input.SetGameplayInputBlocked(true);player.ToggleControl(false);Time.timeScale=0;
             skip.Show(false);confirmation.SetActive(true);confirmation.transform.SetAsLastSibling();

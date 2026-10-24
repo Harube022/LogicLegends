@@ -175,7 +175,7 @@ public sealed partial class DirectProofsGuide
             card.sizeDelta=portrait?new Vector2(area.width*.96f,area.height*.31f):new Vector2(area.width*.34f,area.height*.65f);
             card.anchoredPosition=portrait?new Vector2(0,-area.height*.32f):new Vector2(area.width*.31f,0);
         }
-        else card.anchoredPosition=mode==Mode.Introduction ? new Vector2(0,-area.height*.5f+card.sizeDelta.y*.5f+20) : BestCardPosition(card.sizeDelta);
+        else if(mode==Mode.Introduction) card.anchoredPosition=new Vector2(0,-area.height*.5f+card.sizeDelta.y*.5f+20);
         StageUITheme.Stretch((RectTransform)viewport.parent, Vector2.zero,Vector2.one);
         viewport.offsetMin=new Vector2(24,NextButton.gameObject.activeSelf||actions?106:24);viewport.offsetMax=new Vector2(-24,-24);
         body.fontSize=36;ResetContent(body);
@@ -257,32 +257,5 @@ public sealed partial class DirectProofsGuide
     { ProofsStageUI.Bottom((RectTransform)button.transform, new Vector2(x, y), new Vector2(width, 76)); }
     Rect RelativeRect(RectTransform rect)
     { var b = RectTransformUtility.CalculateRelativeRectTransformBounds(SafeArea, rect); return new Rect(b.min, b.size); }
-    Vector2 BestCardPosition(Vector2 size)
-    {
-        var blocks = new List<Rect>();
-        if (controlTarget != null) blocks.Add(RelativeRect(controlTarget));
-        if (worldSubject != null && Camera.main != null)
-        {
-            var bounds = ObjectBounds(worldSubject); Vector2 min = Vector2.positiveInfinity, max = Vector2.negativeInfinity; bool visible = true;
-            for (int x = -1; x <= 1; x += 2) for (int y = -1; y <= 1; y += 2) for (int z = -1; z <= 1; z += 2)
-            {
-                var point = Camera.main.WorldToScreenPoint(bounds.center + Vector3.Scale(bounds.extents, new Vector3(x, y, z)));
-                if (point.z <= 0) { visible = false; continue; }
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(SafeArea, point, null, out Vector2 local); min = Vector2.Min(min, local); max = Vector2.Max(max, local);
-            }
-            if (visible) blocks.Add(Rect.MinMaxRect(min.x - 16, min.y - 16, max.x + 16, max.y + 16));
-        }
-        foreach (var item in new[] { hand, jump, joystick, hud, skip != null ? (RectTransform)skip.transform : null })
-            if (item != null && item.gameObject.activeInHierarchy) blocks.Add(RelativeRect(item));
-        var area = SafeArea.rect; Vector2 best = Vector2.zero; float score = float.MaxValue;
-        for (int y = 2; y <= 8; y++) for (int x = 2; x <= 8; x++)
-        {
-            Vector2 center = new Vector2(Mathf.Clamp(area.xMin + area.width * x / 10, area.xMin + size.x / 2 + 20, area.xMax - size.x / 2 - 20), Mathf.Clamp(area.yMin + area.height * y / 10, area.yMin + size.y / 2 + 20, area.yMax - size.y / 2 - 20));
-            var box = new Rect(center - size / 2, size); float overlap = 0;
-            foreach (var b in blocks) overlap += Mathf.Max(0, Mathf.Min(box.xMax, b.xMax) - Mathf.Max(box.xMin, b.xMin)) * Mathf.Max(0, Mathf.Min(box.yMax, b.yMax) - Mathf.Max(box.yMin, b.yMin));
-            float value = overlap * 10000 + Vector2.Distance(center, area.center);
-            if (value < score) { score = value; best = center - area.center; }
-        }
-        return best;
-    }
+
 }

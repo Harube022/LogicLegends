@@ -34,9 +34,7 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
     private RectTransform highlight, arrow, instructions, worldHighlight;
     private TextMeshProUGUI instructionText;
     private Button nextButton;
-    private GameObject confirmation, practiceTarget;
-    private RectTransform practiceLabelRect;
-    private TextMeshProUGUI practiceLabel;
+    private GameObject confirmation;
     private MobileInputUI mobileControls;
     private Player player;
     private GameInput input;
@@ -285,7 +283,6 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
 
     private void BeginMovement()
     {
-        DestroyPracticeTarget();
         DestroySampleBlocks();
         RestoreBoardAndTimer();
         RestoreGameplayCamera();
@@ -305,13 +302,11 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
 
     private void BeginInteraction()
     {
-        CreatePracticeTarget();
-        ShowStep(Step.Interaction, "Use this button to interact with nearby objects.", handButton);
+        ShowStep(Step.Interaction, "Tap the hand button to interact with nearby objects.", handButton);
     }
 
     private void BeginBook()
     {
-        DestroyPracticeTarget();
         if (bookPrompt != null) bookPrompt.gameObject.SetActive(false);
         SetGuidedControls(true);
         FocusCamera(bookTarget, bookCameraOffset, false);
@@ -428,19 +423,7 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
         else if (step == Step.Jump && jumpRequested && player.IsJumping() &&
                  player.transform.position.y > jumpStartY + 0.1f)
             BeginInteraction();
-        if (practiceLabelRect != null && practiceTarget != null && Camera.main != null)
-        {
-            Vector3 screen = Camera.main.WorldToScreenPoint(practiceTarget.transform.position + Vector3.up * 3.2f);
-            practiceLabelRect.gameObject.SetActive(screen.z > 0f);
-            if (screen.z > 0f && RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    safeArea, screen, null, out Vector2 local))
-            {
-                Rect area = safeArea.rect;
-                practiceLabelRect.anchoredPosition = new Vector2(
-                    Mathf.Clamp(local.x, area.xMin + 135f, area.xMax - 135f),
-                    Mathf.Clamp(local.y, area.yMin + 38f, area.yMax - 38f));
-            }
-        }
+
         if (tutorialCamera != null)
         {
             float blend = 1f - Mathf.Exp(-Time.unscaledDeltaTime * 4f / cameraTransitionSeconds);
@@ -701,60 +684,13 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
     {
         if (!IsActive) return;
         if (step == Step.Book) { BeginTimer(); return; }
-        if (step != Step.Interaction || practiceTarget == null || player == null) return;
-        Vector3 toward = practiceTarget.transform.position - player.transform.position;
-        toward.y = 0f;
-        Vector3 facing = player.transform.forward;
-        facing.y = 0f;
-        if (toward.magnitude > practiceRange || toward.sqrMagnitude < 0.001f ||
-            facing.sqrMagnitude < 0.001f ||
-            Vector3.Dot(facing.normalized, toward.normalized) < 0.25f) return;
+        if (step != Step.Interaction) return;
         BeginBook();
-    }
-
-    private void CreatePracticeTarget()
-    {
-        DestroyPracticeTarget();
-        practiceTarget = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        practiceTarget.name = "Setssss Practice Interaction";
-        Vector3 position = player.transform.position + player.transform.forward * 1.7f + player.transform.right * 2.7f;
-        position.y = jumpStartY + 0.9f;
-        practiceTarget.transform.position = position;
-        practiceTarget.transform.localScale = Vector3.one * 1.35f;
-        Collider collider = practiceTarget.GetComponent<Collider>();
-        if (collider != null) collider.isTrigger = true;
-        Renderer renderer = practiceTarget.GetComponent<Renderer>();
-        if (renderer != null) renderer.material.color = new Color(1f, 0.74f, 0.2f);
-        practiceLabelRect = StageUITheme.Rect("Setssss Practice Label", safeArea);
-        practiceLabelRect.anchorMin = practiceLabelRect.anchorMax = practiceLabelRect.pivot = new Vector2(0.5f, 0.5f);
-        practiceLabelRect.sizeDelta = new Vector2(270f, 76f);
-        Image labelBackground = practiceLabelRect.gameObject.AddComponent<Image>();
-        labelBackground.color = new Color(0.04f, 0.1f, 0.13f, 0.94f);
-        labelBackground.raycastTarget = false;
-        practiceLabel = (TextMeshProUGUI)StageUITheme.Text("Label Text", practiceLabelRect, "Interact with me", 33);
-        practiceLabel.text = "Interact with me";
-        practiceLabel.enableAutoSizing = true;
-        practiceLabel.fontSizeMin = 26f;
-        practiceLabel.fontSizeMax = 34f;
-        StageUITheme.Stretch(practiceLabel.rectTransform, new Vector2(0.04f, 0.08f), new Vector2(0.96f, 0.92f));
-        practiceLabel.alignment = TextAlignmentOptions.Center;
-        practiceLabel.color = Color.white;
-        practiceLabel.raycastTarget = false;
-    }
-
-    private void DestroyPracticeTarget()
-    {
-        if (practiceTarget != null) Destroy(practiceTarget);
-        if (practiceLabelRect != null) Destroy(practiceLabelRect.gameObject);
-        practiceTarget = null;
-        practiceLabelRect = null;
-        practiceLabel = null;
     }
 
     private void BeginConfirmation()
     {
         step = Step.Confirm;
-        DestroyPracticeTarget();
         DestroySampleBlocks();
         RestoreBoardAndTimer();
         RestoreGameplayCamera();
@@ -786,7 +722,6 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
 
     private void Cleanup()
     {
-        DestroyPracticeTarget();
         DestroySampleBlocks();
         RestoreBoardAndTimer();
         RestoreGameplayCamera();

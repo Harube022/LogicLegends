@@ -68,12 +68,10 @@ public static class LogicGardenOnboardingPlayChecks
         var controller=player.GetComponent<CharacterController>();deadline=Time.realtimeSinceStartup+4;while(!controller.isGrounded&&Time.realtimeSinceStartup<deadline)yield return null;
         t.InstructionPanel.parent.GetComponentsInChildren<Button>(true).Single(b=>b.name=="JumpButton").onClick.Invoke();deadline=Time.realtimeSinceStartup+4;
         while(t.CurrentStep==LogicGardenControlsOnboarding.Step.Jump&&Time.realtimeSinceStartup<deadline)yield return null;
-        Check(t.CurrentStep==LogicGardenControlsOnboarding.Step.Interaction&&player.IsJumping()&&t.PracticeObject!=null,"successful grounded jump advances to hand practice");
-        Check(t.PracticeObject.GetComponent<GrabbableObject>()==null&&t.PracticeObject.GetComponent<Collider>().isTrigger,"practice target cannot enter inventory");yield return Capture(t,"Interaction");
+        Check(t.CurrentStep==LogicGardenControlsOnboarding.Step.Interaction&&player.IsJumping()&&t.PracticeObject==null,"successful grounded jump advances to hand practice");
+        Check(t.PracticeObject==null,"hand practice needs no collectible target");yield return Capture(t,"Interaction");
         if(mode=="skipPractice"){t.SkipControl.GetComponent<Button>().onClick.Invoke();yield return null;CheckCleanup(intro);Debug.Log("GARDEN_SKIP_PRACTICE_CHECKS_PASS: practice target and highlights cleaned; wizard objective and locked library preserved.");yield break;}
-        var direction=t.PracticeObject.transform.position-player.transform.position;direction.y=0;player.transform.rotation=Quaternion.LookRotation(-direction);
-        input.MobileInteract();Check(t.CurrentStep==LogicGardenControlsOnboarding.Step.Interaction,"unsuccessful hand interaction cannot advance");
-        player.transform.rotation=Quaternion.LookRotation(direction);t.InstructionPanel.parent.GetComponentsInChildren<Button>(true).Single(b=>b.name=="InteractButton").onClick.Invoke();
+        t.InstructionPanel.parent.GetComponentsInChildren<Button>(true).Single(b=>b.name=="InteractButton").onClick.Invoke();
         Check(t.CurrentStep==LogicGardenControlsOnboarding.Step.MeetLefyahj&&t.PracticeObject==null&&!intro.Talking,"practice interaction opens only wizard preview");
         if(mode=="skipCamera"){t.SkipControl.GetComponent<Button>().onClick.Invoke();yield return null;CheckCleanup(intro);Debug.Log("GARDEN_SKIP_CAMERA_CHECKS_PASS: transition cancelled; camera and controls restored without completing dialogue.");yield break;}
         yield return Settled(t);yield return Capture(t,"MeetLefyahj");

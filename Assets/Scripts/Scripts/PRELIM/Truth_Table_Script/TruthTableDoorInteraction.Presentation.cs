@@ -26,10 +26,22 @@ public partial class TruthTableDoorInteraction
     void InitializePresentation()
     {
         // Center the quiz on the full Canvas, independently of safe-area insets.
-        // Keep SafeArea above the shade so its Settings and Admin buttons work.
+        // The quiz needs its own raycaster above gameplay canvases. A transparent
+        // SafeArea or mobile-look surface must never intercept its finger events.
         var canvas = StageFullScreenPanels.RootCanvas(blankPanel.transform);
         blankPanel.transform.SetParent(canvas.transform, false);
-        blankPanel.transform.SetAsFirstSibling();
+        blankPanel.transform.SetAsLastSibling();
+        var modalCanvas = blankPanel.GetComponent<Canvas>();
+        if (modalCanvas == null) modalCanvas = blankPanel.AddComponent<Canvas>();
+        modalCanvas.overrideSorting = true;
+        modalCanvas.sortingOrder = 300;
+        if (blankPanel.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
+            blankPanel.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+        var modalGroup = blankPanel.GetComponent<CanvasGroup>();
+        if (modalGroup == null) modalGroup = blankPanel.AddComponent<CanvasGroup>();
+        modalGroup.ignoreParentGroups = true;
+        modalGroup.interactable = true;
+        modalGroup.blocksRaycasts = true;
         var panelRect = (RectTransform)blankPanel.transform;
         StageUITheme.Stretch(panelRect, Vector2.zero, Vector2.one);
         panelRect.localScale = Vector3.one;
@@ -38,7 +50,20 @@ public partial class TruthTableDoorInteraction
         correctAnswerText.color = new Color(1,.9f,.6f); correctAnswerText.gameObject.SetActive(false);
         var shade = blankPanel.GetComponent<UnityEngine.UI.Image>();
         if(shade==null)shade=blankPanel.AddComponent<UnityEngine.UI.Image>();
-        shade.color=new Color(.01f,.025f,.04f,.9f);shade.raycastTarget=true;
+        // Keep Settings/Admin reachable outside the card. World interactions
+        // remain blocked by panelOpen and GameInput, independently of UI rays.
+        shade.color=new Color(.01f,.025f,.04f,.9f);shade.raycastTarget=false;
+        var cardImage = quizCard.GetComponent<UnityEngine.UI.Image>();
+        if (cardImage != null) cardImage.raycastTarget = true;
+        foreach (var label in blankPanel.GetComponentsInChildren<TMP_Text>(true)) label.raycastTarget = false;
+        foreach (var button in answerButtons)
+            if (button.targetGraphic != null) button.targetGraphic.raycastTarget = true;
+        if (closeButton != null && closeButton.targetGraphic != null) closeButton.targetGraphic.raycastTarget = true;
+        if (closeButton != null)
+        {
+            var backLabel = closeButton.GetComponentInChildren<TMP_Text>(true);
+            if (backLabel != null) backLabel.text = "Back";
+        }
         doorBubbles = new HandThoughtBubble[doors.Length];
         doorBubbleVisibility = new CanvasGroup[doors.Length];
         houseLocalBounds = new Bounds[doors.Length];

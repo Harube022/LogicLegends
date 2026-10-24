@@ -21,7 +21,7 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
         CurrentStep == ProofsTutorialStep.Place || CurrentStep == ProofsTutorialStep.TakeBack || CurrentStep == ProofsTutorialStep.Replace;
     public Button YesButton { get; private set; }
     public Button NoButton { get; private set; }
-    public GameObject PracticeObject => practiceObject;
+    public GameObject PracticeObject => null;
     public bool PracticeCarried { get; private set; }
     public int PracticePlacement { get; private set; } = -1;
     public const string PracticePassage = "PRACTICE ONLY — This example is separate from the challenge bank.\n\nThree equal ribbons together measure 12 cm. Since all three have the same length, each measures 12 ÷ 3 = 4 cm. This explanatory prose is a valid informal proof.";
@@ -32,12 +32,11 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
     Player player;
     GameInput input;
     MobileInputUI mobile;
-    RectTransform safe, joystick, jump, hand, instructions, highlight, arrow, worldRect, practiceLabel;
+    RectTransform safe, joystick, jump, hand, instructions, highlight, arrow, worldRect;
     TMP_Text instruction;
     Button next, settings;
-    GameObject confirmation, practiceObject, practiceRoot, practiceScroll;
+    GameObject confirmation, practiceRoot, practiceScroll;
     ProofWorldPedestal practiceStand;
-    Material practiceMaterial;
     PrelimTutorialSkipControl skip;
     Transform worldTarget;
     Vector3 initialPosition, movementStart;
@@ -115,8 +114,8 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
             var p = player.transform.position;
             if (intentionalTime >= intentionalMovementSeconds && Vector2.Distance(new Vector2(p.x, p.z), new Vector2(movementStart.x, movementStart.z)) >= movementDistance)
             {
-                mobile.ResetJoystick(); CreatePracticeObject();
-                ShowStep(ProofsTutorialStep.Interaction, "Use this button to interact with nearby objects.", hand);
+                mobile.ResetJoystick();
+                ShowStep(ProofsTutorialStep.Interaction, "Tap the hand button to interact with nearby objects.", hand);
             }
         }
         else if (CurrentStep == ProofsTutorialStep.Jump && jumped && player.IsJumping() && player.transform.position.y > jumpY + .1f)
@@ -128,14 +127,11 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
     }
     public bool TryPracticeInteraction()
     {
-        if (!IsActive || input.GameplayInputBlocked || Time.timeScale <= 0 || !Readable) return false;
+        if (!IsActive || input.GameplayInputBlocked || Time.timeScale <= 0 || (CurrentStep != ProofsTutorialStep.Interaction && !Readable)) return false;
         switch (CurrentStep)
         {
             case ProofsTutorialStep.Interaction:
-                if (practiceObject == null) return false;
-                var delta = practiceObject.transform.position - player.transform.position; delta.y = 0;
-                if (delta.magnitude > 3.5f || Vector3.Dot(player.transform.forward, delta.normalized) < .25f) return false;
-                DestroyPracticeObject(); jumped = false;
+                jumped = false;
                 ShowStep(ProofsTutorialStep.Jump, "Tap this button to jump.", jump); return true;
             case ProofsTutorialStep.Book:
                 Focus(stage.AltarTargets[0], Vector3.forward);
@@ -259,7 +255,6 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
     public void ConfirmYes() { if (IsActive && CurrentStep == ProofsTutorialStep.Confirm) { Cancel(); stage.FinishOnboarding(); } }
     void ResetPractice()
     {
-        DestroyPracticeObject();
         if (practiceRoot != null) { practiceRoot.SetActive(false); Destroy(practiceRoot); }
         practiceRoot = null; practiceStand = null; practiceScroll = null; PracticeCarried = false; PracticePlacement = -1;
         foreach (var pair in texts) if (pair.Key != null) pair.Key.text = pair.Value;
