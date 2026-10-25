@@ -36158,8 +36158,8 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Explore the Open Archive
 
-    WASD / joystick: move   |   Right-side drag:
-    look   |   Space / jump button: jump'
+    Joystick: move   |   Drag the right side:
+    look   |   Jump button: jump'
 --- !u!222 &1088794185
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -37480,6 +37480,19 @@ MonoBehaviour:
   health: {fileID: 1710875268}
   failureAttackContact: 0.345
   failureKnockbackDistance: 4
+  closeCounterEnabled: 1
+  closeTurnSpeed: 300
+  circleSecondsBeforeCounter: 1.8
+  circleDegreesBeforeCounter: 80
+  minimumCircleDegreesPerSecond: 25
+  counterWarningSeconds: 0.6
+  counterStrikeSeconds: 0.35
+  counterRecoverySeconds: 0.8
+  counterCooldownSeconds: 3.5
+  counterSurfaceReach: 3
+  rajangCounterArc: 160
+  khezuCounterArc: 90
+  khezuCounterLunge: 3
   awakeningDriver: {fileID: 1115293179}
   normalPlayerRunSpeed: 19.5
   chaseSpeedMultiplier: 1.3685

@@ -96,7 +96,7 @@ public static class MobileTutorialInteractionChecks
         {
             Time.timeScale=1;GameInput.Instance?.SetGameplayInputBlocked(false);
             StageSelectionState.SelectForEditorSpawn(scene=="PRELIM"?1:scene=="TruthTable"?2:scene=="LogicGarden"?1:TrialCatalog.ForScene(scene).Number);
-            if(SceneManager.GetActiveScene().name!=scene)yield return SceneManager.LoadSceneAsync("Assets/Scenes/"+scene+".unity");
+            if(SceneManager.GetActiveScene().name!=scene)yield return EditorSceneManager.LoadSceneAsyncInPlayMode("Assets/Scenes/"+scene+".unity", new LoadSceneParameters(LoadSceneMode.Single));
             yield return new WaitForSecondsRealtime(2.5f);
             float until=Time.realtimeSinceStartup+30;
             while(Time.realtimeSinceStartup<until&&(Player.LocalInstance==null||Find<LogicLegends.Induction.InductionStageManager>()!=null&&!Find<LogicLegends.Induction.InductionStageManager>().Ready||Find<LogicLegends.Graph.GraphStageManager>()!=null&&!Find<LogicLegends.Graph.GraphStageManager>().Ready))yield return null;
@@ -116,6 +116,12 @@ public static class MobileTutorialInteractionChecks
             BeginHand(coach,scene,(RectTransform)hand.transform);yield return null;yield return null;
             Check(Step(coach)=="Interaction","enter hand-only step "+scene);
             Check(!UnityEngine.Object.FindObjectsByType<TMP_Text>(FindObjectsSortMode.None).Any(t=>t.text.Contains("Interact with me")),"no obsolete practice label "+scene);
+            var handPanel=Panel(coach,scene);
+            TutorialSpotlightChecks.Verify(handPanel,(RectTransform)hand.transform);
+            BookMapMobileChecks.SetSize(3);yield return new WaitForSecondsRealtime(.3f);
+            TutorialSpotlightChecks.Verify(handPanel,(RectTransform)hand.transform);
+            BookMapMobileChecks.SetSize(6);yield return new WaitForSecondsRealtime(.2f);
+            TutorialSpotlightChecks.Verify(handPanel,(RectTransform)hand.transform);
             int worldInteractions=0;EventHandler observer=(s,e)=>worldInteractions++;GameInput.Instance.OnInteractAction+=observer;
             yield return Tap(hand);GameInput.Instance.OnInteractAction-=observer;
             string expected=scene=="LogicGarden"?"MeetLefyahj":scene=="Formal vs. Informal Proofs"?"Jump":scene=="Direct&Indirect"?"Timer":"Book";
@@ -141,8 +147,9 @@ public static class MobileTutorialInteractionChecks
             BookMapMobileChecks.SetSize(6);yield return new WaitForSecondsRealtime(.2f);
             
             yield return Cleanup(coach,scene);
+            TutorialSpotlightChecks.VerifyCleanedUp();
             Check(!GameInput.Instance.GameplayInputBlocked&&Player.LocalInstance.enabled,"cleanup restores controls "+scene);
-            Log(scene+": hand touch consumed, no practice block, stable screen-space lesson, skip/camera/input cleanup");
+            Log(scene+": bright target/explanation/Skip in portrait and landscape; touch-safe spotlight; hand touch consumed; stable lesson; spotlight/camera/input cleanup");
             if(scene=="TruthTable")yield return Quizzes();
         }
         InputSystem.RemoveDevice(touchscreen);

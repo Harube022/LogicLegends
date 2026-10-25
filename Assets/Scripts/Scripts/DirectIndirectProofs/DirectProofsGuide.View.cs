@@ -136,8 +136,9 @@ public sealed partial class DirectProofsGuide
     void LayoutUI()
     {
         if (SafeArea == null || card == null) return;
-        FitPortraitControls(); stage.LayoutGuidePresentation(SafeArea);
+        FitPortraitControls();
         PrelimUIPresentation.CompactHud(hud, SafeArea, hud.Find("CurrentStageLabel").GetComponent<TMP_Text>(), stage.Clock, stage.Progress);
+        stage.LayoutGuidePresentation(SafeArea, hud);
         LayoutHelpButton();
         if (!IsBusy) return;
         bool helpMode = mode == Mode.Help, confirm = IsPractice && Step == DirectProofsPracticeStep.Confirmation;
@@ -160,7 +161,7 @@ public sealed partial class DirectProofsGuide
         bool actions=ActionButton.gameObject.activeSelf;
         RectTransform target = controlTarget != null ? controlTarget : worldHighlight.gameObject.activeSelf ? worldHighlight : null;
         var blockers = new List<RectTransform>(ControlTutorialLayout.FindBlockers());
-        blockers.AddRange(new[]{hud,hand,jump,joystick,skip!=null?(RectTransform)skip.transform:null});
+        blockers.AddRange(new[]{hud,stage.Prompt.rectTransform,stage.Selection.rectTransform,hand,jump,joystick,skip!=null?(RectTransform)skip.transform:null});
         // The shared layout measures a direct child. Keep its geometry changes
         // separate from the ScrollRect's content so scrolling retains its offset.
         layoutProbe.text=body.text;
@@ -207,6 +208,7 @@ public sealed partial class DirectProofsGuide
     }
     void LayoutHelpBook()
     {
+        if (helpCard.GetComponent<StageHelpPage>() != null) return;
         bool portrait=Screen.height>Screen.width;
         StageUITheme.Stretch(helpCard,new Vector2(.07f,.07f),new Vector2(.93f,.93f));
         StageUITheme.Stretch((RectTransform)helpCard.Find("LeftReadingPage"),new Vector2(.045f,.25f),new Vector2(portrait?.955f:.49f,.85f));

@@ -34,6 +34,7 @@ namespace LogicLegends.Induction
         string[] boardText;
         readonly List<Behaviour> cameraBehaviours = new List<Behaviour>();
         readonly Dictionary<Renderer,bool> playerRenderers = new Dictionary<Renderer,bool>();
+        readonly Dictionary<Renderer,bool> chamberRenderers = new Dictionary<Renderer,bool>();
         GameObject demonstrationScroll, altarPointer;
         TMP_Text demonstrationLabel, pointerLabel;
         bool practiceCollected, returningCamera;
@@ -64,6 +65,15 @@ namespace LogicLegends.Induction
                 }
             }
             foreach(var renderer in player.GetComponentsInChildren<Renderer>()){playerRenderers[renderer]=renderer.enabled;renderer.enabled=false;}
+            // Keep suspended chamber art out of close-ups without changing collisions or lighting.
+            foreach(var renderer in FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+            {
+                bool ceiling=renderer.name=="ChamberCeiling",suspended=false;
+                for(var part=renderer.transform;part!=null;part=part.parent)
+                    if(part.name=="Overhead Stone Rib"||part.name=="Suspension Chain"||part.name=="Hanging Chandelier")
+                        suspended=part.GetComponentsInParent<Transform>(true).Any(t=>t.name=="ChamberDecorations");
+                if(ceiling||suspended){chamberRenderers[renderer]=renderer.enabled;renderer.enabled=false;}
+            }
             boardText=new[]{stage.boardTitle.text,stage.boardFormula.text,stage.boardInstructions.text};
             stage.boardTitle.text="PRACTICE CHALLENGE";stage.boardFormula.text="Practice statement P(n)";
             stage.boardInstructions.text="Build a proof using a base case, an assumption for k, and a step for k + 1.\nPractice only — no real question or answer.";
@@ -281,6 +291,7 @@ namespace LogicLegends.Induction
             if(guideCamera!=null){guideCamera.transform.SetPositionAndRotation(savedCameraPosition,savedCameraRotation);guideCamera.fieldOfView=savedFov;}guideCamera=null;
             foreach(var behaviour in cameraBehaviours)if(behaviour!=null)behaviour.enabled=true;cameraBehaviours.Clear();
             foreach(var item in playerRenderers)if(item.Key!=null)item.Key.enabled=item.Value;playerRenderers.Clear();
+            foreach(var item in chamberRenderers)if(item.Key!=null)item.Key.enabled=item.Value;chamberRenderers.Clear();
             if(boardText!=null&&stage!=null){stage.boardTitle.text=boardText[0];stage.boardFormula.text=boardText[1];stage.boardInstructions.text=boardText[2];}boardText=null;
             if(stage!=null&&stage.ui!=null)stage.ui.ClosePracticeCollection();
             if(demonstrationScroll!=null){demonstrationScroll.SetActive(false);Destroy(demonstrationScroll);}demonstrationScroll=null;demonstrationLabel=null;

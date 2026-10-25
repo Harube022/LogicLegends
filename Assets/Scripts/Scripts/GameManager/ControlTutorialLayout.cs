@@ -133,6 +133,7 @@ public static class ControlTutorialLayout
             arrow.localRotation = Quaternion.Euler(0f, 0f, horizontal ? (direction.x > 0f ? -90f : 90f) : direction.y > 0f ? 0f : 180f);
             var label = arrow.GetComponent<TMP_Text>(); label.text = "\u25bc"; label.fontSize = 48f;
         }
+        TutorialSpotlight.Follow(panel, hasTarget ? target : null, arrow);
     }
 
     private static float Intersection(Rect a, Rect b)

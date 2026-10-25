@@ -61,9 +61,9 @@ public sealed class SetsUIController : MonoBehaviour
     private static readonly Color Gold = new Color(0.93f, 0.76f, 0.42f);
     private static readonly (string title, string body)[] HelpPages =
     {
-        ("Start at the book", "Approach the Book Statue and tap the hand button to start Challenge 1. On a keyboard, press E. Interacting again during the challenge does not restart it."),
+        ("Start at the book", "Approach the Book Statue and tap the hand button to start Challenge 1. Interacting again during the challenge does not restart it."),
         ("Read Board 1", "The board shows Question 1 of 5, sets A and B, and U = {1, 2, 3, 4, 5, 6, 7, 8, 9}. These numbered blocks represent elements of a set. The number identifies each element. A and B are sets, represented by the two circles in the Venn diagram."),
-        ("Collect numbered blocks", "There is one block for each number from 1 through 9 at the spawner. Move with the on-screen joystick and tap the hand button near a block to carry it. On a keyboard, use WASD and E."),
+        ("Collect numbered blocks", "There is one block for each number from 1 through 9 at the spawner. Move with the on-screen joystick and tap the hand button near a block to carry it."),
         ("Fill the Venn diagram", "Bring members of A only to the left region, members of both sets to A ∩ B, and members of B only to the right region. Tap PLACE in the matching region. Leave unused blocks at the spawner."),
         ("Check and revise", "You can pick up a placed element block and move it. If an element does not belong in either set, carry it out of the diagram and tap RETURN. Tap SUBMIT when ready. An incorrect answer keeps this question active."),
         ("Complete Challenge 1", "Each correct submission moves to the next question and returns all nine element blocks to the spawner. Answer all five questions to finish Challenge 1. The next challenge waits for another book interaction.")

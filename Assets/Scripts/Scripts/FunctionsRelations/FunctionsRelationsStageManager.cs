@@ -291,7 +291,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         RefreshDiamondPanels();
         RefreshSubmissionControls();
         if (statusText != null && state == FunctionsRelationsState.WAITING_FOR_ACTIVATION)
-            statusText.text = "Approach the Book Statue and press Interact";
+            statusText.text = "Approach the Book Statue and tap the hand button";
     }
 
     private void OnInteract(object sender, EventArgs args)

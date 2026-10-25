@@ -31,6 +31,10 @@ namespace LogicLegends.Trees
         public bool Moving {get;private set;}
         public bool BoardOpen {get;private set;}
         bool inputBeforeBoard, playerBeforeBoard;
+        bool lessonInputBlocked, lessonPlayerEnabled, lessonTimerRunning, lessonCursorVisible;
+        float lessonTimeScale;
+        CursorLockMode lessonCursorLock;
+        readonly System.Collections.Generic.List<Behaviour> lessonCameraInputs = new System.Collections.Generic.List<Behaviour>();
         public bool NearBook=>LocalPlayer!=null&&Vector3.Distance(LocalPlayer.transform.position,bookStatue.position)<4.5f;
         public bool CanAct=>Ready&&!Moving&&!LessonOpen&&Time.timeScale>0&&(boardFocus==null||!boardFocus.Transitioning)&&(BoardOpen||GameInput.Instance==null||!GameInput.Instance.GameplayInputBlocked)&&(TeleportManager.Instance==null||!TeleportManager.Instance.IsTransitioning);
         public bool CanSolve=>CanAct&&BoardOpen&&State==TreeStageState.ACTIVE;
@@ -52,7 +56,7 @@ namespace LogicLegends.Trees
         }
         void OnDestroy(){if(input!=null){input.OnInteractAction-=OnInteract;if(BoardOpen)input.SetGameplayInputBlocked(inputBeforeBoard);}if(boardFocus!=null)boardFocus.Exit();}
         void OnInteract(object sender,EventArgs args){InteractBook();}
-        void OnDisable() { BookStatuePresentation.SetRequired(bookStatue, false); }
+        void OnDisable() { SetLesson(false); BookStatuePresentation.SetRequired(bookStatue, false); }
         void Update()
         {
             BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && Ready && !Moving && !BoardOpen &&
@@ -136,9 +140,35 @@ namespace LogicLegends.Trees
         }
         public void SetLesson(bool open)
         {
-            if(!Ready||Moving||Time.timeScale<=0||(boardFocus!=null&&boardFocus.Transitioning)||(State!=TreeStageState.ACTIVE&&State!=TreeStageState.WAITING_FOR_ACTIVATION))return;
-            LessonOpen=open;LocalPlayer.ToggleControl(!open&&!BoardOpen);input.SetGameplayInputBlocked(open||BoardOpen);
-            if(State==TreeStageState.ACTIVE){if(open)timer.Pause();else timer.Resume();}ui.ShowLesson(open);
+            if (open)
+            {
+                if (LessonOpen || !Ready || Moving || Time.timeScale <= 0 ||
+                    (boardFocus != null && boardFocus.Transitioning) ||
+                    (State != TreeStageState.ACTIVE && State != TreeStageState.WAITING_FOR_ACTIVATION)) return;
+                lessonInputBlocked = input.GameplayInputBlocked;
+                lessonPlayerEnabled = LocalPlayer.enabled;
+                lessonTimerRunning = timer.Running;
+                lessonTimeScale = Time.timeScale;
+                lessonCursorLock = Cursor.lockState; lessonCursorVisible = Cursor.visible;
+                lessonCameraInputs.Clear();
+                foreach (var behaviour in FindObjectsByType<Behaviour>(FindObjectsSortMode.None))
+                    if (behaviour.enabled && (behaviour is Unity.Cinemachine.CinemachineInputAxisController ||
+                        behaviour is CinemachinePinchZoom || behaviour is ThirdPersonCameraController || behaviour is CameraTargetController))
+                    { lessonCameraInputs.Add(behaviour); behaviour.enabled = false; }
+                LessonOpen = true; timer.Pause(); LocalPlayer.ToggleControl(false); input.SetGameplayInputBlocked(true);
+                Time.timeScale = 0; Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
+                ui.ShowLesson(true);
+                return;
+            }
+            if (!LessonOpen) return;
+            LessonOpen = false; ui.ShowLesson(false);
+            Time.timeScale = lessonTimeScale;
+            input.SetGameplayInputBlocked(lessonInputBlocked); LocalPlayer.ToggleControl(lessonPlayerEnabled);
+            foreach (var behaviour in lessonCameraInputs) if (behaviour != null) behaviour.enabled = true;
+            lessonCameraInputs.Clear();
+            if (lessonTimerRunning && State == TreeStageState.ACTIVE) timer.Resume();
+            Cursor.lockState = lessonCursorLock; Cursor.visible = lessonCursorVisible;
+            MobileLookInput.ResetDelta();
         }
         public void Restart() { TrialRewards.RecordRetry(10); Navigate("Trees"); }
         public void Return()=>Navigate("Main Menu");

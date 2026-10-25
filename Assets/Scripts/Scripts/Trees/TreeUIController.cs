@@ -272,7 +272,11 @@ namespace LogicLegends.Trees
             var notes=Text(cover,"Tree conventions",new Vector2(.55f,.27f),new Vector2(.91f,.82f),31,true);notes.color=StageUITheme.ReadingInk;notes.alignment=TextAlignmentOptions.TopLeft;notes.text="TREE CHECKLIST\n\nRoot: no parent\nLeaf: no children\nEach other node: one parent\n\nDepth and height count edges.\nRoot depth and level: 0\n\nSpanning tree: connected, no cycles, <nobr>V - 1</nobr> edges.\n\nTap the minimap for a full view; Close restores it.\n\nWrong confirmation: -10 seconds. Your connections are kept.";
             Action("Close lesson",cover,"RETURN TO GARDEN",new Vector2(0,-335),new Vector2(380,70),()=>stage.SetLesson(false));lesson=overlay.gameObject;lesson.SetActive(false);
         }
-        public void ShowLesson(bool open){lessonBody.text=stage.Challenge.lesson;lesson.GetComponentsInChildren<Button>(true)[0].GetComponentInChildren<TMP_Text>().text=stage.BoardOpen?"BACK TO BOARD":"RETURN TO GARDEN";lesson.SetActive(open);RefreshVisibility();}
+        public void ShowLesson(bool open){
+        lesson.SetActive(open);
+        if (open) StageHelpPage.Install((RectTransform)lessonBody.transform.parent, "Trees", () => stage.SetLesson(false));
+        RefreshVisibility();
+    }
         public void ShowResult(bool success)
         {
             resultVisible=true;lesson.SetActive(false);RefreshVisibility();

@@ -12,10 +12,8 @@ public sealed partial class DirectProofsGuide
     Transform worldSubject;
     Bounds focusBounds;
     bool guiding;
-    Vector3 closeDirection = Vector3.forward;
+    Vector3 closeDirection = Vector3.forward, tourForward = Vector3.back;
     readonly Dictionary<Renderer, bool> hiddenRenderers = new Dictionary<Renderer, bool>();
-    Renderer cutawayRoom;
-    Material[] roomMaterials, cutawayMaterials;
     public bool IsIntroduction => mode == Mode.Introduction;
     static readonly Regex RoofName = new Regex(@"(^|[ _\-.])(roof|ceiling)([ _\-.]|$)", RegexOptions.IgnoreCase);
 
@@ -25,47 +23,45 @@ public sealed partial class DirectProofsGuide
         if (returningRig != null) { returningRig.FinishReturn(); returningRig = null; }
         guidedCamera = Camera.main;
         cameraRig = PrelimTutorialCameraRig.Create("Direct Proofs Tutorial Camera");
+        var lens = cameraRig.Camera.Lens;
+        lens.NearClipPlane = guidedCamera.nearClipPlane;
+        lens.FarClipPlane = guidedCamera.farClipPlane;
+        cameraRig.Camera.Lens = lens;
+        // Keep the entry heading through overview and close-ups; changing the
+        // overhead up vector to the opposite heading rolls the view by 180 degrees.
+        tourForward = Vector3.ProjectOnPlane(guidedCamera.transform.forward, Vector3.up).normalized;
+        if (tourForward.sqrMagnitude < .1f) tourForward = Vector3.back;
+        closeDirection = -tourForward;
         goalPosition = cameraRig.transform.position; goalRotation = cameraRig.transform.rotation;
         guiding = true;
         foreach (var renderer in player.GetComponentsInChildren<Renderer>(true)) HideRenderer(renderer);
         // Only visual ceiling pieces are hidden. Never disable room/floor collision.
         foreach (var renderer in FindObjectsByType<Renderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             for (var ancestor = renderer.transform; ancestor != null; ancestor = ancestor.parent)
-                if (RoofName.IsMatch(ancestor.name) || ancestor.name.ToLowerInvariant().Contains("ceiling") || ancestor.name.ToLowerInvariant().Contains("overhead rib"))
+                if (RoofName.IsMatch(ancestor.name) || ancestor.name.ToLowerInvariant().Contains("ceiling") || ancestor.name.ToLowerInvariant().Contains("overhead rib") || IsSuspendedChamberArt(ancestor))
                 { HideRenderer(renderer); break; }
-        ApplyChamberCutaway();
+        // Stage is an open chamber mesh: its upper walls and arches are not a
+        // ceiling. A height-clip material used to slice them off at 42% height.
     }
-    void ApplyChamberCutaway()
+    static bool IsSuspendedChamberArt(Transform part)
     {
-        // This chamber imports as one mesh. A temporary height clip removes its
-        // visual ceiling without changing its mesh, colliders, or original materials.
-        cutawayRoom = GameObject.Find("Stage")?.GetComponent<Renderer>();
-        var shader = Resources.Load<Shader>("DirectProofs/ChamberCutaway");
-        if (cutawayRoom == null || shader == null) return;
-        roomMaterials = cutawayRoom.sharedMaterials; cutawayMaterials = new Material[roomMaterials.Length];
-        for (int i = 0; i < roomMaterials.Length; i++)
-        {
-            var original = roomMaterials[i]; var material = new Material(shader) { name = "Tutorial-only chamber cutaway" };
-            if (original != null)
-            {
-                string map = original.HasProperty("_BaseMap") ? "_BaseMap" : "_MainTex";
-                if (original.HasProperty(map))
-                { material.SetTexture("_BaseMap", original.GetTexture(map)); material.SetTextureScale("_BaseMap", original.GetTextureScale(map)); material.SetTextureOffset("_BaseMap", original.GetTextureOffset(map)); }
-                if (original.HasProperty("_BaseColor")) material.SetColor("_BaseColor", original.GetColor("_BaseColor"));
-                else if (original.HasProperty("_Color")) material.SetColor("_BaseColor", original.GetColor("_Color"));
-            }
-            material.SetFloat("_CutHeight", cutawayRoom.bounds.min.y + cutawayRoom.bounds.size.y * .42f);
-            cutawayMaterials[i] = material;
-        }
-        cutawayRoom.sharedMaterials = cutawayMaterials;
+        // The shared art includes beams, chains and lamps above the proof altars.
+        // Hide their renderers during the tour, while retaining lighting and collision.
+        if (part.name != "Overhead Stone Rib" && part.name != "Suspension Chain" && part.name != "Hanging Chandelier") return false;
+        for (var parent = part.parent; parent != null; parent = parent.parent)
+            if (parent.name == "ChamberDecorations") return true;
+        return false;
     }
     void HideRenderer(Renderer renderer)
     { if (!hiddenRenderers.ContainsKey(renderer)) hiddenRenderers[renderer] = renderer.enabled; renderer.enabled = false; }
     Bounds ObjectBounds(Transform subject)
     {
         var bounds = new Bounds(subject.position + Vector3.up, Vector3.one * 2); bool first = true;
+        // As with the book indicator anchor, frame the stable statue geometry.
+        // Imported skinned-page bounds can briefly expand by kilometres mid-flip.
+        // Excluding those bounds does not hide or stop the page animation.
         foreach (var renderer in subject.GetComponentsInChildren<Renderer>(true))
-            if (renderer.enabled && renderer.gameObject.activeInHierarchy && !(renderer is TMPro.TMP_SubMesh))
+            if (renderer.enabled && renderer.gameObject.activeInHierarchy && !(renderer is TMPro.TMP_SubMesh) && !(renderer is SkinnedMeshRenderer))
             { if (first) { bounds = renderer.bounds; first = false; } else bounds.Encapsulate(renderer.bounds); }
         return bounds;
     }
@@ -73,13 +69,12 @@ public sealed partial class DirectProofsGuide
     {
         StartCamera(); if (!guiding) return;
         focusBounds = ObjectBounds(subject); worldSubject = subject;
-        closeDirection = Vector3.forward;
         SetCameraGoal(overhead);
     }
     void FocusOverview()
     {
         StartCamera(); if (!guiding) return;
-        focusBounds = ObjectBounds(stage.Book); focusBounds.Encapsulate(ObjectBounds(stage.InformationBoard));
+        focusBounds = ObjectBounds(stage.Book); focusBounds.Encapsulate(ObjectBounds(stage.InformationBoardDisplay));
         foreach (var altar in stage.Altars) if (altar.gameObject.activeSelf) focusBounds.Encapsulate(ObjectBounds(altar));
         worldSubject = null; SetCameraGoal(true);
     }
@@ -91,8 +86,8 @@ public sealed partial class DirectProofsGuide
         if (overhead)
         {
             float distance = Mathf.Max(24, focusBounds.extents.x / (tangent * aspect * .85f), focusBounds.extents.z / (tangent * .42f));
-            goalPosition = focusBounds.center + Vector3.up * distance + Vector3.back * distance * tangent * .4f;
-            goalRotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
+            goalPosition = focusBounds.center + Vector3.up * distance - tourForward * distance * tangent * .4f;
+            goalRotation = Quaternion.LookRotation(Vector3.down, tourForward);
         }
         else
         {
@@ -146,9 +141,7 @@ public sealed partial class DirectProofsGuide
     void RestoreCameraVisuals()
     {
         foreach (var entry in hiddenRenderers) if (entry.Key != null) entry.Key.enabled = entry.Value;
-        if (cutawayRoom != null && roomMaterials != null) cutawayRoom.sharedMaterials = roomMaterials;
-        if (cutawayMaterials != null) foreach (var material in cutawayMaterials) if (material != null) Destroy(material);
-        cutawayRoom = null; roomMaterials = cutawayMaterials = null; hiddenRenderers.Clear();
+        hiddenRenderers.Clear();
     }
     void FinishCameraImmediately()
     {

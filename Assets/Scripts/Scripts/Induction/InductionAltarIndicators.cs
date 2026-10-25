@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace LogicLegends.Induction
 {
-    [DisallowMultipleComponent]
+    [DefaultExecutionOrder(1700), DisallowMultipleComponent]
     public sealed class InductionAltarIndicators : MonoBehaviour
     {
         [Min(.5f)] public float clearance = 2;
@@ -51,6 +51,10 @@ namespace LogicLegends.Induction
                 var arrow=Arrows[i];arrow.gameObject.SetActive(active);if(!active)continue;
                 var renderer=stage.stations[i].GetComponent<Renderer>();var bounds=renderer.bounds;
                 float labelTop=stage.slots.Where(s=>s.key.StartsWith(Stations[i]+":")).Max(s=>s.transform.position.y+s.formulaLabelHeight+.55f);
+                foreach(var label in stage.stations[i].GetComponentsInChildren<InductionWorldLabel>())
+                    labelTop=Mathf.Max(labelTop,label.transform.position.y+label.GetComponent<TMPro.TMP_Text>().rectTransform.rect.height*.5f);
+                foreach(var scroll in stage.Tablets.Where(t=>t.Slot!=null&&t.Slot.key.StartsWith(Stations[i]+":")))
+                    labelTop=Mathf.Max(labelTop,scroll.label.bounds.max.y);
                 float height=Mathf.Max(bounds.max.y,labelTop)+clearance+Mathf.Sin(Time.time*Mathf.PI*2/bobSeconds)*bobDistance;
                 arrow.position=new Vector3(bounds.center.x,height,bounds.center.z);arrow.localScale=Vector3.one*arrowScale;
                 if(Camera.main!=null)arrow.rotation=Quaternion.LookRotation(Camera.main.transform.forward,Camera.main.transform.up);

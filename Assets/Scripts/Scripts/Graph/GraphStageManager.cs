@@ -20,6 +20,7 @@ namespace LogicLegends.Graph
         public GraphCompletion completion;
         public GraphControlsOnboarding controlsTutorial;
         private bool onboardingPending = true;
+        public bool OnboardingPending => onboardingPending;
         public bool TutorialActive => controlsTutorial != null && controlsTutorial.IsActive;
         public AudioClip correctSound, wrongSound;
         [Min(30)] public float countdownSeconds = 600;

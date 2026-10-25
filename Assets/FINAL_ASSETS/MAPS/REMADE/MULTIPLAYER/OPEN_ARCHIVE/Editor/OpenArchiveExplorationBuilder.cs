@@ -144,7 +144,7 @@ namespace OpenArchiveAuthoring
             var title = Rect("Controls_Help", canvas, new Vector2(0, -52), new Vector2(1100, 70));
             Anchor(title, new Vector2(.5f, 1));
             title.gameObject.AddComponent<Image>().color = new Color(.025f, .07f, .10f, .83f);
-            Label(title, "Explore the Open Archive\nWASD / joystick: move   |   Right-side drag: look   |   Space / jump button: jump", 24);
+            Label(title, "Explore the Open Archive\nJoystick: move   |   Drag the right side: look   |   Jump button: jump", 24);
             Button(canvas, "Return_To_Spawn", new Vector2(-155, -132), new Vector2(240, 48), session.ReturnToSpawn, "Return to spawn (R)", true);
             var eventObject = new GameObject("Exploration_EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             eventObject.transform.SetParent(parent, false);
