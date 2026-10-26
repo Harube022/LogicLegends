@@ -23,7 +23,7 @@ public class ShopManager : MonoBehaviour
     [Header("Loading Transition")]
     [SerializeField] private UnityEngine.UI.ScrollRect itemsScroll;
     [SerializeField] private CanvasGroup[] revealGroups = new CanvasGroup[0];
-    private const string LoadingText = "Loading your shop and balances...";
+    private const string LoadingText = "Loading Shop...";
     private bool pendingLoadingFeedback;
     private float loadingMessageShownAt = -1f;
     private bool revealing;
@@ -49,6 +49,8 @@ public class ShopManager : MonoBehaviour
     private float nextWalletCheck;
     private volatile bool walletDirty;
     private int walletUpdateVersion;
+    private int connectingVersion = -1;
+    private float nextConnectionCheck;
 
     private void OnEnable() { CommerceClient.Changed += OnCommerceChanged; RetryLoad(); }
     private void OnDisable()
@@ -68,7 +70,14 @@ public class ShopManager : MonoBehaviour
     private void OnCommerceChanged() { walletDirty = true; }
     private void Update()
     {
-        if (!dataLoaded || !commerceReady || purchasing || refreshingWallet || !IsCurrent(requestVersion)) return;
+        if (!dataLoaded || purchasing || !IsCurrent(requestVersion)) return;
+        if (!commerceReady)
+        {
+            if (!commercePaused && connectingVersion != requestVersion && Time.unscaledTime >= nextConnectionCheck)
+                LoadCommerce(requestVersion);
+            return;
+        }
+        if (refreshingWallet) return;
         if (!walletDirty && Time.unscaledTime < nextWalletCheck) return;
         walletDirty = false;
         nextWalletCheck = Time.unscaledTime + 8;
@@ -89,7 +98,7 @@ public class ShopManager : MonoBehaviour
                 if (!IsCurrent(version) || walletVersion != walletUpdateVersion) return;
                 if (coins.Value == null) currentCoins = 0;
                 else if (!int.TryParse(coins.Value.ToString(), out currentCoins) || currentCoins < 0)
-                    throw new InvalidOperationException("Couldn't read your coin balance.");
+                    throw new InvalidOperationException("Couldn't read coin balance.");
             }
             ApplyAccount(account);
             commerceReady = true;
@@ -110,6 +119,10 @@ public class ShopManager : MonoBehaviour
     }
     private async void LoadCommerce(int version)
     {
+        if (connectingVersion == version) return;
+        connectingVersion = version;
+        commerceNotice = "Connecting to the shop...";
+        if (!revealing) Status(commerceNotice, false);
         try
         {
             var account = await CommerceClient.LoadAccount(playerBaseCharacter);
@@ -118,6 +131,7 @@ public class ShopManager : MonoBehaviour
             commerceReady = true;
             commercePaused = false;
             commerceNotice = "";
+            nextWalletCheck = Time.unscaledTime + 8;
             UpdateShopUI();
             Status("", false);
             if (previewUI != null && previewUI.IsOpen && previewedItem != null)
@@ -126,13 +140,15 @@ public class ShopManager : MonoBehaviour
             // database listeners on the project's current desktop Firebase SDK.
         }
         catch (Exception error) { if (IsCurrent(version)) CommerceUnavailable(error); }
+        finally { if (connectingVersion == version) connectingVersion = -1; }
     }
 
     private void CommerceUnavailable(Exception error)
     {
         commerceReady = false;
         commercePaused = error is CommerceClient.ShopSetupException;
-        commerceNotice = commercePaused ? "" : "Couldn't connect to purchases. Your saved items are shown. Retry to reconnect.";
+        commerceNotice = commercePaused ? "" : "Couldn't connect. Retry to reconnect.";
+        nextConnectionCheck = Time.unscaledTime + 15;
         if (!revealing) Status(commerceNotice, !commercePaused);
         if (previewUI != null && previewUI.IsOpen)
             previewUI.ShowPurchasesUnavailable(commercePaused ? "Purchases aren't available yet. You can still preview outfits." : null);
@@ -166,6 +182,12 @@ public class ShopManager : MonoBehaviour
     public void RetryLoad()
     {
         if (!isActiveAndEnabled || purchasing) return;
+        // Reconnect without hiding the already loaded outfit grid.
+        if (dataLoaded && IsCurrent(requestVersion))
+        {
+            LoadCommerce(requestVersion);
+            return;
+        }
         walletUpdateVersion++;
         if (previewUI != null) previewUI.Close();
         previewedItem = null;
@@ -174,7 +196,7 @@ public class ShopManager : MonoBehaviour
         dataLoaded = false;
         commerceReady = false;
         commercePaused = false;
-        commerceNotice = "Connecting to the shop. You can browse while you wait.";
+        commerceNotice = "Connecting to the shop...";
         revealing = false;
         playerBaseCharacter = "";
         ownedItems.Clear();
@@ -201,7 +223,7 @@ public class ShopManager : MonoBehaviour
         var user = FirebaseAuth.DefaultInstance.CurrentUser;
         if (user == null)
         {
-            Status("Please log in to load your shop.", true);
+            Status("Please log in to load shop.", true);
             yield break;
         }
         userId = user.UserId;
@@ -212,19 +234,19 @@ public class ShopManager : MonoBehaviour
             if (!IsCurrent(version)) return;
             if (task.IsCanceled || task.IsFaulted)
             {
-                Status("Couldn't load your shop. Check your connection and retry.", true);
+                Status("Couldn't load the shop. Check the connection and retry.", true);
                 return;
             }
             var snapshot = task.Result;
             playerBaseCharacter = snapshot.Child("base_character").Value?.ToString() ?? "";
             if (playerBaseCharacter != "Male_Character" && playerBaseCharacter != "Female_Character")
             {
-                Status("Choose your character before opening the shop.", true);
+                Status("Choose a character before opening the shop.", true);
                 return;
             }
             if (!ReadBalance(snapshot, "coins", out currentCoins))
             {
-                Status("Couldn't read your coin balance. Please retry.", true);
+                Status("Couldn't read coin balance. Please retry.", true);
                 return;
             }
             // Show saved data before contacting the payment host. Reads never
@@ -242,7 +264,7 @@ public class ShopManager : MonoBehaviour
         while (!request.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
         if (!request.IsCompleted && IsCurrent(version))
         {
-            Status("Couldn't load your saved shop. Check your connection and retry.", true);
+            Status("Couldn't load the shop. Check the connection and retry.", true);
             requestVersion++; // A late reply must not replace a newer retry/error.
         }
     }
@@ -329,14 +351,14 @@ public class ShopManager : MonoBehaviour
             !Fits(itemToBuy) || itemToBuy.Price < 0) return;
         if (previewUI == null)
         {
-            Status("The clothes preview is unavailable. Please reopen the shop.", false);
+            Status("The shop is unavailable. Please reopen the shop.", false);
             return;
         }
         previewedItem = itemToBuy;
         purchaseFeedbackVersion++; // Old result timers must not clear a different item's preview.
         Status("", false);
         previewUI.Show(itemToBuy, playerBaseCharacter, BalanceFor(itemToBuy), ownedItems.Contains(itemToBuy.ItemID));
-        if (!commerceReady) previewUI.ShowPurchasesUnavailable(commercePaused ? "Purchases aren't available yet. You can still preview outfits." : null);
+        if (!commerceReady) previewUI.ShowPurchasesUnavailable(commercePaused ? "Purchases aren't available. You can still preview outfits." : null);
     }
 
     // A failed purchase can keep its modal open for feedback/retry, even though
@@ -459,12 +481,12 @@ public static class ShopPurchaseRules
     {
         switch (decision)
         {
-            case ShopPurchaseDecision.MissingCharacter: return "Couldn't load your saved character. Retry to refresh your shop.";
-            case ShopPurchaseDecision.CharacterChanged: return "Your saved character changed. Retry to refresh your shop before buying.";
-            case ShopPurchaseDecision.AlreadyOwned: return "You already own these clothes. Retry to refresh your shop.";
-            case ShopPurchaseDecision.InvalidBalance: return "Couldn't read your balance. Retry to refresh your shop.";
-            case ShopPurchaseDecision.InsufficientFunds: return "Not enough " + currency + ". Retry to refresh your balance.";
-            default: return "Couldn't confirm the purchase. Retry to refresh your shop.";
+            case ShopPurchaseDecision.MissingCharacter: return "Couldn't load the saved character. Retry to refresh the shop.";
+            case ShopPurchaseDecision.CharacterChanged: return "The saved character changed. Retry to refresh the shop before buying.";
+            case ShopPurchaseDecision.AlreadyOwned: return "You already own these clothes. Retry to refresh the shop.";
+            case ShopPurchaseDecision.InvalidBalance: return "Couldn't read the balance. Retry to refresh the shop.";
+            case ShopPurchaseDecision.InsufficientFunds: return "Not enough " + currency + ". Retry to refresh the balance.";
+            default: return "Couldn't confirm the purchase. Retry to refresh the shop.";
         }
     }
 }

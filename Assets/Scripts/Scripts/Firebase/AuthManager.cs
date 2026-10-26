@@ -87,7 +87,7 @@ public class AuthManager : MonoBehaviour
         else
         {
             ShowLoginScreen();
-            Feedback("Your session ended. Please log in again.");
+            Feedback("Session ended. Please log in again.");
         }
     }
 
@@ -211,7 +211,7 @@ public class AuthManager : MonoBehaviour
             int version = sessionVersion;
             string savedId = savedUser.UserId;
             // Firebase persists credentials. A temporary network failure must not erase them.
-            Feedback("Welcome back! Loading your profile...");
+            Feedback("Welcome back! Loading profile...");
             CheckFirstTimeSetup();
             Debug.Log("Found saved session. Verifying with server...");
             savedUser.ReloadAsync().ContinueWithOnMainThread(task =>
@@ -227,9 +227,9 @@ public class AuthManager : MonoBehaviour
                         observedUserId = null;
                         auth.SignOut();
                         ShowLoginScreen();
-                        Feedback("Your session has expired. Please log in again.");
+                        Feedback("Session expired. Please log in again.");
                     }
-                    else Feedback("Still signed in. Check your connection if your profile does not load.");
+                    else Feedback("Still signed in. Check the connection if the profile does not load.");
                 }
                 else
                 {
@@ -239,7 +239,7 @@ public class AuthManager : MonoBehaviour
                         observedUserId = null;
                         auth.SignOut();
                         ShowLoginScreen();
-                        Feedback("Please verify your email before logging in.");
+                        Feedback("Please verify the email address before logging in.");
                     }
                 }
             });
@@ -263,7 +263,7 @@ public class AuthManager : MonoBehaviour
         playIntroAfterUsername = false;
         ShowModeSelection();
         if (usernameSetup != null) usernameSetup.ShowLoading();
-        Feedback("Checking your player profile...");
+        Feedback("Checking player profile...");
         DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
 
         Debug.Log("Checking if player has chosen a base character...");
@@ -274,7 +274,7 @@ public class AuthManager : MonoBehaviour
             {
                 ClearFeedback();
                 if (usernameSetup != null) usernameSetup.ShowLoadError();
-                else Feedback("Signed in. Couldn't load your profile; check your connection.", loginFeedbackDuration);
+                else Feedback("Signed in. Couldn't load the profile; check the connection.", loginFeedbackDuration);
                 return;
             }
 
@@ -288,7 +288,7 @@ public class AuthManager : MonoBehaviour
                     {
                         ClearFeedback();
                         if (usernameSetup != null) usernameSetup.ShowLoadError();
-                        else Feedback("Couldn't load your player name. Check your connection.", loginFeedbackDuration);
+                        else Feedback("Couldn't load the player name. Check the connection.", loginFeedbackDuration);
                         return;
                     }
                     if (PlayerUsername.TryNormalize(nameTask.Result.Value?.ToString(), out string storedUsername))
@@ -329,7 +329,7 @@ public class AuthManager : MonoBehaviour
         {
             if (!IsCurrentSession(version, userId)) return;
             if (task.IsFaulted || task.IsCanceled)
-                Feedback("Couldn't save your character. Check your connection and try again.");
+                Feedback("Couldn't save the character. Check the connection and try again.");
             else
             {
                 Debug.Log($"Successfully saved {characterID} as base character!");
@@ -361,7 +361,7 @@ public class AuthManager : MonoBehaviour
                 if (!IsCurrentSession(version, userId)) return;
                 if (task.IsFaulted || task.IsCanceled)
                 {
-                    usernameSetup.ShowPrompt("Couldn't save your name. Check your connection and retry.");
+                    usernameSetup.ShowPrompt("Couldn't save the name. Check the connection and retry.");
                     return;
                 }
                 usernameSetup.Hide();
@@ -542,7 +542,7 @@ public class AuthManager : MonoBehaviour
             {
                 Debug.LogError("Firebase failed to authenticate Google credential.");
                 ShowLoginScreen();
-                Feedback("Couldn't log in with Google. Check your connection and try again.", loginFeedbackDuration);
+                Feedback("Couldn't log in with Google. Check the connection and try again.", loginFeedbackDuration);
                 return;
             }
 
@@ -566,7 +566,7 @@ public class AuthManager : MonoBehaviour
         string password = passwordLoginInput.text;
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrEmpty(password))
         {
-            Feedback("Enter your email and password.", loginFeedbackDuration);
+            Feedback("Enter an email address and password.", loginFeedbackDuration);
             return;
         }
         signingIn = true;
@@ -584,12 +584,12 @@ public class AuthManager : MonoBehaviour
                     error == AuthError.UserNotFound || error == AuthError.InvalidCredential)
                     Feedback("Incorrect email or password. Please try again.", loginFeedbackDuration);
                 else if (error == AuthError.Failure)
-                    Feedback("Couldn't log in. Check your email and password and try again.", loginFeedbackDuration);
+                    Feedback("Couldn't log in. Check the email address and password and try again.", loginFeedbackDuration);
                 else if (error == AuthError.TooManyRequests)
                     Feedback("Too many attempts. Please wait and try again.", loginFeedbackDuration);
                 else if (error == AuthError.UserDisabled)
                     Feedback("This account is disabled.", loginFeedbackDuration);
-                else Feedback("Couldn't log in. Check your connection and try again.", loginFeedbackDuration);
+                else Feedback("Couldn't log in. Check the connection and try again.", loginFeedbackDuration);
                 return;
             }
 
@@ -597,7 +597,7 @@ public class AuthManager : MonoBehaviour
             {
                 Debug.LogWarning("Access Denied: Please verify your email address first!");
                 auth.SignOut();
-                Feedback("Please verify your email before logging in.", loginFeedbackDuration);
+                Feedback("Please verify the email address before logging in.", loginFeedbackDuration);
                 return;
             }
             Feedback("Logged in successfully.", loginFeedbackDuration);
@@ -619,7 +619,7 @@ public class AuthManager : MonoBehaviour
 
         if (string.IsNullOrWhiteSpace(email))
         {
-            passwordResetMessage.text = "Enter your email address first.";
+            passwordResetMessage.text = "Enter an email address first.";
             return;
         }
 
@@ -638,7 +638,7 @@ public class AuthManager : MonoBehaviour
                 if (task.IsCanceled || task.IsFaulted)
                 {
                     passwordResetMessage.text =
-                        "Couldn't request a reset. Check your email address " +
+                        "Couldn't request a reset. Check the email address " +
                         "and connection, then try again.";
                     return;
                 }
@@ -646,7 +646,7 @@ public class AuthManager : MonoBehaviour
                 passwordResetMessage.text =
                     // "If an eligible account exists for this email, " +
                     // "you'll receive a reset link. Check your spam folder too.";
-                    "Reset password link has been sent to your email";
+                    "Password reset link sent. Check the email inbox.";
             });
     }
 

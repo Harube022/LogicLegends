@@ -95,7 +95,7 @@ public sealed class ShopPreviewUI : MonoBehaviour
         price.text = currencyUnit == null ? "Price: " + item.Price.ToString("N0") + " " + item.CurrencyType : item.Price.ToString("N0");
         if (currencyUnit != null) currencyUnit.text = item.CurrencyType.ToString().ToUpperInvariant();
         if (currencyIcon != null) currencyIcon.sprite = item.CurrencyType == ShopItem.Currency.Coins ? coinSprite : gemSprite;
-        ShowResult(previewAvailable ? (owned ? "You already own these clothes." : "Preview only. Your equipped clothes stay unchanged.") :
+        ShowResult(previewAvailable ? (owned ? "You already own these clothes." : "Preview only. Equipped clothes stay unchanged.") :
             "This outfit preview is unavailable. Please choose another item.", owned, currentBalance);
         if (!previewAvailable) SetFeedback("This outfit preview is unavailable. Please choose another item.", "PREVIEW UNAVAILABLE", Warning);
         if (previewAvailable) reveal = StartCoroutine(RevealCharacter());
@@ -150,7 +150,7 @@ public sealed class ShopPreviewUI : MonoBehaviour
 
     public void ShowProgress()
     {
-        if (IsOpen) SetFeedback("Saving your purchase...", "PROCESSING", Warning);
+        if (IsOpen) SetFeedback("Saving purchase...", "PROCESSING", Warning);
     }
 
     public void ShowError(string text)

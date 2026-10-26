@@ -51,7 +51,7 @@ public sealed class UsernameSetupUI : MonoBehaviour
         overlay.transform.SetAsLastSibling();
         input.gameObject.SetActive(false);
         continueButton.gameObject.SetActive(false);
-        message.text = "Checking your player profile...";
+        message.text = "Checking player profile...";
     }
 
     public void ShowPrompt(string error = null)
@@ -76,7 +76,7 @@ public sealed class UsernameSetupUI : MonoBehaviour
         overlayGroup.alpha = 1f;
         input.interactable = false;
         continueButton.interactable = false;
-        message.text = "Saving your username...";
+        message.text = "Saving username...";
     }
 
     public void ShowLoadError()
@@ -91,7 +91,7 @@ public sealed class UsernameSetupUI : MonoBehaviour
         continueButton.gameObject.SetActive(true);
         continueButton.interactable = true;
         continueButton.GetComponentInChildren<TMP_Text>().text = "RETRY";
-        message.text = "Couldn't load your profile. Check your connection and retry.";
+        message.text = "Couldn't load the profile. Check the connection and retry.";
     }
 
     public void Hide()
