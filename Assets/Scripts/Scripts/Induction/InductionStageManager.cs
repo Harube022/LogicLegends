@@ -206,7 +206,7 @@ namespace LogicLegends.Induction
                 evaluatedFrame = Time.frameCount;
                 State = InductionState.Active; timer.Resume(); UpdateBoard(true);
                 Feedback = "Collect scrolls from the Formula Scrolls stand, arrange them at the active altars, then press Submit.";
-                ui.Announce("Start!", 1.25f); return;
+                ui.ShowStart(); return;
             }
         }
         public bool PickUp(InductionTablet tablet)
@@ -268,7 +268,7 @@ namespace LogicLegends.Induction
             int completed = ChallengeIndex + 1;
             ChallengeIndex++; State = InductionState.WaitingForBook; Prepare();
             Feedback = "Correct"; ui.SetFeedback(true);
-            ui.Announce("Challenge " + completed + " completed! Interact with the book statue to start Challenge " + (ChallengeIndex + 1) + ".", -1);
+            ui.ShowWaiting(completed,ChallengeIndex+1);
             ui.Refresh();
         }
         void CleanupTablets()

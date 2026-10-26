@@ -540,6 +540,14 @@ public sealed class StageJourneyUI : MonoBehaviour
         inferenceTutorial.SetActive(true); inferenceTutorial.transform.SetAsLastSibling();
     }
 
+    private void CloseInferenceHelpOnly()
+    {
+        bool pending = inferenceFirstGuidePending;
+        inferenceFirstGuidePending = false;
+        CloseInferenceTutorial();
+        inferenceFirstGuidePending = pending;
+    }
+
     public void CloseInferenceTutorial()
     {
         if (!tutorialOpen) return;
@@ -553,10 +561,7 @@ public sealed class StageJourneyUI : MonoBehaviour
 
     private void ChangePage(int direction)
     {
-        tutorialIndex = Mathf.Clamp(tutorialIndex + direction, 0, tutorialBodies.Length - 1);
-        tutorialTitle.text = tutorialTitles[tutorialIndex]; tutorialBody.text = tutorialBodies[tutorialIndex];
-        tutorialPage.text = (tutorialIndex + 1) + " / " + tutorialBodies.Length;
-        tutorialBack.interactable = tutorialIndex > 0; tutorialNext.interactable = tutorialIndex < tutorialBodies.Length - 1;
+        StageHelpPage.Install((RectTransform)tutorialTitle.transform.parent, "RulesOfInference", CloseInferenceHelpOnly, CloseInferenceTutorial, inferenceFirstGuidePending);
     }
 
     private void OnDestroy()

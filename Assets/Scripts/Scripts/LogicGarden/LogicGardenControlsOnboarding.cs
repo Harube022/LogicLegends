@@ -21,26 +21,25 @@ public sealed class LogicGardenControlsOnboarding : MonoBehaviour
     [Range(25,75)] public float wizardFieldOfView = 50;
     [Min(1)] public float wizardFramingPadding = 1.6f;
     [Range(.25f,.5f)] public float wizardScreenPosition = .35f;
-    [SerializeField] private Shader practiceShader;
     public static LogicGardenControlsOnboarding Active { get; private set; }
     public bool IsActive { get; private set; }
     public bool IsPending { get; private set; }
     public Step CurrentStep { get; private set; }
     public bool AllowsJump => IsActive && CurrentStep == Step.Jump;
     public bool CameraTransitioning { get; private set; }
-    public GameObject PracticeObject => practice;
+    public GameObject PracticeObject => null;
     public RectTransform Highlight => highlight;
     public RectTransform InstructionPanel => panel;
     public Button NextButton { get; private set; }
     public PrelimTutorialSkipControl SkipControl => skip;
     LogicGardenIntroduction introduction;
-    RectTransform safeArea, joystick, joystickRing, jump, hand, panel, highlight, arrow, subject, practiceLabel, target;
+    RectTransform safeArea, joystick, joystickRing, jump, hand, panel, highlight, arrow, subject, target;
     TMP_Text text;
     MobileInputUI mobile;
     GameInput input;
     Player player;
-    GameObject controls, practice;
-    Material material;
+    GameObject controls;
+
     PrelimTutorialSkipControl skip;
     Vector3 movementStart;
     float intentionalSeconds, jumpBaseY, previousTimeScale;
@@ -150,26 +149,13 @@ public sealed class LogicGardenControlsOnboarding : MonoBehaviour
             if(moving&&intentionalSeconds>=intentionalMovementSeconds&&distance>=movementDistance){mobile.ResetJoystick();jumped=false;Show(Step.Jump,"Tap this button to jump.",jump);}
         }
         else if(CurrentStep==Step.Jump&&jumped&&player.IsJumping()&&player.transform.position.y>jumpBaseY+.1f)
-        {CreatePractice();Show(Step.Interaction,"Use this button to interact with nearby objects and characters.",hand);}
+        {Show(Step.Interaction,"Tap the hand button to interact with nearby objects.",hand);}
     }
-    void CreatePractice()
-    {
-        practice=GameObject.CreatePrimitive(PrimitiveType.Cube);practice.name="Garden Practice Interaction";practice.layer=2;
-        Vector3 forward=Camera.main.transform.forward;forward.y=0;forward.Normalize();var right=Vector3.Cross(Vector3.up,forward);
-        var position=player.transform.position+forward*2.5f-right*2.0f;position.y=jumpBaseY+1.1f;
-        practice.transform.position=position;practice.transform.localScale=Vector3.one*1.35f;practice.GetComponent<Collider>().isTrigger=true;
-        material=new Material(practiceShader);material.SetColor("_BaseColor",new Color(1,.75f,.18f));practice.GetComponent<Renderer>().sharedMaterial=material;
-        player.transform.rotation=Quaternion.LookRotation(forward);
-        practiceLabel=StageUITheme.Rect("Garden Practice Label",safeArea);practiceLabel.anchorMin=practiceLabel.anchorMax=practiceLabel.pivot=new Vector2(.5f,.5f);practiceLabel.sizeDelta=new Vector2(330,80);
-        var back=practiceLabel.gameObject.AddComponent<Image>();back.color=new Color(.04f,.1f,.13f,.94f);back.raycastTarget=false;
-        var label=StageUITheme.Text("Practice Label",practiceLabel,"Interact with me",34,true);label.color=Color.white;StageUITheme.Stretch(label.rectTransform,new Vector2(.04f,.08f),new Vector2(.96f,.92f));
-    }
+
     public bool TryPracticeInteraction()
     {
-        if(!IsActive||CurrentStep!=Step.Interaction||practice==null||Time.timeScale<=0||input.GameplayInputBlocked)return false;
-        Vector3 delta=practice.transform.position-player.transform.position;delta.y=0;
-        if(delta.magnitude>practiceInteractionRange||Vector3.Dot(player.transform.forward,delta.normalized)<.25f)return false;
-        DestroyPractice();MeetWizard();return true;
+        if(!IsActive||CurrentStep!=Step.Interaction||Time.timeScale<=0||input.GameplayInputBlocked)return false;
+        MeetWizard();return true;
     }
     void MeetWizard()
     {
@@ -217,16 +203,9 @@ public sealed class LogicGardenControlsOnboarding : MonoBehaviour
             }
             Project(wizardBounds);NextButton.interactable=!CameraTransitioning;
         }
-        else if(practice!=null)
-        {
-            Project(practice.GetComponent<Renderer>().bounds);
-            var screen=Camera.main.WorldToScreenPoint(practice.transform.position+Vector3.up*1.3f);
-            practiceLabel.gameObject.SetActive(screen.z>0);
-            if(screen.z>0){RectTransformUtility.ScreenPointToLocalPointInRectangle(safeArea,screen,null,out Vector2 local);local.x=Mathf.Clamp(local.x,safeArea.rect.xMin+180,safeArea.rect.xMax-180);local.y=Mathf.Clamp(local.y,safeArea.rect.yMin+60,safeArea.rect.yMax-60);practiceLabel.anchoredPosition=local;}
-        }
+
         else subject.gameObject.SetActive(false);
         var blockers=new List<RectTransform>(ControlTutorialLayout.FindBlockers()){subject,(RectTransform)skip.transform};
-        if(practiceLabel!=null)blockers.Add(practiceLabel);
         foreach(var rect in safeArea.GetComponentsInChildren<RectTransform>(true))if(rect.name=="ObjectivesPanel"||rect.name=="LogicGarden Spawn Title"||rect.name=="LogicGarden Context Interaction"||rect.name=="Return to LogicGarden")blockers.Add(rect);
         ControlTutorialLayout.Place(panel,text,(RectTransform)NextButton.transform,safeArea,target,CurrentStep==Step.MeetLefyahj,blockers.ToArray(),arrow);
     }
@@ -246,17 +225,12 @@ public sealed class LogicGardenControlsOnboarding : MonoBehaviour
         returning=true;BeginCameraMove(cameraSavedPosition,cameraSavedRotation);
     }
     public void Skip(){if(IsActive)Finish(replayFinished==null);}
-    void DestroyPractice()
-    {
-        if(practice!=null){practice.SetActive(false);Destroy(practice);}practice=null;
-        if(practiceLabel!=null){practiceLabel.gameObject.SetActive(false);Destroy(practiceLabel.gameObject);}practiceLabel=null;
-        if(material!=null)Destroy(material);material=null;
-    }
+
     void Finish(bool completed)
     {
         if(!IsActive)return;
         IsActive=false;IsPending=false;if(Active==this)Active=null;CameraTransitioning=false;returning=false;
-        DestroyPractice();if(mobile!=null)mobile.ResetJoystick();
+        if(mobile!=null)mobile.ResetJoystick();
         if(cameraView!=null){cameraView.transform.SetPositionAndRotation(cameraSavedPosition,cameraSavedRotation);cameraView.fieldOfView=cameraSavedFov;}cameraView=null;
         foreach(var behaviour in suspendedCameraInputs)if(behaviour!=null)behaviour.enabled=true;suspendedCameraInputs.Clear();
         foreach(var item in avatarRenderers)if(item.Key!=null)item.Key.enabled=item.Value;avatarRenderers.Clear();MobileLookInput.ResetDelta();

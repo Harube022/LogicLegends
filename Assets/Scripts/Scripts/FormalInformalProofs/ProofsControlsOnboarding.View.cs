@@ -101,12 +101,7 @@ public sealed partial class ProofsControlsOnboarding
         if (!IsActive || CurrentStep == ProofsTutorialStep.Confirm) return;
         ApplyPracticeUI(); next.interactable = Readable && !ui.BoardView.Transitioning;
         if (worldTarget != null) ProjectBounds(RenderBounds(worldTarget), worldRect);
-        if (practiceObject != null && practiceLabel != null && Camera.main != null)
-        {
-            Vector3 screen = Camera.main.WorldToScreenPoint(practiceObject.GetComponent<Renderer>().bounds.center + Vector3.up * .98f);
-            practiceLabel.gameObject.SetActive(screen.z > 0);
-            if (screen.z > 0 && RectTransformUtility.ScreenPointToLocalPointInRectangle(safe, screen, null, out Vector2 point)) practiceLabel.anchoredPosition = point;
-        }
+
         LayoutInstructions(); if (skip != null) skip.transform.SetAsLastSibling();
     }
     void LayoutInstructions()
@@ -115,7 +110,6 @@ public sealed partial class ProofsControlsOnboarding
         var blockers = new List<RectTransform>(ControlTutorialLayout.FindBlockers());
         blockers.AddRange(new[] { ui.Hud, (RectTransform)ui.ViewButton.transform, (RectTransform)ui.InteractionButton.transform, (RectTransform)ui.BackButton.transform,
             (RectTransform)stage.ReaderPanel.transform, (RectTransform)stage.TakeBackPanel.transform });
-        if (practiceLabel != null) blockers.Add(practiceLabel);
         if (worldRect.gameObject.activeInHierarchy) blockers.Add(worldRect);
         var target = highlight.gameObject.activeSelf ? highlight.parent as RectTransform : worldRect.gameObject.activeSelf ? worldRect : null;
         ControlTutorialLayout.Place(instructions, instruction, (RectTransform)next.transform, safe, target, false, blockers.ToArray(), arrow.gameObject.activeSelf ? arrow : null);
@@ -203,28 +197,7 @@ public sealed partial class ProofsControlsOnboarding
         foreach (var b in guidedBehaviours) if (b != null) { b.enabled = true; if (b is CinemachineBrain brain) brain.ResetState(); }
         avatarRenderers.Clear(); guidedBehaviours.Clear(); guidedCamera = null; guiding = false;
     }
-    void CreatePracticeObject()
-    {
-        DestroyPracticeObject();
-        Vector3 forward = Camera.main != null ? Camera.main.transform.forward : player.transform.forward; forward.y = 0; forward.Normalize();
-        if (forward.sqrMagnitude < .1f) forward = player.transform.forward;
-        player.transform.rotation = Quaternion.LookRotation(forward);
-        practiceObject = GameObject.CreatePrimitive(PrimitiveType.Cube); practiceObject.name = "Proofs Practice Object"; practiceObject.layer = 2;
-        practiceObject.transform.position = player.transform.position + forward * 1.8f - Vector3.Cross(Vector3.up, forward) * 2.5f + Vector3.up * 1.9f;
-        practiceObject.transform.localScale = Vector3.one * 1.35f; practiceObject.GetComponent<Collider>().isTrigger = true;
-        practiceMaterial = new Material(Shader.Find("Universal Render Pipeline/Lit")); practiceMaterial.SetColor("_BaseColor", new Color(1, .75f, .18f));
-        practiceObject.GetComponent<Renderer>().sharedMaterial = practiceMaterial;
-        practiceLabel = StageUITheme.Rect("Proofs Practice Label", safe);
-        practiceLabel.anchorMin = practiceLabel.anchorMax = practiceLabel.pivot = new Vector2(.5f, .5f); practiceLabel.sizeDelta = new Vector2(290, 80);
-        var image = practiceLabel.gameObject.AddComponent<Image>(); image.color = new Color(.03f, .09f, .14f, .95f); image.raycastTarget = false;
-        var text = StageUITheme.Text("Practice Label", practiceLabel, "Interact with me", 34, true); StageUITheme.Stretch(text.rectTransform, Vector2.zero, Vector2.one);
-    }
-    void DestroyPracticeObject()
-    {
-        if (practiceObject != null) { practiceObject.SetActive(false); Destroy(practiceObject); } practiceObject = null;
-        if (practiceLabel != null) { practiceLabel.gameObject.SetActive(false); Destroy(practiceLabel.gameObject); } practiceLabel = null;
-        if (practiceMaterial != null) Destroy(practiceMaterial); practiceMaterial = null;
-    }
+
     void CreatePracticeScroll()
     {
         practiceRoot = new GameObject("Proofs Tutorial Practice Content");

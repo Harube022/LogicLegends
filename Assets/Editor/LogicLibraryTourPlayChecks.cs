@@ -80,7 +80,7 @@ public static class LogicLibraryTourPlayChecks
         Drag(mobile,new Vector2(Player.LocalInstance.transform.position.x>4?-.9f:.9f,0));yield return WaitFor(()=>t.CurrentStep==LogicGardenControlsOnboarding.Step.Jump,"replayed movement");
         var cc=Player.LocalInstance.GetComponent<CharacterController>();yield return WaitFor(()=>cc.isGrounded,"grounded replay jump");GameInput.Instance.MobileJump();
         yield return WaitFor(()=>t.CurrentStep==LogicGardenControlsOnboarding.Step.Interaction,"replayed jump");
-        var delta=t.PracticeObject.transform.position-Player.LocalInstance.transform.position;delta.y=0;Player.LocalInstance.transform.rotation=Quaternion.LookRotation(delta);GameInput.Instance.MobileInteract();
+        GameInput.Instance.MobileInteract();
         yield return WaitFor(()=>!t.CameraTransitioning,"wizard preview");t.NextButton.onClick.Invoke();yield return WaitFor(()=>!t.IsActive,"replayed controls finished");
     }
     static IEnumerator Capture(string name)

@@ -10,11 +10,15 @@ public sealed partial class DirectIndirectProofStageController
     RectTransform problemViewport;
     public int QuestionNumber => questionIndex + 1;
     public DirectProofsGuide Guide { get; private set; }
+    public DirectProofsWorldGuidance WorldGuidance { get; private set; }
+    public bool IsViewingBoard => WorldGuidance != null && WorldGuidance.BoardView.Viewing;
     public bool OnboardingPending { get; private set; } = true;
     public bool GuidanceBlocksGameplay => OnboardingPending || Guide != null && (Guide.IsBusy || Guide.NeedsIntroduction);
     public Transform Book => bookStatue;
     public Transform InformationBoard => boardText.transform;
+    public Transform InformationBoardDisplay => boardText.transform.parent.Find("InformationBoard Visuals") ?? boardText.transform;
     public Transform[] Altars => new[] { directAltar, indirectAltar, neutralAltar };
+    public Transform AltarLabel(int index) => index == 0 ? directNameplate : index == 1 ? indirectNameplate : null;
     public ProofWorldPedestal PracticeTemplate => methodPedestals[0];
     public TMP_Text Clock => timerText;
     public TMP_Text Progress => progressText;
@@ -32,7 +36,11 @@ public sealed partial class DirectIndirectProofStageController
         promptText.transform.SetParent(safe, false); selectionText.transform.SetParent(safe, false);
         foreach (var text in new[] { promptText, selectionText })
         {
-            text.font = StageUITheme.HeadingFont; text.enableAutoSizing = true; text.fontSizeMin = 24; text.fontSizeMax = 30;
+            text.font = StageUITheme.HeadingFont; text.enableAutoSizing = false; text.fontSize = 26;
+            text.alignment = TextAlignmentOptions.TopLeft;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.margin = new Vector4(4, 0, 4, 0);
+            text.outlineColor = new Color(.035f, .025f, .015f, 1); text.outlineWidth = .12f;
             text.textWrappingMode = TextWrappingModes.Normal; text.raycastTarget = false;
         }
         readerPanel.transform.SetParent(safe, false); StageUITheme.CompactSurface(readerPanel.GetComponent<Image>());
@@ -50,14 +58,20 @@ public sealed partial class DirectIndirectProofStageController
         readerBody.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize; scroll.content = readerBody.rectTransform;
         foreach (var button in new[] { selectTabletButton, closeReaderButton }) { StageUITheme.SkinButton(button); button.image.pixelsPerUnitMultiplier = 4.5f; }
     }
-    public void LayoutGuidePresentation(RectTransform safe)
+    public void LayoutGuidePresentation(RectTransform safe, RectTransform hud)
     {
         var size = safe.rect.size;
+        // Match the live HUD's width and scale, with content-sized transparent rows.
+        // Keep these as safe-area siblings so their existing modal visibility stays intact.
+        float top = hud.anchoredPosition.y - hud.rect.height * hud.localScale.y - 10 * hud.localScale.y;
         foreach (var text in new[] { promptText, selectionText })
         {
-            var r = text.rectTransform; r.anchorMin = r.anchorMax = r.pivot = new Vector2(.5f, 1);
-            r.sizeDelta = new Vector2(Mathf.Min(1040, size.x - 48), text == promptText ? 84 : 68);
-            r.anchoredPosition = new Vector2(0, text == promptText ? -210 : -310);
+            var r = text.rectTransform; r.anchorMin = r.anchorMax = r.pivot = Vector2.one;
+            r.localScale = hud.localScale;
+            float height = string.IsNullOrWhiteSpace(text.text) ? 0 : Mathf.Ceil(text.GetPreferredValues(text.text, hud.rect.width - 8, 0).y) + 4;
+            r.sizeDelta = new Vector2(hud.rect.width, height);
+            r.anchoredPosition = new Vector2(hud.anchoredPosition.x, top);
+            if (height > 0) top -= (height + 8) * hud.localScale.y;
         }
         var panel = (RectTransform)readerPanel.transform; panel.anchorMin = panel.anchorMax = panel.pivot = new Vector2(.5f, .5f);
         panel.anchoredPosition = Vector2.zero; panel.sizeDelta = new Vector2(Mathf.Min(1140, size.x - 48), Mathf.Min(850, size.y * .86f));

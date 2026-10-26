@@ -149,7 +149,7 @@ namespace LogicLegends.Graph
         {
             helpPages.Add(new HelpPage("Your graph journey", "Complete " + stage.ChallengeCount + " challenges selected at random from a bank of " + stage.catalog.challenges.Count + ". Graphs use letters or numbers for their vertices. Read the objective for your current graph: your run may include travel, degree, path, directed-path, or cycle tasks. Your selection stays the same through retries and Help."));
             helpPages.Add(new HelpPage("Start at the book", "Approach the Book Statue and tap the hand button. Each challenge begins at its starting vertex. Closing Help only restores your controls; it does not activate the book or start the timer. After each correct challenge, interact with the book again to start the next one."));
-            helpPages.Add(new HelpPage("Move and read the map", "Move with the joystick or WASD, and use the jump button or keyboard jump control. Platforms are vertices; bridges are edges. The minimap shows the graph, arrows, and your position. Tap it to inspect the full graph in a centered panel; Close returns to the minimap. Cross a connecting bridge completely to record a move. Available bridges glow orange; crossed bridges turn blue. The ROUTE label lists your recorded vertices."));
+            helpPages.Add(new HelpPage("Move and read the map", "Move with the joystick and tap the jump button to jump. Platforms are vertices; bridges are edges. The minimap shows the graph, arrows, and your position. Tap it to inspect the full graph in a centered panel; Close returns to the minimap. Cross a connecting bridge completely to record a move. Available bridges glow orange; crossed bridges turn blue. The ROUTE label lists your recorded vertices."));
             helpPages.Add(new HelpPage("Vertices and edges", "A vertex is a point in a graph. An edge joins two vertices. For a travel task, start at the vertex named in the objective, cross its connecting bridge, and reach the required destination. Stop on the destination platform and tap CONFIRM. Follow the visible bridges rather than jumping between unconnected platforms."));
             helpPages.Add(new HelpPage("Vertex degree", "The degree of a vertex counts the edges meeting it. Find the vertex named in the objective, inspect its incident edges, then select a number from the on-screen choices and tap CONFIRM. Movement alone does not answer a degree question. CLEAR SELECTION removes your selected number so you can choose again."));
             helpPages.Add(new HelpPage("Find a path", "Follow connecting edges from the starting vertex to the destination named in the objective. A simple path must not repeat a vertex. Your full recorded route is checked, so tap CONFIRM at the destination rather than backtracking to the book. If you need a fresh route, use RETRY ROUTE to return to the start."));
@@ -204,6 +204,7 @@ namespace LogicLegends.Graph
 
         private void LayoutHelp()
         {
+            if (lessonCard.GetComponent<StageHelpPage>() != null) return;
             bool portrait = host.rect.width < host.rect.height * 1.2f;
             StageUITheme.Stretch(lessonCard, portrait ? new Vector2(.025f,.035f) : new Vector2(.05f,.055f), portrait ? new Vector2(.975f,.965f) : new Vector2(.95f,.945f));
             StageUITheme.Stretch(lessonTitle.rectTransform, new Vector2(.08f,.67f), new Vector2(portrait ? .92f : .46f,.78f));
@@ -233,20 +234,8 @@ namespace LogicLegends.Graph
         public void NextHelpPage() { if (helpPage < helpPages.Count - 1) { helpPage++; ShowHelpPage(); } }
         private void ShowHelpPage()
         {
-            lessonTitle.text = helpPages[helpPage].title;
-            lessonBody.text = helpPages[helpPage].body;
-            lessonPage.text = (helpPage + 1) + " / " + helpPages.Count;
-            previousPage.interactable = helpPage > 0;
-            nextPage.interactable = helpPage < helpPages.Count - 1;
-            foreach (var button in new[] { previousPage, nextPage })
-            {
-                var group = button.GetComponent<CanvasGroup>();
-                if (group == null) group = button.gameObject.AddComponent<CanvasGroup>();
-                group.alpha = button.interactable ? 1 : .55f;
-            }
-            Canvas.ForceUpdateCanvases();
-            lessonScroll.verticalNormalizedPosition = 1;
-        }
+        StageHelpPage.Install(lessonCard, "Graph", () => stage.SetLesson(false), stage.BeginFromHelp, stage.OnboardingPending);
+    }
         public void Refresh()
         {
             trialProgress.text = "CHALLENGE " + (stage.ChallengeIndex + 1) + " OF " + stage.ChallengeCount;

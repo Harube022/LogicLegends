@@ -26,6 +26,14 @@ public class LevelMenu : MonoBehaviourPunCallbacks
         foreach (var look in FindObjectsByType<CameraTargetController>(FindObjectsSortMode.None)) PauseLook(look);
         foreach (var look in FindObjectsByType<Unity.Cinemachine.CinemachineInputAxisController>(FindObjectsSortMode.None)) PauseLook(look);
         MobileLookInput.ResetDelta();
+        // A pause menu opened over a quiz must receive UI touches above that
+        // modal. Gameplay stays blocked until the nested menus close in order.
+        var menuCanvas = pausePanel.GetComponent<Canvas>();
+        if (menuCanvas == null) menuCanvas = pausePanel.AddComponent<Canvas>();
+        menuCanvas.overrideSorting = true;
+        menuCanvas.sortingOrder = 1000;
+        if (pausePanel.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
+            pausePanel.AddComponent<UnityEngine.UI.GraphicRaycaster>();
         pausePanel.transform.SetAsLastSibling();
         pausePanel.SetActive(true);
         // Settings blocks this player's controls while the online match keeps running.

@@ -11,7 +11,7 @@ namespace LogicLegends.Induction
         public bool IsOpen { get; private set; }
         public bool OnboardingPending { get; private set; } = true;
         public int PageIndex { get; private set; }
-        public int PageCount => Titles.Length;
+        public int PageCount => 1;
         public GameObject Overlay { get; private set; }
         public Button HelpButton { get; private set; }
         public Button PreviousButton { get; private set; }
@@ -109,9 +109,8 @@ namespace LogicLegends.Induction
         public void Next(){if(IsOpen&&PageIndex<PageCount-1){PageIndex++;ShowPage();}}
         void ShowPage()
         {
-            title.text=Titles[PageIndex];body.text=Bodies[PageIndex];notes.text=Notes[PageIndex];page.text=(PageIndex+1)+" / "+PageCount;
-            PreviousButton.interactable=PageIndex>0;NextButton.interactable=PageIndex<PageCount-1;body.rectTransform.anchoredPosition=Vector2.zero;scroll.StopMovement();
-        }
+        StageHelpPage.Install((RectTransform)title.transform.parent, "Induction", Close, BeginFromHelp, OnboardingPending);
+    }
         void Update(){if(HelpButton!=null)HelpButton.gameObject.SetActive(stage.CanAct);}
         void OnDisable(){if(IsOpen&&stage!=null)stage.CloseReading();}
     }

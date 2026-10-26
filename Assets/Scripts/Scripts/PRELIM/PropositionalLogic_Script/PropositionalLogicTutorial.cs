@@ -30,7 +30,7 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
         ("Use the hint board",
             "The board shows the operator's truth table: each row pairs truth values for P and Q with a result. During an active challenge, one result appears every 20 seconds, up to four rows. Help pauses both the countdown and hint reveals."),
         ("Choose an answer door",
-            "Walk onto the selection pad in front of your answer using the joystick or WASD. Stay there for about 2 seconds as its ring fills. The door opens and your character moves through it. Leaving the pad cancels the selection."),
+            "Walk onto the selection pad in front of your answer using the joystick. Stay there for about 2 seconds as its ring fills. The door opens and your character moves through it. Leaving the pad cancels the selection."),
         ("Time and incorrect answers",
             "A fresh run has 6 minutes shared across all five challenges. A wrong door subtracts 10 seconds, knocks you back, and stuns you for about 5 seconds. After recovery, activate the book for a new question in the same challenge. The remaining countdown is preserved; it does not reset."),
         ("Complete each challenge",
@@ -59,12 +59,12 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
 
     public bool IsOpen => isOpen;
     public int PageIndex => pageIndex;
-    public int PageCount => pages.Length;
+    public int PageCount => 1;
 
     // Keep the same parchment artwork, but use one full-width page on narrow screens.
     private void LateUpdate()
     {
-        if (!isOpen || titleText == null || bodyText == null) return;
+        if (!isOpen || titleText == null || bodyText == null || titleText.GetComponentInParent<StageHelpPage>() != null) return;
         bool portrait = Screen.height > Screen.width;
         int mode = portrait ? 1 : 0;
         if (helpLayoutMode == mode) return;
@@ -165,6 +165,15 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
         RefreshPage();
     }
 
+    // Close restores play; only Let's Begin launches the interactive lesson.
+    private void CloseHelpOnly()
+    {
+        bool pending = startControlsAfterClose;
+        startControlsAfterClose = false;
+        CloseTutorial();
+        startControlsAfterClose = pending;
+    }
+
     public void CloseTutorial()
     {
         if (!isOpen) return;
@@ -206,11 +215,7 @@ public sealed class PropositionalLogicTutorial : MonoBehaviour
 
     private void RefreshPage()
     {
-        if (titleText != null) titleText.text = pages[pageIndex].title;
-        if (bodyText != null) bodyText.text = pages[pageIndex].body;
-        if (pageText != null) pageText.text = $"{pageIndex + 1} / {pages.Length}";
-        if (backButton != null) backButton.interactable = pageIndex > 0;
-        if (nextButton != null) nextButton.interactable = pageIndex < pages.Length - 1;
+        if (titleText != null) StageHelpPage.Install((RectTransform)titleText.transform.parent, "PRELIM", CloseHelpOnly, CloseTutorial, startControlsAfterClose);
     }
 
     private void OnDisable()

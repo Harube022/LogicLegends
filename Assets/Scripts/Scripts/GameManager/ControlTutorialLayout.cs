@@ -2,15 +2,29 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-/// <summary>Places control explanations beside their subject and clear of gameplay UI.</summary>
+/// <summary>Places screen-space explanations once per lesson; highlights can track moving targets.</summary>
 public static class ControlTutorialLayout
 {
+    sealed class Placement
+    {
+        public string message;
+        public Rect area;
+        public Vector2 size, position;
+        public bool next, bottom;
+    }
+    // Weak keys release destroyed scene panels. Camera motion never invalidates a placement.
+    static System.Runtime.CompilerServices.ConditionalWeakTable<RectTransform, Placement> placements =
+        new System.Runtime.CompilerServices.ConditionalWeakTable<RectTransform, Placement>();
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void Reset() => placements = new System.Runtime.CompilerServices.ConditionalWeakTable<RectTransform, Placement>();
+
     private static readonly string[] blockerNames = { "SettingsButton", "PropositionalHelpButton",
         "TruthTableHelpButton", "InferenceHelpButton", "CurrentStageHud", "TruthTableMinimapPanel",
         "Joystick", "JumpButton", "InteractButton", "InventoryBar", "AdminButton", "ReadBook_BTN",
         "TruthTableSubmitColumnButton", "QuestionText", "TruthTableHud",
         "PRELIM Shared Skip Tutorial", "Inference Shared Skip", "InferenceViewBoardButton", "InferenceInteractBookButton",
-        "Setssss Practice Label", "SetssssHelpButton", "TimerText", "ViewBoardButton",
+        "SetssssHelpButton", "TimerText", "ViewBoardButton",
         "SubmitConditionButton", "InteractWithBookButton" };
 
     public static RectTransform[] FindBlockers()
@@ -59,41 +73,51 @@ public static class ControlTutorialLayout
             next.anchorMin = next.anchorMax = next.pivot = new Vector2(0.5f, 0f);
             next.sizeDelta = new Vector2(210f, 76f); next.anchoredPosition = new Vector2(0f, 14f);
         }
-        var occupied = new List<Rect>();
-        if (blockers != null)
-            foreach (var blocker in blockers)
-                if (blocker != null && blocker.gameObject.activeInHierarchy)
-                    occupied.Add(BoundsIn(blocker, host));
         Rect area = host.rect;
         Rect subject = target != null && target.gameObject.activeInHierarchy ? BoundsIn(target, host)
             : new Rect(area.center, Vector2.zero);
         bool hasTarget = target != null && target.gameObject.activeInHierarchy;
-        var candidates = new List<Vector2>();
-        float gap = 64f;
-        if (hasTarget)
+        var placement = placements.GetValue(panel, _ => new Placement());
+        Vector2 best;
+        if (placement.message == text.text && placement.area == area && placement.size == panel.sizeDelta &&
+            placement.next == showNext && placement.bottom == preferBottom)
+            best = placement.position;
+        else
         {
-            candidates.Add(new Vector2(subject.center.x, subject.yMax + gap + height * 0.5f));
-            candidates.Add(new Vector2(subject.xMin - gap - width * 0.5f, subject.center.y));
-            candidates.Add(new Vector2(subject.xMax + gap + width * 0.5f, subject.center.y));
-            candidates.Add(new Vector2(subject.center.x, subject.yMin - gap - height * 0.5f));
-        }
-        else candidates.Add(new Vector2(area.center.x, area.yMin + area.height * (preferBottom ? 0.3f : 0.5f)));
-        for (int y = 1; y <= 9; y++)
-            for (int x = 1; x <= 9; x++)
-                candidates.Add(new Vector2(area.xMin + area.width * x / 10f, area.yMin + area.height * y / 10f));
-        Vector2 best = area.center; float bestScore = float.MaxValue;
-        foreach (var candidate in candidates)
-        {
-            Vector2 center = new Vector2(
-                Mathf.Clamp(candidate.x, area.xMin + width * 0.5f + 20f, area.xMax - width * 0.5f - 20f),
-                Mathf.Clamp(candidate.y, area.yMin + height * 0.5f + 20f, area.yMax - height * 0.5f - 20f));
-            Rect box = new Rect(center - new Vector2(width, height) * 0.5f, new Vector2(width, height));
-            float overlap = 0f;
-            foreach (var obstacle in occupied) overlap += Intersection(box, obstacle);
-            if (hasTarget && subject.width * subject.height < area.width * area.height * 0.5f)
-                overlap += Intersection(box, subject);
-            float score = overlap * 10000f + Vector2.Distance(center, hasTarget ? subject.center : candidates[0]);
-            if (score < bestScore) { bestScore = score; best = center; }
+            var occupied = new List<Rect>();
+            if (blockers != null)
+                foreach (var blocker in blockers)
+                    if (blocker != null && blocker.gameObject.activeInHierarchy)
+                        occupied.Add(BoundsIn(blocker, host));
+            var candidates = new List<Vector2>();
+            float gap = 64f;
+            if (hasTarget)
+            {
+                candidates.Add(new Vector2(subject.center.x, subject.yMax + gap + height * 0.5f));
+                candidates.Add(new Vector2(subject.xMin - gap - width * 0.5f, subject.center.y));
+                candidates.Add(new Vector2(subject.xMax + gap + width * 0.5f, subject.center.y));
+                candidates.Add(new Vector2(subject.center.x, subject.yMin - gap - height * 0.5f));
+            }
+            else candidates.Add(new Vector2(area.center.x, area.yMin + area.height * (preferBottom ? 0.3f : 0.5f)));
+            for (int y = 1; y <= 9; y++)
+                for (int x = 1; x <= 9; x++)
+                    candidates.Add(new Vector2(area.xMin + area.width * x / 10f, area.yMin + area.height * y / 10f));
+            best = area.center; float bestScore = float.MaxValue;
+            foreach (var candidate in candidates)
+            {
+                Vector2 center = new Vector2(
+                    Mathf.Clamp(candidate.x, area.xMin + width * 0.5f + 20f, area.xMax - width * 0.5f - 20f),
+                    Mathf.Clamp(candidate.y, area.yMin + height * 0.5f + 20f, area.yMax - height * 0.5f - 20f));
+                Rect box = new Rect(center - new Vector2(width, height) * 0.5f, new Vector2(width, height));
+                float overlap = 0f;
+                foreach (var obstacle in occupied) overlap += Intersection(box, obstacle);
+                if (hasTarget && subject.width * subject.height < area.width * area.height * 0.5f)
+                    overlap += Intersection(box, subject);
+                float score = overlap * 10000f + Vector2.Distance(center, hasTarget ? subject.center : candidates[0]);
+                if (score < bestScore) { bestScore = score; best = center; }
+            }
+            placement.message = text.text; placement.area = area; placement.size = panel.sizeDelta;
+            placement.next = showNext; placement.bottom = preferBottom; placement.position = best;
         }
         panel.anchoredPosition = best - area.center;
         if (arrow != null && hasTarget && arrow.parent != host)
@@ -109,6 +133,7 @@ public static class ControlTutorialLayout
             arrow.localRotation = Quaternion.Euler(0f, 0f, horizontal ? (direction.x > 0f ? -90f : 90f) : direction.y > 0f ? 0f : 180f);
             var label = arrow.GetComponent<TMP_Text>(); label.text = "\u25bc"; label.fontSize = 48f;
         }
+        TutorialSpotlight.Follow(panel, hasTarget ? target : null, arrow);
     }
 
     private static float Intersection(Rect a, Rect b)

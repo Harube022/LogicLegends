@@ -198,7 +198,7 @@ public sealed class SetssssHelpUI : MonoBehaviour
                            (SetssssControlsOnboarding.Active == null || !SetssssControlsOnboarding.Active.IsActive);
             if (helpButton.gameObject.activeSelf != visible) helpButton.gameObject.SetActive(visible);
         }
-        if (card != null && safeArea != null)
+        if (card != null && safeArea != null && card.GetComponent<StageHelpPage>() == null)
         {
             float aspect = safeArea.rect.width / Mathf.Max(1f, safeArea.rect.height);
             Vector2 min = aspect < 1.2f ? new Vector2(0.035f, 0.045f) : new Vector2(0.08f, 0.08f);
@@ -278,15 +278,7 @@ public sealed class SetssssHelpUI : MonoBehaviour
 
     private void ShowPage()
     {
-        titleText.text = Pages[pageIndex].title;
-        bodyText.text = Pages[pageIndex].body;
-        pageText.text = (pageIndex + 1) + " / " + Pages.Length;
-        previousButton.interactable = pageIndex > 0;
-        nextButton.interactable = pageIndex < Pages.Length - 1;
-        SetDisabledOpacity(previousButton);
-        SetDisabledOpacity(nextButton);
-        Canvas.ForceUpdateCanvases();
-        bodyScroll.verticalNormalizedPosition = 1f;
+        StageHelpPage.Install(card, "Setssss", CloseHelp, BeginFromHelp, onboardingPending);
     }
 
     private static void SetDisabledOpacity(Button button)

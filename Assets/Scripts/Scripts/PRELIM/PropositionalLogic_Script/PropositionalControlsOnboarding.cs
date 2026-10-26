@@ -47,8 +47,6 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
     private RectTransform worldHighlight;
     private readonly List<Renderer> worldTargets = new List<Renderer>();
     private GameObject confirmation;
-    private GameObject practiceTarget;
-    private TextMeshPro practiceLabel;
     private Vector3 movementStart;
     private float jumpStartY;
     private bool jumpRequested;
@@ -225,7 +223,6 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
 
     private void BeginMovement()
     {
-        DestroyPracticeTarget();
         mobileControls?.ResetJoystick();
         input.SetGameplayInputBlocked(false);
         step = Step.Movement;
@@ -245,8 +242,7 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
     private void BeginInteraction()
     {
         step = Step.Interaction;
-        CreatePracticeTarget();
-        SetInstruction("Use this button to interact with nearby objects.", handButton);
+        SetInstruction("Tap the hand button to interact with nearby objects.", handButton);
     }
 
     private void SetInstruction(string message, RectTransform target, bool bottom = false, bool showNext = false)
@@ -289,10 +285,6 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
                  player.transform.position.y > jumpStartY + 0.1f)
             BeginInteraction();
 
-        if (practiceLabel != null && practiceTarget != null && Camera.main != null)
-            practiceLabel.transform.SetPositionAndRotation(
-                practiceTarget.transform.position + Vector3.up * 2.4f - Camera.main.transform.right * 1.3f,
-                Camera.main.transform.rotation);
         if (demonstrationCamera != null)
         {
             float blend = 1f - Mathf.Exp(-Time.unscaledDeltaTime * 4f / cameraTransitionSeconds);
@@ -362,14 +354,7 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
             BeginTimerDemo();
             return;
         }
-        if (step != Step.Interaction || practiceTarget == null || player == null) return;
-        Vector3 toward = practiceTarget.transform.position - player.transform.position;
-        toward.y = 0f;
-        Vector3 facing = player.transform.forward;
-        facing.y = 0f;
-        if (toward.magnitude > practiceRange || toward.sqrMagnitude < 0.001f ||
-            Vector3.Dot(facing.normalized, toward.normalized) < 0.25f) return;
-        DestroyPracticeTarget();
+        if (step != Step.Interaction) return;
         BeginBookDemo();
     }
 
@@ -519,7 +504,6 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         step = Step.Confirm;
         StopAllCoroutines();
         mobileControls?.ResetJoystick();
-        DestroyPracticeTarget();
         PrelimTutorialSkipControl.CancelCamera(demonstrationCamera);
         demonstrationCamera = null;
         RestoreDemonstrationUI();
@@ -666,44 +650,6 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         if (worldHighlight != null) worldHighlight.gameObject.SetActive(false);
     }
 
-    private void CreatePracticeTarget()
-    {
-        practiceTarget = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        practiceTarget.name = "Propositional Practice Interaction";
-        Vector3 practicePosition = player.transform.position + player.transform.forward * 1.8f
-            - player.transform.right * 1.5f;
-        practicePosition.y = jumpStartY + 0.85f;
-        practiceTarget.transform.position = practicePosition;
-        practiceTarget.transform.localScale = Vector3.one * 1.35f;
-        Collider collider = practiceTarget.GetComponent<Collider>();
-        if (collider != null) collider.isTrigger = true;
-        Renderer renderer = practiceTarget.GetComponent<Renderer>();
-        if (renderer != null) renderer.material.color = new Color(1f, 0.75f, 0.18f);
-        GameObject label = new GameObject("Practice Interaction Label", typeof(TextMeshPro));
-        label.transform.SetParent(practiceTarget.transform, false);
-        label.transform.localPosition = new Vector3(-1f, 1.8f, 0f);
-        label.transform.localScale = Vector3.one * 1.2f;
-        practiceLabel = label.GetComponent<TextMeshPro>();
-        practiceLabel.text = "Interact with me.";
-        practiceLabel.fontSize = 3f;
-        practiceLabel.enableAutoSizing = true;
-        practiceLabel.fontSizeMin = 1.8f;
-        practiceLabel.fontSizeMax = 3f;
-        practiceLabel.enableWordWrapping = false;
-        practiceLabel.rectTransform.sizeDelta = new Vector2(16f, 3f);
-        practiceLabel.alignment = TextAlignmentOptions.Center;
-        practiceLabel.color = Color.white;
-        practiceLabel.outlineWidth = 0.22f;
-        practiceLabel.outlineColor = new Color32(22, 28, 30, 255);
-    }
-
-    private void DestroyPracticeTarget()
-    {
-        if (practiceTarget != null) Destroy(practiceTarget);
-        practiceTarget = null;
-        practiceLabel = null;
-    }
-
     private void ConfirmNo()
     {
         if (!IsActive || step != Step.Confirm) return;
@@ -722,7 +668,6 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         RestoreDemonstrationUI();
         if (skipControl != null) skipControl.Release();
         skipControl = null;
-        DestroyPracticeTarget();
         timer?.SetTutorialPaused(false);
         if (input != null) input.SetGameplayInputBlocked(false);
         mobileControls?.ResetJoystick();

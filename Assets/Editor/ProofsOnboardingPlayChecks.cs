@@ -142,8 +142,7 @@ public static class ProofsOnboardingPlayChecks
         SetMobile(mobile, Vector2.zero);
         Check(tutorial.CurrentStep == ProofsTutorialStep.Interaction, "intentional movement advances only to hand interaction");
         yield return Layout(tutorial, "Hand");
-        Check(tutorial.PracticeObject != null, "visible labeled practice object exists");
-        var delta = tutorial.PracticeObject.transform.position - p.transform.position; delta.y = 0; p.transform.rotation = Quaternion.LookRotation(delta);
+        Check(tutorial.PracticeObject == null, "hand practice needs no world object");
         var hand = GameObject.Find("Canvas 1").GetComponentsInChildren<Button>(true).Single(b => b.name == "InteractButton");
         Click(hand); yield return null;
         Check(tutorial.CurrentStep == ProofsTutorialStep.Jump && tutorial.PracticeObject == null, "hand practice advances only to jump");

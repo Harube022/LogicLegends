@@ -25,7 +25,7 @@ namespace LogicLegends.Graph
         public bool IsActive { get; private set; }
         public GraphTutorialStep CurrentStep { get; private set; }
         public bool AllowsJump => IsActive && CurrentStep == GraphTutorialStep.Jump;
-        public GameObject PracticeObject => practice;
+        public GameObject PracticeObject => null;
         public bool ShowingGameplayPreview { get; private set; }
         public GraphChallengeData PracticeGraph { get; private set; }
         public int? PracticeAnswer { get; private set; }
@@ -39,10 +39,9 @@ namespace LogicLegends.Graph
         private GameInput input;
         private Player player;
         private MobileInputUI joystickInput;
-        private RectTransform safeArea, joystick, jump, hand, instructions, highlight, arrow, card, practiceLabel;
+        private RectTransform safeArea, joystick, jump, hand, instructions, highlight, arrow, card;
         private TMP_Text instructionText;
-        private GameObject confirmation, practice;
-        private Material practiceMaterial;
+        private GameObject confirmation;
         private Button settings;
         private bool settingsWasEnabled, playerWasEnabled, inputWasBlocked, cursorWasVisible;
         private bool joystickWasVisible, jumpWasVisible, handWasVisible;
@@ -163,7 +162,7 @@ namespace LogicLegends.Graph
         private void BeginMovement()
         {
             RestoreGuidedView();
-            DestroyPractice();
+
             stage.ui.SetControlsTutorialVisible(true);
             skipControl.Show(true);
             Time.timeScale = previousTimeScale;
@@ -223,8 +222,8 @@ namespace LogicLegends.Graph
             }
             else if (CurrentStep == GraphTutorialStep.Jump && jumpSucceeded && player.IsJumping() && position.y > jumpBaseY + .1f)
             {
-                CreatePractice();
-                ShowStep(GraphTutorialStep.Interaction, "Use this button to interact with nearby objects.", hand);
+
+                ShowStep(GraphTutorialStep.Interaction, "Tap the hand button to interact with nearby objects.", hand);
             }
             lastPosition = position;
         }
@@ -239,18 +238,9 @@ namespace LogicLegends.Graph
                 demonstrationCamera.transform.position = Vector3.Lerp(demonstrationCamera.transform.position, cameraGoal, blend);
                 demonstrationCamera.transform.rotation = Quaternion.Slerp(demonstrationCamera.transform.rotation, cameraRotationGoal, blend);
             }
-            if (practice != null && practiceLabel != null && Camera.main != null)
-            {
-                Vector3 screen = Camera.main.WorldToScreenPoint(practice.transform.position + Vector3.up * 1.15f);
-                practiceLabel.gameObject.SetActive(screen.z > 0);
-                if (screen.z > 0 && RectTransformUtility.ScreenPointToLocalPointInRectangle(safeArea, screen, null, out Vector2 local))
-                {
-                    PlacePracticeLabel(local);
-                }
-            }
+
             if (CurrentStep == GraphTutorialStep.Confirm) return;
             var obstacles = new List<RectTransform>(blockers);
-            if (practiceLabel != null) obstacles.Add(practiceLabel);
             foreach (string name in new[] { "Objective", "Recorded route", "Clock", "Graph minimap", "Feedback", "Confirm", "Retry", "Degree choices" })
                 obstacles.Add(stage.ui.TutorialTarget(name));
             UpdateWorldHighlight();
@@ -261,72 +251,14 @@ namespace LogicLegends.Graph
                 false, obstacles.ToArray(), arrow);
         }
 
-        private void PlacePracticeLabel(Vector2 preferred)
-        {
-            Rect area = safeArea.rect;
-            Vector2 size = practiceLabel.sizeDelta;
-            Vector2 best = preferred; float score = float.MaxValue;
-            foreach (var offset in new[] { Vector2.zero, Vector2.up * 110, Vector2.left * 180, Vector2.right * 180, Vector2.up * 220 })
-            {
-                Vector2 point = preferred + offset;
-                point.x = Mathf.Clamp(point.x, area.xMin + size.x * .5f + 20, area.xMax - size.x * .5f - 20);
-                point.y = Mathf.Clamp(point.y, area.yMin + size.y * .5f + 20, area.yMax - size.y * .5f - 20);
-                Rect box = new Rect(point - size * .5f, size);
-                float overlap = 0;
-                foreach (var target in new[] { joystick, jump, hand, instructions })
-                {
-                    if (target == null || !target.gameObject.activeInHierarchy) continue;
-                    var corners = new Vector3[4]; target.GetWorldCorners(corners);
-                    Vector2 min = safeArea.InverseTransformPoint(corners[0]);
-                    Vector2 max = safeArea.InverseTransformPoint(corners[2]);
-                    min -= Vector2.one * 24; max += Vector2.one * 24;
-                    overlap += Mathf.Max(0, Mathf.Min(box.xMax,max.x) - Mathf.Max(box.xMin,min.x)) *
-                               Mathf.Max(0, Mathf.Min(box.yMax,max.y) - Mathf.Max(box.yMin,min.y));
-                }
-                float candidateScore = overlap * 10000 + Vector2.Distance(point, preferred);
-                if (candidateScore < score) { score = candidateScore; best = point; }
-            }
-            practiceLabel.anchoredPosition = best;
-        }
-
-        private void CreatePractice()
-        {
-            DestroyPractice();
-            practice = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            practice.name = "Graph Practice Interaction"; practice.layer = 2; // Ignore Raycast: never obstruct the camera.
-            Vector3 forward = Camera.main != null ? Camera.main.transform.forward : player.transform.forward;
-            forward.y = 0; forward.Normalize();
-            Vector3 right = Vector3.Cross(Vector3.up, forward);
-            // Keep the target beside the player's silhouette, in range and in front of the camera.
-            Vector3 position = player.transform.position + forward * 1.3f - right * 1.8f;
-            position.y = jumpBaseY + .95f;
-            player.transform.rotation = Quaternion.LookRotation(forward);
-            practice.transform.position = position; practice.transform.localScale = Vector3.one * 1.8f;
-            practice.GetComponent<Collider>().isTrigger = true;
-            practiceMaterial = practice.GetComponent<Renderer>().material;
-            practiceMaterial.color = new Color(1f,.75f,.18f);
-            practiceLabel = StageUITheme.Rect("Graph Practice Label", safeArea);
-            practiceLabel.anchorMin = practiceLabel.anchorMax = practiceLabel.pivot = new Vector2(.5f,.5f);
-            practiceLabel.sizeDelta = new Vector2(290,80);
-            var backing = practiceLabel.gameObject.AddComponent<Image>();
-            backing.color = new Color(.04f,.1f,.13f,.94f); backing.raycastTarget = false;
-            var label = StageUITheme.Text("Practice Label Text", practiceLabel, "Interact with me", 34, true);
-            label.color = Color.white;
-            StageUITheme.Stretch(label.rectTransform, new Vector2(.04f,.08f), new Vector2(.96f,.92f));
-        }
-
         public void TryPracticeInteraction()
         {
             if (IsActive && CurrentStep == GraphTutorialStep.Book)
             { PracticeBook(); return; }
-            if (!IsActive || CurrentStep != GraphTutorialStep.Interaction || practice == null ||
+            if (!IsActive || CurrentStep != GraphTutorialStep.Interaction ||
                 input.GameplayInputBlocked || !player.enabled || Time.timeScale <= 0) return;
-            Vector3 toward = practice.transform.position - player.transform.position; toward.y = 0;
-            Vector3 facing = player.transform.forward; facing.y = 0;
-            if (toward.sqrMagnitude < .001f || toward.magnitude > interactionRange ||
-                Vector3.Dot(facing.normalized, toward.normalized) < .25f) return;
             acceptedInteractionFrame = Time.frameCount;
-            DestroyPractice();
+
             BeginGuidedView();
         }
 
@@ -620,7 +552,7 @@ namespace LogicLegends.Graph
         private void BeginConfirmation()
         {
             CurrentStep = GraphTutorialStep.Confirm; // Consume taps before cancelling any view.
-            DestroyPractice(); RestoreGuidedView();
+             RestoreGuidedView();
             highlight.gameObject.SetActive(false); instructions.gameObject.SetActive(false);
             stage.ui.SetControlsTutorialVisible(true); skipControl.Show(false);
             joystickInput.ResetJoystick(); input.SetGameplayInputBlocked(true); player.ToggleControl(false);
@@ -633,21 +565,13 @@ namespace LogicLegends.Graph
         public void ConfirmYes()
         { if (IsActive && CurrentStep == GraphTutorialStep.Confirm) Cleanup(); }
 
-        private void DestroyPractice()
-        {
-            if (practice != null) { practice.SetActive(false); Destroy(practice); }
-            if (practiceLabel != null) { practiceLabel.gameObject.SetActive(false); Destroy(practiceLabel.gameObject); }
-            if (practiceMaterial != null) Destroy(practiceMaterial);
-            practice = null; practiceLabel = null; practiceMaterial = null;
-        }
-
         private void Cleanup()
         {
             if (!IsActive) return;
             IsActive = false; if (Active == this) Active = null;
             RestoreGuidedView();
             if (skipControl != null) skipControl.Release(); skipControl = null;
-            DestroyPractice();
+
             if (player != null)
             {
                 player.OnJumpStarted -= OnSuccessfulJump;

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace LogicLegends.Induction
 {
-    [RequireComponent(typeof(GrabbableObject), typeof(BoxCollider))]
+    [DefaultExecutionOrder(1600), RequireComponent(typeof(GrabbableObject), typeof(BoxCollider))]
     public sealed class InductionTablet : MonoBehaviour
     {
         public FormulaTabletData Data { get; private set; }
@@ -20,14 +20,15 @@ namespace LogicLegends.Induction
         {
             Data = data; Home = home; HomeRotation = transform.rotation; stockParent = transform.parent; label.text = data.expression;
             label.textWrappingMode = TextWrappingModes.Normal;
-            // The full formula remains available when selecting it in the stand catalogue.
-            // Avoid spilling into neighbouring labels if an unusually long formula
-            // cannot fit at the configured minimum font size.
-            label.overflowMode = TextOverflowModes.Ellipsis;
+            // Wrap the whole expression; never replace a proof term with an ellipsis.
+            label.overflowMode = TextOverflowModes.Overflow;
+            label.fontStyle |= FontStyles.Bold;
+            label.enableAutoSizing = true; label.fontSizeMax = 4.8f; label.fontSizeMin = 2.5f;
+            label.outlineColor = new Color(.02f,.025f,.035f,1); label.outlineWidth = .16f;
             SetError(false);
         }
         public void SetError(bool error)
-        { HasError = error; if (label != null) label.color = error ? new Color(1,.35f,.3f) : StageUITheme.Ink; }
+        { HasError = error; if (label != null) label.color = error ? new Color(1,.35f,.3f) : new Color(1,.94f,.73f); }
         public void RefreshLabel()
         {
             if (Data == null || label == null) return;
@@ -52,9 +53,10 @@ namespace LogicLegends.Induction
             if (camera != null && label != null)
             {
                 RefreshLabel();
-                label.transform.position = transform.position + Vector3.up * (Slot != null ? Slot.formulaLabelHeight : 1.1f);
-                label.rectTransform.sizeDelta = new Vector2(Slot != null ? 2.8f : choiceLabelWidth, Slot != null ? 1.1f : 1.4f);
-                label.transform.rotation = Quaternion.LookRotation(camera.transform.forward, camera.transform.up);
+                label.rectTransform.sizeDelta = new Vector2(Slot != null ? 2.8f : choiceLabelWidth, Slot != null ? 1.5f : 1.7f);
+                var mesh = GetComponent<Renderer>();
+                var bounds = mesh != null ? mesh.bounds : new Bounds(transform.position,Vector3.one*.5f);
+                InductionWorldLabel.PlaceAbove(label,bounds,Slot != null ? Mathf.Max(.25f,Slot.formulaLabelHeight-.5f) : .4f,Vector3.zero);
             }
         }
     }

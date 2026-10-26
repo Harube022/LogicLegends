@@ -19,7 +19,7 @@ namespace LogicLegends.Induction
         public bool IsActive { get; private set; }
         public InductionTutorialStep CurrentStep { get; private set; }
         public bool AllowsJump => IsActive && CurrentStep == InductionTutorialStep.Jump;
-        public GameObject PracticeObject => practice;
+        public GameObject PracticeObject => null;
         public RectTransform Highlight => highlight;
         public RectTransform InstructionPanel => instructions;
         public Button YesButton { get; private set; }
@@ -28,10 +28,10 @@ namespace LogicLegends.Induction
         GameInput input;
         Player player;
         MobileInputUI mobile;
-        RectTransform safeArea, joystick, joystickRing, jump, hand, highlight, arrow, instructions, card, worldObstacle, practiceLabel;
+        RectTransform safeArea, joystick, joystickRing, jump, hand, highlight, arrow, instructions, card, worldObstacle;
         TMP_Text instruction;
-        GameObject confirmation, practice, controls;
-        Material practiceMaterial;
+        GameObject confirmation, controls;
+        Material practiceMaterial; // Material for the later proof-scroll demonstration.
         Button settings;
         bool settingsWasEnabled, inputWasBlocked, playerWasEnabled, controlsWereVisible, cursorWasVisible;
         CursorLockMode previousCursor;
@@ -106,7 +106,7 @@ namespace LogicLegends.Induction
         void BeginMovement()
         {
             ResetGuide();
-            DestroyPractice();confirmation.SetActive(false);Time.timeScale=previousTimeScale;input.SetGameplayInputBlocked(false);player.ToggleControl(true);
+            confirmation.SetActive(false);Time.timeScale=previousTimeScale;input.SetGameplayInputBlocked(false);player.ToggleControl(true);
             PrelimTeleportTransition.MovePlayerImmediately(player.gameObject,originalPosition,originalRotation);
             mobile.ResetJoystick();movedDistance=0;lastPosition=player.transform.position;movementStart=lastPosition;
             ShowStep(InductionTutorialStep.Movement,"Use this joystick to move.",joystickRing);
@@ -147,84 +147,41 @@ namespace LogicLegends.Induction
                 {mobile.ResetJoystick();jumpSucceeded=false;ShowStep(InductionTutorialStep.Jump,"Tap this button to jump.",jump);}
             }
             else if(CurrentStep==InductionTutorialStep.Jump&&jumpSucceeded&&player.IsJumping()&&position.y>jumpBaseY+.1f)
-            {CreatePractice();ShowStep(InductionTutorialStep.Interaction,"Use this button to interact with nearby objects.",hand);}
+            {ShowStep(InductionTutorialStep.Interaction,"Tap the hand button to interact with nearby objects.",hand);}
             lastPosition=position;
         }
-        void CreatePractice()
-        {
-            DestroyPractice();practice=GameObject.CreatePrimitive(PrimitiveType.Cube);practice.name="Induction Practice Interaction";practice.layer=2;
-            Vector3 forward=Camera.main!=null?Camera.main.transform.forward:player.transform.forward;forward.y=0;forward.Normalize();
-            Vector3 right=Vector3.Cross(Vector3.up,forward);Vector3 position=player.transform.position+forward*2.4f-right*2.0f;position.y=jumpBaseY+1.1f;
-            player.transform.rotation=Quaternion.LookRotation(forward);practice.transform.position=position;practice.transform.localScale=Vector3.one*1.35f;
-            practice.GetComponent<Collider>().isTrigger=true;practiceMaterial=new Material(stage.altarIndicators.arrowShader);practiceMaterial.SetColor("_BaseColor",new Color(1,.75f,.18f));
-            practice.GetComponent<Renderer>().sharedMaterial=practiceMaterial;
-            practiceLabel=StageUITheme.Rect("Induction Practice Label",safeArea);
-            practiceLabel.anchorMin=practiceLabel.anchorMax=practiceLabel.pivot=new Vector2(.5f,.5f);practiceLabel.sizeDelta=new Vector2(290,80);
-            var backing=practiceLabel.gameObject.AddComponent<Image>();backing.color=new Color(.04f,.10f,.13f,.94f);backing.raycastTarget=false;
-            var text=StageUITheme.Text("Practice Label Text",practiceLabel,"Interact with me",34,true);text.color=Color.white;
-            StageUITheme.Stretch(text.rectTransform,new Vector2(.04f,.08f),new Vector2(.96f,.92f));
-        }
+
         public bool TryPracticeInteraction()
         {
             if(IsActive&&CurrentStep>=InductionTutorialStep.Book)return GuidedInteraction(false);
-            if(!IsActive||CurrentStep!=InductionTutorialStep.Interaction||practice==null||Time.timeScale<=0||input.GameplayInputBlocked||!player.enabled)return false;
-            Vector3 delta=practice.transform.position-player.transform.position;delta.y=0;
-            if(delta.magnitude>interactionRange||Vector3.Dot(player.transform.forward,delta.normalized)<.25f)return false;
-            DestroyPractice();mobile.ResetJoystick();StartGuide();return true;
+            if(!IsActive||CurrentStep!=InductionTutorialStep.Interaction||Time.timeScale<=0||input.GameplayInputBlocked||!player.enabled)return false;
+            mobile.ResetJoystick();StartGuide();return true;
         }
         void LateUpdate()
         {
             if(!IsActive)return;
             card.sizeDelta=new Vector2(Mathf.Min(660,safeArea.rect.width-40),280);
             float diameter=Mathf.Min(joystick.rect.width,joystick.rect.height)*.9f;joystickRing.sizeDelta=Vector2.one*diameter;
-            if(practiceLabel!=null&&Camera.main!=null)
-            {
-                var screen=Camera.main.WorldToScreenPoint(practice.transform.position+Vector3.up*1.1f);practiceLabel.gameObject.SetActive(screen.z>0);
-                if(screen.z>0&&RectTransformUtility.ScreenPointToLocalPointInRectangle(safeArea,screen,null,out Vector2 local))
-                {
-                    local.x=Mathf.Clamp(local.x,safeArea.rect.xMin+165,safeArea.rect.xMax-165);
-                    local.y=Mathf.Clamp(local.y,safeArea.rect.yMin+60,safeArea.rect.yMax-60);practiceLabel.anchoredPosition=local;
-                }
-                UpdateWorldObstacle();
-            }
-            else worldObstacle.gameObject.SetActive(false);
+            worldObstacle.gameObject.SetActive(false);
             if(CurrentStep==InductionTutorialStep.Confirm)return;
             if(CurrentStep>=InductionTutorialStep.Book){LayoutGuide();return;}
             var blockers=new List<RectTransform>(ControlTutorialLayout.FindBlockers());blockers.Add(worldObstacle);
-            if(practiceLabel!=null)blockers.Add(practiceLabel);
             var target=CurrentStep==InductionTutorialStep.Movement?joystickRing:CurrentStep==InductionTutorialStep.Jump?jump:hand;
             blockers.Add((RectTransform)skip.transform);
             ControlTutorialLayout.Place(instructions,instruction,null,safeArea,target,false,blockers.ToArray(),arrow);
         }
-        void UpdateWorldObstacle()
-        {
-            var bounds=practice.GetComponent<Renderer>().bounds;
-            Vector2 min=new Vector2(float.MaxValue,float.MaxValue),max=-min;bool found=false;
-            for(int x=-1;x<=1;x+=2)for(int y=-1;y<=1;y+=2)for(int z=-1;z<=1;z+=2)
-            {
-                var screen=Camera.main.WorldToScreenPoint(bounds.center+Vector3.Scale(bounds.extents,new Vector3(x,y,z)));
-                if(screen.z<=0)continue;
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(safeArea,screen,null,out Vector2 local);
-                min=Vector2.Min(min,local);max=Vector2.Max(max,local);found=true;
-            }
-            worldObstacle.gameObject.SetActive(found);if(found){worldObstacle.anchoredPosition=(min+max)*.5f;worldObstacle.sizeDelta=max-min+Vector2.one*24;}
-        }
+
         public void ConfirmYes()
         {
             if(!IsActive||CurrentStep!=InductionTutorialStep.Confirm)return;
             stage.help.CompleteOnboarding();Cleanup();
         }
         public void ConfirmNo(){if(IsActive&&CurrentStep==InductionTutorialStep.Confirm)BeginMovement();}
-        void DestroyPractice()
-        {
-            if(practice!=null){practice.SetActive(false);Destroy(practice);}practice=null;
-            if(practiceLabel!=null){practiceLabel.gameObject.SetActive(false);Destroy(practiceLabel.gameObject);}practiceLabel=null;
-            if(practiceMaterial!=null)Destroy(practiceMaterial);practiceMaterial=null;
-        }
+
         void Cleanup()
         {
             if(!IsActive)return;IsActive=false;if(Active==this)Active=null;
-            ResetGuide();if(skip!=null)skip.Release();DestroyPractice();if(mobile!=null)mobile.ResetJoystick();
+            ResetGuide();if(skip!=null)skip.Release();if(mobile!=null)mobile.ResetJoystick();
             if(player!=null){player.OnJumpStarted-=OnSuccessfulJump;PrelimTeleportTransition.MovePlayerImmediately(player.gameObject,originalPosition,originalRotation);player.ToggleControl(playerWasEnabled);}
             foreach(var state in visibility)if(state.Key!=null)state.Key.SetActive(state.Value);visibility.Clear();if(controls!=null)controls.SetActive(controlsWereVisible);
             if(settings!=null)settings.interactable=settingsWasEnabled;
