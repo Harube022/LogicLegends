@@ -19,6 +19,8 @@ namespace LogicLegends.OpenArchive.Hunting
         public double NestSleepEndsAt {get;private set;}
         public double NestArrivedAt {get;private set;}
         public const double BarrierChallengeSeconds=180,FailureStunSeconds=5;
+        [Tooltip("Maximum answer time. Open Archive Normal uses 90 seconds; Learning retains 180. A started encounter keeps its checkpointed deadline.")]
+        [Range(30,180)] public float barrierTimeLimitSeconds=180;
         public const float KnockbackSeconds=.35f;
         [Header("Failed barrier attack")]
         [Tooltip("Contact point in the existing Attack clip. Khezu's claw crosses the player at about 0.62 seconds.")]
@@ -47,7 +49,7 @@ namespace LogicLegends.OpenArchive.Hunting
             if(BarrierTimerSerial==CaptureSerial)return;
             BarrierTimerSerial=CaptureSerial;
             BarrierStartedAt=CaptureStartedAt+LogicLegends.OpenArchive.Cinematics.KhezuCinematicJumpscareController.Duration;
-            BarrierDeadline=BarrierStartedAt+BarrierChallengeSeconds;BarrierTimedOut=false;
+            BarrierDeadline=BarrierStartedAt+Mathf.Clamp(barrierTimeLimitSeconds,30,180);BarrierTimedOut=false;
         }
         void CancelBarrierSequence(){
             BarrierTimerSerial=0;BarrierStartedAt=BarrierDeadline=AttackHitAt=BarrierDissolveAt=StunEndsAt=0;

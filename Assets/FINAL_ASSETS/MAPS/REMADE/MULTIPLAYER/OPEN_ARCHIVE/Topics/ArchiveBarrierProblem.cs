@@ -12,6 +12,7 @@ namespace LogicLegends.OpenArchive.Topics
     [Serializable] public sealed class ArchiveLearningHint
     {
         public int actor, topic, round, subphase, resetSerial, level;
+        public string diagnosis;
     }
 
     /// <summary>A short encounter adapter over the original solo question bank and validator.</summary>
@@ -68,7 +69,7 @@ namespace LogicLegends.OpenArchive.Topics
         }
         public string Hint(int level)
         {
-            if (level <= 0) return "Hints are free. The existing three-minute barrier clock keeps running.";
+            if (level <= 0) return "Hints are free. The shared encounter clock keeps running. Answer promptly to rejoin your team.";
             if (inference)
             {
                 if (level == 1) return "Treat the premises as given. Compare their logical structure with the conclusion; the story's real-world truth is irrelevant.";

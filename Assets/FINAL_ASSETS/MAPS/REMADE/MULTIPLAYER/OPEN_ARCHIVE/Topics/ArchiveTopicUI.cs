@@ -15,7 +15,7 @@ namespace LogicLegends.OpenArchive.Topics
         public TMP_FontAsset textFont, headingFont;
         public static ArchiveTopicUI Current { get; private set; }
         RectTransform panel, content;
-        TMP_Text heading, status, hint, feedback;
+        TMP_Text heading, status, hint, feedback, networkNotice;
         Button submitButton,startButton,returnButton;
         ScrollRect scroll;
         ArchiveTopicStation openStation;
@@ -37,7 +37,15 @@ namespace LogicLegends.OpenArchive.Topics
         bool dirty,resetScrollOnRefresh;
         int displayedTeamRevision=-1;
         static readonly Color Ink=new Color(.16f,.11f,.07f),Cream=new Color(1,.94f,.79f);
-        void Awake(){Current=this;Build();proposition=gameObject.AddComponent<ArchivePropositionUI>();proposition.Initialize(this);truth=gameObject.AddComponent<ArchiveTruthUI>();truth.Initialize(this);inference=gameObject.AddComponent<ArchiveInferenceUI>();inference.Initialize(this);proofs=gameObject.AddComponent<ArchiveProofUI>();proofs.Initialize(this);methods=gameObject.AddComponent<ArchiveMethodUI>();methods.Initialize(this);induction=gameObject.AddComponent<ArchiveInductionUI>();induction.Initialize(this);sets=gameObject.AddComponent<ArchiveSetsUI>();sets.Initialize(this);mapping=gameObject.AddComponent<ArchiveMappingUI>();mapping.Initialize(this);graph=gameObject.AddComponent<ArchiveGraphUI>();graph.Initialize(this);tree=gameObject.AddComponent<ArchiveTreeUI>();tree.Initialize(this);ArchiveReadingScrollbars.Install(transform);gameObject.AddComponent<ArchiveWorldLabelLayout>();}
+        void Awake(){Current=this;Build();BuildNetworkNotice();proposition=gameObject.AddComponent<ArchivePropositionUI>();proposition.Initialize(this);truth=gameObject.AddComponent<ArchiveTruthUI>();truth.Initialize(this);inference=gameObject.AddComponent<ArchiveInferenceUI>();inference.Initialize(this);proofs=gameObject.AddComponent<ArchiveProofUI>();proofs.Initialize(this);methods=gameObject.AddComponent<ArchiveMethodUI>();methods.Initialize(this);induction=gameObject.AddComponent<ArchiveInductionUI>();induction.Initialize(this);sets=gameObject.AddComponent<ArchiveSetsUI>();sets.Initialize(this);mapping=gameObject.AddComponent<ArchiveMappingUI>();mapping.Initialize(this);graph=gameObject.AddComponent<ArchiveGraphUI>();graph.Initialize(this);tree=gameObject.AddComponent<ArchiveTreeUI>();tree.Initialize(this);ArchiveReadingScrollbars.Install(transform);gameObject.AddComponent<ArchiveWorldLabelLayout>();}
+        void BuildNetworkNotice()
+        {
+            var go=new GameObject("Topic_Command_Feedback",typeof(RectTransform),typeof(TextMeshProUGUI));
+            go.transform.SetParent(transform,false);networkNotice=go.GetComponent<TMP_Text>();
+            networkNotice.font=textFont!=null?textFont:StageUITheme.ReadingFont;networkNotice.fontSize=23;
+            networkNotice.alignment=TextAlignmentOptions.Center;networkNotice.color=Color.white;networkNotice.raycastTarget=false;
+            var rect=networkNotice.rectTransform;rect.anchorMin=rect.anchorMax=new Vector2(.5f,.18f);rect.sizeDelta=new Vector2(850,70);
+        }
         IEnumerator Start()
         {
             while(GameInput.Instance==null)yield return null;
@@ -47,10 +55,12 @@ namespace LogicLegends.OpenArchive.Topics
         void Hand(object sender,EventArgs args)
         {
             if(!session.Ready||!session.CanAct(session.LocalActor)||Time.timeScale<=0)return;
+            if(ArchiveCoopActivityView.HandlesHand(session))return;
             focus?.Interact();
         }
         void Update()
         {
+            if(networkNotice!=null)networkNotice.text=session!=null?session.LocalNotice:"";
             bool available=session!=null&&session.Ready&&Player.LocalInstance!=null&&Time.timeScale>0&&session.CanAct(session.LocalActor);
             if(!available){focus=null;hint.text="";if(openStation!=null)Close();return;}
             var player=Player.LocalInstance;focus=null;float best=5.6f;

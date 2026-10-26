@@ -81,6 +81,7 @@ namespace LogicLegends.OpenArchive.Topics
                 a.gameObject.SetActive(!independent);b.gameObject.SetActive(!independent&&!complement);
                 a.localPosition=new Vector3(complement?-3.4f:-2.2f,.038f,-1.3f);
             }
+            if(topic==0&&state.phase==3){board.text="TEAM RELAY REQUIRED\nFive challenges solved.\nSet P and Q, confirm, then cross.";return;}
             if(state.phase!=1){board.text=state.timerExpired?"TIME UP\nSolved challenges kept.\nRead the Book to retry.":state.phase==2?"TOPIC COMPLETE\nShared team success":string.IsNullOrEmpty(state.reveal)?"BOOK STATUE\n"+ArchiveTopicCatalog.Arenas[topic]+"\nInteract to begin":"Correct!\n"+state.reveal+"\nUse the book to continue.";return;}
             for(int i=0;i<question.items.Length&&proposition==null;i++)
             {

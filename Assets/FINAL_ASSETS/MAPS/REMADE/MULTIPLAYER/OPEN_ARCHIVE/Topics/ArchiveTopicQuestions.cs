@@ -25,26 +25,21 @@ namespace LogicLegends.OpenArchive.Topics
             switch (topic)
             {
                 case 0:
-                    int bank = Permutation(catalog.propositions.Count, seed)[round];
-                    var pool = catalog.propositions[bank].questions; var logic = pool[random.Next(pool.Count)];
-                    var order = Permutation(logic.options.Length, random.Next());
-                    q.activity = ArchiveActivity.Choice; q.title = "Proposition challenge " + (round+1); q.prompt = logic.questionText;
-                    q.items = order.Select(i => logic.options[i].Trim()).ToArray(); q.correctChoice = Array.IndexOf(order, logic.correctOptionIndex);
-                    q.successText = ArchivePropositionNotation.Explanation(q.items[q.correctChoice]);
+                    ArchiveCurriculumQuestions.BuildProposition(q, round, seed);
                     q.instructions = "Discuss the question with your team. Walk onto A, B, C or D, tap Hand / E once, and stay inside its ring until the channel completes. Step away to cancel."; break;
                 case 1:
                     int difficulty = round / 3;
-                    var truthPool = TruthTableChallengeQuestions.Banks[difficulty];
+                    var truthPool = ArchiveCurriculumQuestions.TruthBanks[difficulty];
                     var truth = truthPool[Permutation(truthPool.Length, unchecked(seed + 734 + difficulty * 139))[round % 3]];
-                    q.activity = ArchiveActivity.Truth; q.title = new[] { "Easy", "Medium", "Hard" }[difficulty] + " / Column " + (round % 3 + 1);
+                    q.activity = ArchiveActivity.Truth; q.title = ArchiveCurriculumQuestions.TierName(1, round) + " / Column " + (round % 3 + 1);
+                    q.difficulty = ArchiveCurriculumQuestions.TierName(1, round); q.moduleReference = ArchiveCurriculumQuestions.TruthReference;
                     q.prompt = truth.Expression; q.items = new[] { "True", "False" }; q.reusableItems = true;
                     q.slots = new[] { "P=T, Q=T", "P=T, Q=F", "P=F, Q=T", "P=F, Q=F" };
                     q.expected = Enumerable.Range(0, 4).Select(i => truth.EvaluateRow(i) ? 0 : 1).ToArray();
                     q.instructions = "Read P and Q for each row (TT, TF, FT, FF). Take a reusable T / True or F / False tile with Hand / E, carry it to that row's output, and use Hand / E to place it. Fill four outputs, then Check table. You can replace a tile to correct a row. Teammates share the same table."; break;
                 case 2: BuildInference(catalog, q, round, seed, subphase); break;
                 case 3:
-                    var proofs = catalog.formalProofs.variantSets[round].variants;
-                    var proof = proofs[random.Next(proofs.Length)]; q.proof = proof; q.title = proof.title; q.prompt = proof.context;
+                    var proof = ArchiveCurriculumQuestions.Proof(catalog, round, seed); q.proof = proof; q.title = proof.title; q.prompt = proof.context;
                     q.instructions = proof.instructions + " Carry a scroll to its marked altar/socket. Submit the complete arrangement.";
                     if (proof.kind == ProofChallengeKind.SortScrolls)
                     {
@@ -73,7 +68,7 @@ namespace LogicLegends.OpenArchive.Topics
                         }
                     } break;
                 case 4:
-                    var trials = catalog.proofMethods.variantSets[round].variants; var trial = trials[random.Next(trials.Length)];
+                    var trial = ArchiveCurriculumQuestions.Method(catalog, round, seed);
                     q.trial=trial;q.title=trial.title;q.prompt=trial.problem;q.method=(int)trial.correctMethod;
                     q.activity=ArchiveActivity.Method;
                     if(trial.kind!=TrialProofKind.IdentifyMethod)
@@ -83,31 +78,32 @@ namespace LogicLegends.OpenArchive.Topics
                     }
                     q.instructions="Select a proof method when requested. Carry tablets into numbered proof sockets and submit at the lectern.";break;
                 case 5:
-                    var induction = InductionChallenges.VariantSets[round][random.Next(InductionChallenges.VariantsPerChallenge)];
+                    var induction = ArchiveCurriculumQuestions.Induction(round, seed);
                     q.activity=ArchiveActivity.Induction;q.title=induction.title;q.prompt=induction.theorem;q.instructions=induction.instructions;
                     q.items=induction.choices.Select((t,i)=>"Formula "+(char)('A'+i)).ToArray();q.details=induction.choices.Select(t=>t.expression).ToArray();
                     q.slots=induction.answers.Keys.OrderBy(key=>key.StartsWith("Base:")?0:key.StartsWith("Hypothesis:")?1:2).ThenBy(key=>int.Parse(key.Split(':')[1])).ToArray();
                     q.expected=q.slots.Select(key=>Array.FindIndex(induction.choices,c=>c.id==induction.answers[key])).ToArray();break;
                 case 6: BuildSets(catalog,q,round,seed);break;
                 case 7:
-                    var mapping = catalog.mappings.GetVariant(round, random.Next(catalog.mappings.ChallengeGroups[round].variants.Count));
+                    var mapping = ArchiveCurriculumQuestions.Mapping(catalog, round, seed);
                     q.activity=ArchiveActivity.Mapping;q.mapping=mapping;q.title=mapping.title;q.prompt=mapping.instruction;
                     q.inputLabels=mapping.domain;q.outputLabels=mapping.codomain;
-                    q.instructions="Use Hand / E at a Domain crystal, then at a Codomain crystal to connect them. Blue lasers are editable; amber lasers are fixed. Undo at Codomain removes the last editable team connection. The range contains only the outputs reached by the current lasers. Later challenges use three verdict or property seals.";break;
+                    q.instructions="Use Hand / E at a Domain crystal, then at a Codomain crystal to connect them. Blue lasers are editable; amber lasers are fixed. Undo at Codomain removes the last editable team connection. The range contains only reached outputs. Verdicts distinguish a function, an invalid endpoint pair, and a valid relation that is not a function. Property seals include None of these.";break;
                 case 8:
-                    var graphs = catalog.graphs.variantSets[round].variants;var graph=graphs[random.Next(graphs.Count)];
+                    var graph=ArchiveCurriculumQuestions.Graph(catalog, round, seed);
                     q.activity=ArchiveActivity.Graph;q.graph=graph;q.title=graph.title;q.prompt=graph.objective;
                     q.nodeIds=graph.vertices.Select(v=>v.id).ToArray();
                     var boundsX=graph.vertices.Select(v=>v.position.x).ToArray();var boundsZ=graph.vertices.Select(v=>v.position.z).ToArray();float graphScale=9.6f/Mathf.Max(1,Mathf.Max(boundsX.Max()-boundsX.Min(),boundsZ.Max()-boundsZ.Min()));
                     q.nodes=graph.vertices.Select(v=>new Vector2((v.position.x-(boundsX.Min()+boundsX.Max())*.5f)*graphScale,-(v.position.z-(boundsZ.Min()+boundsZ.Max())*.5f)*graphScale)).ToArray();
                     q.instructions="Use Hand / E at the green start rune to take the route. One teammate walks it while everyone shares the result. Stay on a connected stone path, cross its middle, and follow directed arrows. Confirm while standing on the goal vertex; a cycle finishes back at its start. Retry at the start clears only the unfinished route. Degree questions use choices 0 to 6.";break;
                 case 9:
-                    var trees=catalog.trees.variantSets[round].variants;var tree=trees[random.Next(trees.Count)];
+                    var tree=ArchiveCurriculumQuestions.Tree(catalog, round, seed);
                     q.activity=ArchiveActivity.Tree;q.tree=tree;q.title=tree.title;q.prompt=tree.objective;
                     q.nodeIds=tree.nodes.Select(n=>n.id).ToArray();var treePoints=tree.nodes.Select(n=>new Vector2(n.position.x*4.5f,n.position.y*5)).ToArray();var treeMin=new Vector2(treePoints.Min(p=>p.x),treePoints.Min(p=>p.y));var treeMax=new Vector2(treePoints.Max(p=>p.x),treePoints.Max(p=>p.y));float treeScale=9.6f/Mathf.Max(1,Mathf.Max(treeMax.x-treeMin.x,treeMax.y-treeMin.y));q.nodes=treePoints.Select(p=>(p-(treeMin+treeMax)*.5f)*treeScale).ToArray();
                     q.instructions="Use Hand / E at a node, or select it on the live tree diagram. Build and Repair: select the parent first, then the child, then Connect. Remove accepts either endpoint order; remove an old parent before adding a new one. Spanning trees use only original branches. Clear Pick keeps all branches. Identify selects one node; Depth / Height uses choices 0 to 5. Confirm the shared answer. Reading keeps movement and the active timer running.";break;
                 default: throw new ArgumentOutOfRangeException(nameof(topic));
             }
+            if(topic>=3){q.difficulty=ArchiveCurriculumQuestions.TierName(topic,round);q.moduleReference=ArchiveCurriculumQuestions.References[topic];q.title=q.difficulty+" · "+q.title;}
             q.itemOrder=Permutation(q.items.Length,unchecked(seed+topic*10007+round*331+subphase*772+761));
             if(q.activity==ArchiveActivity.Induction||q.activity==ArchiveActivity.Method||(q.proof!=null&&(q.proof.kind==ProofChallengeKind.OrderSteps||q.proof.kind==ProofChallengeKind.Formalize)))
                 for(int i=0;i<q.items.Length;i++)
@@ -120,9 +116,10 @@ namespace LogicLegends.OpenArchive.Topics
         static float Normalize(float value,float[] values) => Mathf.Approximately(values.Min(),values.Max())?0:Mathf.Lerp(-4.8f,4.8f,Mathf.InverseLerp(values.Min(),values.Max(),value));
         static void BuildInference(ArchiveTopicCatalog c,ArchiveQuestion q,int round,int seed,int subphase)
         {
-            var random=new Random(unchecked(seed+round*557));var bank=InferenceStageQuestions.Banks[round];var spec=bank[random.Next(bank.Length)];
+            var random=new Random(unchecked(seed+round*557));var bank=ArchiveCurriculumQuestions.InferenceBanks[round];var spec=bank[random.Next(bank.Length)];
             var rule=c.inferenceRules.First(r=>r.abbreviation==spec.RuleCode);var example=rule.examples[random.Next(rule.examples.Length)];
-            var source=new InferenceQuestion(rule,spec,example);q.title="Inference challenge "+(round+1);
+            var source=new InferenceQuestion(rule,spec,example);q.title=ArchiveCurriculumQuestions.TierName(2,round)+" · Inference challenge "+(round+1);
+            q.difficulty=ArchiveCurriculumQuestions.TierName(2,round);q.moduleReference=ArchiveCurriculumQuestions.InferenceReference;
             if(subphase==0)
             {
                 var rows=new List<List<PuzzlePart>>();var answers=new List<string>();spec.BuildPremises(rows,answers,example);
@@ -143,11 +140,12 @@ namespace LogicLegends.OpenArchive.Topics
         }
         static void BuildSets(ArchiveTopicCatalog c,ArchiveQuestion q,int round,int seed)
         {
-            int group=round/ArchiveTopicCatalog.SetProblemsPerChallenge,problem=round%ArchiveTopicCatalog.SetProblemsPerChallenge;var bank=c.sets[group].questions;int entry=Permutation(bank.Count,unchecked(seed+group*307+101))[problem];var data=bank[entry];
+            int group=round/ArchiveTopicCatalog.SetProblemsPerChallenge,problem=round%ArchiveTopicCatalog.SetProblemsPerChallenge;var bank=c.sets[group].questions;int entry=Permutation(bank.Count,unchecked(seed+group*307+101))[problem];var data=ArchiveCurriculumQuestions.SetCase(c,group,entry);
             var a=(data.a??Array.Empty<string>()).Distinct().OrderBy(value=>value,StringComparer.Ordinal).ToArray();var b=(data.b??Array.Empty<string>()).Distinct().OrderBy(value=>value,StringComparer.Ordinal).ToArray();
             q.setGroup=group;q.setEntry=entry;q.setA=a;q.setB=b;q.setName=data.setName;q.setUniverse=data.universe??Array.Empty<string>();
             q.activity=ArchiveActivity.Sets;q.regionPlacement=true;q.title="Challenge "+(group+1)+" — "+new[]{"Membership","Sets A and B","Intersection","Set differences","Complement"}[group]+" / Problem "+(problem+1)+" of "+ArchiveTopicCatalog.SetProblemsPerChallenge;
             q.prompt="A = { "+string.Join(", ",a)+" }\nB = { "+string.Join(", ",b)+" }";
+            if(group<3)q.prompt=ArchiveCurriculumQuestions.SetPrompt(group,data);
             if(group==3)
             {
                 q.slots=new[]{"Full set A","Full set B","Intersection","A minus B","B minus A"};
@@ -165,12 +163,12 @@ namespace LogicLegends.OpenArchive.Topics
                 q.slots=new[]{"A only","Intersection","B only"};
                 q.regionValues=new[]{a.Except(b).ToArray(),a.Intersect(b).ToArray(),b.Except(a).ToArray()};
             }
-            var items=(group==4?q.setUniverse:a.Union(b)).Distinct().ToList();var random=new Random(unchecked(seed+round*331));
+            var items=(q.setUniverse.Length>0?q.setUniverse:a.Union(b)).Distinct().ToList();var random=new Random(unchecked(seed+round*331));
             if(group!=4)while(items.Count<10){string value=random.Next(1,100).ToString();if(!items.Contains(value))items.Add(value);}
             q.setSourceValues=Permutation(items.Count,random.Next()).Select(i=>items[i]).ToArray();
             // Logical copy IDs are bounded for Android; only available, carried and placed copies are rendered.
             q.items=group==3?Enumerable.Range(0,ArchiveSetsPresentation.CopiesPerSource).SelectMany(_=>q.setSourceValues).ToArray():q.setSourceValues.ToArray();
-            if(group==4){var inside=new HashSet<string>(data.setName=="B"?data.b:data.a);if(entry==0){inside.Add("3");inside.Add("4");}else{inside.Remove((data.setName=="B"?data.b:data.a)[0]);inside.Add(q.setUniverse.First(value=>!(data.setName=="B"?data.b:data.a).Contains(value)));}q.setInitialPlacements=q.items.Select(value=>inside.Contains(value)?0:1).ToArray();}
+            if(group==4){var selected=data.setName=="B"?data.b:data.a;var inside=new HashSet<string>(selected);foreach(var value in selected.Take(2))inside.Remove(value);foreach(var value in q.setUniverse.Except(selected).Take(2))inside.Add(value);q.setInitialPlacements=q.items.Select(value=>inside.Contains(value)?0:1).ToArray();}
             q.instructions=group==3?"Fill five separate answer trays: full A, full B, A ∩ B, A − B and B − A. Each spawner pickup leaves another copy of that value; moving a placed block creates no copy. Use one physical block for each required appearance. Unused blocks stay at the supply.":group==4?"Correct the existing arrangement. Members belong inside the named circle; complement elements belong outside that circle but inside U. Use every value in U once. No duplicate copies are supplied.":"Carry every listed element into A only, A ∩ B or B only. Shared values appear once in the intersection. Unused distractors stay at the supply.";
         }
 
@@ -244,7 +242,13 @@ namespace LogicLegends.OpenArchive.Topics
             return q.prompt+"\n\n"+proof+(q.slots.Any(key=>key.StartsWith("Base:"))&&q.slots.Any(key=>key.StartsWith("Hypothesis:"))&&q.slots.Count(key=>key.StartsWith("Step:"))==4?"\n\nThe base case and P(k) → P(k + 1) establish P(n) for every integer n ≥ 1.":"");
         }
         public static int[] SetPlacementGrades(ArchiveQuestion q,ArchiveStationState state){var grades=new int[q.items.Length];var seen=Enumerable.Range(0,q.slots.Length).Select(_=>new HashSet<string>()).ToArray();for(int i=0;i<grades.Length;i++){int region=i<state.placements.Length?state.placements[i]:-1;if(region<0)continue;grades[i]=region<q.regionValues.Length&&q.regionValues[region].Contains(q.items[i])&&seen[region].Add(q.items[i])?1:-1;}return grades;}
-        public static string MappingReveal(ArchiveQuestion q,ArchiveStationState state)=>q.title+"\n"+string.Join("  ·  ",Pairs(q,state.links))+"\nRange = { "+string.Join(", ",q.outputLabels.Where((label,i)=>state.links.Any(link=>link%100==i)))+" }\n"+(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction?"Accepted verdict: "+ArchiveMappingPresentation.ClassificationNames[state.selection]+". A function is also a relation; each input must have exactly one output.":q.mapping.questionKind==MappingQuestionKind.SelectProperties?"Accepted properties: "+string.Join(", ",new[]{2,4,8}.Where(flag=>(state.flags&flag)!=0).Select(flag=>ArchiveMappingPresentation.PropertyNames[Array.IndexOf(new[]{2,4,8},flag)])):q.mapping.requireFunction?"Every input has exactly one output; this completed mapping is one-to-one and onto.":"The complete relation matches the required ordered pairs.");
+        public static string MappingReveal(ArchiveQuestion q,ArchiveStationState state)=>q.title+"\n"+string.Join("  ·  ",Pairs(q,state.links))+"\nRange = { "+string.Join(", ",q.outputLabels.Where((label,i)=>state.links.Any(link=>link%100==i)))+" }\n"+(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction?"Accepted verdict: "+ArchiveMappingPresentation.ClassificationNames[state.selection]+". A function is also a relation; each input must have exactly one output.":q.mapping.questionKind==MappingQuestionKind.SelectProperties?"Accepted properties: "+(state.flags==0?"None of these":string.Join(", ",new[]{2,4,8}.Where(flag=>(state.flags&flag)!=0).Select(flag=>ArchiveMappingPresentation.PropertyNames[Array.IndexOf(new[]{2,4,8},flag)]))):MappingConstructionSummary(q,state));
+        static string MappingConstructionSummary(ArchiveQuestion q,ArchiveStationState state)
+        {
+            if(!q.mapping.requireFunction)return "The complete relation matches the required ordered pairs.";
+            var pairs=Pairs(q,state.links);bool injective=MappingRuleEvaluator.IsInjective(pairs,q.inputLabels),onto=MappingRuleEvaluator.IsSurjective(pairs,q.outputLabels);
+            return "Every input has exactly one output. "+(injective?"Different inputs reach different outputs. ":"Some inputs share an output. ")+(onto?"Every codomain output is reached.":"The range is smaller than the codomain, so this function is not onto.");
+        }
         public static string GraphLabel(ArchiveQuestion q,string id)=>string.IsNullOrEmpty(q.graph.Vertex(id)?.label)?id:q.graph.Vertex(id).label;
         public static string GraphReveal(ArchiveQuestion q,ArchiveStationState state)=>q.title+"\n"+(q.graph.type==GraphChallengeType.Degree?"Degree of "+GraphLabel(q,q.graph.degreeVertex)+" = "+state.selection:"Accepted route: "+string.Join(" → ",state.route.Select(i=>GraphLabel(q,q.nodeIds[i]))))+"\n\n"+q.graph.lesson;
         public static string SetsReveal(ArchiveQuestion q)=>q.prompt+"\n\n"+string.Join("\n",q.slots.Select((name,i)=>name+" = { "+string.Join(", ",q.regionValues[i])+" }"));

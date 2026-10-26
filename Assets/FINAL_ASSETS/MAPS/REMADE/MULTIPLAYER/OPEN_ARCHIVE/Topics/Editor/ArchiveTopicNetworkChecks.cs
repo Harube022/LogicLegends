@@ -28,6 +28,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         sealed class Peer
         {
             public LoadBalancingClient client;public ConnectionHandler heartbeat;public ArchiveTeamState state;public int sequence,viewId;public string name;
+            public readonly Dictionary<int,ArchiveCommandReceipt> receipts=new Dictionary<int,ArchiveCommandReceipt>();
             public int Actor=>client.LocalPlayer.ActorNumber;
         }
         static readonly List<Peer> peers=new List<Peer>();
@@ -56,10 +57,10 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         public static void BeginGraph(){StartChecks(false,false,false,false,false,false,true);}
         [MenuItem("Tools/Logic Legends/Open Archive/Topics/Test T10 Shared Progress (Live Photon)")]
         public static void BeginTree(){StartChecks(false,false,false,false,false,false,false,true);}
-        static void StartChecks(bool inference,bool proofs=false,bool methods=false,bool induction=false,bool sets=false,bool mapping=false,bool graph=false,bool tree=false,bool exit=false,bool admin=false,bool learning=false)
+        static void StartChecks(bool inference,bool proofs=false,bool methods=false,bool induction=false,bool sets=false,bool mapping=false,bool graph=false,bool tree=false,bool exit=false,bool admin=false,bool learning=false,bool fairness=false,bool optional=false,bool topicBonuses=false)
         {
             if(!Application.isPlaying||PhotonNetwork.InRoom||active)throw new InvalidOperationException("Run in offline Play Mode with no active room.");
-            inferenceOnly=inference;proofsOnly=proofs;methodsOnly=methods;inductionOnly=induction;setsOnly=sets;mappingOnly=mapping;graphOnly=graph;treeOnly=tree;exitOnly=exit;adminOnly=admin;learningOnly=learning;report=new Report();peers.Clear();stack.Clear();previousSync=PhotonNetwork.AutomaticallySyncScene;previousName=PhotonNetwork.NickName;
+            topicBonusesOnly=topicBonuses;optionalRelaysOnly=optional;fairnessOnly=fairness;inferenceOnly=inference;proofsOnly=proofs;methodsOnly=methods;inductionOnly=induction;setsOnly=sets;mappingOnly=mapping;graphOnly=graph;treeOnly=tree;exitOnly=exit;adminOnly=admin;learningOnly=learning;report=new Report();peers.Clear();stack.Clear();previousSync=PhotonNetwork.AutomaticallySyncScene;previousName=PhotonNetwork.NickName;
             PhotonNetwork.AutomaticallySyncScene=false;PhotonNetwork.NickName="Archive host QA";
             session=ArchiveTopicSession.Current;if(session!=null)session.enabled=false;
             active=true;nextTick=0;stack.Push(Flow());EditorApplication.update+=Tick;EditorApplication.playModeStateChanged+=PlayState;Save();
@@ -81,7 +82,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         }
         static void PlayState(PlayModeStateChange state){if(state==PlayModeStateChange.ExitingPlayMode&&active){report.errors.Add("Play Mode interrupted.");Finish(false);}}
         static void Check(bool pass,string name){report.checks.Add(new CheckResult{name=name,passed=pass});if(!pass)throw new InvalidOperationException(name);}
-        static void Save(){Directory.CreateDirectory(ArchiveTopicSetup.Folder+"/Testing/Reports");File.WriteAllText(ArchiveTopicSetup.Folder+"/Testing/Reports/"+(learningOnly?"LearningSprintPhoton.json":adminOnly?"TopicAdminPhoton.json":exitOnly?"ExitPortalPhoton.json":treeOnly?"T10SharedProgressPhoton.json":graphOnly?"T9SharedProgressPhoton.json":mappingOnly?"T8SharedProgressPhoton.json":setsOnly?"T7SharedProgressPhoton.json":inductionOnly?"T6SharedProgressPhoton.json":methodsOnly?"T5SharedProgressPhoton.json":proofsOnly?"T4SharedProgressPhoton.json":inferenceOnly?"T3SharedProgressPhoton.json":"SharedProgressPhoton.json"),JsonUtility.ToJson(report,true));}
+        static void Save(){if(topicBonusesOnly){Directory.CreateDirectory("Temp/ArchiveTopicBonuses");File.WriteAllText("Temp/ArchiveTopicBonuses/Photon.json",JsonUtility.ToJson(report,true));return;}if(optionalRelaysOnly){Directory.CreateDirectory("Temp/ArchiveCurriculum");File.WriteAllText("Temp/ArchiveCurriculum/OptionalRelaysPhoton.json",JsonUtility.ToJson(report,true));return;}if(fairnessOnly){Directory.CreateDirectory("Temp/ArchiveFairness");File.WriteAllText("Temp/ArchiveFairness/Photon.json",JsonUtility.ToJson(report,true));return;}Directory.CreateDirectory(ArchiveTopicSetup.Folder+"/Testing/Reports");File.WriteAllText(ArchiveTopicSetup.Folder+"/Testing/Reports/"+(learningOnly?"LearningSprintPhoton.json":adminOnly?"TopicAdminPhoton.json":exitOnly?"ExitPortalPhoton.json":treeOnly?"T10SharedProgressPhoton.json":graphOnly?"T9SharedProgressPhoton.json":mappingOnly?"T8SharedProgressPhoton.json":setsOnly?"T7SharedProgressPhoton.json":inductionOnly?"T6SharedProgressPhoton.json":methodsOnly?"T5SharedProgressPhoton.json":proofsOnly?"T4SharedProgressPhoton.json":inferenceOnly?"T3SharedProgressPhoton.json":"SharedProgressPhoton.json"),JsonUtility.ToJson(report,true));}
         static void Finish(bool success)
         {
             active=false;stack.Clear();EditorApplication.update-=Tick;EditorApplication.playModeStateChanged-=PlayState;
@@ -106,6 +107,8 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             var p=new Peer{client=new LoadBalancingClient(),name=name};p.client.NickName=name;
             p.client.EventReceived+=ev=>
             {
+                if(ev.Code==ArchiveTopicSession.CommandReceiptEvent&&ev.CustomData is object[] receiptPacket&&receiptPacket.Length==2&&Equals(receiptPacket[0],ArchiveTopicSession.Channel))
+                {var receipt=JsonUtility.FromJson<ArchiveCommandReceipt>((string)receiptPacket[1]);p.receipts[receipt.sequence]=receipt;return;}
                 if(ev.Code!=ArchiveTopicSession.SnapshotEvent||!p.client.InRoom||ev.Sender!=p.client.CurrentRoom.MasterClientId||!(ev.CustomData is object[] packet)||packet.Length!=2||!Equals(packet[0],ArchiveTopicSession.Channel))return;
                 try{p.state=JsonUtility.FromJson<ArchiveTeamState>((string)packet[1]);}catch(Exception e){report.errors.Add("Peer snapshot: "+e.Message);}
             };
@@ -172,7 +175,11 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             if(PhotonNetwork.OfflineMode)PhotonNetwork.OfflineMode=false;
             if(!PhotonNetwork.IsConnected)PhotonNetwork.ConnectUsingSettings();
             yield return Wait(()=>PhotonNetwork.IsConnectedAndReady,"Host connected");
-            string room="archive-topics-qa-"+Guid.NewGuid().ToString("N");PhotonNetwork.CreateRoom(room,new RoomOptions{MaxPlayers=4,IsVisible=false});
+            string room="archive-topics-qa-"+Guid.NewGuid().ToString("N");
+            PhotonNetwork.CreateRoom(room,new RoomOptions{MaxPlayers=4,IsVisible=false,CustomRoomProperties=new Hashtable{
+                [LobbyRules.VersionKey]=LobbyRules.Protocol,[LobbyRules.StateKey]=LobbyRules.Loading,
+                [LobbyRules.SceneKey]=ArchiveTopicSetup.ScenePath,
+                [MultiplayerMonsterRotation.RoomKey]=(int)LogicLegends.Tests.Monsters.DevelopmentMonster.Rajang}});
             yield return Wait(()=>PhotonNetwork.InRoom,"Private room created");
             var a=Connect("Archive guest A QA");yield return Wait(()=>a.client.State==ClientState.ConnectedToMasterServer,"Guest A connected");
             a.client.OpJoinRoom(new EnterRoomParams{RoomName=room});yield return Wait(()=>a.client.InRoom&&PhotonNetwork.CurrentRoom.PlayerCount==2,"Guest A join acknowledged");
@@ -185,6 +192,9 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             var truth=session.stations[1];var t1=session.stations[0];
             Spawn(a,Position(t1,ArchiveTopicStation.BookPosition+Vector3.back*1.7f));yield return Wait(()=>session.ActorPlayer(a.Actor)!=null,"Guest-owned prefab ready");
             Check(!session.ActorPlayer(a.Actor).enabled,"Remote replica cannot consume host input");
+            if(topicBonusesOnly){yield return TopicBonusesFlow(a,room);yield break;}
+            if(optionalRelaysOnly){yield return OptionalRelayFlow(a,room);yield break;}
+            if(fairnessOnly){yield return FairnessFlow(a,room);yield break;}
             if(learningOnly){yield return LearningFlow(a,room);yield break;}
             if(adminOnly){yield return AdminFlow(a,room);yield break;}
             if(exitOnly){yield return ExitFlow(a,room);yield break;}
@@ -201,7 +211,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Packet(a,Command(a,0,ArchiveAction.Start));session.Request(1,ArchiveAction.Start);yield return .4f;
             Check(session.ActiveTopic==1&&session.State.stations.Count(s=>s.phase==1)==1&&session.State.stations[0].phase==0,"Competing host and guest Book requests activate exactly one topic");
             double truthDeadline=session.State.stations[1].timerDeadline;
-            Check(session.State.stations[1].timerRunning&&session.State.stations[1].timerLimit==360&&session.State.stations[1].timerActor==PhotonNetwork.LocalPlayer.ActorNumber,"T2 starts its own six-minute shared clock at the native Book");
+            Check(session.State.stations[1].timerRunning&&session.State.stations[1].timerLimit==session.truthTimeLimitSeconds*session.PacingMultiplier&&session.State.stations[1].timerActor==PhotonNetwork.LocalPlayer.ActorNumber,"T2 starts its own six-minute shared clock at the native Book");
             yield return BlockedBook(a,0,"Guest cannot forge another topic start while Truth Table is active");
             var q=session.Question(1);var solution=ArchiveTopicChecks.Solution(q);
             Status="Shared Truth Table work and attribution";
@@ -249,7 +259,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Status="Start T1 after completion";
             ArchiveTopicPlayChecks.MoveTo(t1,ArchiveTopicStation.BookPosition+Vector3.back*1.7f);session.Request(0,ArchiveAction.Start);yield return .2f;
             double deadline=session.State.stations[0].timerDeadline;
-            Check(session.ActiveTopic==0&&session.State.stations[0].timerRunning&&session.State.stations[0].timerLimit==360,"Completing the previous topic allows T1 and starts its existing six-minute timer");
+            Check(session.ActiveTopic==0&&session.State.stations[0].timerRunning&&session.State.stations[0].timerLimit==session.propositionTimeLimitSeconds*session.PacingMultiplier,"Completing the previous topic allows T1 and starts its existing six-minute timer");
             var proposition=session.Question(0);yield return Move(a,t1,t1.ItemPosition(proposition.correctChoice,proposition));yield return Send(a,0,ArchiveAction.BeginChoice,proposition.correctChoice);
             Check(session.State.stations[0].channelActor==a.Actor&&session.CanAct(PhotonNetwork.LocalPlayer.ActorNumber),"Guest can cooperate on the reserved topic while the host stays free");
             yield return Wait(()=>session.State.stations[0].round==1&&a.state.stations[0].round==1,"Correct guest rune replicated",8);
@@ -272,7 +282,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Status="Timeout and retry reservation";int before=session.State.mistakes.Count;
             session.State.stations[0].timerDeadline=ArchiveTopicSession.TimerClock-.01;
             yield return Wait(()=>session.State.stations[0].timerExpired&&b.state.stations[0].timerExpired,"Timeout replicated",8);
-            Check(session.ActiveTopic==0&&session.State.stations[0].round==1&&session.State.mistakes.Count==before+1&&session.State.mistakes.Last().actor==PhotonNetwork.LocalPlayer.ActorNumber,"Timeout preserves the reservation and solved progress and charges its activator once");
+            Check(session.ActiveTopic==0&&session.State.stations[0].round==1&&session.State.mistakes.Count==before+1&&session.State.mistakes.Last().actor==0,"Timeout preserves the reservation and solved progress and records one team event");
             yield return BlockedBook(b,2,"Timeout cannot be used to switch topics");
             yield return Move(b,t1,ArchiveTopicStation.BookPosition+Vector3.back*1.7f);yield return Send(b,0,ArchiveAction.Start);
             Check(session.ActiveTopic==0&&session.State.stations[0].timerAttempt==2&&session.TimerRemaining(session.State.stations[0])>355,"Guest can retry the same unfinished topic with a fresh six-minute attempt");
@@ -281,14 +291,15 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Check(session.State.stations[0].channelActor==0&&session.ActiveTopic==0&&session.State.mistakes.Count==before+2&&session.State.mistakes.Last().actor==b.Actor,"Pending channel timeout charges the guest activator once and keeps T1 reserved");
             session.hunting.Request(KhezuCommand.Sleep);
             Status="Finish T1 with both guests";
-            while(session.State.stations[0].phase!=2)
+            while(session.State.stations[0].phase!=2&&session.State.stations[0].phase!=ArchiveTopicSession.T1RelayPhase)
             {
                 yield return Move(b,t1,ArchiveTopicStation.BookPosition+Vector3.back*1.7f);yield return Send(b,0,ArchiveAction.Start);
                 proposition=session.Question(0);int round=session.State.stations[0].round;
                 yield return Move(a,t1,t1.ItemPosition(proposition.correctChoice,proposition));yield return Send(a,0,ArchiveAction.BeginChoice,proposition.correctChoice);
                 yield return Wait(()=>session.State.stations[0].round==round+1&&b.state.stations[0].round==round+1,"Shared rune solved",8);
             }
-            Check(session.ActiveTopic==-1&&session.State.stations[0].round==5&&!session.State.stations[0].timerRunning,"All five native T1 challenges release the reservation and stop its timer");
+            yield return CompleteRequiredRelay(a,b);
+            Check(session.ActiveTopic==-1&&session.State.stations[0].round==5&&!session.State.stations[0].timerRunning,"Five native T1 challenges and the required relay release the reservation with the timer frozen");
             var inference=session.stations[2];yield return Move(a,inference,ArchiveTopicStation.BookPosition+Vector3.back*1.7f);yield return Send(a,2,ArchiveAction.Start);
             Check(session.ActiveTopic==2&&session.State.stations[2].phase==1,"Guest can start a new topic only after the previous topic is complete");
             Status="Owned props and departure cleanup";q=session.Question(2);
@@ -321,7 +332,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             var st=session.stations[2];Status="T3 shared premise stage";
             yield return Move(a,st,ArchiveTopicStation.BookPosition+Vector3.back*1.7f);yield return Send(a,2,ArchiveAction.Start);
             var state=session.State.stations[2];double deadline=state.timerDeadline;
-            Check(session.ActiveTopic==2&&state.timerRunning&&state.timerLimit==360&&state.timerActor==a.Actor,"T3 guest Book starts the authenticated shared six-minute clock");
+            Check(session.ActiveTopic==2&&state.timerRunning&&state.timerLimit==session.inferenceTimeLimitSeconds*session.PacingMultiplier&&state.timerActor==a.Actor,"T3 guest Book starts the authenticated shared six-minute clock");
             var q=session.Question(2);yield return InferencePlace(a,0,ArchiveTopicChecks.Solution(q).placements[0]);
             var b=Connect("Archive guest B QA");yield return Wait(()=>b.client.State==ClientState.ConnectedToMasterServer,"T3 guest B connected");b.client.OpJoinRoom(new EnterRoomParams{RoomName=room});
             yield return Wait(()=>b.client.InRoom&&b.state!=null&&b.state.stations[2].placements.Length>0,"T3 late guest checkpoint");

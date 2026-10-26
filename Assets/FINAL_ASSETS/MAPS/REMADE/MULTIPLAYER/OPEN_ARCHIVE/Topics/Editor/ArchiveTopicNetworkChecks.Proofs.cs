@@ -20,7 +20,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         }
         static IEnumerator ProofsFlow(Peer a,string room){
             var st=session.stations[3];Status="T4 shared scrolls and attribution";yield return Move(a,st,ArchiveTopicStation.BookPosition+Vector3.back*1.7f);yield return Send(a,3,ArchiveAction.Start);var state=session.State.stations[3];double deadline=state.timerDeadline;
-            Check(session.ActiveTopic==3&&state.timerRunning&&state.timerLimit==360&&state.timerActor==a.Actor,"Guest Book starts T4's authenticated shared six-minute timer");
+            Check(session.ActiveTopic==3&&state.timerRunning&&state.timerLimit==session.proofsTimeLimitSeconds*session.PacingMultiplier&&state.timerActor==a.Actor,"Guest Book starts T4's authenticated shared six-minute timer");
             var q=session.Question(3);yield return ProofArrange(a,q.expected.Select(v=>1-v).ToArray());
             var b=Connect("Archive guest B QA");yield return Wait(()=>b.client.State==ClientState.ConnectedToMasterServer,"T4 guest B connected");b.client.OpJoinRoom(new EnterRoomParams{RoomName=room});yield return Wait(()=>b.client.InRoom&&b.state!=null&&b.state.stations[3].placements.Length==q.items.Length,"T4 late guest checkpoint");Spawn(b,Position(st,Vector3.zero));yield return Wait(()=>session.ActorPlayer(b.Actor)!=null,"T4 guest B avatar");
             Check(b.state.stations[3].placements.SequenceEqual(state.placements)&&Math.Abs(b.state.stations[3].timerDeadline-deadline)<.000001,"Late join restores actual scroll classifications and exact deadline");

@@ -73,7 +73,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Check(State.placements[0]==wrong&&ids.SequenceEqual(art.TokenRoots.Select(t=>t.GetInstanceID()))&&State.timerDeadline==deadline,"Wrong crystal retains physical object identity, altar and deadline");
             Status="Timeout in crystal stage";State.timerDeadline=ArchiveTopicSession.TimerClock-.01;yield return .3f;
             Check(State.timerExpired&&State.phase==0&&State.subphase==1&&State.round==0&&State.placements[0]==wrong,"Crystal-stage timeout retains solved premises and current altar");
-            Check(session.State.mistakes.Count==2&&session.State.mistakes.Last().reason=="timeout"&&session.State.mistakes.Last().actor==-1,"Timeout records exactly one activator mistake");
+            Check(session.State.mistakes.Count==2&&session.State.mistakes.Last().reason=="timeout"&&session.State.mistakes.Last().actor==0,"Timeout records exactly one team event");
             yield return .3f;Check(session.State.mistakes.Count==2,"Expired clock cannot repeat the penalty");Book();yield return .2f;
             Check(State.phase==1&&State.subphase==1&&State.placements[0]==wrong&&State.timerAttempt==2&&session.TimerRemaining(State)>359,"Book retries the crystal stage without replaying premises");
             deadline=State.timerDeadline;

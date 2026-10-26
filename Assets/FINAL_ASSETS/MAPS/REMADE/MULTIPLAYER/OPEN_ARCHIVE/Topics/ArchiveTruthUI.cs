@@ -100,7 +100,7 @@ namespace LogicLegends.OpenArchive.Topics
             title.text=state.phase==2?"T2 · TEAM COMPLETE 9 / 9":"T2 · "+ArchiveTruthPresentation.Tier(state.round)+"  "+round+" / 9";
             formula.text=state.phase==1?q.prompt:state.timerExpired?"Time up · solved tables kept":state.phase==2?"Truth Mosaic restored":state.round==0?"Read the Book to begin":"Table "+state.round+" restored";
             readerTitle.text="T2  TRUTH TABLE\n"+(state.phase==2?"Truth Mosaic · Team complete":ArchiveTruthPresentation.Tier(state.round)+" · Table "+round+" / 9");
-            readerFormula.text=state.phase==1?q.prompt:state.timerExpired?"Retry the unfinished table at the Book Statue":state.phase==2?"All nine tables solved by your team":"Three Easy · three Medium · three Hard tables";
+            readerFormula.text=state.phase==1?q.prompt:state.timerExpired?"Retry the unfinished table at the Book Statue":state.phase==2?"All nine tables solved by your team":"Three Medium · three Medium-Hard · three Hard tables";
             bool outputs=state.phase==1||state.timerExpired;
             for(int row=0;row<4;row++){
                 int item=outputs&&state.placements.Length>row?state.placements[row]:-1;string value=item<0?"—":item==0?"T":"F";

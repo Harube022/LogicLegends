@@ -16,7 +16,7 @@ namespace LogicLegends.OpenArchive.Hunting
         [Min(.5f)] public float circleSecondsBeforeCounter = 1.8f;
         [Min(30)] public float circleDegreesBeforeCounter = 80;
         [Min(5)] public float minimumCircleDegreesPerSecond = 25;
-        [Range(.5f, 1.5f)] public float counterWarningSeconds = .6f;
+        [Range(.5f, 1.5f)] public float counterWarningSeconds = .9f;
         [Range(.15f, .6f)] public float counterStrikeSeconds = .35f;
         [Range(.5f, 1.5f)] public float counterRecoverySeconds = .8f;
         [Min(2)] public float counterCooldownSeconds = 3.5f;

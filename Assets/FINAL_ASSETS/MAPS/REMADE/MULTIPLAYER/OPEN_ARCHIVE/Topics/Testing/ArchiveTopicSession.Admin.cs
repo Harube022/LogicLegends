@@ -47,6 +47,7 @@ namespace LogicLegends.OpenArchive.Topics
                 timerAttempt=complete?previous.timerAttempt:0,timerActor=complete?previous.timerActor:0,
                 feedback=complete?"Completed by Admin for testing.":"Reset by Admin. Read the Book to restart this topic."
             };
+            ResetTopicRelay(command.topic,complete);
             if (command.topic == 7) ClearMappingInputs();
             if (command.topic == 9) ClearTreeInputs();
             string prefix=command.topic+":";

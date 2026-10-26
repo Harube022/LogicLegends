@@ -106,7 +106,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             {
                 var q=session.Question(0);ArchiveTopicPlayChecks.MoveTo(station,station.ItemPosition(q.correctChoice,q));yield return .15f;
                 station.points.First(p=>p.role==ArchivePointRole.Choice&&p.index==q.correctChoice).Interact();yield return session.answerChannelSeconds+.25f;
-                Check(state.round==round+1&&state.phase==(round==4?2:0)&&state.reveal==q.successText,"Correct rune advances challenge "+(round+1)+" with its explanation and Book gate");report.rounds++;
+                Check(state.round==round+1&&state.phase==(round==4?ArchiveTopicSession.T1RelayPhase:0)&&state.reveal==q.successText,"Correct rune advances challenge "+(round+1)+" with its explanation and Book or final-relay gate");report.rounds++;
                 var copy=JsonUtility.FromJson<ArchiveTeamState>(JsonUtility.ToJson(session.State));
                 Check(copy.stations[0].answerSerial==state.answerSerial&&copy.stations[0].lastAnswerRound==round,"Answer receipt survives the same serialized checkpoint format: "+(round+1));
                 if(round<4)
@@ -115,7 +115,8 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                     station.points.First(p=>p.role==ArchivePointRole.Book).Interact();yield return .15f;ArchiveTopicUI.Current.Close();
                 }
             }
-            Check(state.lastAnswerResult==1&&session.State.stations.Skip(1).All(s=>s.round==0&&s.phase==0),"T1 completion leaves the other nine topics untouched");
+            var relayFlow=ArchiveCoopOfflineChecks.CompletePendingRelay();while(relayFlow.MoveNext())yield return relayFlow.Current;
+            Check(state.phase==2&&state.lastAnswerResult==1&&session.State.stations.Skip(1).All(s=>s.round==0&&s.phase==0),"T1 questions and required relay complete without changing the other nine topics");
             var owner=new GameObject("T1_Movement_Lock_Check");Player.LocalInstance.AcquireMovementLock(owner,"T1 polish QA",Player.LocalInstance.transform.position);
             Check(!session.CanAct(-1),"Existing capture movement lock still blocks topic actions");Player.LocalInstance.ReleaseMovementLock(owner);UnityEngine.Object.Destroy(owner);
             Check(!Player.LocalInstance.IsMovementLocked,"Cleanup restores movement without adding another player control system");

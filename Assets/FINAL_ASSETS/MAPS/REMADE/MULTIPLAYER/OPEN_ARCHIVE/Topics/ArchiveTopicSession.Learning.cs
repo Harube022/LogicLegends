@@ -21,6 +21,11 @@ namespace LogicLegends.OpenArchive.Topics
         {
             if (State.barrier == null) State.barrier = new ArchiveBarrierChallengeState();
             if (State.learningHints == null) State.learningHints = new System.Collections.Generic.List<ArchiveLearningHint>();
+            // Completed questions need no diagnostic prose in every mobile room snapshot.
+            // Personal hint/assistance totals stay on the existing actor records.
+            State.learningHints.RemoveAll(h=>h==null||h.topic<0||h.topic>=State.stations.Length||
+                State.stations[h.topic].phase==2||h.round!=State.stations[h.topic].round||
+                h.subphase!=State.stations[h.topic].subphase||h.resetSerial!=State.stations[h.topic].testResetSerial);
         }
         void BindLearningEncounter()
         {
@@ -95,9 +100,8 @@ namespace LogicLegends.OpenArchive.Topics
             var actor = State.actors.FirstOrDefault(a => a.actor == LocalActor);
             localSequence = Math.Max(localSequence, actor == null ? 0 : actor.lastSequence);
             command.sequence = ++localSequence;
-            if (IsAuthority) return Accept(LocalActor, command);
-            return PhotonNetwork.RaiseEvent(CommandEvent, new object[] { Channel, JsonUtility.ToJson(command) },
-                new RaiseEventOptions { Receivers = ReceiverGroup.MasterClient }, SendOptions.SendReliable);
+            command.matchId=State.matchId;
+            return DispatchCommand(command);
         }
         bool FreshLearningSequence(int actor, ArchiveCommand command)
         {
@@ -141,6 +145,16 @@ namespace LogicLegends.OpenArchive.Topics
             var s = State.stations[topic];
             return State.learningHints?.FirstOrDefault(h => h.actor == actor && h.topic == topic && h.round == s.round && h.subphase == s.subphase && h.resetSerial == s.testResetSerial)?.level ?? 0;
         }
+        public string LearningHintText(int topic,int actor,int level)
+        {
+            if(!Ready||topic<0||topic>=10||level<1||level>3)return "";
+            var s=State.stations[topic];
+            var hint=State.learningHints?.FirstOrDefault(h=>h.actor==actor&&h.topic==topic&&h.round==s.round&&h.subphase==s.subphase&&h.resetSerial==s.testResetSerial);
+            if(hint==null||level>hint.level)return "";
+            if(level!=2)return ArchiveLearningFeedback.Hint(topic,Question(topic),s,level);
+            return !string.IsNullOrEmpty(hint.diagnosis)?hint.diagnosis:
+                "This hint was requested before the current match update. Use the concept guide to review your work.";
+        }
         public bool CanRequestHint(int topic) => Ready && topic >= 0 && topic < 10 && State.stations[topic].phase == 1 &&
             CanAct(LocalActor) && Near(LocalActor, topic, Vector3.zero, 14) && HintLevel(topic, LocalActor) < 3 &&
             TimerRemaining(State.stations[topic]) > 0;
@@ -154,7 +168,7 @@ namespace LogicLegends.OpenArchive.Topics
         bool AcceptLearningHint(int actor, ArchiveCommand command)
         {
             var s = State.stations[command.topic];
-            if (!CanAct(actor) || !Near(actor, command.topic, Vector3.zero, 14) || s.phase != 1 || command.revision != s.revision ||
+            if (!CanAct(actor) || !Near(actor, command.topic, Vector3.zero, 14) || s.phase != 1 ||
                 command.a != s.round || command.b != s.subphase || command.captureSerial != s.testResetSerial ||
                 TimerRemaining(s) <= 0 || HintLevel(command.topic, actor) >= 3 || !FreshLearningSequence(actor, command)) return false;
             if (PhotonNetwork.InRoom && PhotonNetwork.CurrentRoom.GetPlayer(actor).IsInactive) return false;
@@ -167,7 +181,12 @@ namespace LogicLegends.OpenArchive.Topics
                 hint = new ArchiveLearningHint { actor = actor, topic = s.topic, round = s.round, subphase = s.subphase, resetSerial = s.testResetSerial };
                 State.learningHints.Add(hint);
             }
-            RememberLearningSequence(actor, command); hint.level++; Commit(); return true;
+            // Diagnosis describes the work at request time. Moving a block cannot turn an open
+            // hint panel into a live answer oracle without making a deliberate new hint request.
+            if(hint.level==1)hint.diagnosis="AT THE TIME YOU REQUESTED THIS HINT\n"+ArchiveLearningFeedback.Hint(s.topic,Question(s.topic),s,2);
+            RememberLearningSequence(actor, command); hint.level++;
+            State.actors.First(a=>a.actor==actor).hintsUsed++;
+            Commit(); return true;
         }
     }
 }

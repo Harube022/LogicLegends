@@ -28,7 +28,10 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     public bool Starting => InLobby && RoomState != LobbyRules.Waiting;
     public string RoomState => InLobby && PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(LobbyRules.StateKey, out var state) ? state as string : "";
     public NetPlayer[] Players => InLobby ? PhotonNetwork.PlayerList.Where(p => !p.IsInactive).OrderBy(p => p.ActorNumber).ToArray() : Array.Empty<NetPlayer>();
-    public bool CanStart => InLobby && PhotonNetwork.IsMasterClient && !Starting && LobbyRules.CanStart(Players);
+    public bool WaitingForReconnect => InLobby && PhotonNetwork.PlayerList.Any(p => p.IsInactive);
+    // Reserved teammates have not left the party. Starting without their lobby avatar
+    // would strand recovery in a scene that never received their original spawn.
+    public bool CanStart => InLobby && PhotonNetwork.IsMasterClient && !Starting && !leaving && LobbyRules.CanStart(PhotonNetwork.PlayerList);
     public string Region => PhotonNetwork.CloudRegion ?? PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion;
     public string TargetScene { get; set; } = MultiplayerSceneRoutes.GameplayPath;
 
@@ -228,7 +231,8 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     }
     public void StartGame()
     {
-        if (!CanStart || startRoutine != null || committed) { Notify("The host can start when 2–4 players are all ready."); return; }
+        if (!CanStart || startRoutine != null || committed)
+        { Notify(WaitingForReconnect ? "A teammate is reconnecting. Wait for their return or for their reserved slot to expire." : "The host can start when 2–4 players are all ready."); return; }
         string target = PhotonNetwork.CurrentRoom.CustomProperties[LobbyRules.SceneKey] as string;
         if (string.IsNullOrEmpty(target) || !Application.CanStreamedLevelBeLoaded(target)) { Notify("The multiplayer scene is unavailable in this build."); return; }
         if (!MultiplayerMonsterRotation.TryRead(PhotonNetwork.CurrentRoom.CustomProperties, out _))
@@ -246,12 +250,12 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
         while (InLobby && PhotonNetwork.IsMasterClient && RoomState != LobbyRules.Locking && Time.realtimeSinceStartup < timeout) yield return null;
         yield return new WaitForSecondsRealtime(0.5f);
         if (!InLobby || !PhotonNetwork.IsMasterClient) { startRoutine = null; Busy = false; yield break; }
-        if (RoomState != LobbyRules.Locking || !LobbyRules.CanStart(Players)) { AbortStart(); yield break; }
+        if (RoomState != LobbyRules.Locking || !LobbyRules.CanStart(PhotonNetwork.PlayerList)) { AbortStart(); yield break; }
         PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { [LobbyRules.StateKey] = LobbyRules.Loading },
             new Hashtable { [LobbyRules.StateKey] = LobbyRules.Locking });
         while (InLobby && PhotonNetwork.IsMasterClient && RoomState != LobbyRules.Loading && Time.realtimeSinceStartup < timeout) yield return null;
         if (!InLobby || !PhotonNetwork.IsMasterClient) { startRoutine = null; Busy = false; yield break; }
-        if (RoomState != LobbyRules.Loading || !LobbyRules.CanStart(Players)) { AbortStart(); yield break; }
+        if (RoomState != LobbyRules.Loading || !LobbyRules.CanStart(PhotonNetwork.PlayerList)) { AbortStart(); yield break; }
         committed = true; startRoutine = null; Busy = false;
         if (MultiplayerMonsterRotation.TryRead(PhotonNetwork.CurrentRoom.CustomProperties, out var matchMonster))
             MultiplayerMonsterRotation.RecordStartedMatch(matchMonster);

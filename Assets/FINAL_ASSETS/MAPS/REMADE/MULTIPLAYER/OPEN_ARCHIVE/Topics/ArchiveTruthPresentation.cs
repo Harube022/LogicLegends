@@ -78,7 +78,7 @@ namespace LogicLegends.OpenArchive.Topics
                 "TABLE "+(state.round+1)+" / 9  ·  "+Tier(state.round)+"\n"+q.prompt+"\nFill all four OUTPUT cells.":state.round==0?"TRUTH MOSAIC\nP   Q  →  OUTPUT\nRead the Book to begin.":"TABLE "+state.round+" RESTORED\n"+state.reveal+"\nRead the Book for the next table.";
             Refresh(state);
         }
-        public static string Tier(int round)=>round<3?"EASY":round<6?"MEDIUM":"HARD";
+        public static string Tier(int round)=>ArchiveCurriculumQuestions.TierName(1,round).ToUpperInvariant();
         public void Refresh(ArchiveStationState state){
             if(question==null)return;
             bool showOutputs=state.phase==1||state.timerExpired;

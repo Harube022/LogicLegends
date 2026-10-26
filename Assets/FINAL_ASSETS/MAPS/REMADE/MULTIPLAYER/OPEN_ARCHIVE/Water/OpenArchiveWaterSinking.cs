@@ -14,6 +14,7 @@ namespace LogicLegends.OpenArchive.Water
         [Min(1)] public float sinkingSeconds = 4;
         [Min(.1f)] public float dryRecoverySeconds = 5;
         [Min(0)] public float submergedHoldSeconds = .35f;
+        [Min(8)] public float maximumShoreReturnDistance = 36;
         public bool showWarning = true;
         public int ForcedReturnCount { get; private set; }
         public event Action<Player> PlayerSubmerged;
@@ -25,8 +26,9 @@ namespace LogicLegends.OpenArchive.Water
         {
             public Player player; public CharacterController capsule; public Transform visual;
             public Renderer[] renderers; public Vector3 originalVisualPosition, previousPosition;
-            public float exposure, drySeconds, offset, offsetVelocity;
-            public bool hasPosition, overWater, safeGround, active;
+            public float exposure, drySeconds, offset, offsetVelocity, nextShoreRetry;
+            public bool hasPosition, overWater, safeGround, active, hasDryBank;
+            public Vector3 lastDryBank;
             public float surface;
         }
         OpenArchiveWater water;
@@ -59,11 +61,12 @@ namespace LogicLegends.OpenArchive.Water
                 if (wet || (actor.exposure > 0 && actor.overWater && !actor.safeGround))
                 {
                     actor.exposure += Time.deltaTime; actor.drySeconds = 0;
-                    if (actor.player == Player.LocalInstance && actor.exposure >= safeWaterSeconds + sinkingSeconds + submergedHoldSeconds)
+                    if (actor.player == Player.LocalInstance && Time.time>=actor.nextShoreRetry && actor.exposure >= safeWaterSeconds + sinkingSeconds + submergedHoldSeconds)
                         ReturnFromWater(actor);
                 }
                 else if (actor.safeGround)
                 {
+                    actor.lastDryBank = feet; actor.hasDryBank = true;
                     actor.drySeconds += Time.deltaTime;
                     if (actor.drySeconds >= dryRecoverySeconds) ResetExposure(actor);
                 }
@@ -119,25 +122,67 @@ namespace LogicLegends.OpenArchive.Water
         }
         void ReturnFromWater(Actor actor)
         {
-            if (returnSpawn == null) return;
             var player = actor.player; var capsule = actor.capsule;
-            Vector3 before = player.transform.position, position = returnSpawn.position;
-            RaycastHit floor;
-            if (!Physics.Raycast(position + Vector3.up * 30, Vector3.down, out floor, 60, ~(1 << 7), QueryTriggerInteraction.Ignore)) return;
-            position.y = floor.point.y - (capsule.center.y - capsule.height * .5f) * Mathf.Abs(player.transform.lossyScale.y) + capsule.skinWidth;
-            RestoreVisual(actor); ResetExposure(actor);
+            if (!TryFindShore(actor, out var position)) { actor.nextShoreRetry=Time.time+.5f; return; }
+            Vector3 before = player.transform.position;
+            // Recovery stays local to the river. Keep exhaustion until five seconds on land;
+            // repeatedly diving back in cannot grant a fresh grace period or a map-wide escape.
+            RestoreVisual(actor); actor.drySeconds = 0;
             if (GameInput.Instance != null) GameInput.Instance.SetMobileMovement(Vector2.zero);
             var joystick = MobileInputUI.FindJoystick(); if (joystick != null) joystick.ResetJoystick();
             MobileLookInput.ResetDelta();
-            capsule.enabled = false; player.transform.SetPositionAndRotation(position, returnSpawn.rotation); capsule.enabled = true;
+            capsule.enabled = false; player.transform.position = position; capsule.enabled = true;
             player.ResetMotionAfterTeleport(); player.RemoveMovementSpeedModifier(water);
-            var look = player.GetComponentInChildren<CameraTargetController>(); if (look != null) look.SetViewAngles(12, returnSpawn.eulerAngles.y);
             TeleportCameraSync.ResetAfterMove(player.transform, player.transform.position - before);
             foreach (var camera in FindObjectsByType<Unity.Cinemachine.CinemachineCamera>(FindObjectsSortMode.None))
                 if (camera.Follow != null && (camera.Follow == player.transform || camera.Follow.IsChildOf(player.transform)))
                     camera.PreviousStateIsValid = false;
             actor.previousPosition = player.transform.position; actor.overWater = false; actor.safeGround = true;
             ForcedReturnCount++; PlayerSubmerged?.Invoke(player);
+        }
+        readonly Collider[] shoreOverlaps = new Collider[32];
+        readonly RaycastHit[] shoreHits = new RaycastHit[32];
+        bool TryFindShore(Actor actor, out Vector3 rootPosition)
+        {
+            Vector3 feet = OpenArchiveWater.Feet(actor.capsule);
+            float preferred = actor.hasDryBank ? Mathf.Atan2(actor.lastDryBank.x-feet.x, actor.lastDryBank.z-feet.z) : 0;
+            for (float radius = 2; radius <= maximumShoreReturnDistance; radius += 2)
+                for (int i = 0; i < 16; i++)
+                {
+                    float angle = preferred + i * Mathf.PI / 8;
+                    var candidate = feet + new Vector3(Mathf.Sin(angle), 0, Mathf.Cos(angle)) * radius;
+                    if (TryGroundShore(actor, candidate, out rootPosition)) return true;
+                }
+            if (actor.hasDryBank && Vector3.Distance(feet,actor.lastDryBank) <= maximumShoreReturnDistance &&
+                TryGroundShore(actor, actor.lastDryBank, out rootPosition)) return true;
+            rootPosition = feet; return false;
+        }
+        bool TryGroundShore(Actor actor, Vector3 candidate, out Vector3 rootPosition)
+        {
+            rootPosition = candidate;
+            float scaleY = Mathf.Abs(actor.player.transform.lossyScale.y);
+            float height = actor.capsule.height * scaleY;
+            candidate.y = actor.surface + height + 3;
+            int count = Physics.RaycastNonAlloc(candidate, Vector3.down, shoreHits, height + 6, ~(1<<7), QueryTriggerInteraction.Ignore);
+            int nearest = -1; float distance = float.MaxValue;
+            for (int i=0;i<count;i++)
+            {
+                var hit=shoreHits[i];
+                if(hit.collider.GetComponentInParent<Player>()!=null || hit.distance>=distance)continue;
+                nearest=i;distance=hit.distance;
+            }
+            if(nearest<0)return false;
+            var floor=shoreHits[nearest];
+            if(floor.normal.y < .7f || floor.point.y > actor.surface + height + 1 ||
+                water.SampleSurface(floor.point,out float surface) && floor.point.y <= surface + .15f)return false;
+            rootPosition = actor.player.transform.position + floor.point - OpenArchiveWater.Feet(actor.capsule) + Vector3.up * (actor.capsule.skinWidth * scaleY + .08f);
+            float radius=actor.capsule.radius*Mathf.Max(Mathf.Abs(actor.player.transform.lossyScale.x),Mathf.Abs(actor.player.transform.lossyScale.z));
+            Vector3 center=rootPosition+actor.player.transform.TransformVector(actor.capsule.center);
+            float half=Mathf.Max(0,height*.5f-radius);
+            count=Physics.OverlapCapsuleNonAlloc(center+Vector3.up*half,center-Vector3.up*half,radius,shoreOverlaps,~(1<<7),QueryTriggerInteraction.Ignore);
+            if(count>=shoreOverlaps.Length)return false;
+            for(int i=0;i<count;i++)if(!shoreOverlaps[i].transform.IsChildOf(actor.player.transform))return false;
+            return true;
         }
         void CreateWarning()
         {
