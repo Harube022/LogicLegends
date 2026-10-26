@@ -80,23 +80,26 @@ public class PayMongoTestTopUp : MonoBehaviour
                     PlayerPrefs.Save();
                     if (reply.status == "paid") CommerceClient.NotifyChanged();
                 }
-                else { SetStatus(reply.status == "needs_review" ? "Payment needs review. Please contact support." : "Payment pending. Your gems will update after confirmation."); return; }
+                else { SetStatus(reply.status == "needs_review" ? "Payment needs review. Please contact support." : "Payment pending. Gems will update after confirmation."); return; }
             }
             var wallet = await CommerceClient.Wallet();
             if (Current(version))
             {
                 paymentsEnabled = wallet.paymentsEnabled;
-                SetStatus(paymentsEnabled ? (wallet.sandbox ? "Sandbox gems: " : "Your gems: ") + wallet.gems : "Top-ups are currently unavailable.");
+                SetStatus(paymentsEnabled ? (wallet.sandbox ? "Sandbox gems: " : "Gems: ") + wallet.gems : "Top-ups are currently unavailable.");
             }
         }
         catch (Exception error) { if (Current(version)) { paymentsEnabled = false; SetStatus(error is CommerceClient.ShopSetupException ? "Top-ups are not available yet." : error.Message); } }
-        finally { if (Current(version)) SetBusy(false); }
+        finally
+        {
+            if (Current(version)) { SetBusy(false); nextCheck = Time.unscaledTime + 8; }
+        }
     }
     private void SetBusy(bool value) { busy = value; if (buyButton != null) buyButton.interactable = !value && paymentsEnabled && (!CommerceClient.Sandbox || Application.isEditor || Debug.isDebugBuild); }
     private void SetStatus(string value)
     {
         if (hideWalletBalanceStatus && value != null &&
-            (value.StartsWith("Your gems:", StringComparison.Ordinal) ||
+            (value.StartsWith("Gems:", StringComparison.Ordinal) ||
              value.StartsWith("Sandbox gems:", StringComparison.Ordinal))) value = "";
         if (statusText != null) statusText.text = value;
     }

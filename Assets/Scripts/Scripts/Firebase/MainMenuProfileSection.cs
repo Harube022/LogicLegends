@@ -97,7 +97,7 @@ public sealed class MainMenuProfileSection : MonoBehaviour
         if (!isActiveAndEnabled) return;
         StopAllCoroutines();
         RestorePreview();
-        presentation.BeginLoad("Loading your profile...");
+        presentation.BeginLoad("Loading profile...");
         playerName.text = outfitName.text = playerId.text = coins.text = gems.text = string.Empty;
         accountInformation.interactable = false;
         editName.interactable = copyId.interactable = customize.interactable = false;
@@ -114,7 +114,7 @@ public sealed class MainMenuProfileSection : MonoBehaviour
         auth = FirebaseAuth.DefaultInstance;
         auth.StateChanged += OnAuthChanged;
         var user = auth.CurrentUser;
-        if (user == null) { Error("Sign in to view your profile."); yield break; }
+        if (user == null) { Error("Sign in to view the profile."); yield break; }
         userId = user.UserId;
         string id = userId;
         accountInformation.interactable = true;
@@ -129,7 +129,7 @@ public sealed class MainMenuProfileSection : MonoBehaviour
         request.ContinueWithOnMainThread(task =>
         {
             if (!Current(version, id)) return;
-            if (task.IsCanceled || task.IsFaulted) { Error("Couldn't load your profile. Check your connection and retry."); return; }
+            if (task.IsCanceled || task.IsFaulted) { Error("Couldn't load the profile. Check the connection and retry."); return; }
             string name = task.Result[0].Value?.ToString();
             playerName.text = string.IsNullOrEmpty(name) ? "Player" : name;
             if (PlayerUsername.TryNormalize(name, out string normalized)) PlayerUsername.SetVerified(id, normalized);
@@ -137,7 +137,7 @@ public sealed class MainMenuProfileSection : MonoBehaviour
             gems.text = CurrencyLabel(task.Result[4]);
             string bodyId = task.Result[1].Value?.ToString();
             if (bodyId != "Male_Character" && bodyId != "Female_Character")
-            { Error("Choose your character before viewing your outfit."); return; }
+            { Error("Choose a character before viewing the outfit."); return; }
             var body = bodyId == "Female_Character" ? femaleMannequin : maleMannequin;
             string clothes = task.Result[2].Value?.ToString();
             if (string.IsNullOrEmpty(clothes)) clothes = bodyId == "Female_Character" ? "female_default" : "male_default";
@@ -177,7 +177,7 @@ public sealed class MainMenuProfileSection : MonoBehaviour
         });
         deadline = Time.realtimeSinceStartup + 20f;
         while (!request.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
-        if (!request.IsCompleted && Current(version, id)) Error("Your connection is taking longer. You can wait or retry.");
+        if (!request.IsCompleted && Current(version, id)) Error("The connection is taking longer. You can wait or retry.");
     }
     private bool Current(int version, string id) => this != null && isActiveAndEnabled &&
         version == requestVersion && auth != null && auth.CurrentUser?.UserId == id;

@@ -207,7 +207,7 @@ public class MainMenuManager : MonoBehaviour
         highestUnlockedStage = StageSelectionState.FirstStage;
         isLoadingStage = false;
         isLoadingProgress = true;
-        progressMessage = "Checking your progress...";
+        progressMessage = "Checking progress...";
         if (termStageSelection != null) termStageSelection.ShowTerms();
         RefreshStageSelectionUI();
         LoadUnlockedStage();
@@ -251,7 +251,7 @@ public class MainMenuManager : MonoBehaviour
         {
             Debug.LogWarning("No signed-in Firebase user. All trials remain selectable; progress is not saved.");
             isLoadingProgress = false;
-            progressMessage = "Sign in to save your trial progress.";
+            progressMessage = "Sign in to save trial progress.";
             RefreshStageSelectionUI();
             return;
         }

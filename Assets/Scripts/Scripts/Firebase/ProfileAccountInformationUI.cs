@@ -78,7 +78,7 @@ public sealed class ProfileAccountInformationUI : MonoBehaviour
     {
         if (!isActiveAndEnabled || saving) return;
         StopAllCoroutines();
-        presentation.BeginLoad("Loading your account information...");
+        presentation.BeginLoad("Loading account information...");
         ready = false;
         userId = currentUsername = null;
         usernameEditor.SetActive(false);
@@ -105,7 +105,7 @@ public sealed class ProfileAccountInformationUI : MonoBehaviour
         var user = auth.CurrentUser;
         if (user == null)
         {
-            LoadError("Sign in to view your account information.");
+            LoadError("Sign in to view account information.");
             yield break;
         }
         userId = user.UserId;
@@ -122,7 +122,7 @@ public sealed class ProfileAccountInformationUI : MonoBehaviour
             if (!IsCurrent(version, id)) return;
             if (task.IsCanceled || task.IsFaulted)
             {
-                LoadError("Couldn't load your username. Check your connection and retry.");
+                LoadError("Couldn't load the username. Check the connection and retry.");
                 return;
             }
             currentUsername = task.Result.Exists ? task.Result.Value?.ToString() ?? string.Empty : string.Empty;
@@ -136,7 +136,7 @@ public sealed class ProfileAccountInformationUI : MonoBehaviour
         deadline = Time.realtimeSinceStartup + 20f;
         while (!request.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
         if (!request.IsCompleted && IsCurrent(version, id))
-            LoadError("Your connection is taking longer. You can wait or retry.");
+            LoadError("The connection is taking longer. You can wait or retry.");
     }
 
     private bool IsCurrent(int version, string id) => this != null && isActiveAndEnabled &&
@@ -192,7 +192,7 @@ public sealed class ProfileAccountInformationUI : MonoBehaviour
         bool changed = normalized != currentUsername;
         saveUsername.interactable = result == PlayerUsername.ValidationResult.Valid && changed;
         editorFeedback.text = result != PlayerUsername.ValidationResult.Valid ? PlayerUsername.Feedback(result) :
-            (changed ? "Your account ID will stay the same." : "Enter a different username.");
+            (changed ? "The account ID will stay the same." : "Enter a different username.");
     }
 
     private void CancelEdit()
@@ -229,7 +229,7 @@ public sealed class ProfileAccountInformationUI : MonoBehaviour
                 if (task.IsCanceled || task.IsFaulted)
                 {
                     ValidateInput();
-                    presentation.ShowTransient("Couldn't save your username. Check your connection and try again.");
+                    presentation.ShowTransient("Couldn't save the username. Check the connection and try again.");
                     return;
                 }
                 currentUsername = normalized;
@@ -242,7 +242,7 @@ public sealed class ProfileAccountInformationUI : MonoBehaviour
     private IEnumerator DelayedSavingFeedback(int version, string id)
     {
         yield return new WaitForSecondsRealtime(.2f);
-        if (saving && IsCurrent(version, id)) presentation.ShowMessage("Saving your username...");
+        if (saving && IsCurrent(version, id)) presentation.ShowMessage("Saving username...");
     }
 
     private void CopyId()

@@ -29,7 +29,7 @@ public class CustomizationManager : MonoBehaviour
     [SerializeField] private CanvasGroup[] revealGroups = new CanvasGroup[0];
     [SerializeField] private CanvasGroup scrollbarLoadingGate;
     [SerializeField] private CharacterInspectView inspection;
-    private const string LoadingText = "Loading your character and equipped skin...";
+    private const string LoadingText = "Loading customization...";
     private bool pendingLoadingFeedback;
     private float loadingMessageShownAt = -1f;
     private bool revealing;
@@ -124,7 +124,7 @@ public class CustomizationManager : MonoBehaviour
         var user = FirebaseAuth.DefaultInstance.CurrentUser;
         if (user == null)
         {
-            Status("Please log in to load your character.", true);
+            Status("Please log in to load customization.", true);
             yield break;
         }
         userId = user.UserId;
@@ -135,14 +135,14 @@ public class CustomizationManager : MonoBehaviour
             if (!IsCurrent(version)) return;
             if (task.IsFaulted || task.IsCanceled)
             {
-                Status("Couldn't load your character. Check your connection and retry.", true);
+                Status("Couldn't load the character. Check the connection and retry.", true);
                 return;
             }
             var snapshot = task.Result;
             playerBaseCharacter = snapshot.Child("base_character").Value?.ToString() ?? "";
             if (playerBaseCharacter != "Male_Character" && playerBaseCharacter != "Female_Character")
             {
-                Status("Choose your character before customizing it.", true);
+                Status("Choose a character before customizing it.", true);
                 return;
             }
             // Real inventory and owned equipment remain usable even when the
@@ -152,7 +152,7 @@ public class CustomizationManager : MonoBehaviour
             equippedClothes = snapshot.Child("equipped/clothes").Value?.ToString();
             if (string.IsNullOrEmpty(equippedClothes)) equippedClothes = playerBaseCharacter == "Female_Character" ? "female_default" : "male_default";
             equippedPet = snapshot.Child("equipped/pets").Value?.ToString() ?? "";
-            if (!HasClothesModel(equippedClothes)) { Status("Your equipped skin couldn't be loaded. Please retry.", true); return; }
+            if (!HasClothesModel(equippedClothes)) { Status("The equipped skin couldn't be loaded. Please retry.", true); return; }
             dataLoaded = true;
             revealing = true;
             UpdateUIAndMannequin();
@@ -163,7 +163,7 @@ public class CustomizationManager : MonoBehaviour
         while (!request.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
         if (!request.IsCompleted && IsCurrent(version))
         {
-            Status("Couldn't load your saved character. Check your connection and retry.", true);
+            Status("Couldn't load the saved character. Check the connection and retry.", true);
             requestVersion++;
         }
     }
@@ -187,7 +187,7 @@ public class CustomizationManager : MonoBehaviour
             if (account.inventory != null) foreach (var id in account.inventory) ownedItems.Add(id);
             equippedClothes = account.equippedClothes;
             equippedPet = account.equippedPet;
-            if (!HasClothesModel(equippedClothes)) { Status("Your equipped skin couldn't be loaded. Please retry.", true); return; }
+            if (!HasClothesModel(equippedClothes)) { Status("The equipped skin couldn't be loaded. Please retry.", true); return; }
             UpdateUIAndMannequin();
         }
         catch (System.Exception) { /* Saved Firebase equipment is already visible. */ }
@@ -335,7 +335,7 @@ public class CustomizationManager : MonoBehaviour
     {
         yield return new WaitForSecondsRealtime(Mathf.Max(0f, saveFeedbackDelay));
         if (IsCurrent(version) && feedbackVersion == saveFeedbackVersion && saving)
-            Status("Saving your equipment...", false);
+            Status("Saving equipment...", false);
     }
 
     private IEnumerator ClearSavedFeedback(int version, int feedbackVersion)
