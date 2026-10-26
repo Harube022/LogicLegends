@@ -167,6 +167,8 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         if (altarBoard == null) Debug.LogError("Proof Altar Ordering Board is missing from the HUD.", this);
         Guide = gameObject.AddComponent<DirectProofsGuide>();
         Guide.Initialize(this, trialHud);
+        WorldGuidance = gameObject.AddComponent<DirectProofsWorldGuidance>();
+        WorldGuidance.Initialize(this, Guide.SafeArea, boardInteractionPoint);
     }
 
     private void OnEnable() { BindInput(); }
@@ -174,6 +176,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
     private void OnDisable()
     {
         Guide?.Cancel();
+        WorldGuidance?.Close();
         BookStatuePresentation.SetRequired(bookStatue, false);
         RestoreBookMaterials();
         if (input != null) input.OnInteractAction -= OnInteract;
@@ -204,7 +207,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
             if (secondsLeft <= 0f) Finish(false);
         }
         RefreshTimer();
-        if (GuidanceBlocksGameplay) return;
+        if (GuidanceBlocksGameplay || IsViewingBoard) return;
         if (state == TrialState.StageComplete || state == TrialState.GameOver || IsReaderOpen) return;
 
         RefreshQuestionCounter();
@@ -344,15 +347,16 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         if (GuidanceBlocksGameplay || state != TrialState.Active || challengeIndex > 2) return;
         if (challengeIndex == 0)
         {
+            bool deselect = selectedMethod >= 0 && (selectedMethod == (int)TrialProofMethod.Direct) == direct;
             // The player chooses a proof family; contrapositive and contradiction are indirect.
-            selectedMethod = direct ? (int)TrialProofMethod.Direct :
+            selectedMethod = deselect ? -1 : direct ? (int)TrialProofMethod.Direct :
                 (int)(Current.correctMethod == TrialProofMethod.Direct ?
                     TrialProofMethod.Contrapositive : Current.correctMethod);
-            directChoiceGlow.SetActive(direct);
-            indirectChoiceGlow.SetActive(!direct);
-            (direct ? directChoiceGlow : indirectChoiceGlow).GetComponent<Renderer>().sharedMaterial = choiceYellow;
-            selectionText.text = "Selected: " + (direct ? "DIRECT" : "INDIRECT") +
-                " PROOF  •  Confirm at the Book Statue";
+            directChoiceGlow.SetActive(!deselect && direct);
+            indirectChoiceGlow.SetActive(!deselect && !direct);
+            if (!deselect) (direct ? directChoiceGlow : indirectChoiceGlow).GetComponent<Renderer>().sharedMaterial = choiceYellow;
+            selectionText.text = deselect ? "Selection cleared • Choose a proof altar" :
+                "Selected: " + (direct ? "DIRECT" : "INDIRECT") + " PROOF  •  Confirm at the Book Statue";
             return;
         }
         if (direct != (challengeIndex == 1) || altarBoard == null) return;
@@ -623,7 +627,9 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         directAltar.gameObject.SetActive(showDirect);
         indirectAltar.gameObject.SetActive(showIndirect);
         neutralAltar.gameObject.SetActive(showNeutral);
-        neutralTabletText.transform.parent.gameObject.SetActive(showNeutral);
+        // The main Information Board already contains the complete question.
+        // Keep this serialized reference for existing data, but retire the redundant overhead tablet.
+        neutralTabletText.transform.parent.gameObject.SetActive(false);
         PositionNameplate(directNameplate, directAltar, showDirect);
         PositionNameplate(indirectNameplate, indirectAltar, showIndirect);
         directChoiceGlow.transform.position = new Vector3(AltarCenter(directAltar).x, 2.4f, 45.5f);

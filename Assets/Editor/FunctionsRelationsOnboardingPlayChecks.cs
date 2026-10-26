@@ -48,11 +48,9 @@ public static class FunctionsRelationsOnboardingPlayChecks
         var jump = GameObject.Find("Canvas 1").GetComponentsInChildren<Button>(true).Single(b => b.name == "JumpButton");
         Click(jump); end = Time.unscaledTime + 3f;
         while (tutorial.CurrentStep == FunctionsRelationsTutorialStep.Jump && Time.unscaledTime < end) yield return null;
-        Check(tutorial.CurrentStep == FunctionsRelationsTutorialStep.Interaction && tutorial.PracticeObject != null, "successful physical jump creates practice object");
+        Check(tutorial.CurrentStep == FunctionsRelationsTutorialStep.Interaction && tutorial.PracticeObject == null, "successful physical jump starts hand-only practice");
         yield return Layout(tutorial, "Interaction");
         var player = Player.LocalInstance;
-        var delta = tutorial.PracticeObject.transform.position - player.transform.position; delta.y = 0f;
-        player.transform.rotation = Quaternion.LookRotation(delta);
         var hand = GameObject.Find("Canvas 1").GetComponentsInChildren<Button>(true).Single(b => b.name == "InteractButton");
         Click(hand); yield return null;
         Check(tutorial.CurrentStep == FunctionsRelationsTutorialStep.Book && tutorial.PracticeObject == null, "hand interaction starts book practice");

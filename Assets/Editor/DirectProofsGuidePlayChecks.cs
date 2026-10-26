@@ -95,9 +95,8 @@ public static class DirectProofsGuidePlayChecks
         until = Time.unscaledTime + 3; while (!player.GetComponent<CharacterController>().isGrounded && Time.unscaledTime < until) yield return null;
         Click(jump); until = Time.unscaledTime + 3;
         while (guide.Step == DirectProofsPracticeStep.Jump && Time.unscaledTime < until) yield return null;
-        Check(guide.Step == DirectProofsPracticeStep.Interaction && guide.PracticeObject != null, "successful real jump advances to practice interaction");
+        Check(guide.Step == DirectProofsPracticeStep.Interaction && guide.PracticeObject == null, "successful real jump advances to practice interaction");
         yield return Shot(guide, "Interaction");
-        var delta = guide.PracticeObject.transform.position - player.transform.position; delta.y = 0; player.transform.rotation = Quaternion.LookRotation(delta);
         Click(hand); yield return null; Check(guide.Step == DirectProofsPracticeStep.Timer && guide.PracticeObject == null, "hand interaction removes practice stand and advances");
         yield return Shot(guide, "Timer"); Click(guide.NextButton); yield return Shot(guide, "Progress"); Click(guide.NextButton);
         yield return Shot(guide, "Book"); Click(hand); yield return null;
@@ -294,13 +293,7 @@ public static class DirectProofsGuidePlayChecks
                 }
             }
         }
-        if (name == "Interaction")
-        {
-            var label = guide.PracticeObject.GetComponentsInChildren<TMP_Text>().Single(t => t.text == "Interact with me");
-            var point = Camera.main.WorldToViewportPoint(label.GetComponent<Renderer>().bounds.center);
-            Check(point.z > 0 && point.x > 0 && point.x < 1 && point.y > 0 && point.y < 1, "practice interaction label is inside the gameplay view");
-            Check(Vector3.Dot(-guide.PracticeObject.transform.forward, (Camera.main.transform.position - label.transform.position).normalized) > .8f, "practice stand faces the guided camera");
-        }
+        if (name == "Interaction") Check(guide.PracticeObject == null, "no practice stand is spawned");
         var target = Field<RectTransform>(guide, "controlTarget");
         if (target != null && target.gameObject.activeInHierarchy)
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,8 +23,10 @@ namespace LogicLegends.Induction
         public GameObject Reader => reader != null ? reader.gameObject : null;
         public StageResultCard Result { get; private set; }
         InductionStageManager stage;
-        TMP_Text clock, progress, feedback, carry, readerTitle, readerBody, announcementText;
-        RectTransform reader, announcement;
+        TMP_Text clock, progress, feedback, carry, readerTitle, readerBody, hudTitle;
+        PrelimChallengeCompletionNotice announcement;
+        RectTransform noticeRect;
+        RectTransform reader;
         Sprite scrollRibbon;
         RectTransform collection, catalogue, details, catalogueContent, statusHud;
         TMP_Text collectionTitle, catalogueHint, selectedFormula, availability;
@@ -31,20 +34,30 @@ namespace LogicLegends.Induction
         bool controlsHidden;
         GameObject controls;
         bool controlsPreviouslyActive;
-        float announcementEnd, feedbackEnd;
+        float feedbackEnd;
+        bool noticeSuppressed;
+        readonly Dictionary<RectTransform,TouchLayout> portraitControls=new Dictionary<RectTransform,TouchLayout>();
+        sealed class TouchLayout
+        {
+            Vector2 min,max,pivot,size,position;Vector3 scale;
+            public TouchLayout(RectTransform r){min=r.anchorMin;max=r.anchorMax;pivot=r.pivot;size=r.sizeDelta;position=r.anchoredPosition;scale=r.localScale;}
+            public void Restore(RectTransform r){r.anchorMin=min;r.anchorMax=max;r.pivot=pivot;r.sizeDelta=size;r.anchoredPosition=position;r.localScale=scale;}
+        }
         public void Build(InductionStageManager owner, Transform host)
         {
             stage = owner; controls = host.Find("Gameplay_Interface").gameObject;
             Root = StageUITheme.Rect("Induction HUD", host); StageUITheme.Stretch(Root, Vector2.zero, Vector2.one);
             var hud = Panel("Induction Status", Root, new Vector2(.28f,.84f), new Vector2(.73f,.99f));statusHud=hud;
-            var title = Text("Stage Title", hud, TrialCatalog.ForScene("Induction").Title, 28);
+            var title = Text("Stage Title", hud, TrialCatalog.ForScene("Induction").Title, 28);hudTitle=title;
             Place(title.rectTransform,.06f,.56f,.94f,.96f);
             title.fontSizeMin=22;title.textWrappingMode=TextWrappingModes.Normal;
             clock = Text("Shared Countdown",hud,"18:00",48); Place(clock.rectTransform,.05f,.12f,.27f,.52f);
             progress = Text("Challenge Progress",hud,"Challenge 1 of 5\nWaiting for book",29); Place(progress.rectTransform,.3f,.12f,.94f,.52f);
             PrelimUIPresentation.CompactHud(hud, (RectTransform)Root, title, clock, progress);
             StagePresentation.Hud(hud, title, clock, progress);
-            feedback = Text("Submission Feedback",Root,"",30,true); Place(feedback.rectTransform,.28f,.74f,.75f,.84f);
+            feedback = Text("Submission Feedback",Root,"",26);
+            feedback.font=StageUITheme.HeadingFont;feedback.fontSizeMin=23;feedback.alignment=TextAlignmentOptions.TopLeft;
+            feedback.outlineWidth=.25f;feedback.outlineColor=Color.black;
             var outline = feedback.gameObject.AddComponent<Outline>(); outline.effectColor=Color.black; outline.effectDistance=new Vector2(1,-1);
             carry = Text("Held Formula",Root,"",29,true); Place(carry.rectTransform,.40f,.43f,.80f,.52f);
             carry.outlineWidth=.15f;carry.outlineColor=Color.black;
@@ -55,14 +68,15 @@ namespace LogicLegends.Induction
             ViewBoardButton=Button("View Board",Root,"View Board",stage.boardView.ViewBoard);
             Place((RectTransform)ViewBoardButton.transform,.40f,.30f,.595f,.40f);
             SubmitButton=Button("Submit Challenge",Root,"Submit",()=>{if(!PracticeAction("submit"))stage.Submit();});
-            Place((RectTransform)SubmitButton.transform,.61f,.30f,.805f,.40f);SubmitButton.gameObject.SetActive(false);
+            SubmitButton.gameObject.SetActive(false);
             BoardBackButton=Button("Back from Board",Root,"Back",stage.boardView.Back);
             Place((RectTransform)BoardBackButton.transform,.76f,.045f,.96f,.145f);BoardBackButton.gameObject.SetActive(false);
             BuildReader();
             BuildCollection();
-            announcement = Panel("Centered Challenge Notice",Root,new Vector2(.23f,.44f),new Vector2(.77f,.66f));
-            announcementText = Text("Notice",announcement,"",40,true); Place(announcementText.rectTransform,.07f,.12f,.93f,.88f);
-            announcement.gameObject.SetActive(false);
+            // Reuse PRELIM's transparent 1.5-second Start and wrapped completion dock.
+            announcement=PrelimChallengeCompletionNotice.GetOrCreate(Root,title);
+            announcement.FollowHud(hud);
+            noticeRect=Root.Find("PrelimChallengeCompletionNotice") as RectTransform;
             Result = StageResultCard.Build(Root,()=>stage.Navigate("Main Menu"));
         }
         void BuildReader()
@@ -145,21 +159,22 @@ namespace LogicLegends.Induction
         public void ShowHelp(bool show)
         {
             if(show)HideControls();statusHud.gameObject.SetActive(!show);
-            announcement.gameObject.SetActive(!show&&!string.IsNullOrEmpty(announcementText.text)&&announcementEnd<0);
+            SuppressNotice(show);
         }
         public void ShowControlsTutorial(bool show)
         {
             if(statusHud!=null)statusHud.gameObject.SetActive(!show);
-            if(announcement!=null)announcement.gameObject.SetActive(!show&&announcementText!=null&&!string.IsNullOrEmpty(announcementText.text)&&announcementEnd<0);
+            SuppressNotice(show);
         }
         public void ShowBoardView(bool show)
         {
             if(show)HideControls();BoardBackButton.gameObject.SetActive(show);statusHud.gameObject.SetActive(!show);
             if(show)BoardBackButton.transform.SetAsLastSibling();
-            announcement.gameObject.SetActive(!show&&!string.IsNullOrEmpty(announcementText.text)&&announcementEnd<0);
+            SuppressNotice(show);
         }
         public void Refresh()
         {
+            LayoutActions();
             if(stage.onboarding!=null&&stage.onboarding.IsActive){RefreshPractice();return;}
             int seconds=Mathf.CeilToInt(stage.timer.Remaining);clock.text=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
             progress.text="Challenge "+(stage.ChallengeIndex+1)+" of 5\n"+(stage.State==InductionState.Active?stage.Challenge.title:stage.State==InductionState.WaitingForBook?"Waiting for book":stage.State==InductionState.StageComplete?"All completed":"Game Over");
@@ -170,12 +185,34 @@ namespace LogicLegends.Induction
             ReturnButton.gameObject.SetActive(stage.CanAct&&stage.Held!=null);
             carry.text=stage.Reading||stage.Held==null?"":"Carrying: "+stage.Held.Data.expression;
             feedback.gameObject.SetActive(Time.unscaledTime<feedbackEnd&&!stage.Reading);
-            if(announcement.gameObject.activeSelf&&announcementEnd>=0&&Time.unscaledTime>=announcementEnd)announcement.gameObject.SetActive(false);
+            LayoutFeedback();
         }
         public void SetFeedback(bool correct)
         {feedback.text=stage.Feedback;feedback.color=correct?new Color(.3f,1,.5f):new Color(1,.4f,.35f);feedbackEnd=Time.unscaledTime+5;}
-        public void Announce(string text,float duration)
-        {announcementText.text=text;announcementEnd=duration<0?-1:Time.unscaledTime+duration;announcement.gameObject.SetActive(true);}
+        public void ShowStart(){noticeSuppressed=false;announcement.ShowStart();}
+        public void ShowWaiting(int completed,int next){noticeSuppressed=false;announcement.ShowWaiting(completed,next);}
+        void SuppressNotice(bool hide)
+        {
+            if(announcement==null)return;
+            if(hide){announcement.Hide();noticeSuppressed=true;}
+            else if(noticeSuppressed)
+            {
+                noticeSuppressed=false;
+                if(stage.State==InductionState.WaitingForBook&&stage.Correct>0)
+                    announcement.ShowWaiting(stage.Correct,stage.ChallengeIndex+1);
+            }
+        }
+        void LayoutFeedback()
+        {
+            var rect=feedback.rectTransform;rect.anchorMin=rect.anchorMax=statusHud.anchorMax;
+            rect.pivot=Vector2.one;rect.localScale=statusHud.localScale;
+            float width=statusHud.rect.width;
+            rect.sizeDelta=new Vector2(width,feedback.GetPreferredValues(feedback.text,width,0).y+6);
+            var corners=new Vector3[4];
+            var below=noticeRect!=null&&noticeRect.gameObject.activeSelf&&stage.State==InductionState.WaitingForBook?noticeRect:statusHud;
+            below.GetWorldCorners(corners);rect.position=corners[3]-Vector3.up*(12*statusHud.lossyScale.y);
+        }
+        void LateUpdate(){if(feedback!=null&&feedback.gameObject.activeSelf)LayoutFeedback();}
         public void OpenReader()
         {
             HideControls();if(collection!=null)collection.gameObject.SetActive(false);
@@ -201,7 +238,64 @@ namespace LogicLegends.Induction
             SubmitButton.gameObject.SetActive(step==InductionTutorialStep.Submit);SubmitButton.interactable=true;
             ViewBoardButton.gameObject.SetActive(step==InductionTutorialStep.ViewBoard);
             BoardBackButton.gameObject.SetActive(step==InductionTutorialStep.Back);
-            carry.text="";feedback.gameObject.SetActive(false);announcement.gameObject.SetActive(false);
+            carry.text="";feedback.gameObject.SetActive(false);SuppressNotice(true);
+        }
+        void LayoutActions()
+        {
+            PrelimUIPresentation.CompactHud(statusHud,Root,hudTitle,clock,progress);
+            LayoutPortraitHud();
+            LayoutPortraitControls();
+            // Root fills the existing SafeArea. Stack other actions above Submit
+            // so the primary answer check stays at the actual bottom center.
+            Bottom(SubmitButton,28,280);
+            Bottom(InteractButton,124,390);
+            Bottom(ReturnButton,218,280);
+            Bottom(ViewBoardButton,312,280);
+        }
+        void LayoutPortraitHud()
+        {
+            if(Screen.width>=Screen.height||controls==null)return;
+            var settings=controls.transform.Find("SettingsButton") as RectTransform;
+            var help=stage.help!=null?stage.help.HelpButton:null;
+            if(help!=null)help.GetComponent<StageHelpDock>()?.Layout();
+            float top=statusHud.position.y;var corners=new Vector3[4];
+            foreach(var button in new[]{settings,help!=null?help.transform as RectTransform:null})
+            {
+                if(button==null||!button.gameObject.activeInHierarchy)continue;
+                button.GetWorldCorners(corners);
+                top=Mathf.Min(top,corners[0].y-12*Root.lossyScale.y);
+            }
+            var position=statusHud.position;position.y=top;statusHud.position=position;
+        }
+        void LayoutPortraitControls()
+        {
+            if(Screen.width>=Screen.height){RestorePortraitControls();return;}
+            if(controls==null)return;
+            // Reuse the proof chambers' screen-space portrait control spacing.
+            // The existing landscape offsets would place the hand over Submit.
+            var corners=new Vector3[4];Root.GetWorldCorners(corners);
+            Vector2 low=RectTransformUtility.WorldToScreenPoint(null,corners[0]),high=RectTransformUtility.WorldToScreenPoint(null,corners[2]);
+            float width=high.x-low.x;
+            FitTouch(controls.transform.Find("Joystick") as RectTransform,low+new Vector2(width*.17f,width*.15f),width*.28f);
+            FitTouch(controls.transform.Find("InteractButton") as RectTransform,new Vector2(high.x-width*.12f,low.y+width*.14f),width*.18f);
+            FitTouch(controls.transform.Find("JumpButton") as RectTransform,new Vector2(high.x-width*.12f,low.y+width*.35f),width*.18f);
+        }
+        void FitTouch(RectTransform r,Vector2 center,float diameter)
+        {
+            if(r==null||!(r.parent is RectTransform parent))return;
+            if(!portraitControls.ContainsKey(r))portraitControls.Add(r,new TouchLayout(r));
+            r.anchorMin=r.anchorMax=r.pivot=new Vector2(.5f,.5f);
+            float scale=diameter/Mathf.Max(r.rect.width*parent.lossyScale.x,r.rect.height*parent.lossyScale.y);
+            r.localScale=new Vector3(scale,scale,1);
+            if(RectTransformUtility.ScreenPointToWorldPointInRectangle(parent,center,null,out Vector3 point))r.position=point;
+        }
+        void RestorePortraitControls()
+        {foreach(var pair in portraitControls)if(pair.Key!=null)pair.Value.Restore(pair.Key);portraitControls.Clear();}
+        static void Bottom(Button button,float y,float width)
+        {
+            var rect=(RectTransform)button.transform;
+            rect.anchorMin=rect.anchorMax=new Vector2(.5f,0);rect.pivot=new Vector2(.5f,0);
+            rect.anchoredPosition=new Vector2(0,y);rect.sizeDelta=new Vector2(width,80);
         }
         public void OpenPracticeCollection()
         {
@@ -228,7 +322,7 @@ namespace LogicLegends.Induction
         }
         public void ShowResult(bool win)
         {
-            announcement.gameObject.SetActive(false);controls.SetActive(false);Result.Root.gameObject.SetActive(true);Result.Root.SetAsLastSibling();
+            announcement.Hide();controls.SetActive(false);Result.Root.gameObject.SetActive(true);Result.Root.SetAsLastSibling();
             Result.Stage.text=TrialCatalog.ForScene("Induction").Title;Result.Heading.text=win?"STAGE COMPLETE!":"GAME OVER";
             int elapsed=Mathf.FloorToInt(stage.timer.ActiveSeconds);
             Result.Summary.text="Completion time: "+(elapsed/60).ToString("00")+":"+(elapsed%60).ToString("00")+"\nCorrect submissions: "+stage.Correct+" / 5    Mistakes: "+stage.Mistakes;
@@ -257,7 +351,7 @@ namespace LogicLegends.Induction
             scrollRibbon=Sprite.Create(paper.texture,new Rect(area.x,area.yMax-height,area.width,height),new Vector2(.5f,.5f),paper.pixelsPerUnit,0,SpriteMeshType.FullRect,new Vector4(paper.border.x,0,paper.border.z,0));
             scrollRibbon.name="Induction Rolled Scroll Choice";return scrollRibbon;
         }
-        void OnDestroy(){if(scrollRibbon!=null)Destroy(scrollRibbon);}
+        void OnDestroy(){RestorePortraitControls();if(scrollRibbon!=null)Destroy(scrollRibbon);}
         TMP_Text Text(string name,Transform parent,string text,float size,bool reading=false)
         {
             var label=StageUITheme.Text(name,parent,text,size,reading);label.enableAutoSizing=true;label.fontSizeMin=24;label.fontSizeMax=size;

@@ -30078,6 +30078,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
   player: {fileID: 1287744550}
+  sourceWalkSpeed: 4
+  sourceRunSpeed: 6
 --- !u!95 &985614648
 Animator:
   serializedVersion: 7
@@ -32802,8 +32804,8 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Explore the Open Archive
 
-    WASD / joystick: move   |   Right-side drag:
-    look   |   Space / jump button: jump'
+    Joystick: move   |   Drag the right side:
+    look   |   Jump button: jump'
 --- !u!222 &1088794185
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -33923,6 +33925,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LogicLegends.OpenArchive.Hunting.KhezuHuntingController
   monsterSpawnPoint: {fileID: 1570787526}
   health: {fileID: 1710875268}
+  failureAttackContact: 0.345
+  failureKnockbackDistance: 4
+  closeCounterEnabled: 1
+  closeTurnSpeed: 300
+  circleSecondsBeforeCounter: 1.8
+  circleDegreesBeforeCounter: 80
+  minimumCircleDegreesPerSecond: 25
+  counterWarningSeconds: 0.6
+  counterStrikeSeconds: 0.35
+  counterRecoverySeconds: 0.8
+  counterCooldownSeconds: 3.5
+  counterSurfaceReach: 3
+  rajangCounterArc: 160
+  khezuCounterArc: 90
+  khezuCounterLunge: 3
   awakeningDriver: {fileID: 1115293179}
   normalPlayerRunSpeed: 19.5
   chaseSpeedMultiplier: 1.3685
@@ -33945,6 +33962,7 @@ MonoBehaviour:
     m_Bits: 1911
   elevatedReachDistance: 0.65
   elevatedFeetThreshold: 0.85
+  obstructedReachDistance: 1
 --- !u!114 &1115293181
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34015,6 +34033,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LogicLegends.OpenArchive.Cinematics.KhezuCaptureEncounterController
   developmentTestOutcomes: 1
+  inferenceBarrier: 0
   cinematic: {fileID: 1115293185}
   hostBarrierActivated:
     m_PersistentCalls:

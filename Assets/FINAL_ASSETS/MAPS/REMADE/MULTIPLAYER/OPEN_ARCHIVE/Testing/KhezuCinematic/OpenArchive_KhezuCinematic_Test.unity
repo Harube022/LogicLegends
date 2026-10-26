@@ -29858,6 +29858,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
   player: {fileID: 1287744550}
+  sourceWalkSpeed: 4
+  sourceRunSpeed: 6
 --- !u!95 &985614648
 Animator:
   serializedVersion: 7
@@ -32582,8 +32584,8 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Explore the Open Archive
 
-    WASD / joystick: move   |   Right-side drag:
-    look   |   Space / jump button: jump'
+    Joystick: move   |   Drag the right side:
+    look   |   Jump button: jump'
 --- !u!222 &1088794185
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -33815,6 +33817,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LogicLegends.OpenArchive.Hunting.KhezuHuntingController
   monsterSpawnPoint: {fileID: 1570787526}
   health: {fileID: 1710875268}
+  failureAttackContact: 0.345
+  failureKnockbackDistance: 4
+  closeCounterEnabled: 1
+  closeTurnSpeed: 300
+  circleSecondsBeforeCounter: 1.8
+  circleDegreesBeforeCounter: 80
+  minimumCircleDegreesPerSecond: 25
+  counterWarningSeconds: 0.6
+  counterStrikeSeconds: 0.35
+  counterRecoverySeconds: 0.8
+  counterCooldownSeconds: 3.5
+  counterSurfaceReach: 3
+  rajangCounterArc: 160
+  khezuCounterArc: 90
+  khezuCounterLunge: 3
   awakeningDriver: {fileID: 1115293179}
   normalPlayerRunSpeed: 19.5
   chaseSpeedMultiplier: 1.3685
@@ -33837,6 +33854,7 @@ MonoBehaviour:
     m_Bits: 1911
   elevatedReachDistance: 0.65
   elevatedFeetThreshold: 0.85
+  obstructedReachDistance: 1
 --- !u!114 &1115293181
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33907,6 +33925,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LogicLegends.OpenArchive.Cinematics.KhezuCaptureEncounterController
   developmentTestOutcomes: 1
+  inferenceBarrier: 0
   cinematic: {fileID: 1115293185}
   hostBarrierActivated:
     m_PersistentCalls:
@@ -33946,6 +33965,9 @@ MonoBehaviour:
   capture: {fileID: 7400000, guid: a35b8e8a481570141b6d8a507da3b7bc, type: 2}
   jumpscare: {fileID: 7400000, guid: 4f98239436eccc24b90da580f36bf7e6, type: 2}
   barrierCast: {fileID: 7400000, guid: 545eed150e6e712458747de62c80f73c, type: 2}
+  mouthUpperBone: Mouth_Upper
+  mouthLowerBone: Mouth_Lower
+  faceTargetOffset: {x: 0, y: 0, z: 0}
   reducedMotion: 0
   shakeIntensity: 0.85
   shakeTranslation: 0.09
@@ -33984,6 +34006,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LogicLegends.OpenArchive.Cinematics.VFX.KhezuBarrierVfxPresentation
   barrierPrefab: {fileID: 5698334357369187411, guid: b48b7942a49756248a6305ad5786aedd, type: 3}
+  styleOverride: {fileID: 0}
   encounter: {fileID: 1115293184}
   hunting: {fileID: 1115293180}
 --- !u!1001 &1119665893

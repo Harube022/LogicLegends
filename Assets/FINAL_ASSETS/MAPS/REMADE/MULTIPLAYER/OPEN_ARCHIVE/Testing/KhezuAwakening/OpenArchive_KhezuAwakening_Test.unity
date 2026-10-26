@@ -27900,6 +27900,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
   player: {fileID: 1287744550}
+  sourceWalkSpeed: 4
+  sourceRunSpeed: 6
 --- !u!95 &985614648
 Animator:
   serializedVersion: 7
@@ -30526,8 +30528,8 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Explore the Open Archive
 
-    WASD / joystick: move   |   Right-side drag:
-    look   |   Space / jump button: jump'
+    Joystick: move   |   Drag the right side:
+    look   |   Jump button: jump'
 --- !u!222 &1088794185
 CanvasRenderer:
   m_ObjectHideFlags: 0

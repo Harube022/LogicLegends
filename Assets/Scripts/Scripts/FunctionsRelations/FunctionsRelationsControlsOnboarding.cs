@@ -16,7 +16,7 @@ public sealed partial class FunctionsRelationsControlsOnboarding : MonoBehaviour
     public FunctionsRelationsTutorialStep CurrentStep { get; private set; }
     public FunctionsRelationsStageManager Stage { get; private set; }
     public bool AllowsJump => IsActive && CurrentStep == FunctionsRelationsTutorialStep.Jump;
-    public GameObject PracticeObject => practice;
+    public GameObject PracticeObject => null;
     public string PracticeInput { get; private set; }
     public string PracticeOutput { get; private set; }
     public Button YesButton { get; private set; }
@@ -30,11 +30,10 @@ public sealed partial class FunctionsRelationsControlsOnboarding : MonoBehaviour
     private GameInput input;
     private Player player;
     private MobileInputUI mobile;
-    private RectTransform safe, joystick, jump, hand, timer, highlight, arrow, instructions, worldRect, practiceLabel;
+    private RectTransform safe, joystick, jump, hand, timer, highlight, arrow, instructions, worldRect;
     private TMP_Text instruction;
     private Button next, settings;
-    private GameObject confirmation, practice, practiceRoot;
-    private Material practiceMaterial;
+    private GameObject confirmation, practiceRoot;
     private LineRenderer practiceBeam;
     private Transform worldTarget;
     private PrelimTutorialSkipControl skip;
@@ -141,8 +140,7 @@ public sealed partial class FunctionsRelationsControlsOnboarding : MonoBehaviour
         }
         else if (CurrentStep == FunctionsRelationsTutorialStep.Jump && jumpSucceeded && player.IsJumping() && player.transform.position.y > jumpY + .1f)
         {
-            CreatePracticeObject();
-            ShowStep(FunctionsRelationsTutorialStep.Interaction, "Use this button to interact with nearby objects.", hand);
+            ShowStep(FunctionsRelationsTutorialStep.Interaction, "Tap the hand button to interact with nearby objects.", hand);
         }
         AnimateCamera();
     }
@@ -152,10 +150,7 @@ public sealed partial class FunctionsRelationsControlsOnboarding : MonoBehaviour
         switch (CurrentStep)
         {
             case FunctionsRelationsTutorialStep.Interaction:
-                if (practice == null) return false;
-                Vector3 delta = practice.transform.position - player.transform.position; delta.y = 0f;
-                if (delta.magnitude > 3.5f || Vector3.Dot(player.transform.forward, delta.normalized) < .25f) return false;
-                DestroyPracticeObject(); player.ToggleControl(false); StartCameraGuide(); Focus(Stage.BookTarget);
+                player.ToggleControl(false); StartCameraGuide(); Focus(Stage.BookTarget);
                 ShowStep(FunctionsRelationsTutorialStep.Book, "Interact with the book statue to start each challenge. Tap the hand button. This is practice; the real timer stays paused.", hand, false, Stage.BookTarget);
                 return true;
             case FunctionsRelationsTutorialStep.Book:

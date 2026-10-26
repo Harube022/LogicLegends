@@ -79,6 +79,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
     private bool playerWasEnabled;
     private bool inputWasBlocked;
     private bool minimapWasEnabled;
+    private bool quizWasOpen;
     private CursorLockMode previousCursorLock;
     private bool previousCursorVisible;
     private Coroutine tutorialDoorRoutine;
@@ -325,7 +326,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
         if (panelOpen)
         {
-            if (!answerSubmitted && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
                 ClosePanel();
             return;
         }
@@ -484,6 +485,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         if (closeButton != null) closeButton.interactable = true;
 
         panelOpen = true;
+        quizWasOpen = stageClock.IsQuizOpen;
         stageClock.SetQuizOpen(true);
         playerWasEnabled = player.enabled;
         inputWasBlocked = gameInput.GameplayInputBlocked;
@@ -522,7 +524,9 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         feedbackText.color = correct ? new Color(0.25f, 0.95f, 0.35f) : new Color(1f, 0.27f, 0.27f);
         PlayAnswerFeedback(correct);
         foreach (Button button in answerButtons) button.interactable = false;
-        if (closeButton != null) closeButton.interactable = false;
+        // Back remains available while feedback is being read, including when
+        // the automatic close is paused by a nested menu.
+        if (closeButton != null) closeButton.interactable = true;
         if (!correct) stageClock.AdjustSeconds(-10);
         if (!IsStageRunning) return;
         OpenDoor(index);
@@ -599,7 +603,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         if (feedbackCloseRoutine != null) StopCoroutine(feedbackCloseRoutine);
         feedbackCloseRoutine = null;
         panelOpen = false;
-        if (stageClock != null) stageClock.SetQuizOpen(false);
+        if (stageClock != null) stageClock.SetQuizOpen(quizWasOpen);
         if (blankPanel != null) blankPanel.SetActive(false);
         if (stageClock == null || !stageClock.IsGameOver)
         {

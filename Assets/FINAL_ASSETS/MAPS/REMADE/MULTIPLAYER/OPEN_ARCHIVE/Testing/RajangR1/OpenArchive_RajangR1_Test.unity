@@ -9938,6 +9938,50 @@ MonoBehaviour:
   selected: 1
   khezu: {fileID: 1115293179}
   rajang: {fileID: 58685068}
+  sharedDriver: {fileID: 0}
+  sharedSpawn: {fileID: 0}
+  khezuProfile:
+    visualRoots: []
+    avatar: {fileID: 0}
+    controller: {fileID: 0}
+    presentationPrefab: {fileID: 0}
+    barrierStyle: {fileID: 0}
+    capture: {fileID: 0}
+    jumpscare: {fileID: 0}
+    barrierCast: {fileID: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    nestEuler: {x: 0, y: 0, z: 0}
+    nestOffset: {x: 0, y: 0, z: 0}
+    bodyCenter: {x: 0, y: 0, z: 0}
+    bodySize: {x: 0, y: 0, z: 0}
+    mouthUpper: Mouth_Upper
+    mouthLower: Mouth_Lower
+    faceOffset: {x: 0, y: 0, z: 0}
+    framingDistance: 1
+    agentTypeId: 0
+    agentRadius: 9.7
+    agentHeight: 10.2
+  rajangProfile:
+    visualRoots: []
+    avatar: {fileID: 0}
+    controller: {fileID: 0}
+    presentationPrefab: {fileID: 0}
+    barrierStyle: {fileID: 0}
+    capture: {fileID: 0}
+    jumpscare: {fileID: 0}
+    barrierCast: {fileID: 0}
+    localScale: {x: 1, y: 1, z: 1}
+    nestEuler: {x: 0, y: 0, z: 0}
+    nestOffset: {x: 0, y: 0, z: 0}
+    bodyCenter: {x: 0, y: 0, z: 0}
+    bodySize: {x: 0, y: 0, z: 0}
+    mouthUpper: Mouth_Upper
+    mouthLower: Mouth_Lower
+    faceOffset: {x: 0, y: 0, z: 0}
+    framingDistance: 1
+    agentTypeId: 0
+    agentRadius: 9.7
+    agentHeight: 10.2
 --- !u!4 &335323184
 Transform:
   m_ObjectHideFlags: 0
@@ -28040,6 +28084,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
   player: {fileID: 1287744550}
+  sourceWalkSpeed: 4
+  sourceRunSpeed: 6
 --- !u!95 &985614648
 Animator:
   serializedVersion: 7
@@ -30666,8 +30712,8 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Explore the Open Archive
 
-    WASD / joystick: move   |   Right-side drag:
-    look   |   Space / jump button: jump'
+    Joystick: move   |   Drag the right side:
+    look   |   Jump button: jump'
 --- !u!222 &1088794185
 CanvasRenderer:
   m_ObjectHideFlags: 0

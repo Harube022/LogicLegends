@@ -267,7 +267,7 @@ public class StudyLibraryController : MonoBehaviour
         enlargedPage.SetActive(false);
 
         TMP_Text hint = CreateText("Reading Hint", book.transform, 20f, FontStyles.Normal, TextAlignmentOptions.Center);
-        hint.text = "Click a page to enlarge • click again to return";
+        hint.text = "Tap a page to enlarge • tap again to return";
         hint.color = new Color(1f, 0.9f, 0.62f);
         SetAnchors(hint.rectTransform, new Vector2(0.12f, 0.875f), new Vector2(0.88f, 0.905f));
 

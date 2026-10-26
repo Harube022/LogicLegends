@@ -56,11 +56,8 @@ public static class InductionOnboardingPlayChecks
         input.MobileInteract();Check(t.CurrentStep==InductionTutorialStep.Jump,"hand before practice cannot advance");
         var jump=m.uiHost.GetComponentsInChildren<Button>(true).Single(b=>b.name=="JumpButton");jump.onClick.Invoke();until=Time.realtimeSinceStartup+3;
         while(t.CurrentStep==InductionTutorialStep.Jump&&Time.realtimeSinceStartup<until)yield return null;
-        Check(t.CurrentStep==InductionTutorialStep.Interaction&&player.IsJumping()&&t.PracticeObject!=null,"real successful jump advances");
-        Check(t.Highlight.parent.name=="InteractButton"&&t.PracticeObject.GetComponent<Collider>().isTrigger&&t.PracticeObject.GetComponent<GrabbableObject>()==null,"isolated hand practice target");
-        Vector3 toward=t.PracticeObject.transform.position-player.transform.position;toward.y=0;player.transform.rotation=Quaternion.LookRotation(-toward);
-        input.MobileInteract();Check(t.CurrentStep==InductionTutorialStep.Interaction,"wrong facing rejected");
-        player.transform.rotation=Quaternion.LookRotation(toward);
+        Check(t.CurrentStep==InductionTutorialStep.Interaction&&player.IsJumping()&&t.PracticeObject==null,"real successful jump advances");
+        Check(t.Highlight.parent.name=="InteractButton"&&t.PracticeObject==null,"hand highlight without world object");
         m.uiHost.GetComponentsInChildren<Button>(true).Single(b=>b.name=="InteractButton").onClick.Invoke();
         Check(t.CurrentStep==InductionTutorialStep.Book&&t.PracticeObject==null,"hand practice advances to book, never ends tutorial");
         Check(UnityEngine.Object.FindObjectsByType<PrelimTutorialSkipControl>(FindObjectsSortMode.None).Length==1,"one shared Skip Tutorial");

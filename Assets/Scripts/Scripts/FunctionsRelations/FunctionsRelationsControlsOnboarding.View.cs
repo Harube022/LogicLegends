@@ -102,13 +102,7 @@ public sealed partial class FunctionsRelationsControlsOnboarding
         if (!IsActive || CurrentStep == FunctionsRelationsTutorialStep.Confirm) return;
         ApplyPracticeUI();
         if (worldTarget != null) ProjectBounds(RenderBounds(worldTarget), worldRect);
-        if (practice != null && practiceLabel != null)
-        {
-            Vector3 screen = Camera.main.WorldToScreenPoint(practice.transform.position + Vector3.up * 1.2f);
-            practiceLabel.gameObject.SetActive(screen.z > 0f);
-            if (screen.z > 0f && RectTransformUtility.ScreenPointToLocalPointInRectangle(safe, screen, null, out Vector2 point))
-                practiceLabel.anchoredPosition = point;
-        }
+
         UpdateNodeLabels(); LayoutInstructions();
         if (skip != null) skip.transform.SetAsLastSibling();
     }
@@ -117,7 +111,6 @@ public sealed partial class FunctionsRelationsControlsOnboarding
         if (instructions == null || !instructions.gameObject.activeSelf) return;
         var blockers = new List<RectTransform>(ControlTutorialLayout.FindBlockers());
         blockers.AddRange(new[] { ui.hud, ui.status, ui.interaction, ui.viewBoard, ui.submit, ui.boardBack, ui.domainPanel, ui.rangePanel });
-        if (practiceLabel != null) blockers.Add(practiceLabel);
         blockers.AddRange(nodeLabels);
         RectTransform target = highlight.gameObject.activeSelf ? highlight.parent as RectTransform : worldRect.gameObject.activeSelf ? worldRect : null;
         ControlTutorialLayout.Place(instructions, instruction, (RectTransform)next.transform, safe, target, false, blockers.ToArray(), arrow.gameObject.activeSelf ? arrow : null);
@@ -186,32 +179,7 @@ public sealed partial class FunctionsRelationsControlsOnboarding
         foreach (var b in guidedBehaviours) if (b != null) { b.enabled = true; if (b is CinemachineBrain brain) brain.ResetState(); }
         avatarRenderers.Clear(); guidedBehaviours.Clear(); guidedCamera = null; guiding = false;
     }
-    private void CreatePracticeObject()
-    {
-        DestroyPracticeObject();
-        var forward = Camera.main != null ? Camera.main.transform.forward : player.transform.forward; forward.y = 0f; forward.Normalize();
-        if (forward.sqrMagnitude < .1f) forward = player.transform.forward;
-        player.transform.rotation = Quaternion.LookRotation(forward);
-        practice = GameObject.CreatePrimitive(PrimitiveType.Cube); practice.name = "Functions Relations Practice Object"; practice.layer = 2;
-        practice.transform.position = player.transform.position + forward * 2.4f + Vector3.Cross(Vector3.up, forward) * -1.5f + Vector3.up;
-        practice.transform.localScale = Vector3.one * 1.35f; practice.GetComponent<Collider>().isTrigger = true;
-        practiceMaterial = new Material(Stage.Mapping.PracticeLaserMaterial);
-        if (practiceMaterial.HasProperty("_BaseColor")) practiceMaterial.SetColor("_BaseColor", new Color(1f, .75f, .18f));
-        if (practiceMaterial.HasProperty("_Color")) practiceMaterial.SetColor("_Color", new Color(1f, .75f, .18f));
-        practice.GetComponent<Renderer>().sharedMaterial = practiceMaterial;
-        practiceLabel = StageUITheme.Rect("Functions Relations Practice Label", safe);
-        practiceLabel.anchorMin = practiceLabel.anchorMax = practiceLabel.pivot = new Vector2(.5f, .5f); practiceLabel.sizeDelta = new Vector2(290f, 80f);
-        practiceLabel.gameObject.AddComponent<Image>().color = new Color(.03f, .09f, .14f, .95f);
-        practiceLabel.GetComponent<Image>().raycastTarget = false;
-        var label = StageUITheme.Text("Practice Label", practiceLabel, "Interact with me", 34f, true);
-        StageUITheme.Stretch(label.rectTransform, Vector2.zero, Vector2.one);
-    }
-    private void DestroyPracticeObject()
-    {
-        if (practice != null) { practice.SetActive(false); Destroy(practice); } practice = null;
-        if (practiceLabel != null) { practiceLabel.gameObject.SetActive(false); Destroy(practiceLabel.gameObject); } practiceLabel = null;
-        if (practiceMaterial != null) Destroy(practiceMaterial); practiceMaterial = null;
-    }
+
     private void SetPracticeChoices()
     {
         for (int i = 0; i < Stage.DomainButtons.Length; i++)
@@ -272,7 +240,7 @@ public sealed partial class FunctionsRelationsControlsOnboarding
     }
     private void ResetPractice()
     {
-        DestroyPracticeObject();
+
         if (practiceRoot != null) { practiceRoot.SetActive(false); Destroy(practiceRoot); } practiceRoot = null; practiceBeam = null;
         foreach (var rect in nodeLabels) if (rect != null) { rect.gameObject.SetActive(false); Destroy(rect.gameObject); } nodeLabels.Clear();
         PracticeInput = PracticeOutput = null;

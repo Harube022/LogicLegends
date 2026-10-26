@@ -22,7 +22,7 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
     public bool NeedsIntroduction => stage != null && !stage.Finished && !stage.OnboardingPending &&
         stage.State == DirectIndirectProofStageController.TrialState.WaitingForActivation && !seen[stage.ChallengeNumber - 1];
     public bool IntroductionSeen(int challenge) => seen[challenge - 1];
-    public GameObject PracticeObject => practiceObject;
+    public GameObject PracticeObject => null;
     public Button HelpButton { get; private set; }
     public Button NextButton { get; private set; }
     public Button BeginButton { get; private set; }
@@ -43,7 +43,6 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
     CursorLockMode oldLock;
     Vector3 startPosition, movementStart;
     Quaternion startRotation;
-    GameObject practiceObject;
     PrelimTutorialSkipControl skip;
     Button adminButton;
     int page;
@@ -69,7 +68,7 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
     }
     public void OpenHelp()
     {
-        if (IsBusy || stage.Finished || stage.IsReaderOpen || Player.LocalInstance == null || GameInput.Instance == null || Time.timeScale <= 0) return;
+        if (IsBusy || stage.Finished || stage.IsReaderOpen || stage.IsViewingBoard || Player.LocalInstance == null || GameInput.Instance == null || Time.timeScale <= 0) return;
         BeginSession(Mode.Help); Time.timeScale = 0; page = 0; ShowHelpPage();
     }
     void BeginSession(Mode value)
@@ -101,11 +100,8 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
     { if (item == null) return; if (!visibility.ContainsKey(item)) visibility[item] = item.activeSelf; item.SetActive(show); }
     void ShowHelpPage()
     {
-        var lesson = HelpPages[page]; SetCard(lesson.title, lesson.body);
-        PreviousButton.gameObject.SetActive(true); PreviousButton.interactable = page > 0;
-        NextButton.gameObject.SetActive(true); NextButton.interactable = page < HelpPages.Length - 1;
-        BeginButton.gameObject.SetActive(true); BeginButton.GetComponentInChildren<TMP_Text>().text = stage.OnboardingPending ? "Let's Begin" : "Back to Play";
-        ActionButton.gameObject.SetActive(false); AlternateButton.gameObject.SetActive(false);
+        SetCard("How to Play", "");
+        StageHelpPage.Install(helpCard, "Direct&Indirect", Cancel, BeginFromHelp, stage.OnboardingPending);
     }
     public void Previous() { if (mode == Mode.Help && page > 0) { page--; ShowHelpPage(); } }
     public void BeginFromHelp()
@@ -137,12 +133,12 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
     {
         if (stage == null) return;
         LayoutUI();
-        HelpButton.gameObject.SetActive(!IsBusy && !stage.Finished && !stage.IsReaderOpen);
+        HelpButton.gameObject.SetActive(!IsBusy && !stage.Finished && !stage.IsReaderOpen && !stage.IsViewingBoard);
         if (!IsBusy)
         {
-            hud.gameObject.SetActive(!stage.IsReaderOpen && !stage.Finished);
-            stage.Prompt.gameObject.SetActive(!stage.IsReaderOpen && !stage.Finished);
-            stage.Selection.gameObject.SetActive(!stage.IsReaderOpen && !stage.Finished);
+            hud.gameObject.SetActive(!stage.IsReaderOpen && !stage.Finished && !stage.IsViewingBoard);
+            stage.Prompt.gameObject.SetActive(!stage.IsReaderOpen && !stage.Finished && !stage.IsViewingBoard);
+            stage.Selection.gameObject.SetActive(!stage.IsReaderOpen && !stage.Finished && !stage.IsViewingBoard);
             if (NeedsIntroduction && Player.LocalInstance != null && GameInput.Instance != null && !GameInput.Instance.GameplayInputBlocked && Time.timeScale > 0) BeginIntroduction();
             return;
         }
@@ -160,7 +156,7 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
                 { mobile.ResetJoystick(); ShowStep(DirectProofsPracticeStep.Jump, "Tap this button to jump.", jump); }
             }
             else if (Step == DirectProofsPracticeStep.Jump && jumped && player.IsJumping() && player.transform.position.y > jumpHeight + .1f)
-            { CreatePracticeObject(); Focus(practiceObject.transform, false); ShowStep(DirectProofsPracticeStep.Interaction, "Use this button to interact with nearby objects. Face the practice stand marked ‘Interact with me’ and tap the hand.", hand, false, practiceObject.transform); }
+            { ShowStep(DirectProofsPracticeStep.Interaction, "Tap the hand button to interact with nearby objects.", hand); }
         }
         if (mode != Mode.Help && NextButton.gameObject.activeSelf) NextButton.interactable = Readable;
     }
@@ -182,16 +178,14 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
     }
     public bool TryPracticeInteraction()
     {
-        if (!IsPractice || !Readable || input == null || input.GameplayInputBlocked) return false;
+        if (!IsPractice || (Step != DirectProofsPracticeStep.Interaction && !Readable) || input == null || input.GameplayInputBlocked) return false;
         if (Step == DirectProofsPracticeStep.Interaction)
         {
-            var delta = practiceObject.transform.position - player.transform.position; delta.y = 0;
-            if (delta.magnitude > 3.5f || Vector3.Dot(player.transform.forward, delta.normalized) < .25f) return false;
             CleanPractice(); RestoreCamera(); ShowStep(DirectProofsPracticeStep.Timer, "The book starts or resumes one shared " + StageJourneyUI.FormatTime(stage.StartingSeconds) + " countdown. Correct answers pause it; it never resets between questions. Help and tutorials use no countdown time.", stage.Clock.rectTransform, true); return true;
         }
         if (Step == DirectProofsPracticeStep.Book)
         {
-            Focus(stage.InformationBoard, false); ShowStep(DirectProofsPracticeStep.Instructions, "The Information Board shows the current problem and instructions after the book starts a question. Approach it and use the hand to read the full problem. The timer keeps running during normal reading and altar ordering.", null, true, stage.InformationBoard); return true;
+            Focus(stage.InformationBoardDisplay, false); ShowStep(DirectProofsPracticeStep.Instructions, "The main Information Board shows the current problem and instructions after the book starts a question. Near the altars, View Board smoothly frames it; Back returns to the room without starting or submitting a question. The timer keeps running during normal board reading and altar ordering.", null, true, stage.InformationBoardDisplay); return true;
         }
         if (Step == DirectProofsPracticeStep.ConfirmBook) { Confirm(); return true; }
         return false;
@@ -208,7 +202,7 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
             case DirectProofsPracticeStep.Progress:
                 Focus(stage.Book, false); ShowStep(DirectProofsPracticeStep.Book, "Use the hand at the Book Statue to start each question, then return to the book to confirm your finished answer. Try the hand now: this practice interaction cannot start a real question.", hand, false, stage.Book); break;
             case DirectProofsPracticeStep.Instructions:
-                FocusOverview(); ShowStep(DirectProofsPracticeStep.Altars, "Challenge 1 uses the Direct and Indirect altars to classify a supplied proof. Later challenges use the active altar's proof board. Read every statement; drag one row onto another to swap their positions. The numbered rows are the proof order.", null, true); break;
+                FocusOverview(); ShowStep(DirectProofsPracticeStep.Altars, "Yellow arrows identify available altars. In Challenge 1, selecting Direct or Indirect hides all choice arrows; tapping the selected altar again clears the choice and restores the available arrows. Later challenges open the indicated altar's ordering interface. Back to Room restores its arrow and keeps your draft. Read the full task on the main board behind the altars; the numbered rows are the proof order.", null, true); break;
             case DirectProofsPracticeStep.Altars:
                 ShowStep(DirectProofsPracticeStep.Choose, "PRACTICE ONLY: Four equal cords total 28 cm. Writing 4x = 28 and solving x = 7 directly establishes each length. Choose the proof family for this separate example.");
                 SetActions("Direct Proof", "Indirect Proof"); break;
@@ -254,20 +248,10 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
         }
         ShowStep(DirectProofsPracticeStep.Correction, "Practice arrangement complete. Back returns to the room without submitting. During a real question, reopen the same altar to swap any misplaced rows; your work is retained after an incorrect confirmation. In Challenge 5, also select a strategy on the board.", null, true);
     }
-    void CreatePracticeObject()
-    {
-        practiceObject = Instantiate(stage.PracticeTemplate.gameObject); practiceObject.name = "Direct Proofs PRACTICE — Interact with me";
-        practiceObject.transform.position = player.transform.position + player.transform.forward * 2.2f;
-        var point = practiceObject.transform.position; point.y = startPosition.y; practiceObject.transform.position = point;
-        practiceObject.transform.rotation = player.transform.rotation;
-        practiceObject.GetComponent<ProofWorldPedestal>().SetContent("PRACTICE ONLY", "Interact with me");
-        foreach (var collider in practiceObject.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
-        practiceObject.SetActive(true);
-    }
+
     void CleanPractice()
     {
         if (stage != null && stage.OrderingBoard != null && stage.OrderingBoard.IsPractice) stage.OrderingBoard.ForceClose();
-        if (practiceObject != null) { practiceObject.SetActive(false); Destroy(practiceObject); practiceObject = null; }
     }
     public void Skip()
     { if (mode == Mode.Introduction) EndIntroduction(); else if (IsPractice && Step != DirectProofsPracticeStep.Confirmation) Confirm(); }

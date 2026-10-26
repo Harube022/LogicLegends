@@ -44,8 +44,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     private RectTransform[] instructionBlockers;
     private TextMeshProUGUI instructionText;
     private RectTransform instructionTarget;
-    private GameObject confirmation, practiceTarget;
-    private TextMeshPro practiceLabel;
+    private GameObject confirmation;
     private GameObject practiceCrystal;
     private HandThoughtBubble practiceCrystalBubble;
     private TextMeshProUGUI crystalScreenLabel;
@@ -65,6 +64,8 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     private Vector3 movementStart;
     private float jumpStartY;
     private bool jumpRequested;
+    private readonly System.Collections.Generic.Dictionary<GameObject, bool> controlVisibility =
+        new System.Collections.Generic.Dictionary<GameObject, bool>();
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() { Active = null; }
@@ -90,6 +91,9 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         }
 
         previousInputBlocked = input.GameplayInputBlocked;
+        foreach (var control in new[] { safeArea.Find("Gameplay_Interface/Joystick").gameObject,
+                     jumpButton.gameObject, handButton.gameObject })
+            controlVisibility[control] = control.activeSelf;
         boardCameraFocus = new GameObject("Inference Tutorial Board Camera Focus").transform;
         boardHighlightTarget = new GameObject("Inference Tutorial Board Highlight").transform;
         boardCameraFocus.position = altarTarget.position + boardCameraFocusOffset;
@@ -215,6 +219,11 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     private void SetInstruction(Step nextStep, string message, RectTransform target, bool canAdvance = false)
     {
         step = nextStep;
+        // Keep movement and jumping available for the altar approach, while
+        // reserving explanation space when those controls cannot be used.
+        safeArea.Find("Gameplay_Interface/Joystick").gameObject.SetActive(nextStep == Step.Movement || nextStep == Step.BoardApproach);
+        jumpButton.gameObject.SetActive(nextStep == Step.Jump || nextStep == Step.BoardApproach);
+        handButton.gameObject.SetActive(nextStep == Step.Interaction || nextStep == Step.Book || nextStep == Step.CrystalTower);
         instructionTarget = target;
         instructionText.text = message;
         arrow.gameObject.SetActive(target != null);
@@ -240,7 +249,6 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
 
     private void BeginMovement()
     {
-        DestroyPracticeTarget();
         input.SetGameplayInputBlocked(false);
         mobileControls?.ResetJoystick();
         movementStart = player.transform.position;
@@ -256,8 +264,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
 
     private void BeginInteraction()
     {
-        CreatePracticeTarget();
-        SetInstruction(Step.Interaction, "Use this button to interact with nearby objects.", handButton);
+        SetInstruction(Step.Interaction, "Tap the hand button to interact with nearby objects.", handButton);
     }
 
     private void Update()
@@ -274,8 +281,6 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
                  player.transform.position.y > jumpStartY + 0.1f)
             BeginInteraction();
         if (step == Step.BoardApproach) TrackViewBoardButton();
-        if (practiceLabel != null && Camera.main != null)
-            practiceLabel.transform.rotation = Camera.main.transform.rotation;
     }
 
     private void LateUpdate()
@@ -622,38 +627,6 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         practiceCrystal = null;practiceCrystalBubble=null;
     }
 
-    private void CreatePracticeTarget()
-    {
-        DestroyPracticeTarget();
-        practiceTarget = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        practiceTarget.name = "Inference Practice Interaction";
-        Vector3 practicePosition = player.transform.position + player.transform.forward * 1.3f -
-                                   player.transform.right * 2.3f;
-        practicePosition.y = jumpStartY + 1.3f;
-        practiceTarget.transform.position = practicePosition;
-        practiceTarget.transform.localScale = Vector3.one * 0.7f;
-        var collider = practiceTarget.GetComponent<Collider>();
-        if (collider != null) collider.isTrigger = true;
-        var renderer = practiceTarget.GetComponent<Renderer>();
-        if (renderer != null) renderer.material.color = new Color(1f, 0.75f, 0.18f);
-        var label = new GameObject("Practice Label", typeof(TextMeshPro));
-        label.transform.SetParent(practiceTarget.transform, false);
-        label.transform.localPosition = new Vector3(0f, 1.1f, 0f);
-        label.transform.localScale = Vector3.one * 1.2f;
-        practiceLabel = label.GetComponent<TextMeshPro>();
-        practiceLabel.text = "PRACTICE";
-        practiceLabel.fontSize = 6f;
-        practiceLabel.alignment = TextAlignmentOptions.Center;
-        practiceLabel.color = Color.white;
-    }
-
-    private void DestroyPracticeTarget()
-    {
-        if (practiceTarget != null) Destroy(practiceTarget);
-        practiceTarget = null;
-        practiceLabel = null;
-    }
-
     public void NoteJumpInput()
     {
         if (IsActive && step == Step.Jump) jumpRequested = true;
@@ -676,15 +649,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
             }
             return;
         }
-        if (step != Step.Interaction || practiceTarget == null || player == null) return;
-        Vector3 toward = practiceTarget.transform.position - player.transform.position;
-        toward.y = 0f;
-        Vector3 facing = player.transform.forward;
-        facing.y = 0f;
-        if (toward.magnitude > practiceRange || toward.sqrMagnitude < 0.001f ||
-            facing.sqrMagnitude < 0.001f ||
-            Vector3.Dot(facing.normalized, toward.normalized) < 0.25f) return;
-        DestroyPracticeTarget();
+        if (step != Step.Interaction) return;
         BeginBook();
     }
 
@@ -692,7 +657,6 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     {
         if (!IsActive) return;
         FindFirstObjectByType<LogicLegends.Inference.InferenceCrystalQuiz>()?.Close();
-        DestroyPracticeTarget();
         DestroyPracticeCrystal();
         BeginConfirmation();
     }
@@ -732,7 +696,6 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     private void Cleanup()
     {
         FindFirstObjectByType<LogicLegends.Inference.InferenceCrystalQuiz>()?.Close();
-        DestroyPracticeTarget();
         DestroyPracticeCrystal();
         RestoreGameplayCamera();
         if (tutorialCamera != null) Destroy(tutorialCamera.gameObject);
@@ -748,6 +711,8 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         mobileControls?.ResetJoystick();
         if (input != null && IsActive) input.SetGameplayInputBlocked(previousInputBlocked);
         if (settingsButton != null) settingsButton.interactable = previousSettingsInteractable;
+        foreach (var control in controlVisibility) if (control.Key != null) control.Key.SetActive(control.Value);
+        controlVisibility.Clear();
         if (highlight != null) Destroy(highlight.gameObject);
         if (instructions != null) Destroy(instructions.gameObject);
         if (skipButton != null) Destroy(skipButton.gameObject);

@@ -44,7 +44,7 @@ public sealed class TruthTableTutorial : MonoBehaviour
         ("Time and retries",
             "Each challenge starts with 18:00. Time pauses during Help, tutorial practice, door quizzes, and while you stand in the marked board area. Penalties still apply while paused: −10 seconds for an incorrect door quiz and −20 for an incorrect column. Red time deductions appear beside the timer and fade out. At 00:00, Restart begins again at Easy."),
         ("Move and read",
-            "Use the joystick to move, the jump button to jump, and the hand button for nearby interactions. Hold a movement direction for 3 seconds to run at 1.5 times walking speed. On desktop, WASD, jump, and E remain available. Tap the minimap to inspect the whole stage; Close restores the compact view. The challenge and timer wait for the book between challenges.")
+            "Use the joystick to move, the jump button to jump, and the hand button for nearby interactions. Hold a movement direction for 3 seconds to run at 1.5 times walking speed. Tap the minimap to inspect the whole stage; Close restores the compact view. The challenge and timer wait for the book between challenges.")
     };
 
     private int pageIndex;
@@ -76,7 +76,7 @@ public sealed class TruthTableTutorial : MonoBehaviour
 
     public bool IsOpen => isOpen;
     public int PageIndex => pageIndex;
-    public int PageCount => pages.Length;
+    public int PageCount => 1;
 
     private void Awake()
     {
@@ -160,7 +160,7 @@ public sealed class TruthTableTutorial : MonoBehaviour
         Cursor.visible = true;
         Time.timeScale = 0f;
 
-        startControlsOnClose = !hasShownAutomatically;
+        startControlsOnClose = startControlsOnClose || !hasShownAutomatically;
         if (gotItLabel != null) gotItLabel.text = startControlsOnClose ? "Let’s Begin" : originalGotItLabel;
         isOpen = true;
         hasShownAutomatically = true;
@@ -169,6 +169,15 @@ public sealed class TruthTableTutorial : MonoBehaviour
         tutorialOverlay.SetActive(true);
         tutorialOverlay.transform.SetAsLastSibling();
         RefreshPage();
+    }
+
+    // Close restores play; only Let's Begin launches the interactive lesson.
+    private void CloseHelpOnly()
+    {
+        bool pending = startControlsOnClose;
+        startControlsOnClose = false;
+        CloseTutorial();
+        startControlsOnClose = pending;
     }
 
     public void CloseTutorial()
@@ -214,18 +223,13 @@ public sealed class TruthTableTutorial : MonoBehaviour
 
     private void RefreshPage()
     {
-        if (titleText != null) titleText.text = pages[pageIndex].title;
-        if (bodyText != null) bodyText.text = pages[pageIndex].body;
-        if (pageText != null) pageText.text = $"{pageIndex + 1} / {pages.Length}";
-        if (backButton != null) backButton.interactable = pageIndex > 0;
-        if (nextButton != null) nextButton.interactable = pageIndex < pages.Length - 1;
-        LayoutGuide();
+        if (titleText != null) StageHelpPage.Install((RectTransform)titleText.transform.parent, "TruthTable", CloseHelpOnly, CloseTutorial, startControlsOnClose);
     }
 
     private void LateUpdate(){if(isOpen)LayoutGuide();}
     private void LayoutGuide()
     {
-        if(titleText==null||bodyText==null)return;
+        if(titleText==null||bodyText==null||titleText.GetComponentInParent<StageHelpPage>()!=null)return;
         if(guideCard==null)
         {
             guideCard=(RectTransform)titleText.transform.parent;

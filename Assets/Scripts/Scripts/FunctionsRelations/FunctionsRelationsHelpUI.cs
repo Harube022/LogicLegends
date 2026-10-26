@@ -35,7 +35,7 @@ public sealed class FunctionsRelationsHelpUI : MonoBehaviour
     private bool open, shownOnEntry, inputWasBlocked, playerWasEnabled, cursorWasVisible;
     public bool IsOpen => open;
     public Button HelpButton => helpButton;
-    public int PageCount => Pages.Length;
+    public int PageCount => 1;
     public void Initialize(FunctionsRelationsStageManager owner) { stage = owner; }
     private CursorLockMode previousCursorLock;
     private float previousTimeScale;
@@ -179,7 +179,7 @@ public sealed class FunctionsRelationsHelpUI : MonoBehaviour
                 (boardView == null || !boardView.Viewing) && stage.State != FunctionsRelationsState.STAGE_COMPLETE && stage.State != FunctionsRelationsState.GAME_OVER;
             if (helpButton.gameObject.activeSelf != visible) helpButton.gameObject.SetActive(visible);
         }
-        if (card != null && safeArea != null)
+        if (card != null && safeArea != null && card.GetComponent<StageHelpPage>() == null)
         {
             float aspect = safeArea.rect.width / Mathf.Max(1f, safeArea.rect.height);
             Vector2 min = aspect < 1.2f ? new Vector2(0.035f, 0.045f) : new Vector2(0.08f, 0.08f);
@@ -257,15 +257,7 @@ public sealed class FunctionsRelationsHelpUI : MonoBehaviour
 
     private void ShowPage()
     {
-        titleText.text = Pages[pageIndex].title;
-        bodyText.text = Pages[pageIndex].body;
-        pageText.text = (pageIndex + 1) + " / " + Pages.Length;
-        previousButton.interactable = pageIndex > 0;
-        nextButton.interactable = pageIndex < Pages.Length - 1;
-        SetDisabledOpacity(previousButton);
-        SetDisabledOpacity(nextButton);
-        Canvas.ForceUpdateCanvases();
-        bodyScroll.verticalNormalizedPosition = 1f;
+        StageHelpPage.Install(card, "Functions and Relations", CloseHelp, BeginFromHelp, stage.OnboardingPending);
     }
 
     private static void SetDisabledOpacity(Button button)
@@ -283,4 +275,3 @@ public sealed class FunctionsRelationsHelpUI : MonoBehaviour
         if (helpButton != null) Destroy(helpButton.gameObject);
     }
 }
-
