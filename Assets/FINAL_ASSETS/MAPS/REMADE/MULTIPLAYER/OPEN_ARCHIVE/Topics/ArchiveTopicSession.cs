@@ -22,12 +22,12 @@ namespace LogicLegends.OpenArchive.Topics
         public KhezuHuntingController hunting;
         [Min(.5f)] public float answerChannelSeconds = 1.35f;
         [Min(1)] public float propositionTimeLimitSeconds = 360;
-        [Min(1)] public float truthTimeLimitSeconds = 360;
-        [Min(1)] public float inferenceTimeLimitSeconds = 360;
-        [Min(1)] public float proofsTimeLimitSeconds = 360;
-        [Min(1)] public float proofMethodsTimeLimitSeconds = 360;
-        [Min(1)] public float inductionTimeLimitSeconds = 360;
-        [Min(1)] public float setsChallengeTimeLimitSeconds = 1080;
+        [Min(1)] public float truthTimeLimitSeconds = 540;
+        [Min(1)] public float inferenceTimeLimitSeconds = 480;
+        [Min(1)] public float proofsTimeLimitSeconds = 480;
+        [Min(1)] public float proofMethodsTimeLimitSeconds = 480;
+        [Min(1)] public float inductionTimeLimitSeconds = 540;
+        [Min(1)] public float setsChallengeTimeLimitSeconds = 300;
         [Min(0)] public float setsIncorrectPenaltySeconds = 10;
         [Min(1)] public float mappingTimeLimitSeconds = 600;
         [Min(0)] public float mappingIncorrectPenaltySeconds = 10;
@@ -63,7 +63,7 @@ namespace LogicLegends.OpenArchive.Topics
         public static double Clock => PhotonNetwork.InRoom ? PhotonNetwork.Time : Time.unscaledTimeAsDouble;
         public static double TimerClock => PhotonNetwork.InRoom ? PhotonNetwork.Time : Time.timeAsDouble;
         public static bool HasTopicTimer(int topic)=>topic>=0&&topic<=9;
-        float TopicTimeLimit(int topic)=>Mathf.Max(1,topic==9?treeTimeLimitSeconds:topic==8?graphTimeLimitSeconds:topic==7?mappingTimeLimitSeconds:topic==6?setsChallengeTimeLimitSeconds:topic==5?inductionTimeLimitSeconds:topic==4?proofMethodsTimeLimitSeconds:topic==3?proofsTimeLimitSeconds:topic==2?inferenceTimeLimitSeconds:topic==1?truthTimeLimitSeconds:propositionTimeLimitSeconds);
+        float TopicTimeLimit(int topic)=>Mathf.Max(1,(topic==9?treeTimeLimitSeconds:topic==8?graphTimeLimitSeconds:topic==7?mappingTimeLimitSeconds:topic==6?setsChallengeTimeLimitSeconds:topic==5?inductionTimeLimitSeconds:topic==4?proofMethodsTimeLimitSeconds:topic==3?proofsTimeLimitSeconds:topic==2?inferenceTimeLimitSeconds:topic==1?truthTimeLimitSeconds:propositionTimeLimitSeconds)*PacingMultiplier);
         public float TimerRemaining(ArchiveStationState state)
         {
             if(state.timerRunning)return Mathf.Clamp((float)(state.timerDeadline-TimerClock),0,state.timerLimit);
@@ -89,8 +89,8 @@ namespace LogicLegends.OpenArchive.Topics
             if(state.topic==7)ClearMappingInputs();
             if(state.topic==9)ClearTreeInputs();
             if(state.topic==8){state.routeActor=0;state.routeSampleValid=false;if(Question(8).graph.type!=LogicLegends.Graph.GraphChallengeType.Degree)ArchiveGraphTraversal.Invalidate(state,"Time up. Your route is kept for review; retry from the start after Book activation.");}
-            if(chargeMistake)RecordMistake(state.timerActor,0,state,"timeout");
-            state.feedback=chargeMistake?"Time up. One timeout mistake recorded for "+ActorName(state.timerActor)+". Solved challenges kept. Return to the Book Statue to retry this challenge.":"Time up after the incorrect submission. One mistake recorded; your work is kept. Return to the Book to retry.";
+            if(chargeMistake)RecordMistake(0,0,state,"timeout");
+            state.feedback=chargeMistake?"Time up. One TEAM timeout recorded; no player is blamed for a shared clock. Solved challenges kept. Return to the Book Statue to retry this challenge.":"Time up after the incorrect submission. One mistake recorded; your work is kept. Return to the Book to retry.";
             Touch(state);return true;
         }
 
@@ -114,6 +114,7 @@ namespace LogicLegends.OpenArchive.Topics
             if (!IsAuthority || catalog == null) return;
             ReleaseEscapedPlayers();
             State = new ArchiveTeamState { seed = seed, stations = Enumerable.Range(0, 10).Select(i => new ArchiveStationState { topic = i }).ToArray() };
+            InitializeFairness();
             questions.Clear();lastSubmit.Clear();localSequence=0;LocalNotice=""; Commit();
         }
         public ArchiveQuestion Question(int topic)
@@ -126,13 +127,13 @@ namespace LogicLegends.OpenArchive.Topics
         public void Request(int topic, ArchiveAction action, int a = -1, int b = -1)
         {
             if (!Ready || topic < 0 || topic >= 10 || !CanAct(LocalActor)) return;
-            LocalNotice=TopicLockNotice(topic);
-            if(!string.IsNullOrEmpty(LocalNotice))return;
+            string lockNotice=TopicLockNotice(topic);
+            if(!string.IsNullOrEmpty(lockNotice)){ShowLocalNotice(lockNotice);return;}
             var record = State.actors.FirstOrDefault(p => p.actor == LocalActor);
             if (record != null) localSequence = Math.Max(localSequence, record.lastSequence);
             var cmd = new ArchiveCommand { topic = topic, revision = State.stations[topic].revision, sequence = ++localSequence, action = action, a = a, b = b };
-            if (IsAuthority) Accept(LocalActor, cmd);
-            else PhotonNetwork.RaiseEvent(CommandEvent, new object[] { Channel, JsonUtility.ToJson(cmd) }, new RaiseEventOptions { Receivers = ReceiverGroup.MasterClient }, SendOptions.SendReliable);
+            StampCommandContext(cmd);
+            DispatchCommand(cmd);
         }
         public Player ActorPlayer(int actor)
         {
@@ -163,12 +164,15 @@ namespace LogicLegends.OpenArchive.Topics
         public bool Accept(int actor, ArchiveCommand cmd)
         {
             if (!IsAuthority || !Ready || cmd == null || cmd.topic < 0 || cmd.topic >= 10 || !Enum.IsDefined(typeof(ArchiveAction), cmd.action)) return false;
+            if(!string.IsNullOrEmpty(cmd.matchId)&&cmd.matchId!=State.matchId)return false;
             if (PhotonNetwork.InRoom && PhotonNetwork.CurrentRoom.GetPlayer(actor) == null) return false;
             if (cmd.action == ArchiveAction.AdminCompleteTopic || cmd.action == ArchiveAction.AdminResetTopic)
                 return AcceptTopicAdmin(actor, cmd);
             if (cmd.action == ArchiveAction.BarrierHint || cmd.action == ArchiveAction.BarrierAnswer)
                 return AcceptBarrierLearning(actor, cmd);
             if (cmd.action == ArchiveAction.RequestHint) return AcceptLearningHint(actor, cmd);
+            if (cmd.action == ArchiveAction.SetT1Input || cmd.action == ArchiveAction.ConfirmT1Input) return AcceptT1Input(actor,cmd);
+            if (cmd.action == ArchiveAction.BonusInteract) return AcceptBonusInteraction(actor,cmd);
             if(ExpireTopicTimer(State.stations[cmd.topic]))return false;
             if (!CanAct(actor) || !Near(actor, cmd.topic, Vector3.zero, 14)) return false;
             var record = State.actors.FirstOrDefault(p => p.actor == actor);
@@ -176,7 +180,7 @@ namespace LogicLegends.OpenArchive.Topics
             if (cmd.sequence <= record.lastSequence) return false;
             record.lastSequence = cmd.sequence;
             var s = State.stations[cmd.topic]; var station = stations[cmd.topic];
-            if (cmd.revision != s.revision) return false;
+            if (!CanApplyCommandContext(cmd,s)) return false;
             int activeTopic=ActiveTopic;
             if(activeTopic>=0&&activeTopic!=cmd.topic)
             {
@@ -193,10 +197,14 @@ namespace LogicLegends.OpenArchive.Topics
                 if(s.topic==8)s.routeActor=0;
                 if(s.topic==9)ClearTreeInputs();
                 if(HasTopicTimer(s.topic))StartTopicTimer(s,actor);
-                s.feedback = "Challenge active. Your team shares this work."; Touch(s); return true;
+                BeginTopicRelay(s.topic);
+                s.feedback = "Challenge active. Your team shares this work. Optional support relay is open until this whole topic is complete."; Touch(s); return true;
             }
             if (s.phase != 1) return false;
             var q = Question(cmd.topic);
+            int previousSelection=s.selection,previousFlags=s.flags;
+            int placedItem=cmd.action==ArchiveAction.Place?s.carries.FirstOrDefault(c=>c.actor==actor)?.item??-1:-1;
+            int previousPlacement=cmd.action==ArchiveAction.Place&&cmd.a>=0&&cmd.a<s.placements.Length?s.placements[cmd.a]:-1;
             switch (cmd.action)
             {
                 case ArchiveAction.BeginChoice:
@@ -216,10 +224,12 @@ namespace LogicLegends.OpenArchive.Topics
                     s.carries.Add(new ArchiveCarry { actor = actor, item = cmd.a }); break;
                 case ArchiveAction.ReturnItem:
                     if (!s.carries.Any(c => c.actor == actor)) return false;
+                    if(cmd.contextVersion==1&&s.carries.First(c=>c.actor==actor).item!=cmd.expectedHeld)return false;
                     ReleaseCarried(actor); break;
                 case ArchiveAction.Place:
                     if (cmd.a < 0 || cmd.a >= q.slots.Length || !Near(actor, cmd.topic, station.SlotPosition(cmd.a, q), 2.2f)) return false;
                     var held = s.carries.FirstOrDefault(c => c.actor == actor); if (held == null) return false;
+                    if(cmd.contextVersion==1&&(held.item!=cmd.expectedHeld||!q.regionPlacement&&s.placements[cmd.a]!=cmd.expectedSlot))return false;
                     if (q.regionPlacement) s.placements[held.item] = cmd.a;
                     else { if (cmd.a >= s.placements.Length) return false; s.placements[cmd.a] = held.item; }
                     s.carries.Remove(held); break;
@@ -231,7 +241,7 @@ namespace LogicLegends.OpenArchive.Topics
                         if (cmd.a < 0 || cmd.a >= q.inputLabels.Length || !Near(actor, cmd.topic, station.InputPosition(cmd.a), 2.4f)) return false;
                         record.mappingInput = cmd.a; record.mappingRound = s.round; break;
                     }
-                    if(q.mapping!=null&&!Near(actor,cmd.topic,ArchiveMappingPresentation.AnswerPosition(q.mapping.questionKind==MappingQuestionKind.SelectProperties?Array.IndexOf(new[]{2,4,8},cmd.a):cmd.a),2.4f))return false;
+                    if(q.mapping!=null&&!Near(actor,cmd.topic,ArchiveMappingPresentation.AnswerPosition(q.mapping.questionKind==MappingQuestionKind.SelectProperties?Array.IndexOf(ArchiveMappingPresentation.PropertyValues,cmd.a):cmd.a),2.4f))return false;
                     if (!Select(q,s,cmd.a)) return false; break;
                 case ArchiveAction.Connect: case ArchiveAction.Remove:
                     if (q.mapping != null)
@@ -263,6 +273,8 @@ namespace LogicLegends.OpenArchive.Topics
                     lastSubmit[attemptKey] = Clock;if(q.graph!=null&&q.graph.type!=LogicLegends.Graph.GraphChallengeType.Degree)SampleRoute(s,q);Submit(actor,cmd.sequence,s,q); return true;
                 default:return false;
             }
+            RecordWorkCredit(actor,cmd,s,q,previousSelection,previousFlags,placedItem,previousPlacement);
+            record.contributions++;
             Touch(s); return true;
         }
         bool Select(ArchiveQuestion q,ArchiveStationState s,int value)
@@ -270,7 +282,7 @@ namespace LogicLegends.OpenArchive.Topics
             if (q.mapping != null)
             {
                 if (q.mapping.questionKind == MappingQuestionKind.ClassifyFunction) { if(value<0||value>2)return false;s.selection=value;return true; }
-                if (q.mapping.questionKind == MappingQuestionKind.SelectProperties) { if(value!=2&&value!=4&&value!=8)return false;s.flags^=value;return true; }
+                if (q.mapping.questionKind == MappingQuestionKind.SelectProperties) { if(value==0){s.flags=0;s.selection=3;return true;}if(value!=2&&value!=4&&value!=8)return false;s.flags^=value;s.selection=-1;return true; }
                 return false;
             }
             if(q.activity==ArchiveActivity.Method){if(value<0||value>2)return false;s.selection=value;return true;}
@@ -290,6 +302,9 @@ namespace LogicLegends.OpenArchive.Topics
         void Submit(int actor,int sequence,ArchiveStationState s,ArchiveQuestion q)
         {
             bool correct=ArchiveTopicQuestions.Validate(q,s,out string feedback);
+            if(correct)RecordSolvedMilestone(actor,s,q);
+            var contributor=State.actors.FirstOrDefault(a=>a.actor==actor);
+            if(contributor!=null){contributor.answers++;if(correct){contributor.correctAnswers++;if(State.learningHints.Any(h=>h.topic==s.topic&&h.round==s.round&&h.subphase==s.subphase&&h.resetSerial==s.testResetSerial&&h.level>0))contributor.assistedAnswers++;}}
             if(s.topic>=0&&s.topic<=9)
             {
                 s.answerSerial++;s.lastAnswerActor=actor;s.lastAnswerChoice=s.selection;s.lastAnswerRound=s.round;
@@ -329,10 +344,11 @@ namespace LogicLegends.OpenArchive.Topics
                     if(s.topic==7&&s.phase==0){s.links.Clear();s.selection=-1;s.flags=0;}
                     if(s.topic==8&&s.phase==0){s.route.Clear();s.routeEdge=-1;s.routeCrossedMiddle=false;s.routeAtVertex=false;s.routeReason="";s.selection=-1;}
                     if(s.topic==9&&s.phase==0){s.links.Clear();s.selection=-1;s.flags=-1;}
-                    s.feedback=s.phase==2?"Topic complete for the team!":"Correct! Use the book to start the next challenge.";
+                    s.feedback=s.phase==2?"Topic complete for the team! Optional relay is now closed.":"Correct! Use the book to start the next challenge.";
                     s.carries.Clear();
                     if(HasTopicTimer(s.topic)&&s.phase==2){s.timerSavedRemaining=TimerRemaining(s);s.timerRunning=false;}
                 }
+                if(s.phase==2)CloseTopicRelay(s.topic);
             }
             else
             {
@@ -356,13 +372,13 @@ namespace LogicLegends.OpenArchive.Topics
         void RecordMistake(int actor,int sequence,ArchiveStationState state,string reason)
         {
             var record=State.actors.FirstOrDefault(a=>a.actor==actor);
-            if(record==null){record=new ArchiveActor{actor=actor,displayName=ActorName(actor)};State.actors.Add(record);}
-            record.mistakes++;
+            if(actor!=0){if(record==null){record=new ArchiveActor{actor=actor,displayName=ActorName(actor)};State.actors.Add(record);}record.mistakes++;}
             State.mistakes.Add(new ArchiveMistake{actor=actor,topic=state.topic,round=state.round,revision=state.revision,sequence=sequence,time=Clock,reason=reason});
             if(hunting!=null)hunting.Request(KhezuCommand.AddMistake);
         }
         public string ActorName(int actor)
         {
+            if(actor==0)return "Team";
             if(actor==-1)return "Local explorer";
             string current=PhotonNetwork.InRoom?PhotonNetwork.CurrentRoom.GetPlayer(actor)?.NickName:null;
             if(!string.IsNullOrWhiteSpace(current))return current;
@@ -376,6 +392,7 @@ namespace LogicLegends.OpenArchive.Topics
         void Touch(ArchiveStationState s){s.revision++;Commit();}
         void Commit()
         {
+            NormalizeCooperation();
             AdvanceExitProgress();
             SyncEscapedPlayers();
             State.revision++;Changed?.Invoke();
@@ -388,11 +405,14 @@ namespace LogicLegends.OpenArchive.Topics
         }
         void Update()
         {
+            UpdateCommandReceipts();
+            ConfigureEncounterPacing();
             if (Time.unscaledTime >= nextExitSync) { nextExitSync=Time.unscaledTime+.1f; SyncEscapedPlayers(); }
             if(!Ready||!IsAuthority||Time.unscaledTime<nextTick||Time.timeScale<=0)return;
             if(roomMode!=PhotonNetwork.InRoom){enabled=false;return;}
             nextTick=Time.unscaledTime+.1f;
             TickLearningEncounter();
+            TickT1Coop();
             if (AdvanceExitProgress()) Commit();
             if (TeamWon) return;
             int activeTopic=ActiveTopic;
@@ -439,8 +459,10 @@ namespace LogicLegends.OpenArchive.Topics
             if(data.Code==SnapshotEvent&&data.Sender==PhotonNetwork.MasterClient.ActorNumber&&!IsAuthority)Receive(json,false);
             else if(data.Code==CommandEvent&&IsAuthority&&json.Length<2048)
             {
-                try{Accept(data.Sender,JsonUtility.FromJson<ArchiveCommand>(json));}catch(Exception e){Debug.LogWarning("Rejected malformed topic command: "+e.GetType().Name);}
+                try{AcceptWithReceipt(data.Sender,JsonUtility.FromJson<ArchiveCommand>(json));}catch(Exception e){Debug.LogWarning("Rejected malformed topic command: "+e.GetType().Name);}
             }
+            else if(data.Code==CommandReceiptEvent&&data.Sender==PhotonNetwork.MasterClient.ActorNumber&&!IsAuthority)
+                ReceiveCommandReceipt(json);
         }
         void Receive(string json,bool initial)
         {
@@ -448,7 +470,8 @@ namespace LogicLegends.OpenArchive.Topics
             {
                 var state=JsonUtility.FromJson<ArchiveTeamState>(json);
                 if(state==null||state.version!=1||state.stations==null||state.stations.Length!=10||(!initial&&State!=null&&state.revision<=State.revision))return;
-                State=state;NormalizeExit();NormalizeLearning();questions.Clear();trustedSnapshot=json;SyncEscapedPlayers();Changed?.Invoke();
+                if(State!=null&&State.matchId!=state.matchId)pendingCommands.Clear();
+                State=state;NormalizeExit();NormalizeLearning();NormalizeCooperation();questions.Clear();trustedSnapshot=json;SyncEscapedPlayers();Changed?.Invoke();
             }
             catch(Exception e){Debug.LogWarning("Ignored malformed topic snapshot: "+e.GetType().Name);}
         }

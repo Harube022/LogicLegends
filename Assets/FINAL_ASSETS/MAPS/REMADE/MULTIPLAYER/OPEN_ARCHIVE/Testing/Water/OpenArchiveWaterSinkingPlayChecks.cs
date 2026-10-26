@@ -50,7 +50,7 @@ namespace LogicLegends.Tests.Water
             water=FindFirstObjectByType<OpenArchiveWater>();safety=water.GetComponent<OpenArchiveWaterSinking>();visual=player.GetComponentInChildren<PlayerAnimator>().transform;
             var session=FindFirstObjectByType<OpenArchiveExplorationSession>();var h=FindFirstObjectByType<KhezuHuntingController>();
             var oldPosition=player.transform.position;var oldRotation=player.transform.rotation;var originalVisual=visual.localPosition;
-            bool oldSession=session.enabled,oldBlock=GameInput.Instance.GameplayInputBlocked;float oldScale=Time.timeScale;
+            bool oldSession=session.enabled,oldBlock=GameInput.Instance.GameplayInputBlocked,oldHunting=h.enabled;float oldScale=Time.timeScale;
             float oldGrace=safety.safeWaterSeconds,oldSink=safety.sinkingSeconds,oldRecovery=safety.dryRecoverySeconds;
             player.OnJumpStarted+=Jumped;report.checkedUtc=DateTime.UtcNow.ToString("o");
             try{
@@ -59,6 +59,8 @@ namespace LogicLegends.Tests.Water
                 // Finish awakening first so this check does not depend on the grace period exceeding the wake clips.
                 h.Request(KhezuCommand.ForceFourMistakes);float awakeDeadline=Time.time+25;
                 while(h.State!=KhezuHuntState.Hunting && Time.time<awakeDeadline)yield return null;
+                // Isolate recovery physics from a legitimate capture immediately on reaching the bank.
+                h.enabled=false;var nav=h.GetComponent<UnityEngine.AI.NavMeshAgent>();if(nav.enabled&&nav.isOnNavMesh)nav.isStopped=true;
                 Place(root.TransformPoint(Polar(30,35.5f)),true);yield return new WaitForSeconds(.25f);
                 float originalRootY=player.transform.position.y;int returns=safety.ForcedReturnCount;
                 yield return new WaitForSeconds(2);
@@ -81,9 +83,10 @@ namespace LogicLegends.Tests.Water
                 Record("Full submersion produces exactly one forced return",safety.ForcedReturnCount==returns+1);
                 int huntSerial=h.HuntSerial,target=h.TargetPlayerId,captures=h.CaptureSerial;
                 yield return new WaitForSeconds(.3f);
-                var delta=player.transform.position-safety.returnSpawn.position;delta.y=0;
-                Record("Return uses grounded original spawn and restores visual and movement",delta.magnitude<1 && capsule.isGrounded && visual.localPosition==originalVisual && player.MovementSpeedMultiplier==1 && player.enabled && safety.LocalWaterSeconds==0);
-                Record("Original hunt continues without fabricated capture or rotation reset",huntSerial==1 && target==-1 && h.HuntSerial==huntSerial && h.TargetPlayerId==target && h.CaptureSerial==captures && (h.State==KhezuHuntState.Hunting || h.State==KhezuHuntState.NavigationBlocked));
+                var delta=player.transform.position-root.TransformPoint(Polar(30,35.5f));delta.y=0;
+                Record("Return uses a nearby dry bank, restores movement and preserves exhaustion",delta.magnitude<=safety.maximumShoreReturnDistance+1 && capsule.isGrounded && !water.IsInWater(capsule) && visual.localPosition==originalVisual && player.MovementSpeedMultiplier==1 && player.enabled && safety.LocalWaterSeconds>=oldGrace+oldSink);
+                Record("Shore recovery preserves the active hunt identity and target",huntSerial>0 && target==-1 && h.HuntSerial==huntSerial && h.TargetPlayerId==target && h.CaptureSerial==captures && (h.State==KhezuHuntState.Hunting || h.State==KhezuHuntState.NavigationBlocked));
+                h.enabled=true;
                 h.Request(KhezuCommand.ResetHunt);
                 safety.safeWaterSeconds=100;
                 float bank=Bank();var shelf=root.TransformPoint(Polar(30,bank+1.2f/root.lossyScale.x));
@@ -116,7 +119,7 @@ namespace LogicLegends.Tests.Water
                 Time.timeScale=oldScale;Input(Vector3.zero);player.enabled=true;player.OnJumpStarted-=Jumped;
                 safety.enabled=false;safety.safeWaterSeconds=oldGrace;safety.sinkingSeconds=oldSink;safety.dryRecoverySeconds=oldRecovery;
                 capsule.enabled=false;player.transform.SetPositionAndRotation(oldPosition,oldRotation);capsule.enabled=true;player.ResetMotionAfterTeleport();
-                safety.enabled=true;session.enabled=oldSession;GameInput.Instance.SetGameplayInputBlocked(oldBlock);h.Request(KhezuCommand.Sleep);
+                safety.enabled=true;session.enabled=oldSession;GameInput.Instance.SetGameplayInputBlocked(oldBlock);h.Request(KhezuCommand.Sleep);h.enabled=oldHunting;
                 report.passed=report.checks.Count>0 && report.checks.TrueForAll(c=>c.passed);Directory.CreateDirectory(Reports);
                 File.WriteAllText(Reports+"/SinkingPlayMode.json",JsonUtility.ToJson(report,true));Debug.Log("Water sinking checks: "+report.checks.FindAll(c=>c.passed).Count+"/"+report.checks.Count);Destroy(gameObject);
             }

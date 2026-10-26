@@ -29,10 +29,16 @@ namespace LogicLegends.OpenArchive.Topics
     }
 
     public enum ArchiveActivity { Choice, Truth, Premises, Sort, Order, Method, Induction, Sets, Mapping, Graph, Tree }
-    public enum ArchiveAction { Start, Pick, Place, Select, Submit, Connect, Remove, Undo, RetryRoute, BeginChoice, ReturnItem, ClearSelection, AdminCompleteTopic, AdminResetTopic, RequestHint, BarrierHint, BarrierAnswer }
+    public enum ArchiveAction { Start, Pick, Place, Select, Submit, Connect, Remove, Undo, RetryRoute, BeginChoice, ReturnItem, ClearSelection, AdminCompleteTopic, AdminResetTopic, RequestHint, BarrierHint, BarrierAnswer, SetT1Input, ConfirmT1Input, BonusInteract }
     [Serializable] public sealed class ArchiveCarry { public int actor, item; }
     [Serializable] public sealed class ArchiveMistake { public int actor, topic, round, revision, sequence; public double time; public string reason; }
-    [Serializable] public sealed class ArchiveActor { public int actor, mistakes, lastSequence, mappingInput = -1, mappingRound = -1, treeFirst=-1, treeSecond=-1, treeRound=-1; public string displayName; }
+    [Serializable] public sealed class ArchiveActor
+    {
+        public int actor, mistakes, lastSequence, mappingInput = -1, mappingRound = -1, treeFirst=-1, treeSecond=-1, treeRound=-1;
+        public int contributions, answers, correctAnswers, assistedAnswers, hintsUsed;
+        public int qualityMilestones;
+        public string displayName;
+    }
     [Serializable] public sealed class ArchiveStationState
     {
         public int topic, round, revision, phase, subphase, selection = -1, flags;
@@ -60,16 +66,59 @@ namespace LogicLegends.OpenArchive.Topics
         public string routeReason="";
         public Vector3 lastRoutePosition;
         public string feedback = "Use the book to begin.", reveal = "";
+        public List<ArchiveWorkCredit> workCredits = new List<ArchiveWorkCredit>();
     }
     [Serializable] public sealed class ArchiveTeamState
     {
         public int version = 1, seed, revision;
+        public int pacingVersion, pacingPlayers;
+        public bool learningPace;
+        public string matchId;
+        public List<ArchiveQualityCredit> quality = new List<ArchiveQualityCredit>();
+        public List<ArchiveSolvedMilestone> solved = new List<ArchiveSolvedMilestone>();
+        public ArchiveT1CoopState coop = new ArchiveT1CoopState();
+        public List<ArchiveT1CoopState> topicRelays = new List<ArchiveT1CoopState>();
+        public List<ArchiveT1CoopState> completedRelays = new List<ArchiveT1CoopState>();
         public ArchiveStationState[] stations;
         public List<ArchiveActor> actors = new List<ArchiveActor>();
         public List<ArchiveMistake> mistakes = new List<ArchiveMistake>();
         public ArchiveExitState exit = new ArchiveExitState();
         public ArchiveBarrierChallengeState barrier = new ArchiveBarrierChallengeState();
         public List<ArchiveLearningHint> learningHints = new List<ArchiveLearningHint>();
+    }
+    [Serializable] public sealed class ArchiveWorkCredit { public string key; public int actor; }
+    [Serializable] public sealed class ArchiveQualityCredit { public string key; public int actor; }
+    [Serializable] public sealed class ArchiveSolvedMilestone
+    {
+        public int topic, round, subphase;
+        public int[] contributors;
+    }
+    [Serializable] public sealed class ArchiveT1CoopState
+    {
+        public int policyVersion, serial, topic, round=-1, actorP, actorQ, assignmentRevision, attempts;
+        public string connective, feedback="", explanation="";
+        public bool p,q,pSet,qSet,open,completed,closed;
+        public bool target,pConfirmed,qConfirmed,reducedTeam,recoveryPending;
+        public double startedAt,openedAt;
+        public List<int> crossed = new List<int>();
+        public List<ArchiveT1Traversal> traversals = new List<ArchiveT1Traversal>();
+        // Topic-specific optional work is checkpointed by the existing team owner.
+        public int[] bonusValues = Array.Empty<int>();
+        public List<int> bonusLinks = new List<int>(), bonusRoute = new List<int>();
+        public List<ArchiveWorkCredit> bonusCredits = new List<ArchiveWorkCredit>();
+        public List<ArchiveCarry> bonusCarries = new List<ArchiveCarry>();
+        public int bonusHeld=-1,bonusHolder,bonusFirst=-1,bonusSecond=-1,bonusFirstActor;
+        public int bonusRouteActor,bonusEdge=-1;
+        public bool bonusRouteActive,bonusRouteValid,bonusCrossedMiddle,bonusAtNode,bonusSampleValid;
+        public Vector3 bonusLastPosition;
+        public double bonusLastAt;
+    }
+    [Serializable] public sealed class ArchiveT1Traversal
+    {
+        public int actor;
+        public bool valid,crossedMiddle;
+        public double enteredAt,lastAt;
+        public Vector3 lastPosition;
     }
     [Serializable] public sealed class ArchiveExitState
     {
@@ -85,9 +134,20 @@ namespace LogicLegends.OpenArchive.Topics
     }
     [Serializable] public sealed class ArchiveCommand
     {
-        public int topic, revision, sequence, a = -1, b = -1;
+        public int topic, revision, sequence, a = -1, b = -1, c = -1;
+        // Revision alone cannot distinguish another player's independent edit from a new question.
+        public int contextVersion, round, subphase, resetSerial, phase, expectedHeld = -1, expectedSlot = -1;
+        public string matchId;
+        public string workStamp;
         public int captureSerial, encounterHuntSerial;
         public ArchiveAction action;
+    }
+    [Serializable] public sealed class ArchiveCommandReceipt
+    {
+        public int sequence;
+        public string matchId;
+        public bool accepted;
+        public string message;
     }
 
     // A presentation-neutral adapter. The original solo controllers and timers never run here.
@@ -95,6 +155,7 @@ namespace LogicLegends.OpenArchive.Topics
     {
         public ArchiveActivity activity;
         public string title, prompt, instructions, successText;
+        public string difficulty = "", moduleReference = "";
         public string[] items = Array.Empty<string>(), details = Array.Empty<string>(), slots = Array.Empty<string>();
         public int[] expected = Array.Empty<int>(), itemOrder = Array.Empty<int>();
         public int setGroup=-1,setEntry=-1;

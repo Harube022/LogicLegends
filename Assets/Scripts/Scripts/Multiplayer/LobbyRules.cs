@@ -6,8 +6,8 @@ using NetPlayer = Photon.Realtime.Player;
 public static class LobbyRules
 {
     public const string CodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    // All clients must initialize the same room-selected monster and recovery protocol.
-    public const string Protocol = "LL-private-lobby-7";
+    // Seeded curriculum pools and assignment-bound relays require identical content on every peer.
+    public const string Protocol = "LL-private-lobby-11";
     public const int RecoverySeatMilliseconds = 45000;
     public const float RecoverySeconds = 30f;
     public const int RecoveryAttempts = 4;

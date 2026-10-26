@@ -156,7 +156,7 @@ namespace LogicLegends.OpenArchive.Topics
             {
                 body += "<b>YOUR HINTS · " + level + " / 3</b>\n";
                 if (level == 0) body += ArchiveLearningFeedback.Hint(guideTopic, session.Question(guideTopic), s, 0);
-                for (int i = level; i >= 1; i--) body += ArchiveLearningFeedback.Hint(guideTopic, session.Question(guideTopic), s, i) + "\n\n";
+                for (int i = level; i >= 1; i--) body += session.LearningHintText(guideTopic,session.LocalActor,i) + "\n\n";
                 if (!session.Near(session.LocalActor, guideTopic, Vector3.zero, 14)) body += "\nReturn to this topic's arena to request another hint.";
                 body += "\n\n<b>TEAM FEEDBACK</b>\n" + s.feedback + "\n\n";
             }
@@ -164,6 +164,7 @@ namespace LogicLegends.OpenArchive.Topics
             var b = session.State.barrier;
             if (b.actor == session.LocalActor && b.outcome != 0)
                 body = "<b>LAST BARRIER REVIEW</b>\n" + session.BarrierProblem().prompt + "\n\n" + b.feedback + "\n\n" + body;
+            body += "<b>COOPERATIVE PLAY</b>\n" + session.CooperationGuide(guideTopic) + "\n\n";
             float position = newHint ? 1 : guideScroll.verticalNormalizedPosition; guideBody.text = body + lesson; Canvas.ForceUpdateCanvases(); guideScroll.verticalNormalizedPosition = position;
         }
         void RefreshBarrier()

@@ -122,7 +122,7 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         start.gameObject.SetActive(PhotonNetwork.IsMasterClient);
         start.interactable = service.CanStart && !service.Busy;
         leave.interactable = !service.Busy;
-        startHint.text = service.Starting ? "Starting together..." : service.Players.Length < 2 ? "Invite at least one friend to start."
+        startHint.text = service.Starting ? "Starting together..." : service.WaitingForReconnect ? "Waiting for a teammate to reconnect. Their slot is reserved." : service.Players.Length < 2 ? "Invite at least one friend to start."
             : service.CanStart ? "Everyone is ready. The host can start!" : "Everyone must be ready. Only the host can start.";
     }
 

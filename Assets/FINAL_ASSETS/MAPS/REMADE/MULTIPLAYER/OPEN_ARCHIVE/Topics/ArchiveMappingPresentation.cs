@@ -11,8 +11,9 @@ namespace LogicLegends.OpenArchive.Topics
     [DisallowMultipleComponent]
     public sealed class ArchiveMappingPresentation:MonoBehaviour
     {
-        public static readonly string[] ClassificationNames={"Function Only","Not a Function","Relation Only"};
-        public static readonly string[] PropertyNames={"Injective","Surjective","Bijective"};
+        public static readonly string[] ClassificationNames={"Function","Invalid pair","Not a function"};
+        public static readonly string[] PropertyNames={"Injective","Surjective","Bijective","None of these"};
+        public static readonly int[] PropertyValues={2,4,8,0};
         public GameObject emitterPrefab,receiverPrefab,answerPrefab;
         public Mesh arrowMesh,sparkMesh;
         public Material beamMaterial,arrowMaterial,sparkMaterial;
@@ -30,7 +31,7 @@ namespace LogicLegends.OpenArchive.Topics
         public Transform[] PortRoots=>ports.ToArray();
         public Transform[] AnswerRoots=>answers.ToArray();
         public static Vector3 AnswerPosition(int index)=>new Vector3((index-1)*3.6f,.08f,-6.3f);
-        public static bool ReadyToCheck(ArchiveQuestion q,ArchiveStationState s)=>s.phase==1&&(q.mapping.questionKind==MappingQuestionKind.BuildExactRelation?s.links.Count>(q.mapping.initialPairsLocked?q.mapping.initialPairs.Count:0):q.mapping.questionKind==MappingQuestionKind.ClassifyFunction?s.selection>=0&&s.selection<=2:s.flags!=0);
+        public static bool ReadyToCheck(ArchiveQuestion q,ArchiveStationState s)=>s.phase==1&&(q.mapping.questionKind==MappingQuestionKind.BuildExactRelation?s.links.Count>(q.mapping.initialPairsLocked?q.mapping.initialPairs.Count:0):q.mapping.questionKind==MappingQuestionKind.ClassifyFunction?s.selection>=0&&s.selection<=2:s.flags!=0||s.selection==3);
         public static bool Fixed(int link,ArchiveQuestion q)=>q.mapping.initialPairsLocked&&q.mapping.initialPairs.Any(p=>Array.IndexOf(q.inputLabels,p.domain)*100+Array.IndexOf(q.outputLabels,p.codomain)==link);
         public static string RangeText(ArchiveQuestion q,ArchiveStationState s)=>"Range = { "+string.Join(", ",q.outputLabels.Where((label,index)=>s.links.Any(link=>link%100==index)))+" }";
         public static bool NearRange(ArchiveTopicSession session)=>Enumerable.Range(0,session.Question(7).outputLabels.Length).Any(i=>session.Near(session.LocalActor,7,session.stations[7].OutputPosition(i),2.4f));
@@ -49,9 +50,9 @@ namespace LogicLegends.OpenArchive.Topics
                 var go=Instantiate(side==0?emitterPrefab:receiverPrefab,owner.workRoot);go.name=(side==0?"Domain_Crystal_":"Codomain_Crystal_")+i;go.transform.localPosition=side==0?owner.InputPosition(i):owner.OutputPosition(i);go.GetComponentInChildren<TMP_Text>(true).text=(side==0?q.inputLabels[i]:q.outputLabels[i]);ports.Add(go.transform);
                 if(editing)Point(go,side==0?ArchivePointRole.Input:ArchivePointRole.Output,i,side==0?"Select Domain "+q.inputLabels[i]:"Connect to Codomain "+q.outputLabels[i]);
             }
-            if((s.phase==1||s.timerExpired)&&q.mapping.questionKind!=MappingQuestionKind.BuildExactRelation)for(int i=0;i<3;i++){
+            if((s.phase==1||s.timerExpired)&&q.mapping.questionKind!=MappingQuestionKind.BuildExactRelation)for(int i=0;i<(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction?3:4);i++){
                 var go=Instantiate(answerPrefab,owner.workRoot);go.name="Mapping_Answer_Seal_"+i;go.transform.localPosition=AnswerPosition(i);go.GetComponentInChildren<TMP_Text>(true).text=q.mapping.questionKind==MappingQuestionKind.ClassifyFunction?ClassificationNames[i]:PropertyNames[i];answers.Add(go.transform);
-                if(s.phase==1)Point(go,ArchivePointRole.Select,q.mapping.questionKind==MappingQuestionKind.ClassifyFunction?i:new[]{2,4,8}[i],"Choose "+go.GetComponentInChildren<TMP_Text>(true).text);
+                if(s.phase==1)Point(go,ArchivePointRole.Select,q.mapping.questionKind==MappingQuestionKind.ClassifyFunction?i:PropertyValues[i],"Choose "+go.GetComponentInChildren<TMP_Text>(true).text);
             }
             Refresh(s);
         }
@@ -77,7 +78,7 @@ namespace LogicLegends.OpenArchive.Topics
             var q=question;bool wrong=s.phase==1&&s.lastAnswerRound==s.round&&s.lastAnswerResult<0&&ArchiveTopicSession.Clock-s.lastAnswerAt<.65;
             foreach(var pair in beams){Color color=s.phase==2?Green:wrong?Red:Fixed(pair.Key,q)?Amber:Blue;Tint(pair.Value,color);Tint(arrows[pair.Key],color);}
             for(int i=0;i<ports.Count;i++){bool input=i<q.inputLabels.Length;int index=input?i:i-q.inputLabels.Length;bool used=!input&&s.links.Any(link=>link%100==index);var core=ports[i].Find("Crystal_Pivot/Crystal").GetComponent<Renderer>();Tint(core,s.phase==2?Green:wrong?Red:input&&index==previousInput?Amber:input||used?Blue:Inactive);}
-            for(int i=0;i<answers.Count;i++){bool selected=q.mapping.questionKind==MappingQuestionKind.ClassifyFunction?s.selection==i:(s.flags&new[]{2,4,8}[i])!=0;Tint(answers[i].Find("Choice_Inlay").GetComponent<Renderer>(),selected?(wrong?Red:Blue):Inactive);}
+            for(int i=0;i<answers.Count;i++){bool selected=q.mapping.questionKind==MappingQuestionKind.ClassifyFunction?s.selection==i:i==3?s.selection==3:(s.flags&PropertyValues[i])!=0;Tint(answers[i].Find("Choice_Inlay").GetComponent<Renderer>(),selected?(wrong?Red:Blue):Inactive);}
             for(int i=0;i<progressMarks.Length;i++)Tint(progressMarks[i],i<s.round?Green:Inactive);
         }
         void Update(){

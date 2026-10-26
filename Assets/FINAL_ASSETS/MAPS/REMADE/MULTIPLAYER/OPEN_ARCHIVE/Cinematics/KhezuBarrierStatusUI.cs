@@ -60,7 +60,7 @@ namespace LogicLegends.OpenArchive.Cinematics
             else{
                 int seconds=Mathf.CeilToInt(hunt.BarrierSecondsRemaining);
                 caption.text="BARRIER  "+(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
-                fraction=hunt.BarrierSecondsRemaining/(float)KhezuHuntingController.BarrierChallengeSeconds;
+                fraction=hunt.BarrierSecondsRemaining/Mathf.Max(1,(float)(hunt.BarrierDeadline-hunt.BarrierStartedAt));
             }
             caption.color=stunned?new Color(1,.78f,.35f):hunt.BarrierResolving || hunt.BarrierSecondsRemaining<=30?new Color(1,.35f,.3f):new Color(1,.93f,.72f);
             fill.color=caption.color;fill.rectTransform.anchorMax=new Vector2(Mathf.Clamp01(fraction),1);

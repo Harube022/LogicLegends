@@ -39,6 +39,10 @@ namespace LogicLegends.OpenArchiveTesting
         public void ReturnToSpawn()
         {
             if (explorer == null || spawnPoint == null || explorer.IsMovementLocked) return;
+            var topics=LogicLegends.OpenArchive.Topics.ArchiveTopicSession.Current;
+            if(topics!=null&&topics.Ready&&topics.hunting!=null&&explorer.transform.position.y>=-8 &&
+                (topics.hunting.TargetPlayerId==topics.LocalActor||topics.hunting.CaughtPlayerId==topics.LocalActor))
+            {topics.ShowLocalNotice("Return to spawn is unavailable while you are being hunted. Reach safety on foot.");return;}
             if (GameInput.Instance != null) GameInput.Instance.SetMobileMovement(Vector2.zero);
             var joystick = MobileInputUI.FindJoystick();
             if (joystick != null) joystick.ResetJoystick();

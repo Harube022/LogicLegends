@@ -78,7 +78,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             yield return Place(0,q.expected[0]);yield return Place(1,q.expected[1]);var partial=State.placements.ToArray();string expression=q.prompt;
             Status="Timeout and retry";State.timerDeadline=ArchiveTopicSession.TimerClock-.01;yield return .3f;
             Check(State.timerExpired&&!State.timerRunning&&State.phase==0&&State.round==1&&State.placements.SequenceEqual(partial),"Timeout retains solved table and unfinished table's placed outputs");
-            Check(session.State.mistakes.Count==2&&session.State.mistakes.Last().actor==-1&&session.State.mistakes.Last().topic==1&&session.State.mistakes.Last().reason=="timeout","Timeout adds exactly one attributed T2 mistake");
+            Check(session.State.mistakes.Count==2&&session.State.mistakes.Last().actor==0&&session.State.mistakes.Last().topic==1&&session.State.mistakes.Last().reason=="timeout","Timeout adds exactly one shared T2 event");
             yield return .3f;Check(session.State.mistakes.Count==2,"Expired clock cannot repeatedly add mistakes");
             Book();yield return .2f;Check(State.timerAttempt==2&&!State.timerExpired&&State.placements.SequenceEqual(partial)&&session.Question(1).prompt==expression&&session.TimerRemaining(State)>359,"Book retry starts a fresh attempt while retaining the same unfinished expression and outputs");
             var serialized=JsonUtility.ToJson(session.State);typeof(ArchiveTopicSession).GetMethod("Receive",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(session,new object[]{serialized,true});yield return .1f;

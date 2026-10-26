@@ -74,7 +74,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             ArchiveTopicPlayChecks.MoveTo(station,station.ItemPosition(q.correctChoice,q));session.Request(0,ArchiveAction.BeginChoice,q.correctChoice);
             state.timerDeadline=ArchiveTopicSession.TimerClock-.01;yield return .3f;
             Check(state.timerExpired&&!state.timerRunning&&state.round==1&&state.phase==0&&state.channelActor==0,"Expiry cancels the unfinished rune without losing a solved challenge");
-            Check(session.State.mistakes.Count==2&&session.State.mistakes.Last().actor==-1&&session.State.mistakes.Last().reason=="timeout"&&state.timerTimeouts==1,"One timeout is attributed to the player who activated the challenge");
+            Check(session.State.mistakes.Count==2&&session.State.mistakes.Last().actor==0&&session.State.mistakes.Last().reason=="timeout"&&state.timerTimeouts==1,"One timeout is recorded for the team without blaming the Book activator");
             yield return .5f;Check(session.State.mistakes.Count==2,"Expired clock cannot charge repeatedly on later updates");
             Check(session.TimerRemaining(state)==0&&session.Question(0).prompt==prompt,"Timeout retains the unfinished question and shows zero time");
             ArchiveTopicUI.Current.Open(station);yield return .15f;
@@ -90,8 +90,10 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 Check(state.round==round+1,"Retry solves challenge "+(round+1));
                 if(round<4){ArchiveTopicPlayChecks.MoveTo(station,ArchiveTopicStation.BookPosition+Vector3.back*1.7f);session.Request(0,ArchiveAction.Start);yield return .15f;}
             }
-            Check(state.phase==2&&!state.timerRunning&&state.timerSavedRemaining>0,"Team completion stops and saves the remaining time");
+            Check(state.phase==ArchiveTopicSession.T1RelayPhase&&!state.timerRunning&&state.timerSavedRemaining>0,"Five accepted questions freeze the clock while the required relay stays pending");
             remaining=session.TimerRemaining(state);yield return .3f;Check(session.TimerRemaining(state)==remaining,"Completed timer remains frozen");
+            var relayFlow=ArchiveCoopOfflineChecks.CompletePendingRelay();while(relayFlow.MoveNext())yield return relayFlow.Current;
+            Check(state.phase==2&&session.TimerRemaining(state)==remaining,"Required relay completion releases T1 without resetting its frozen academic time");
             Check(session.State.stations.Skip(1).All(s=>s.phase==0&&s.round==0&&s.timerAttempt==0),"Timer does not alter the other nine topic states");
             Check(!Player.LocalInstance.IsMovementLocked&&Time.timeScale==1,"Book, labels and timer preserve native player movement and world time");
         }

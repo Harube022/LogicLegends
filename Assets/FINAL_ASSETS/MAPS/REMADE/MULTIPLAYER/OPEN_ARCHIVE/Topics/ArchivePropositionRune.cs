@@ -30,7 +30,7 @@ namespace LogicLegends.OpenArchive.Topics
             station=owner;art=palette;point=interaction;index=choice;round=state.round;
             letter.text=((char)('A'+index)).ToString();
             symbol.text=state.phase==1?ArchivePropositionNotation.Symbol(q.items[index]):state.phase==2?"+":"·";
-            answer.text=state.phase==1?q.items[index]:state.phase==2?"Team complete":"Awaiting the Book";
+            answer.text=state.phase==1?q.items[index]:state.phase==2?"Team complete":state.phase==ArchiveTopicSession.T1RelayPhase?"Solve the team relay":"Awaiting the Book";
             properties=new MaterialPropertyBlock();
             var bounds=labelRoot.gameObject.AddComponent<ArchiveWorldLabel>();bounds.size=new Vector2(3.9f,1.55f);bounds.point=point;
             channelArc.shadowCastingMode=ShadowCastingMode.Off;channelArc.receiveShadows=false;

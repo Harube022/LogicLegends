@@ -68,7 +68,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                     {int i=Enumerable.Range(0,q.items.Length).First(n=>!taken.Contains(n)&&q.items[n]==value);taken.Add(i);s.placements[i]=region;}break;
                 case ArchiveActivity.Mapping:
                     if(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction)s.selection=q.mapping.correctClassificationIndex;
-                    else if(q.mapping.questionKind==MappingQuestionKind.SelectProperties)s.flags=(int)q.mapping.correctProperties;
+                    else if(q.mapping.questionKind==MappingQuestionKind.SelectProperties){s.flags=(int)q.mapping.correctProperties;if(s.flags==0)s.selection=3;}
                     else s.links=q.mapping.requiredPairs.Select(p=>Array.IndexOf(q.inputLabels,p.domain)*100+Array.IndexOf(q.outputLabels,p.codomain)).ToList();break;
                 case ArchiveActivity.Graph:
                     if(q.graph.type==GraphChallengeType.Degree)s.selection=q.graph.Degree(q.graph.degreeVertex);

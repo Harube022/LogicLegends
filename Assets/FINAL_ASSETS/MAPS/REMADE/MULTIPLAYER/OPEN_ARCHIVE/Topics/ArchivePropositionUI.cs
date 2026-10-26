@@ -88,8 +88,10 @@ namespace LogicLegends.OpenArchive.Topics
             objective.gameObject.SetActive(near&&owner.ReadingStation==null);
             if(!near){if(IsOpen)owner.Close();return;}
             var state=session.State.stations[0];
+            bool relayPending=session.T1RelayPending;
             float remaining=session.TimerRemaining(state);int seconds=Mathf.CeilToInt(remaining);
             string timer=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
+            objectiveTimer.gameObject.SetActive(!relayPending);readerTimer.gameObject.SetActive(!relayPending);
             objectiveTimer.text=timer;readerTimer.text="TEAM TIME  "+timer;
             objectiveTimer.color=readerTimer.color=state.timerExpired||(state.timerRunning&&remaining<=30)?Red:Teal;
             if(revision!=session.State.revision){revision=session.State.revision;Refresh();}
@@ -104,12 +106,13 @@ namespace LogicLegends.OpenArchive.Topics
             float progress=state.channelActor==0?0:Mathf.Clamp01((float)((ArchiveTopicSession.Clock-state.channelStarted)/session.answerChannelSeconds));
             channelFill.fillAmount=progress;
             channelFill.rectTransform.anchorMax=new Vector2(progress,1);
+            channelFill.transform.parent.gameObject.SetActive(!relayPending);
             if(state.channelActor!=0)
             {
                 string text="Rune "+(char)('A'+state.channelChoice)+" · "+session.ActorName(state.channelActor)+" · "+Mathf.RoundToInt(progress*100)+"%";
                 objectiveState.text=text;feedback.text="Channeling "+text+". Stay inside the ring; step away to cancel.";feedback.color=Teal;
             }
-            else if(string.IsNullOrEmpty(lockNotice)&&!state.timerExpired&&(state.lastAnswerResult==0||ArchiveTopicSession.Clock-state.lastAnswerAt>2.2))
+            else if(!relayPending&&string.IsNullOrEmpty(lockNotice)&&!state.timerExpired&&(state.lastAnswerResult==0||ArchiveTopicSession.Clock-state.lastAnswerAt>2.2))
             {
                 var focus=owner.FocusedPoint;
                 if(focus!=null&&focus.station.topic==0)
@@ -160,6 +163,28 @@ namespace LogicLegends.OpenArchive.Topics
             instructions.text=state.phase==1?"Read-only choices. Answer at a world rune; tap Hand / E once and stay in its ring.":state.phase==2?"Shared team progress is saved. Explore the remaining topic clearings.":"Use the Book Statue to begin. The world stays active while you read.";
             feedback.text=state.feedback;feedback.color=state.lastAnswerResult<0&&state.feedback.StartsWith("Rune ")?Red:Ink;
             actionLabel.text=state.timerExpired?"Retry at Book":state.phase==0?(state.round==0?"Begin at Book":"Next at Book"):state.phase==2?"Explore":"Return to runes";
+            var relay=owner.session.State.coop;
+            if(owner.session.T1RelayPending&&relay!=null)
+            {
+                string target=relay.target?"TRUE":"FALSE";
+                objectiveTitle.text="T1  ·  TEAM RELAY";
+                objectiveQuestion.text=relay.open?"Assignment accepted. Walk from P to Q through the relay arch to clear T1.":"TARGET: "+target+"\nSet P and Q for "+relay.connective+". Each player confirms one rune.";
+                objectiveState.text=owner.session.T1RelayModeLabel;
+                title.text="T1  PROPOSITIONAL LOGIC\nRequired team relay · 5 / 5 challenges solved";
+                question.text="Make "+relay.connective+" evaluate "+target+". T1 clears after the passage is crossed.";
+                explanation.text=!string.IsNullOrWhiteSpace(relay.explanation)?relay.explanation:
+                    "1   Choose TRUE or FALSE at your P or Q rune.\n2   Confirm your own input.\n3   Reach the target output together.\n4   Walk through the open arch from P to Q.";
+                instructions.text=relay.open?"Walk through the arch. Amber warns; red briefly slows your movement.":
+                    relay.reducedTeam?"Set both values first, then confirm P and Q. "+owner.session.T1RelayModeLabel:
+                    "One teammate per rune. Both confirm their own input. "+owner.session.T1RelayModeLabel;
+                feedback.text=string.IsNullOrWhiteSpace(relay.feedback)?state.feedback:relay.feedback;feedback.color=relay.open?Green:Ink;
+                actionLabel.text="Return to relay";
+            }
+            else if(state.phase==2&&relay!=null&&relay.policyVersion>=2&&relay.completed)
+            {
+                question.text="Five challenges and the team relay are complete. The circle is restored.";
+                if(!string.IsNullOrWhiteSpace(relay.explanation))explanation.text=relay.explanation;
+            }
             string lockNotice=owner.session.TopicLockNotice(0);
             if(!string.IsNullOrEmpty(lockNotice))
             {

@@ -48,7 +48,9 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         }
         static void Log(string message,string stack,LogType type){if(type==LogType.Error||type==LogType.Exception||type==LogType.Assert)report.errors.Add(message);}
         static void Record(string name,bool pass){report.checks.Add(new Check{name=name,passed=pass});if(!pass)throw new InvalidOperationException(name);Save();}
-        static void Save(){Directory.CreateDirectory(ArchiveTopicSetup.Folder+"/Testing/Reports");File.WriteAllText(ArchiveTopicSetup.Folder+"/Testing/Reports/AllActivitiesPlayMode.json",JsonUtility.ToJson(report,true));}
+        // Progress reports are not Unity assets. Keeping frequently rewritten output in
+        // Temp avoids the importer holding the JSON file while the next check writes it.
+        static void Save(){Directory.CreateDirectory("Temp/ArchiveFlow");File.WriteAllText("Temp/ArchiveFlow/AllActivitiesPlayMode.json",JsonUtility.ToJson(report,true));}
         static void Finish(bool complete)
         {
             EditorApplication.update-=Tick;Application.logMessageReceived-=Log;run=null;
@@ -62,11 +64,13 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             for(int topic=0;topic<10;topic++)
             {
                 var station=session.stations[topic];var state=session.State.stations[topic];
+                Record("T"+(topic+1)+" optional relay is unavailable before first Book",!session.RelayAvailable(topic));
                 for(int round=0;round<ArchiveTopicCatalog.RoundCount(topic);round++)
                 {
                     Status="T"+(topic+1)+" / round "+(round+1);MoveTo(station,ArchiveTopicStation.BookPosition+Vector3.back*1.7f);
                     station.points.First(p=>p.role==ArchivePointRole.Book).Interact();yield return .12f;
                     Record(Status+" starts through the existing hand/Book action",state.phase==1);
+                    Record(Status+" keeps the optional activity available while this topic is active",session.RelayAvailable(topic));
                     Record(Status+" reserves this topic for the whole team",session.ActiveTopic==topic&&Enumerable.Range(0,10).Where(i=>i!=topic).All(i=>!session.CanStartTopic(i)));
                     while(state.round==round)
                     {
@@ -95,7 +99,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                             {
                                 if(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction){MoveTo(station,ArchiveMappingPresentation.AnswerPosition(solution.selection));Send(topic,ArchiveAction.Select,solution.selection);}
                                 else if(q.mapping.questionKind==MappingQuestionKind.SelectProperties)
-                                {foreach(int flag in new[]{2,4,8})if((solution.flags&flag)!=0){MoveTo(station,ArchiveMappingPresentation.AnswerPosition(Array.IndexOf(new[]{2,4,8},flag)));Send(topic,ArchiveAction.Select,flag);}}
+                                {if(solution.flags==0){MoveTo(station,ArchiveMappingPresentation.AnswerPosition(3));Send(topic,ArchiveAction.Select,0);}else foreach(int flag in new[]{2,4,8})if((solution.flags&flag)!=0){MoveTo(station,ArchiveMappingPresentation.AnswerPosition(Array.IndexOf(new[]{2,4,8},flag)));Send(topic,ArchiveAction.Select,flag);}}
                                 else foreach(int link in solution.links.Except(state.links).ToArray())
                                 {
                                     MoveTo(station,station.InputPosition(link/100));Send(topic,ArchiveAction.Select,link/100);yield return null;
@@ -140,13 +144,33 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                     Record(Status+" keeps the topic reserved until every round is solved",state.phase==2?session.ActiveTopic==-1:session.ActiveTopic==topic);
                     if(topic==2)Record(Status+" reveals the derived conclusion after the rule is correct",!string.IsNullOrWhiteSpace(state.reveal));
                 }
+                if(topic==0){var relayFlow=ArchiveCoopOfflineChecks.CompletePendingRelay();while(relayFlow.MoveNext())yield return relayFlow.Current;}
                 report.completedTopics++;Record("T"+(topic+1)+" completes once for the team",state.phase==2);
+                Record("T"+(topic+1)+" closes unfinished optional work immediately",session.Relay(topic).closed&&!session.RelayAvailable(topic)&&!session.Relay(topic).completed);
+                var late=new ArchiveCommand{topic=topic,action=ArchiveAction.SetT1Input,a=0,b=1,sequence=int.MaxValue,matchId=session.State.matchId,captureSerial=session.Relay(topic).serial};
+                Record("T"+(topic+1)+" rejects a delayed optional input after main completion",!session.Accept(-1,late));
                 if(topic==6){report.completedSetProblems=state.round;Record("Sets completes five challenges with exactly two problems each",state.round==10&&ArchiveTopicCatalog.SetChallengeCount==5&&ArchiveTopicCatalog.SetProblemsPerChallenge==2);}
             }
             Record("All ten topics complete",session.State.stations.All(s=>s.phase==2));
+            Record("Skipping all optional activities does not block the portal or invent bonuses",session.PortalOpened&&session.State.completedRelays.Count==0);
             Record("Correct work adds no mistakes",session.State.mistakes.Count==0);
             var roundtrip=JsonUtility.FromJson<ArchiveTeamState>(JsonUtility.ToJson(session.State));
             Record("Checkpoint preserves all ten completed topics",roundtrip.stations.All(s=>s.phase==2));
+            Status="Complete topic journey reaches the portal";
+            Record("The ten real completed topic flows open the existing victory portal",session.PortalOpened&&session.exitPortal!=null);
+            var portal=session.exitPortal;float untilPortal=Time.realtimeSinceStartup+8;
+            while(!portal.Formed&&Time.realtimeSinceStartup<untilPortal)yield return .05f;
+            Record("The portal finishes forming after the actual last topic answer",portal.Formed);
+            var explorer=Player.LocalInstance;var capsule=explorer.GetComponent<CharacterController>();
+            var entry=portal.transform.TransformPoint(new Vector3(0,0,-portal.entryDepth-5));
+            bool supported=Physics.Raycast(entry+Vector3.up*12,Vector3.down,out var portalFloor,40,~(1<<7),QueryTriggerInteraction.Ignore);
+            Record("Portal approach has solid ground",supported);
+            entry.y=portalFloor.point.y+explorer.transform.position.y-LogicLegends.OpenArchive.Water.OpenArchiveWater.Feet(capsule).y+.1f;
+            var deltaToPortal=entry-explorer.transform.position;capsule.enabled=false;explorer.transform.SetPositionAndRotation(entry,portal.transform.rotation);capsule.enabled=true;explorer.ResetMotionAfterTeleport();Physics.SyncTransforms();TeleportCameraSync.ResetAfterMove(explorer.transform,deltaToPortal);
+            yield return .2f;float exitTimeout=Time.realtimeSinceStartup+8;
+            while(!session.TeamWon&&Time.realtimeSinceStartup<exitTimeout){capsule.Move(portal.transform.forward*explorer.moveSpeed*Time.deltaTime+Vector3.down*5*Time.deltaTime);yield return null;}
+            Record("Walking the actual capsule through the opened portal completes the solo QA journey",session.TeamWon&&session.HasEscapedActor(-1));
+            Record("Portal completion locks the escaped avatar through the existing safety system",explorer.IsMovementLocked&&!capsule.enabled);
             Status="Authority and monster handoff";session.Initialize(271828);session.hunting.enabled=true;session.hunting.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.Sleep);
             var t=session.stations[0];MoveTo(t,ArchiveTopicStation.BookPosition);Send(0,ArchiveAction.Start);yield return .1f;
             var question=session.Question(0);int wrong=(question.correctChoice+1)%question.items.Length;MoveTo(t,t.ItemPosition(wrong,question));

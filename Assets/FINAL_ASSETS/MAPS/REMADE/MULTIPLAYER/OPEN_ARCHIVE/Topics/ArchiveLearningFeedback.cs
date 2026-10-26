@@ -121,6 +121,7 @@ namespace LogicLegends.OpenArchive.Topics
             return "<b>WHAT YOU ARE LEARNING</b>\n" + Concept(topic) + "\n\n<b>HOW TO PLAY</b>\n" + q.instructions +
                 "\n\n<b>WORKED EXAMPLE</b>\n" + Example(topic) + "\n\n<b>SYMBOLS AND TERMS</b>\n" + Glossary(topic) +
                 "\n\n<b>COMPUTER SCIENCE CONNECTION</b>\n" + Connection(topic) + "\n\n<b>COURSE REFERENCE</b>\n" + Reference(topic) +
+                (string.IsNullOrEmpty(q.moduleReference) ? "" : "\nCurrent question scope: " + q.moduleReference + "\nDifficulty: " + q.difficulty) +
                 "\n\nRead the Book to start or resume the actual challenge. Opening this guide never starts a timer. Once a challenge is running, reading and hints keep its clock and the world active.";
         }
         public static string Concept(int topic)

@@ -167,7 +167,18 @@ public static class MultiplayerStartChecks
                         if(peer.InRoom&&!LobbyRules.IsReady(peer.LocalPlayer))peer.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey]=true });
                     }
                     if(companions.Any(p=>!p.InRoom)||s.Players.Length!=4||!s.CanStart)return;
-                    Check(s.Players.Length==4&&s.CanStart,"The real lobby admits four independent clients and requires everyone ready");Next(9);break;
+                    Check(s.Players.Length==4&&s.CanStart,"The real lobby admits four independent clients and requires everyone ready");
+                    Check(companions[0].OpLeaveRoom(true),"A ready teammate temporarily loses the lobby connection");Next(28);break;
+                case 28:
+                    var reserved=companions[0];
+                    if(reserved.State!=ClientState.ConnectedToMasterServer||!PhotonNetwork.PlayerList.Any(p=>p.IsInactive)||s.Players.Length!=3)return;
+                    Check(!s.CanStart&&!s.Starting&&PhotonNetwork.CurrentRoom.IsOpen,"Three ready players cannot launch while the fourth reconnect slot is reserved");
+                    s.StartGame();
+                    Check(!s.Starting&&!s.Busy&&s.Status.Contains("reconnecting"),"A direct Start request explains the reconnect wait without changing room state");
+                    Check(reserved.OpRejoinRoom(PhotonNetwork.CurrentRoom.Name),"Reserved teammate requests its existing lobby seat");Next(29);break;
+                case 29:
+                    if(!companions[0].InRoom||PhotonNetwork.PlayerList.Any(p=>p.IsInactive)||s.Players.Length!=4||!s.CanStart)return;
+                    Check(s.CanStart&&companions[0].LocalPlayer.HasRejoined,"Start becomes available when the same fourth teammate reconnects ready");Next(9);break;
                 case 9:
                     if(!s.CanStart) return;
                     MultiplayerUIValidation.InsideFrame(UnityEngine.Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None).First(r=>r.name=="WoodFrame"&&r.parent.name=="SafeArea"));
