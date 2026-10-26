@@ -326,7 +326,7 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
     private void BeginChallengeIndicator()
     {
         ShowStep(Step.ChallengeIndicator,
-            "This indicator shows your current challenge out of five. Answer two questions per challenge, then activate the book statue to begin the next one. Read each question and its required sets on the Information Board.",
+            "Five challenges. Two questions each.\nUse the book to start the next challenge. Read each question on the board.",
             challengeRect, null, true);
     }
 
@@ -335,7 +335,7 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
         CreateSampleBlocks();
         FocusCamera(spawnerTarget, spawnerCameraOffset, true);
         ShowStep(Step.Spawner,
-            "These numbered blocks represent elements of a set. The number identifies each element. In Challenges 1–4, each question offers 10 element blocks numbered from 1 to 99, including every element you need. Collect them here, then follow the Information Board.",
+            "Numbered blocks represent elements.\nChallenges 1–4 offer ten blocks, numbered 1–99. They include every needed element.\nCollect the elements listed on the board.",
             null, spawnerTarget, true);
     }
 
@@ -357,7 +357,7 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
         boardText.text = "<color=#F4D794>PRACTICE QUESTION</color>\nA = {12}     B = {27}";
         FocusCamera(boardTarget, boardCameraOffset, false);
         ShowStep(Step.Board,
-            "The Information Board shows the current question, the required sets, and placement instructions. Place each element in the region required by the question. This is only a practice question; the real sets appear when you start at the book.",
+            "The board shows the question, sets and placement rules.\nThis preview is practice only. Use the book to reveal the real question.",
             null, boardTarget, true);
     }
 
@@ -365,7 +365,7 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
     {
         FocusCamera(universalTarget, diagramCameraOffset, true);
         ShowStep(Step.Placement,
-            "A and B are sets, represented by the two circles in the Venn diagram. Place each element in the region required by the question. The overlap, A ∩ B, represents elements shared by both sets.",
+            "A and B are sets represented by circles.\nPlace each element where the question requires.\nA ∩ B is their shared overlap.",
             null, universalTarget, true);
         foreach (RectTransform marker in regionMarkers) marker.gameObject.SetActive(true);
     }
@@ -373,7 +373,7 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
     private void BeginPlacementSubmit()
     {
         ShowStep(Step.PlacementSubmit,
-            "Press Submit to check all placed element blocks. Each physical block counts for one placement. Incorrect placements stay in position and are marked for correction, with a 10-second penalty. Keep green labels and fix red labels.",
+            "Submit checks settled positions. Each block counts once.\nGreen: correct. Red: fix. Wrong: −10s; blocks stay.",
             null, universalTarget, true);
         foreach (RectTransform marker in regionMarkers) marker.gameObject.SetActive(true);
     }
@@ -381,14 +381,14 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
     private void BeginDifferences()
     {
         ShowStep(Step.Differences,
-            "In Challenge 4, A − B means elements in A but not B; B − A means elements in B but not A. Two extra answer regions appear. Use separate element blocks for the full A and B regions, shared elements in A ∩ B, and the required differences. Spawner pickups provide replacement copies.",
+            "A − B: in A, not B. B − A: in B, not A.\nChallenge 4 also needs full A, full B and A ∩ B placements.\nCollect separate copies from the replenishing spawner.",
             null, universalTarget, true);
     }
 
     private void BeginComplement()
     {
         ShowStep(Step.Complement,
-            "In Challenge 5, the boundary represents universal set U: all elements considered in the question. A complement contains elements inside U but outside the named set. Move each element block inside its set's circle or into its complement area within U, as the Information Board requires.",
+            "U is the universal set.\nA complement is inside U but outside the named set.\nMove each supplied element to the area required on the board.",
             null, universalTarget, true);
     }
 

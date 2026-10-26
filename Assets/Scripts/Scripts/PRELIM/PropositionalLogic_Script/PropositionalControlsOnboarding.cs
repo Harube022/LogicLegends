@@ -484,7 +484,7 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
         var renderers = new List<Renderer>();
         foreach (GameObject door in room.choiceDoors)
             if (door != null) renderers.AddRange(door.GetComponentsInChildren<Renderer>(true));
-        SetWorldInstruction("Each door represents an answer. Read the choices and select the door that matches the question.\nAn incorrect choice costs 10 seconds and triggers the hammer knockback and stun.",
+        SetWorldInstruction("Each door is an answer. Compare its label with the question.\nWrong choice: −10s, knockback and a brief stun.",
             true, renderers.ToArray());
     }
 

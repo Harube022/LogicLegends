@@ -100,6 +100,13 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private bool IsAnotherModalBlocking()
     {
+        // The degree camera owns a movement lock while its numerical UI remains usable.
+        if (SceneManager.GetActiveScene().name == "Graph" && Time.timeScale > 0f)
+        {
+            var graph=FindFirstObjectByType<LogicLegends.Graph.GraphStageManager>();
+            if(graph!=null&&graph.QuestionView!=null&&graph.QuestionView.IsOpen&&graph.CanAct&&
+                graph.State==LogicLegends.Graph.GraphStageState.ACTIVE) return false;
+        }
         // An unanswered pop quiz is itself the current question. Its own input
         // lock remains in place when this nested Admin view closes.
         if ((SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "TruthTable") && StageSelectionState.SelectedStage == 2 && Time.timeScale > 0f)
@@ -155,7 +162,7 @@ public sealed class AdminDebugController : MonoBehaviour
         if (SceneManager.GetActiveScene().name == "Graph")
         {
             var stage = FindFirstObjectByType<LogicLegends.Graph.GraphStageManager>();
-            return stage == null || !stage.Ready || stage.HelpOpen || stage.TutorialActive || stage.Moving ||
+            return stage == null || !stage.Ready || stage.HelpOpen || stage.BoardView != null && stage.BoardView.IsOpen || stage.TutorialActive || stage.Moving || stage.Introductions != null && stage.Introductions.IsOpen ||
                 stage.State == LogicLegends.Graph.GraphStageState.STAGE_COMPLETE || stage.State == LogicLegends.Graph.GraphStageState.GAME_OVER;
         }
         if (SceneManager.GetActiveScene().name == "Trees")
@@ -234,6 +241,8 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private bool CanClearCondition()
     {
+        if (SceneManager.GetActiveScene().name == "Graph")
+            return FindFirstObjectByType<LogicLegends.Graph.GraphStageManager>()?.CanDebugClearChallenge == true;
         if (SceneManager.GetActiveScene().name != "Setssss") return false;
         SetssssChallengeOne sets = FindFirstObjectByType<SetssssChallengeOne>();
         return sets != null && sets.CanDebugClearCondition;
@@ -428,6 +437,8 @@ public sealed class AdminDebugController : MonoBehaviour
         clearChallengeButton.interactable = false;
         clearConditionButton.interactable = false;
         ClosePanel();
+        if (SceneManager.GetActiveScene().name == "Graph")
+        { FindFirstObjectByType<LogicLegends.Graph.GraphStageManager>()?.DebugClearCurrentQuestion(); return; }
         SetssssChallengeOne sets = FindFirstObjectByType<SetssssChallengeOne>();
         if (sets != null) sets.DebugClearCurrentCondition();
     }
@@ -491,7 +502,7 @@ public sealed class AdminDebugController : MonoBehaviour
         rect.SetParent(parent, false);
         rect.anchorMin = rect.anchorMax = new Vector2(1f, 0f);
         rect.pivot = new Vector2(1f, 0f);
-        rect.anchoredPosition = new Vector2(-40f, 40f);
+        rect.anchoredPosition = SceneManager.GetActiveScene().name == "Graph" ? new Vector2(-360f, 340f) : new Vector2(-40f, 40f);
         rect.sizeDelta = new Vector2(220f, 88f);
         Image image = go.GetComponent<Image>();
         image.color = new Color(0.08f, 0.23f, 0.21f, 0.95f);

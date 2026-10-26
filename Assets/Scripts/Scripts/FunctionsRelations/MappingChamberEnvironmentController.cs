@@ -98,7 +98,7 @@ public sealed class MappingChamberEnvironmentController : MonoBehaviour
             activationUntil = Time.time + 1.2f;
         previousState = state;
 
-        if (lastProgress != stage.CorrectCount) RefreshProgress();
+        if (lastProgress != stage.CompletedChallengeCount) RefreshProgress();
         if (player == null) player = Player.LocalInstance;
         float near = 0f;
         if (player != null && book != null)
@@ -113,7 +113,7 @@ public sealed class MappingChamberEnvironmentController : MonoBehaviour
         SetColor(bookRune, runeColor);
 
         Color crystalColor = Color.Lerp(new Color(.07f, .40f, .62f), new Color(.25f, .83f, 1.05f),
-            .17f + pulse * .20f + stage.CorrectCount * .09f);
+            .17f + pulse * .20f + stage.CompletedChallengeCount * .09f);
         for (int i = 0; i < crystals.Length; i++) SetColor(crystals[i], crystalColor);
         Color flameColor = Color.Lerp(new Color(.94f, .33f, .07f),
             new Color(1.24f, .64f, .15f), .35f + .25f * Mathf.Sin(Time.time * 7.1f));
@@ -123,7 +123,7 @@ public sealed class MappingChamberEnvironmentController : MonoBehaviour
     private void RefreshProgress()
     {
         if (stage == null) return;
-        lastProgress = stage.CorrectCount;
+        lastProgress = stage.CompletedChallengeCount;
         for (int i = 0; i < progressionRunes.Length; i++)
             SetColor(progressionRunes[i], i <= lastProgress ?
                 new Color(.17f, .72f, .84f) : new Color(.08f, .16f, .20f));

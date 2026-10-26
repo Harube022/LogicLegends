@@ -18,24 +18,23 @@ public sealed class SetssssDiagramLabels : MonoBehaviour
         if (root != null) return;
         stage = owner;
         root = new GameObject("Sets Diagram Region Labels");
-        var regionMaterial = Resources.Load<Material>("SetssssRegionLabels");
         for (int i = 0; i < labels.Length; i++)
         {
             labels[i] = new GameObject("Diagram label " + captions[i], typeof(TextMeshPro)).GetComponent<TextMeshPro>();
             labels[i].transform.SetParent(root.transform, false);
-            labels[i].font = StageUITheme.ReadingFont;
-            if (regionMaterial != null) labels[i].fontSharedMaterial = regionMaterial;
-            labels[i].text = captions[i]; labels[i].fontSize = 12f;
+            labels[i].font = StageUITheme.HeadingFont;
+            labels[i].text = captions[i]; labels[i].fontSize = i == 3 ? 15f : 18f;
             labels[i].fontStyle = FontStyles.Bold;
             labels[i].alignment = TextAlignmentOptions.Center;
-            labels[i].rectTransform.sizeDelta = new Vector2(i == 3 ? 24 : 8, 3);
+            labels[i].rectTransform.sizeDelta = new Vector2(i == 3 ? 30 : 10, 4);
             labels[i].textWrappingMode = TextWrappingModes.NoWrap;
             labels[i].color = i == 0 ? new Color(.65f, 1, 1) : i == 2 ? new Color(.95f, .85f, 1) : new Color(1, .96f, .8f);
             labels[i].raycastTarget = false;
             // Each label gets its own outlined material; do not change the shared font.
-            labels[i].outlineColor = new Color(.02f, .04f, .045f); labels[i].outlineWidth = .18f;
+            labels[i].outlineColor = new Color(.015f, .025f, .035f); labels[i].outlineWidth = .12f;
             labels[i].extraPadding = true; labels[i].UpdateMeshPadding();
             materials[i] = labels[i].fontMaterial;
+            if(materials[i].HasProperty("_FaceDilate"))materials[i].SetFloat("_FaceDilate",.08f);
             // World labels should be occluded by real scenery, unlike HUD text.
             materials[i].shader = labels[i].font.material.shader;
             if(materials[i].HasProperty("_ZTestMode"))materials[i].SetFloat("_ZTestMode",4);
@@ -83,6 +82,14 @@ public sealed class SetssssDiagramLabels : MonoBehaviour
         };
         string singleSet = stage.DisplayedComplementSet;
         occupied.Clear();
+        // Avoid covering the readable numbers on nearby element blocks.
+        foreach(var block in stage.DiagramLabelObstacles)
+        {
+            var number=block!=null?block.GetComponent<SetssssNumberedBlock>():null;
+            var label=number!=null?number.NumberLabel:null;
+            if(label!=null&&label.gameObject.activeInHierarchy&&Camera.main.WorldToScreenPoint(label.transform.position).z>0)
+                occupied.Add(ScreenBounds(label));
+        }
         for (int i = 0; i < labels.Length; i++)
         {
             bool active = visible && (singleSet == "" || i == 3 || singleSet == "A" && i == 0 || singleSet == "B" && i == 2);
@@ -109,9 +116,8 @@ public sealed class SetssssDiagramLabels : MonoBehaviour
             labels[i].gameObject.SetActive(active);
             if (!active) continue;
             labels[i].transform.position = anchors[i];
-            labels[i].transform.localScale = Vector3.one * Mathf.Clamp(Vector3.Distance(anchors[i], Camera.main.transform.position) * .025f, .3f, 3f);
-            Vector3 forward = anchors[i] - Camera.main.transform.position;
-            if (forward.sqrMagnitude > .001f) labels[i].transform.rotation = Quaternion.LookRotation(forward, Camera.main.transform.up);
+            labels[i].transform.localScale = Vector3.one * Mathf.Clamp(Vector3.Distance(anchors[i], Camera.main.transform.position) * .025f, .3f, 10f);
+            labels[i].transform.rotation = Camera.main.transform.rotation;
             // Looking along the circles can project separate world anchors onto
             // the same pixels. Lift a caption without changing its region's X/Z.
             labels[i].ForceMeshUpdate();
@@ -119,7 +125,6 @@ public sealed class SetssssDiagramLabels : MonoBehaviour
             for(int attempt=0;attempt<5&&occupied.Exists(other=>other.Overlaps(screen));attempt++)
             {
                 labels[i].transform.position+=Vector3.up*(labels[i].preferredHeight*labels[i].transform.lossyScale.y+.5f);
-                labels[i].transform.rotation=Quaternion.LookRotation(labels[i].transform.position-Camera.main.transform.position,Camera.main.transform.up);
                 screen=ScreenBounds(labels[i]);
             }
             occupied.Add(screen);
@@ -150,4 +155,5 @@ public sealed partial class SetssssChallengeOne
     internal GameObject DifferenceRegion(bool left) => left ? aMinusBRegion : bMinusARegion;
     internal bool IsViewingDiagramBoard => boardView != null && boardView.IsViewingBoard;
     internal MeshFilter DiagramVisual => diagramMeshFilter;
+    internal System.Collections.Generic.IEnumerable<GrabbableObject> DiagramLabelObstacles => InteractableBlocks();
 }

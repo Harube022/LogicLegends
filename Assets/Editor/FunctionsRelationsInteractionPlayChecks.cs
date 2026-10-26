@@ -179,7 +179,7 @@ public static class FunctionsRelationsInteractionPlayChecks
         Check(ui.progress.text == "CHALLENGE 2 OF 5", "HUD follows next challenge");
         Move(player, book.bounds.center + Vector3.back * 2f); yield return null; yield return new WaitForEndOfFrame(); Click(context); yield return null;
         Check(stage.State == FunctionsRelationsState.ACTIVE && stage.TimeRemaining <= paused && stage.TimeRemaining > paused - .2f, "next book resumes rather than resets timer");
-        Check(Field<TMP_Text>(stage, "worldProblemText").text == stage.CurrentChallenge.instruction.Replace("→", "to") + "\nTap Submit to check.", "InformationBoard follows active variant instructions");
+        Check(Field<TMP_Text>(stage, "worldProblemText").text == stage.CurrentChallenge.instruction.Replace("→", "to"), "InformationBoard follows active variant instructions");
         // Complete the remaining challenge types through the HUD Submit, keeping QA out of saved progression.
         for (int challenge = 1; challenge < 5; challenge++)
         {

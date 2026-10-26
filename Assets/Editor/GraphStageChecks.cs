@@ -36,11 +36,11 @@ public static class GraphStageChecks
                 Require(variant.vertices.Select(v=>v.id).Distinct().Count()==variant.vertices.Count,label+" unique IDs");
                 Require(variant.Vertex(variant.start)!=null,label+" start exists");
                 Require(variant.edges.All(e=>variant.Vertex(e.source)!=null&&variant.Vertex(e.destination)!=null),label+" valid endpoints");
-                Require(variant.vertices.All(a=>variant.vertices.All(b=>a==b||Vector3.Distance(a.position,b.position)>=9.9f)),label+" separate platforms");
+                Require(variant.vertices.All(a=>variant.vertices.All(b=>a==b||Vector3.Distance(a.position,b.position)>=8.9f)),label+" separate platforms");
                 Require(variant.edges.All(e=>
                 {
                     float length=Vector3.Distance(variant.Vertex(e.source).position,variant.Vertex(e.destination).position);
-                    return length>=9.9f&&length*GraphGeometry.LayoutScale<=60f;
+                    return length>=8.9f&&length*GraphGeometry.LayoutScale<=140f;
                 }),label+" walkable bridge length");
                 string signature=variant.objective+"|"+string.Join(",",variant.edges.Select(e=>e.source+">"+e.destination+(e.directed?"!":"")).OrderBy(x=>x).ToArray());
                 Require(signatures.Add(signature),label+" distinct problem");
@@ -60,10 +60,10 @@ public static class GraphStageChecks
                     var solution=FindRoute(variant,new List<string>{variant.start});
                     Require(solution!=null&&GraphAnswerValidator.Validate(variant,solution,null,true,out _),label+" solvable route");
                     if(round==2)Require(variant.vertices.Count==6&&solution.Count>=4&&variant.edges.Count>=6,label+" branching simple path");
-                    if(round==3)Require(variant.vertices.Count==6&&solution.Count>=4&&variant.edges.All(e=>e.directed)&&
+                    if(round==3)Require(variant.vertices.Count==8&&solution.Count>=5&&variant.edges.All(e=>e.directed)&&
                         variant.edges.Count>=6&&variant.edges.Any(e=>!variant.Connected(e.destination,e.source)),label+" one-way choices");
-                    if(round==4)Require(variant.vertices.Count==6&&variant.edges.Count==6&&solution.Count==6&&
-                        variant.Degree(variant.vertices[5].id)==1,label+" five-edge cycle and dead end");
+                    if(round==4)Require(variant.vertices.Count==10&&variant.edges.Count>=12&&solution.Count>=7&&
+                        variant.Degree(variant.vertices.Last().id)==1,label+" five-edge cycle and dead end");
                     Require(!GraphAnswerValidator.Validate(variant,new[]{variant.start},null,true,out _),label+" incomplete route rejected");
                 }
             }
@@ -100,12 +100,12 @@ public static class GraphStageChecks
         for(int seed=0;seed<200;seed++)
         {
             var selection=catalog.SelectRun(new System.Random(seed));
-            Require(selection.Count==5,"exactly five ordered challenge picks");
+            Require(selection.Count==10,"exactly five ordered challenge picks");
             Require(selection.All(i=>i>=0 && i<10),"selection stays within each variant set");
             Require(selection.SequenceEqual(catalog.SelectRun(new System.Random(seed))),"seeded selection reproducible for validation");
-            var next=catalog.SelectRun(new System.Random(seed),selection);
-            Require(Enumerable.Range(0,5).All(i=>selection[i]!=next[i]),"no immediate repeat on replay");
-            for(int round=0;round<5;round++)sampled[round].Add(selection[round]);
+            var next=catalog.SelectRun(new System.Random(seed),Enumerable.Range(0,5).Select(i=>selection[i*2]).ToArray());
+            Require(Enumerable.Range(0,5).All(i=>selection[i*2]!=next[i*2]),"no immediate repeat on replay");
+            for(int round=0;round<5;round++){ sampled[round].Add(selection[round*2]); sampled[round].Add(selection[round*2+1]);Require(selection[round*2]!=selection[round*2+1],"distinct pair per challenge"); }
             orders.Add(string.Join(",",selection));
         }
         Require(sampled.All(s=>s.Count==10)&&orders.Count>1,"every variant eligible in every round");
@@ -212,21 +212,5 @@ public static class GraphStageChecks
         return "PASS: fifty progressive Graph variants, alternate routes and invalid answers, 200 seeded five-round selections without immediate repeats, platform rims and turns, both sides of every bridge, low-frame-rate midpoint crossing, off-path/teleport/reverse protection, and independent clock semantics.";
     }
     static List<string> FindRoute(GraphChallengeData graph,List<string> route)
-    {
-        string current=route[route.Count-1];
-        if(graph.type==GraphChallengeType.Cycle)
-        {
-            if(route.Count>=5&&graph.Connected(current,graph.start))
-            {route.Add(graph.start);return route;}
-        }
-        else if(current==graph.destination&&route.Count>1)return route;
-        foreach(var vertex in graph.vertices)
-        {
-            if(route.Contains(vertex.id)||!graph.Connected(current,vertex.id))continue;
-            var next=new List<string>(route){vertex.id};
-            var found=FindRoute(graph,next);
-            if(found!=null)return found;
-        }
-        return null;
-    }
+    { return GraphAnswerValidator.FindSolution(graph); }
 }

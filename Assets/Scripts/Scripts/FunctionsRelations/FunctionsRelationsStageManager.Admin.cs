@@ -11,6 +11,9 @@ public sealed partial class FunctionsRelationsStageManager
     {
         if (!AdminAuthorization.TryUseGameplayAdmin()) return false;
         if (!CanDebugClearChallenge) return false;
+        // This Admin action still clears the whole challenge, including its remaining question.
+        correctCount += QuestionsPerChallenge - questionIndex - 1;
+        questionIndex = QuestionsPerChallenge - 1;
         state = FunctionsRelationsState.VALIDATING;
         CloseDiamondChoices();
         mapping.SetInteractive(false);
@@ -22,7 +25,7 @@ public sealed partial class FunctionsRelationsStageManager
     {
         var text = new StringBuilder(question.title + "\n" + question.instruction + "\n");
         text.AppendLine("Domain (inputs): " + AdminQuestionAnswers.Values(question.domain));
-        text.AppendLine("Codomain (possible outputs): " + AdminQuestionAnswers.Values(question.codomain));
+        text.AppendLine("Available output choices: " + AdminQuestionAnswers.Values(question.codomain));
         if (question.questionKind == MappingQuestionKind.BuildExactRelation)
         {
             text.AppendLine("EXPECTED CONNECTIONS (complete arrangement):");
@@ -31,7 +34,7 @@ public sealed partial class FunctionsRelationsStageManager
             text.AppendLine("Resulting range: " + AdminQuestionAnswers.Values(question.requiredPairs.Select(p => p.codomain).Distinct()));
             if (question.requireFunction) text.AppendLine("Must be a function: exactly one output for every input.");
             if (question.requireInjective) text.AppendLine("Must be injective: distinct inputs have distinct outputs.");
-            if (question.requireSurjective) text.AppendLine("Must be surjective: every codomain value is used.");
+            if (question.requireSurjective) text.AppendLine("Must be surjective: every available output is used.");
         }
         else
         {
@@ -49,7 +52,7 @@ public sealed partial class FunctionsRelationsStageManager
         if (!AdminAuthorization.IsAuthorized) return;
         if (catalog == null) return;
         pages.Add(new AdminAnswerPage("Current question — Functions and Relations",
-            "Challenge " + (challengeIndex + 1) + " of " + ChallengeCount + " — " + state + "\n" +
+            "Challenge " + (challengeIndex + 1) + " of " + ChallengeCount + ", Question " + (questionIndex + 1) + " of 2 — " + state + "\n" +
             (CurrentChallenge != null ? AdminSolution(CurrentChallenge) : "Waiting for question data.") +
             "\nThe book starts each challenge. Submit checks the answer; this viewer changes neither."));
         for (int c = 0; c < catalog.ChallengeCount; c++)
@@ -58,8 +61,8 @@ public sealed partial class FunctionsRelationsStageManager
             var text = new StringBuilder();
             for (int q = 0; q < group.variants.Count; q++)
             {
-                bool selected = selectedVariantIndices[c] == q;
-                text.AppendLine("QUESTION " + (q + 1) + AdminQuestionAnswers.Mark(selected, selected && c == challengeIndex));
+                bool selected = SelectedVariant(c, 0) == q || SelectedVariant(c, 1) == q;
+                text.AppendLine("QUESTION " + (q + 1) + AdminQuestionAnswers.Mark(selected, selected && c == challengeIndex && q == CurrentVariantIndex));
                 text.AppendLine(AdminSolution(group.variants[q]) + "\n");
             }
             pages.Add(new AdminAnswerPage("Challenge " + (c + 1) + " — " + group.stageName, text.ToString()));

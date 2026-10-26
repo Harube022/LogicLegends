@@ -1,22 +1,78 @@
 {
     "scene": "Graph",
-    "source": "Unity Game view; offline Editor test session; first question only; account writes disabled",
+    "source": "Actual isolated Unity Game view. C1 Q1 consistent across Start/Read/Route; separately labeled C2 degree example. Real touches, normal traversal, Retry, Clear Selection and validation. Every clip ends with an encoded two-second fade. No saved progress or rewards changed.",
     "cues": [
         {
             "seconds": 0.0,
-            "caption": "Approach the Book Statue and use the hand button."
+            "caption": "Tap the hand at the Book Statue to begin."
         },
         {
-            "seconds": 2.9166667461395265,
-            "caption": "Read the graph question: circles are vertices and bridges are edges."
+            "seconds": 0.0,
+            "caption": "Tap View Board to read the route task."
         },
         {
-            "seconds": 5.166666507720947,
-            "caption": "Cross the connecting bridge toward the requested vertex."
+            "seconds": 0.0,
+            "caption": "Follow connected bridges. Confirm at the destination."
         },
         {
-            "seconds": 12.125,
-            "caption": "Confirm checks the whole route and shows feedback."
+            "seconds": 0.0,
+            "caption": "Challenge 2: count the edges meeting the named vertex."
+        }
+    ],
+    "clips": [
+        "Graph",
+        "Graph_02_Read",
+        "Graph_03_Route",
+        "Graph_04_Degree"
+    ],
+    "guides": [
+        {
+            "cues": [
+                {
+                    "seconds": 0.0,
+                    "caption": "Tap the hand at the Book Statue to begin."
+                }
+            ]
+        },
+        {
+            "cues": [
+                {
+                    "seconds": 0.0,
+                    "caption": "Tap View Board to read the route task."
+                }
+            ]
+        },
+        {
+            "cues": [
+                {
+                    "seconds": 0.0,
+                    "caption": "Follow connected bridges. Confirm at the destination."
+                },
+                {
+                    "seconds": 2.1666667461395265,
+                    "caption": "Retry Route returns to the start and clears your route."
+                },
+                {
+                    "seconds": 6.208333492279053,
+                    "caption": "Follow the required route. Confirm at its destination."
+                }
+            ]
+        },
+        {
+            "cues": [
+                {
+                    "seconds": 0.0,
+                    "caption": "Challenge 2: count the edges meeting the named vertex."
+                },
+                {
+                    "seconds": 9.0,
+                    "caption": "Choose a number. Clear Selection lets you change it."
+                },
+                {
+                    "seconds": 15.125,
+                    "caption": "Tap Confirm to check your selected degree."
+                }
+            ]
         }
     ]
 }

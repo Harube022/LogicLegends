@@ -92,7 +92,9 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
     private Player player;
     private FunctionsRelationsState state = FunctionsRelationsState.WAITING_FOR_ACTIVATION;
     private int challengeIndex;
-    private readonly int[] selectedVariantIndices = new int[5];
+    public const int QuestionsPerChallenge = 2;
+    private readonly int[] selectedVariantIndices = new int[5 * QuestionsPerChallenge];
+    private int questionIndex;
     private int correctCount;
     private int mistakeCount;
     private float remaining;
@@ -102,6 +104,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
     private MappingProperty chosenProperties;
     private bool domainChoicesOpen;
     private bool rangeChoicesOpen;
+    private bool reviewingRange;
     private bool timerStarted;
     private Collider[] domainInteractionColliders, rangeInteractionColliders;
     private bool readingControlsCaptured, readingInputBlocked, readingPlayerEnabled;
@@ -112,7 +115,11 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     public FunctionsRelationsState State => state;
     public int ChallengeIndex => challengeIndex;
-    public int CurrentVariantIndex => challengeIndex < selectedVariantIndices.Length ? selectedVariantIndices[challengeIndex] : -1;
+    public int QuestionIndex => questionIndex;
+    public int QuestionCount => QuestionsPerChallenge;
+    public int CompletedChallengeCount => correctCount / QuestionsPerChallenge;
+    public int CurrentVariantIndex => challengeIndex < ChallengeCount ? selectedVariantIndices[challengeIndex * QuestionsPerChallenge + questionIndex] : -1;
+    public int SelectedVariant(int challenge, int question) => selectedVariantIndices[challenge * QuestionsPerChallenge + question];
     public int CorrectCount => correctCount;
     public int MistakeCount => mistakeCount;
     public float TimeRemaining => remaining;
@@ -223,7 +230,10 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
             int previous = PlayerPrefs.GetInt(key, -1);
             int chosen = UnityEngine.Random.Range(0, group.variants.Count - (previous >= 0 && previous < group.variants.Count ? 1 : 0));
             if (previous >= 0 && previous < group.variants.Count && chosen >= previous) chosen++;
-            selectedVariantIndices[i] = chosen;
+            selectedVariantIndices[i * QuestionsPerChallenge] = chosen;
+            int second = UnityEngine.Random.Range(0, group.variants.Count - 1);
+            if (second >= chosen) second++;
+            selectedVariantIndices[i * QuestionsPerChallenge + 1] = second;
             PlayerPrefs.SetInt(key, chosen);
         }
         PlayerPrefs.Save();
@@ -248,7 +258,12 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
             if (rangeChoiceButtons[i] != null) rangeChoiceButtons[i].onClick.AddListener(() => ChooseRange(index));
         }
         if (undoConnectionButton != null) undoConnectionButton.onClick.AddListener(UndoRangeConnection);
-        if (nearbyInteractionButton != null) nearbyInteractionButton.onClick.AddListener(InteractNearby);
+        // Nearby guidance is text only. All world interaction uses the existing hand.
+        if (nearbyInteractionButton != null)
+        {
+            nearbyInteractionButton.enabled = false;
+            if (nearbyInteractionButton.image != null) nearbyInteractionButton.image.enabled = false;
+        }
         SetBoardOpen(false);
         RefreshUI();
         var presentation = FindFirstObjectByType<FunctionsRelationsPresentation>();
@@ -291,7 +306,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         RefreshDiamondPanels();
         RefreshSubmissionControls();
         if (statusText != null && state == FunctionsRelationsState.WAITING_FOR_ACTIVATION)
-            statusText.text = "Approach the Book Statue and tap the hand button";
+            statusText.text = "Use the hand at the book to begin.";
     }
 
     private void OnInteract(object sender, EventArgs args)
@@ -328,9 +343,15 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
             {
                 domainChoicesOpen = !domainChoicesOpen;
                 rangeChoicesOpen = false;
+                reviewingRange = false;
             }
             else if (side == 1)
             {
+                if (mapping.SelectedDomain == null)
+                {
+                    SetFeedback("Choose an input at Domain first.");
+                    return;
+                }
                 rangeChoicesOpen = !rangeChoicesOpen;
                 domainChoicesOpen = false;
             }
@@ -416,7 +437,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         TintClassificationPedestals(LaserVisualState.Blue);
         SetFeedback(CurrentChallenge.questionKind == MappingQuestionKind.SelectProperties ?
             "Toggle every applicable property, then tap Submit." :
-            "Choice selected. Tap Submit to check your answer.");
+            "Choice selected.");
         if (statusText != null) statusText.text = PedestalName(index, CurrentChallenge.questionKind) +
             (CurrentChallenge.questionKind == MappingQuestionKind.SelectProperties &&
              (chosenProperties & PropertyOptions[index]) == 0 ? " deselected." : " selected.") +
@@ -510,15 +531,15 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
             int pedestal = state == FunctionsRelationsState.ACTIVE && UsesAnswerPedestals(CurrentChallenge) ?
                 NearestPedestalIndex() : -1;
             if (pedestal >= 0)
-                prompt = (CurrentChallenge.questionKind == MappingQuestionKind.SelectProperties ? "Toggle " : "Select ") +
+                prompt = "Use the hand to " + (CurrentChallenge.questionKind == MappingQuestionKind.SelectProperties ? "toggle " : "select ") +
                     PedestalName(pedestal, CurrentChallenge.questionKind);
             else if (state == FunctionsRelationsState.WAITING_FOR_ACTIVATION && bookDistance <= bookUseDistance)
                 prompt = null; // The book uses the shared hand bubble, not this station button.
             else if (state == FunctionsRelationsState.ACTIVE && CurrentChallenge.questionKind == MappingQuestionKind.BuildExactRelation)
             {
                 int side = NearestDiamondSide();
-                if (side == 0) prompt = "Interact with Domain\nChoose an input";
-                else if (side == 1) prompt = "Interact with Range\nChoose an output";
+                if (side == 0) prompt = "Tap the hand at Domain to choose an input.";
+                else if (side == 1) prompt = mapping.SelectedDomain != null ? "Tap the hand at Range to choose an output." : "Choose an input at Domain first.";
             }
         }
         interactionPromptText.transform.parent.gameObject.SetActive(prompt != null);
@@ -530,7 +551,10 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         bool editable = state == FunctionsRelationsState.ACTIVE && !boardOpen &&
             CurrentChallenge != null && CurrentChallenge.questionKind == MappingQuestionKind.BuildExactRelation;
         if (!editable || DiamondDistance(mapping.DomainDiamond) > diamondUseDistance) domainChoicesOpen = false;
-        if (!editable || DiamondDistance(mapping.RangeDiamond) > diamondUseDistance) rangeChoicesOpen = false;
+        if (!editable || mapping.SelectedDomain == null && !reviewingRange || DiamondDistance(mapping.RangeDiamond) > diamondUseDistance)
+        { rangeChoicesOpen = false; reviewingRange = false; }
+        foreach (var choice in rangeChoiceButtons)
+            if (choice != null) choice.interactable = editable && mapping.SelectedDomain != null;
         if (domainChoicesPanel != null)
         {
             domainChoicesPanel.gameObject.SetActive(domainChoicesOpen);
@@ -541,6 +565,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         }
         if (undoConnectionButton != null)
         {
+            undoConnectionButton.gameObject.SetActive(false); // Each editable pair now has its own Remove action.
             var pair = mapping.LastUndoablePair;
             undoConnectionButton.interactable = pair.HasValue;
             var text = undoConnectionButton.GetComponentInChildren<TMP_Text>();
@@ -552,6 +577,8 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
     {
         if (Tutorial != null) { Tutorial.ClosePracticeChoices(); return; }
         domainChoicesOpen = rangeChoicesOpen = false;
+        reviewingRange = false;
+        mapping.ClearSelection();
         RefreshDiamondPanels();
     }
 
@@ -578,7 +605,12 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         if (state != FunctionsRelationsState.ACTIVE || boardOpen || !rangeChoicesOpen ||
             DiamondDistance(mapping.RangeDiamond) > diamondUseDistance ||
             challenge == null || index < 0 || index >= challenge.codomain.Length) return;
-        mapping.SelectCodomain(challenge.codomain[index]);
+        if (mapping.SelectCodomain(challenge.codomain[index]))
+        {
+            rangeChoicesOpen = true;
+            reviewingRange = true;
+            mapping.ClearSelection();
+        }
         RefreshRange();
         RefreshDiamondPanels();
     }
@@ -592,6 +624,18 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         mapping.UndoLastConnection();
         RefreshRange();
         RefreshDiamondPanels();
+    }
+
+    public bool RemoveConnection(MappingPair pair)
+    {
+        if (GameplayPaused || boardOpen || state != FunctionsRelationsState.ACTIVE ||
+            input != null && input.GameplayInputBlocked) return false;
+        if (!mapping.RemoveConnection(pair)) return false;
+        mapping.ClearSelection();
+        domainChoicesOpen = false; rangeChoicesOpen = reviewingRange = true;
+        RefreshDiamondPanels();
+        RefreshRange(); RefreshSubmissionControls();
+        return true;
     }
 
     public void ActivateChallenge()
@@ -608,7 +652,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
             "Choose one of the three answer pedestals, then tap Submit." :
             CurrentChallenge.questionKind == MappingQuestionKind.SelectProperties ?
             "Inspect the preset lasers. Toggle every applicable property at the three pedestals, then tap Submit." :
-            "Timer started. Choose an input at Domain, then an output at Range. Tap Submit to check the complete arrangement.");
+            "Timer started. Choose an input at Domain, then an output at Range.");
         RefreshUI();
     }
 
@@ -649,9 +693,9 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         FlashBookStatue(true);
         TintClassificationPedestals(LaserVisualState.Red);
         SetFeedback("Incorrect submission. −" + wrongAnswerPenalty.ToString("0") + " seconds. Try again.");
-        if (statusText != null) statusText.text = CurrentChallenge.questionKind == MappingQuestionKind.BuildExactRelation ?
-            "Incorrect. −10 seconds. Lasers can be changed at Range." :
-            "Incorrect. −10 seconds. Change your pedestal choice and try again.";
+        if (statusText != null) statusText.text = "Incorrect. −" + wrongAnswerPenalty.ToString("0.##") + "s. " +
+            (CurrentChallenge.questionKind == MappingQuestionKind.BuildExactRelation ?
+            "Remove wrong pairs, then rebuild them." : "Change your pedestal choice and retry.");
         RefreshTimer();
         yield return new WaitForSeconds(wrongFlashSeconds);
         FlashBookStatue(false);
@@ -672,22 +716,26 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         mapping.SetVisualState(LaserVisualState.Green);
         TintClassificationPedestals(LaserVisualState.Green);
         if (worldProblemText != null) worldProblemText.color = new Color(.05f, .36f, .12f);
-        SetFeedback("Correct! Challenge " + (challengeIndex + 1) + " complete.");
-        if (statusText != null) statusText.text = "Correct! Challenge " + (challengeIndex + 1) + " complete.";
+        string success = questionIndex == 0 ? "Correct! Question 1 of 2 complete." : "Correct! Challenge " + (challengeIndex + 1) + " complete.";
+        SetFeedback(success);
+        if (statusText != null) statusText.text = success;
         RefreshUI();
         yield return new WaitForSeconds(challengeCompleteSeconds);
-        if (challengeIndex + 1 >= catalog.ChallengeCount)
+        if (questionIndex + 1 == QuestionsPerChallenge && challengeIndex + 1 >= catalog.ChallengeCount)
         {
             EnterStageComplete();
             yield break;
         }
-        challengeIndex++;
+        questionIndex++;
+        if (questionIndex == QuestionsPerChallenge) { questionIndex = 0; challengeIndex++; }
         mapping.Clear();
         if (worldProblemText != null) worldProblemText.color = StageUITheme.ReadingInk;
         classificationAnswer = null;
+        chosenProperties = MappingProperty.None;
         state = FunctionsRelationsState.WAITING_FOR_ACTIVATION;
         SetBoardOpen(false);
-        SetFeedback("Challenge complete. Return to the Book Statue to start the next one.");
+        SetFeedback(questionIndex == 1 ? "Use the hand at the book for Question 2." :
+            "Challenge " + challengeIndex + " completed! Interact with the book statue to start Challenge " + (challengeIndex + 1) + ".");
         RefreshUI();
     }
 
@@ -755,7 +803,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         if (resultsText != null)
         {
             if (resultsPanel != null) resultsPanel.SetActive(true);
-            resultsText.text = "TIME UP\nChallenges completed  " + correctCount + "/5\nMistakes  " + mistakeCount;
+            resultsText.text = "TIME UP\nChallenges completed  " + CompletedChallengeCount + "/5\nQuestions completed  " + correctCount + "/10\nMistakes  " + mistakeCount;
         }
         if (submitButton != null) submitButton.gameObject.SetActive(false);
         if (retryButton != null) retryButton.gameObject.SetActive(true);
@@ -924,16 +972,15 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
                 LockedBoardMessage :
                 DisplayInstruction(challenge);
         if (worldChallengeTitleText != null)
-            worldChallengeTitleText.text = "CHALLENGE " + (challengeIndex + 1) + " OF " + catalog.ChallengeCount;
+            worldChallengeTitleText.text = "CHALLENGE " + (challengeIndex + 1) + " OF " + catalog.ChallengeCount + "\nQUESTION " + (questionIndex + 1) + " OF 2";
         if (worldChallengeSetsText != null)
-            worldChallengeSetsText.text = state == FunctionsRelationsState.WAITING_FOR_ACTIVATION ?
-                "FUNCTIONS & RELATIONS" : challenge.title + "\nDomain = { " + string.Join(", ", challenge.domain) +
-                " }\nCodomain = { " + string.Join(", ", challenge.codomain) + " }";
+            worldChallengeSetsText.text = state == FunctionsRelationsState.WAITING_FOR_ACTIVATION ? "FUNCTIONS & RELATIONS" :
+                "<b>Domain</b> = { " + string.Join(", ", challenge.domain) + " }\n<b>Range</b> = { " + string.Join(", ", challenge.IntendedRange) + " }";
         if (statusText != null && state == FunctionsRelationsState.ACTIVE)
             statusText.text = UsesAnswerPedestals(challenge) ?
                 (challenge.questionKind == MappingQuestionKind.SelectProperties ? "Toggle applicable pedestals" : "Choose a pedestal") +
                 ", then tap Submit" :
-                "Build your connections, then tap Submit to check the arrangement";
+                "Create the required connections.";
         RefreshRange();
         RefreshTimer();
         RefreshClassificationPedestals();
@@ -941,18 +988,18 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     private void RefreshRange()
     {
+        var used = new System.Collections.Generic.HashSet<string>();
+        if (mapping != null) foreach (var pair in mapping.Pairs) used.Add(pair.codomain);
+        var ordered = new System.Collections.Generic.List<string>(used);
+        ordered.Sort(StringComparer.Ordinal);
         if (rangeText != null)
         {
-            var used = new System.Collections.Generic.HashSet<string>();
-            if (mapping != null) foreach (var pair in mapping.Pairs) used.Add(pair.codomain);
-            var ordered = new System.Collections.Generic.List<string>(used);
-            ordered.Sort(StringComparer.Ordinal);
             rangeText.text = "Range = { " + string.Join(", ", ordered) + " }";
         }
     }
 
     // Spell out pair arrows for the parchment's mobile reading font, including its fallback atlas.
-    private static string DisplayInstruction(MappingChallengeData challenge) => challenge.instruction.Replace("→", "to") + "\nTap Submit to check.";
+    private static string DisplayInstruction(MappingChallengeData challenge) => challenge.instruction.Replace("→", "to");
 
     private void RefreshTimer()
     {

@@ -18,6 +18,7 @@ public sealed class FunctionsRelationsPresentation : MonoBehaviour
     private readonly Vector3[] corners = new Vector3[4];
     private Vector3 textScale = Vector3.zero;
     private TMP_Text[] labels;
+    public FunctionsRelationsConnectionsView Connections { get; private set; }
 
     private void Awake()
     {
@@ -25,22 +26,51 @@ public sealed class FunctionsRelationsPresentation : MonoBehaviour
         var title=hud!=null?hud.Find("CurrentStageLabel")?.GetComponent<TMP_Text>():null;
         if(title!=null)title.text=TrialCatalog.ForScene("Functions and Relations").Title;
         if (hud != null) StagePresentation.Hud(hud, title, hud.GetComponentsInChildren<TMP_Text>(true).FirstOrDefault(t => t.name == "StageCountdown"), progress);
+        Connections = gameObject.AddComponent<FunctionsRelationsConnectionsView>();
+        Connections.Initialize(stage, rangePanel);
+        gameObject.AddComponent<FunctionsRelationsGuidance>().Initialize(stage);
+        var outputHeading = rangePanel != null ? rangePanel.Find("Heading")?.GetComponent<TMP_Text>() : null;
+        if (outputHeading != null) outputHeading.text = "RANGE";
+        var boardTitle = stage.WorldBoardLabels[0];
+        if (boardTitle != null)
+        {
+            boardTitle.rectTransform.sizeDelta = new Vector2(1.43f, .48f);
+            boardTitle.textWrappingMode = TextWrappingModes.NoWrap;
+        }
+        var boardSets = stage.WorldBoardLabels[1];
+        if (boardSets != null)
+        {
+            boardSets.font = StageUITheme.ReadingFont; boardSets.richText = true;
+            boardSets.enableAutoSizing = true; boardSets.fontSizeMin = 1.5f; boardSets.fontSizeMax = 2f;
+            // Explicitly separate the two sets; auto-size each complete line instead of orphaning a brace.
+            boardSets.textWrappingMode = TextWrappingModes.NoWrap; boardSets.lineSpacing = 2f;
+        }
+        // Keep the existing text references while retiring the dedicated station button.
+        if (interaction != null)
+        {
+            var button = interaction.GetComponent<UnityEngine.UI.Button>();
+            if (button != null) button.enabled = false;
+            foreach (var image in interaction.GetComponentsInChildren<UnityEngine.UI.Image>(true)) image.enabled = false;
+            foreach (var text in interaction.GetComponentsInChildren<TMP_Text>(true))
+            { text.raycastTarget = false; text.textWrappingMode = TextWrappingModes.Normal; }
+        }
     }
 
     private void LateUpdate()
     {
         if (stage == null || safeArea == null || safeArea.rect.height <= 0f) return;
         if (progress != null)
-            progress.text = "CHALLENGE " + Mathf.Min(stage.ChallengeIndex + 1, stage.ChallengeCount) + " OF " + stage.ChallengeCount;
+            progress.text = "Challenge " + Mathf.Min(stage.ChallengeIndex + 1, stage.ChallengeCount) + " of " + stage.ChallengeCount +
+                "\nQuestion " + (stage.QuestionIndex + 1) + " of " + stage.QuestionCount;
         hud.gameObject.SetActive(!stage.IsBoardOpen);
         float width = safeArea.rect.width;
         Place(hud, Vector2.one, new Vector2(-24f, -24f), new Vector2(500f, 136f), Vector2.one);
-        Place(status, new Vector2(.5f, 1f), new Vector2(0f, -204f), new Vector2(Mathf.Min(880f, width - 64f), 94f), new Vector2(.5f, 1f));
-        Place(interaction, new Vector2(.5f, 0f), new Vector2(0f, 32f), new Vector2(Mathf.Min(680f, width * .42f), 100f), new Vector2(.5f, 0f));
+        LayoutMessage(status, -174f);
+        float afterStatus = 174f + (status != null && status.gameObject.activeInHierarchy ? status.rect.height + 12f : 0f);
+        LayoutMessage(interaction, -afterStatus);
         Place(viewBoard, new Vector2(.5f, 0f), new Vector2(0f, 148f), new Vector2(240f, 88f), new Vector2(.5f, 0f));
         Place(submit, new Vector2(.5f, 0f), new Vector2(0f, 248f), new Vector2(240f, 88f), new Vector2(.5f, 0f));
         Place(boardBack, new Vector2(0f, 1f), new Vector2(24f, -24f), new Vector2(240f, 88f), new Vector2(0f, 1f));
-        FitBetweenControls(interaction);
         FitBetweenControls(viewBoard);
         FitBetweenControls(submit);
         occupied.Clear();
@@ -48,11 +78,12 @@ public sealed class FunctionsRelationsPresentation : MonoBehaviour
         if (mobileControls != null) foreach (var rect in mobileControls) AddObstacle(rect);
         LayoutChoices(domainPanel);
         LayoutChoices(rangePanel);
+        LayoutRangeContents();
         if (domainHint != null) domainHint.text = "Choose the input for your next connection.";
         if (rangeHint != null)
         {
             rangeHint.text = stage.SelectedDomain != null ?
-                "Choose an output for Domain " + stage.SelectedDomain + "." : "Select an input at Domain first.";
+                "Input " + stage.SelectedDomain + ": choose an output." : "Choose a new input at Domain to add a connection.";
         }
         // Screen resizing can leave saved TMP SDF geometry using the previous canvas scale.
         // Rebuild only when that scale changes, including the initial mobile layout.
@@ -61,6 +92,37 @@ public sealed class FunctionsRelationsPresentation : MonoBehaviour
             textScale = transform.lossyScale;
             foreach (var label in labels) if (label != null) label.ForceMeshUpdate(true, true);
         }
+    }
+
+    private void LayoutRangeContents()
+    {
+        if (rangePanel == null) return;
+        var heading = rangePanel.Find("Heading") as RectTransform;
+        if (heading != null) StageUITheme.Stretch(heading, new Vector2(.05f,.86f), new Vector2(.95f,.97f));
+        if (rangeHint != null) StageUITheme.Stretch(rangeHint.rectTransform, new Vector2(.05f,.73f), new Vector2(.95f,.85f));
+        for (int i=0;i<stage.RangeButtons.Length;i++)
+        {
+            int col=i%2,row=i/2;
+            StageUITheme.Stretch((RectTransform)stage.RangeButtons[i].transform,
+                new Vector2(.06f+col*.21f,.40f-row*.23f), new Vector2(.24f+col*.21f,.61f-row*.23f));
+        }
+        var close=rangePanel.Find("Close Choices") as RectTransform;
+        if(close!=null)StageUITheme.Stretch(close,new Vector2(.68f,.03f),new Vector2(.94f,.17f));
+    }
+
+    private void LayoutMessage(RectTransform rect, float y)
+    {
+        if (rect == null) return;
+        var text = rect.GetComponent<TMP_Text>() ?? rect.GetComponentInChildren<TMP_Text>(true);
+        if (text == null) return;
+        text.enableAutoSizing = false; text.fontSize = 27f;
+        text.textWrappingMode = TextWrappingModes.Normal;
+        text.alignment = TextAlignmentOptions.Top;
+        text.raycastTarget = false; text.color = StageUITheme.Gold;
+        text.outlineColor = new Color(.02f,.035f,.04f); text.outlineWidth = .14f;
+        float height = Mathf.Max(38f, text.GetPreferredValues(text.text, 488f, 1000f).y + 8f);
+        Place(rect, Vector2.one, new Vector2(-24f, y), new Vector2(hud.rect.width, height), Vector2.one);
+        if (text.rectTransform != rect) StageUITheme.Stretch(text.rectTransform, Vector2.zero, Vector2.one);
     }
 
     private void AddObstacle(RectTransform rect)
@@ -103,7 +165,9 @@ public sealed class FunctionsRelationsPresentation : MonoBehaviour
     {
         if (panel == null || !panel.gameObject.activeInHierarchy) return;
         panel.anchorMin = panel.anchorMax = panel.pivot = new Vector2(.5f, .5f);
-        panel.sizeDelta = new Vector2(Mathf.Min(640f, safeArea.rect.width - 48f), Mathf.Clamp(safeArea.rect.height * .33f, 300f, 360f));
+        panel.sizeDelta = panel == rangePanel ?
+            new Vector2(Mathf.Min(820f,safeArea.rect.width-48f),440f) :
+            new Vector2(Mathf.Min(640f, safeArea.rect.width - 48f), Mathf.Clamp(safeArea.rect.height * .33f, 300f, 360f));
         Rect area = safeArea.rect;
         Vector2 preferred = area.center + new Vector2(0f, 40f), best = preferred;
         float bestScore = float.MaxValue;

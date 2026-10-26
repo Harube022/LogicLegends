@@ -31,7 +31,7 @@ namespace LogicLegends.Graph
         public int? PracticeAnswer { get; private set; }
         public List<string> PracticeRoute { get; } = new List<string>();
         public string PracticeTitle { get; private set; } = "INTRODUCTION";
-        public string PracticeObjective { get; private set; } = "Read the objective before choosing a route or answer.";
+        public string PracticeObjective { get; private set; } = "Tap View Board near the book or board to read the task. Back returns without submitting.";
         public string PracticeFeedback { get; private set; } = "PRACTICE ONLY — no time or progress changes.";
         public bool CanPracticeConfirm => IsActive && (CurrentStep == GraphTutorialStep.Book || CurrentStep == GraphTutorialStep.Degree);
 
@@ -59,6 +59,7 @@ namespace LogicLegends.Graph
         private readonly List<Behaviour> pausedCameraInputs = new List<Behaviour>();
         private readonly Dictionary<Renderer, bool> hiddenPlayer = new Dictionary<Renderer, bool>();
         private readonly Dictionary<GameObject, bool> hiddenArena = new Dictionary<GameObject, bool>();
+        private Dictionary<Renderer,bool> overheadRoof;
         private readonly List<Renderer> worldTargets = new List<Renderer>();
         private GameObject practiceArena;
         private int acceptedInteractionFrame = -1;
@@ -264,6 +265,7 @@ namespace LogicLegends.Graph
 
         private void BeginGuidedView()
         {
+            overheadRoof = GraphOverheadVisibility.HideCeiling();
             joystickInput.ResetJoystick(); player.ToggleControl(false);
             PrelimTeleportTransition.MovePlayerImmediately(player.gameObject, originalPosition, originalRotation);
             foreach (var renderer in player.GetComponentsInChildren<Renderer>(true))
@@ -411,16 +413,16 @@ namespace LogicLegends.Graph
             {
                 case GraphTutorialStep.Minimap:
                     SetGuidedStep(GraphTutorialStep.Objective,
-                        "This label shows the current challenge number, its type, and your objective. Five distinct challenges are selected for each run; labels may be letters or numbers.",
+                        "Tap View Board near the book or board to read the task. Back returns without submitting. Finish two questions per challenge.",
                         stage.ui.TutorialTarget("Objective"), true, "Objective"); break;
                 case GraphTutorialStep.Objective:
                     PracticeRoute.Clear(); PracticeRoute.AddRange(new[] { "X", "Y" });
                     SetGuidedStep(GraphTutorialStep.Route,
-                        "ROUTE records each completed bridge crossing. Orange bridges are available; crossed bridges turn blue. A degree question shows your selected number here instead.",
+                        "The minimap footer records completed bridge crossings. Orange bridges are available; blue means crossed. Degree questions show your selected number here.",
                         stage.ui.TutorialTarget("Recorded route"), true, "Recorded route"); break;
                 case GraphTutorialStep.Route:
                     SetGuidedStep(GraphTutorialStep.Timer,
-                        "One " + StageJourneyUI.FormatTime(stage.countdownSeconds) + " countdown covers the whole run. It starts at the book, pauses for Help and between challenges, and carries over. Incorrect answers cost 10 seconds.",
+                        "One " + StageJourneyUI.FormatTime(stage.countdownSeconds) + " countdown covers the whole run. It starts at the book, pauses for Help, board viewing and between challenges, and carries over. Incorrect answers cost 10 seconds.",
                         stage.ui.TutorialTarget("Clock"), true, "Clock"); break;
                 case GraphTutorialStep.Timer: BuildPracticeArena(GraphChallengeType.VerticesAndEdges);
                     PracticeTitle = "VERTICES AND EDGES"; PracticeObjective = "Practice graph — platforms are vertices and bridges are edges.";
@@ -453,7 +455,7 @@ namespace LogicLegends.Graph
                     PracticeTitle = "PROGRESSION"; PracticeObjective = "PRACTICE — no challenges completed.";
                     PracticeFeedback = "Incorrect: -10 seconds and a brief movement stop. Correct: next graph, then a fresh book interaction.";
                     SetGuidedStep(GraphTutorialStep.Progress,
-                        "Incorrect answers explain the problem and preserve your route or selection. Correct answers pause time and prepare the next challenge. Start it at the book. Complete all five to finish the stage.",
+                        "Wrong answers keep your route or selection for correction.\nCorrect answers pause time. Start again at the book.\nFinish two questions in each of five challenges.",
                         stage.ui.TutorialTarget("Feedback"), true, "Feedback"); break;
                 case GraphTutorialStep.Progress: BeginConfirmation(); break;
             }
@@ -530,6 +532,7 @@ namespace LogicLegends.Graph
 
         private void RestoreGuidedView()
         {
+            GraphOverheadVisibility.Restore(overheadRoof);
             worldTargets.Clear(); uiTarget = null; instructionWorldObjects = null;
             if (worldObstacle != null) worldObstacle.gameObject.SetActive(false);
             if (demonstrationCamera != null) PrelimTutorialSkipControl.CancelCamera(demonstrationCamera);

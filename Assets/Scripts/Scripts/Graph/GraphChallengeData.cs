@@ -35,6 +35,8 @@ namespace LogicLegends.Graph
         [TextArea] public string objective;
         [TextArea] public string lesson;
         public string start = "A", destination, degreeVertex = "C";
+        public string[] requiredVertices = new string[0];
+        [Min(3)] public int minimumCycleVertices = 3;
         public List<GraphVertexData> vertices = new List<GraphVertexData>();
         public List<GraphEdgeData> edges = new List<GraphEdgeData>();
         public GraphVertexData Vertex(string id) => vertices.Find(v => v.id == id);
@@ -60,11 +62,13 @@ namespace LogicLegends.Graph
             for (int i = 1; i < route.Count; i++)
                 if (!c.Connected(route[i - 1], route[i]))
                 { feedback = "Every move must follow a connecting edge and its direction."; return false; }
+            if (c.requiredVertices.Any(v => !route.Contains(v)))
+            { feedback = "Visit every required vertex: " + string.Join(", ", c.requiredVertices) + "."; return false; }
             if (c.type == GraphChallengeType.Cycle)
             {
                 var middle = route.Take(route.Count - 1).ToList();
-                if (route[route.Count - 1] == c.start && middle.Count >= 3 && middle.Distinct().Count() == middle.Count) return true;
-                feedback = "Return to " + c.start + " after at least three distinct vertices, without repeating an intermediate vertex.";
+                if (route[route.Count - 1] == c.start && middle.Count >= c.minimumCycleVertices && middle.Distinct().Count() == middle.Count) return true;
+                feedback = "Return to " + c.start + " after at least " + c.minimumCycleVertices + " distinct vertices. Do not repeat an intermediate vertex.";
                 return false;
             }
             if (route[route.Count - 1] != c.destination)
@@ -72,6 +76,19 @@ namespace LogicLegends.Graph
             if (route.Distinct().Count() != route.Count)
             { feedback = "A simple path cannot repeat a vertex. Use RETRY ROUTE."; return false; }
             return true;
+        }
+        public static List<string> FindSolution(GraphChallengeData c)
+        { return FindRoute(c, new List<string> { c.start }); }
+        static List<string> FindRoute(GraphChallengeData c, List<string> path)
+        {
+            if (Validate(c,path,null,true,out _)) return new List<string>(path);
+            if (path.Count > c.vertices.Count) return null;
+            foreach (var v in c.vertices)
+            {
+                if (!c.Connected(path[path.Count-1],v.id) || path.Contains(v.id) && !(c.type==GraphChallengeType.Cycle && v.id==c.start && path.Count>=3)) continue;
+                path.Add(v.id); var found=FindRoute(c,path); path.RemoveAt(path.Count-1); if(found!=null)return found;
+            }
+            return null;
         }
     }
 }

@@ -79,7 +79,7 @@ namespace LogicLegends.Induction
                 int first = a + b;
                 return new InductionChallenge {
                     title = "Verify the Base Case", theorem = theorem,
-                    instructions = "Check P(1) by substituting n = 1. Place the true equality at the Base Case altar, then press Submit.",
+                    instructions = "Substitute n = 1.\nPlace the true equality at Base Case. Tap Submit.",
                     choices = new[] { T(prefix + "base-low", "S(1) = " + first + " = " + (first - 1)),
                         T(prefix + "base", "S(1) = " + first + " = (" + a + " + " + (a + 2 * b) + ")/2"),
                         T(prefix + "base-high", "S(1) = " + first + " = " + (first + 1)) },
@@ -88,7 +88,7 @@ namespace LogicLegends.Induction
             if (round == 1)
                 return new InductionChallenge {
                     title = "Identify the Inductive Hypothesis", theorem = theorem,
-                    instructions = "Assume P(k) for an arbitrary integer k ≥ 1. Select the assumption about S(k), not the base case or the statement to prove next.",
+                    instructions = "Assume P(k) for arbitrary k ≥ 1.\nChoose the statement about S(k).",
                     choices = new[] { T(prefix + "hypothesis", hypothesis),
                         T(prefix + "hyp-base", "Assume S(1) = " + (a + b)),
                         T(prefix + "hyp-goal", "Assume " + goal) },
@@ -96,7 +96,7 @@ namespace LogicLegends.Induction
             if (round == 2)
                 return new InductionChallenge {
                     title = "Identify the Inductive Goal", theorem = theorem,
-                    instructions = "Assume P(k). Choose the exact statement P(k + 1) to prove, then place it at the Inductive Step altar.",
+                    instructions = "Assume P(k).\nChoose the goal P(k + 1). Place it at Inductive Step.",
                     choices = new[] { T(prefix + "goal-old", "S(k) = " + Formula(a, b, "k")),
                         T(prefix + "goal", goal),
                         T(prefix + "goal-wrong", "S(k + 1) = k(" + Term(a, a + 2 * b, "(k + 1)") + ")/2") },
@@ -117,7 +117,7 @@ namespace LogicLegends.Induction
             }
             return new InductionChallenge {
                 title = "Complete a Full Induction Proof", theorem = theorem,
-                instructions = "Prove the base case, state P(k), then arrange four lines that establish P(k + 1). Use all three altars before submitting.",
+                instructions = "Complete Base Case and Hypothesis.\nOrder four lines proving P(k + 1).\nUse all three altars, then Submit.",
                 choices = new[] { T(prefix + "full-base", "S(1) = " + (a + b) + " = (" + a + " + " + (a + 2 * b) + ")/2"),
                     T(prefix + "full-hyp", hypothesis),
                     T(prefix + "full-step-1", "S(k + 1) = S(k) + " + nextTerm),

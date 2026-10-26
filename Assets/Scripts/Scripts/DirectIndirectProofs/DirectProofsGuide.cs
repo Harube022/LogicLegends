@@ -185,7 +185,7 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
         }
         if (Step == DirectProofsPracticeStep.Book)
         {
-            Focus(stage.InformationBoardDisplay, false); ShowStep(DirectProofsPracticeStep.Instructions, "The main Information Board shows the current problem and instructions after the book starts a question. Near the altars, View Board smoothly frames it; Back returns to the room without starting or submitting a question. The timer keeps running during normal board reading and altar ordering.", null, true, stage.InformationBoardDisplay); return true;
+            Focus(stage.InformationBoardDisplay, false); ShowStep(DirectProofsPracticeStep.Instructions, "View Board shows the current question. Back returns without submitting.\nNormal board reading and altar ordering use countdown time.", null, true, stage.InformationBoardDisplay); return true;
         }
         if (Step == DirectProofsPracticeStep.ConfirmBook) { Confirm(); return true; }
         return false;
@@ -198,11 +198,11 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
         switch (Step)
         {
             case DirectProofsPracticeStep.Timer:
-                ShowStep(DirectProofsPracticeStep.Progress, "There are five challenges and two distinct questions per challenge: ten questions total. Solve both before the next challenge. Every question waits for a new book interaction.", stage.Progress.rectTransform, true); break;
+                ShowStep(DirectProofsPracticeStep.Progress, "Five challenges. Two questions each.\nFinish both before advancing. Start each question at the book.", stage.Progress.rectTransform, true); break;
             case DirectProofsPracticeStep.Progress:
-                Focus(stage.Book, false); ShowStep(DirectProofsPracticeStep.Book, "Use the hand at the Book Statue to start each question, then return to the book to confirm your finished answer. Try the hand now: this practice interaction cannot start a real question.", hand, false, stage.Book); break;
+                Focus(stage.Book, false); ShowStep(DirectProofsPracticeStep.Book, "Use the hand at the book to start.\nReturn there to confirm your answer.\nTap the hand now; this is practice only.", hand, false, stage.Book); break;
             case DirectProofsPracticeStep.Instructions:
-                FocusOverview(); ShowStep(DirectProofsPracticeStep.Altars, "Yellow arrows identify available altars. In Challenge 1, selecting Direct or Indirect hides all choice arrows; tapping the selected altar again clears the choice and restores the available arrows. Later challenges open the indicated altar's ordering interface. Back to Room restores its arrow and keeps your draft. Read the full task on the main board behind the altars; the numbered rows are the proof order.", null, true); break;
+                FocusOverview(); ShowStep(DirectProofsPracticeStep.Altars, "Yellow arrows mark available altars. Selecting hides them.\nIn Challenge 1, select the same altar again to clear.\nFor ordering, Back to Room keeps the draft and restores guidance. Numbered rows show proof order.", null, true); break;
             case DirectProofsPracticeStep.Altars:
                 ShowStep(DirectProofsPracticeStep.Choose, "PRACTICE ONLY: Four equal cords total 28 cm. Writing 4x = 28 and solving x = 7 directly establishes each length. Choose the proof family for this separate example.");
                 SetActions("Direct Proof", "Indirect Proof"); break;
@@ -218,7 +218,7 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
         {
             if (alternate) { body.text = "This practice derivation starts from the given facts and solves directly, so choose Direct Proof. This practice correction has no penalty."; return; }
             Focus(stage.Altars[0], false);
-            ShowStep(DirectProofsPracticeStep.OpenBoard, "Open the practice altar. Arrange all five rows into a valid sequence: givens, equation, calculation, result, and conclusion. These cord lengths are separate from the real question bank.", null, false, stage.Altars[0]);
+            ShowStep(DirectProofsPracticeStep.OpenBoard, "Open the practice altar.\nOrder five rows: givens → equation → calculation → result → conclusion.\nThis example is separate from gameplay.", null, false, stage.Altars[0]);
             SetActions("Open Practice Altar"); return;
         }
         if (Step == DirectProofsPracticeStep.OpenBoard) OpenPracticeOrdering();
@@ -234,7 +234,7 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
         displayOrder = new[] { 0, 2, 1, 3, 4 }, acceptedOrders = new[] { new TrialProofOrder { tabletIds = new[] { 0, 1, 2, 3, 4 } } } };
     void OpenPracticeOrdering()
     {
-        ShowStep(DirectProofsPracticeStep.Arrange, "Drag a statement onto another row to swap them. Read the whole statement and justification. Move the misplaced rows into a logically valid order, then press Back to Room. You can reopen and swap again to correct mistakes.");
+        ShowStep(DirectProofsPracticeStep.Arrange, "Drag one row onto another to swap.\nRead statements and justifications. Order them logically.\nBack to Room keeps your draft; reopen to revise.");
         practiceSwapped = false;
         stage.OrderingBoard.ShowPractice(Example, () => practiceSwapped = true, null, PracticeBoardClosed);
         SafeArea.SetAsLastSibling(); root.SetAsLastSibling(); skip.Show(true);
@@ -244,9 +244,9 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
         if (!IsPractice || Step != DirectProofsPracticeStep.Arrange) return;
         if (!practiceSwapped || !Example.IsCorrect(0, stage.OrderingBoard.CurrentOrder))
         {
-            ShowStep(DirectProofsPracticeStep.OpenBoard, "The practice rows still need correcting. Read the givens first, then the equation, division, result, and conclusion. Reopen the example and swap the middle rows. Practice has no penalty."); SetActions("Try Again"); return;
+            ShowStep(DirectProofsPracticeStep.OpenBoard, "Try again: givens → equation → division → result → conclusion.\nReopen the example and swap the middle rows. Practice has no penalty."); SetActions("Try Again"); return;
         }
-        ShowStep(DirectProofsPracticeStep.Correction, "Practice arrangement complete. Back returns to the room without submitting. During a real question, reopen the same altar to swap any misplaced rows; your work is retained after an incorrect confirmation. In Challenge 5, also select a strategy on the board.", null, true);
+        ShowStep(DirectProofsPracticeStep.Correction, "Practice complete. Back returns without submitting.\nReopen an altar to revise misplaced rows. Wrong answers keep your draft.\nChallenge 5 also requires a strategy.", null, true);
     }
 
     void CleanPractice()

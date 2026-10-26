@@ -1357,7 +1357,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
             ShowPlacementErrors(review);
             ApplyIncorrectSubmissionPenalty();
             if (gameOverTriggered) return;
-            string message = "Incorrect. Fix the highlighted element blocks and submit again.\nKeep green numbers; correct the red numbers.";
+            string message = "Keep green placements. Fix red placements, then Submit.";
             if (review.missingRequired) message += "\nSome required elements are missing.";
             StartCoroutine(ShowFeedback(message, new Color(1f, 0.35f, 0.35f), 2.8f));
             return;
@@ -1529,7 +1529,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
             boardText.fontSize = 6.7f;
             boardText.text = "<color=#F4D794>Challenge 5 — Set Complement</color>\nQuestion " +
                 (conditionIndex + 1) + " of " + QuestionCount + "\n\n" + universal + "\n" + selected +
-                "\nMove every U element into its correct area.\n" + activeComplement.setName +
+                "\nPlace each U element once.\n" + activeComplement.setName +
                 " members go inside " + activeComplement.setName + ".\n" + activeComplement.setName +
                 "<sup>c</sup>: outside " + activeComplement.setName + ", but inside U.";
             return;
@@ -1543,7 +1543,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
             boardText.fontSize = 6.8f;
             boardText.text = "<color=#F4D794>Challenge 4 — Set Difference</color>\nQuestion " +
                 (conditionIndex + 1) + " of " + QuestionCount + "\n\n" + instruction +
-                "\nFill A and B with all their members.\nPlace shared members in A ∩ B.\nFill A − B and B − A with differences.";
+                "\nFill A and B with all their members.\nPlace shared copies in A ∩ B.\nFill A − B and B − A. Use separate copies.\nLet blocks settle, then tap Submit.";
             return;
         }
         boardText.fontSize = challengeNumber == 1 ? 13.5f : 9f;

@@ -171,7 +171,7 @@ public sealed class LogicGardenControlsOnboarding : MonoBehaviour
         foreach(var renderer in player.GetComponentsInChildren<Renderer>()){avatarRenderers[renderer]=renderer.enabled;renderer.enabled=false;}
         var models=introduction.Wizard.GetComponentsInChildren<Renderer>().Where(r=>r.GetComponent<TMP_Text>()==null).ToArray();
         wizardBounds=models[0].bounds;foreach(var renderer in models)wizardBounds.Encapsulate(renderer.bounds);
-        Show(Step.MeetLefyahj,"Lefyahj the wizard would like to speak with you. Approach him and tap ‘Talk with Lefyahj’ or use the hand button to begin the conversation.",subject);
+        Show(Step.MeetLefyahj,"Meet Lefyahj the wizard.\nApproach him. Tap Talk with Lefyahj or use the hand button.",subject);
         FrameWizard();
     }
     void FrameWizard()

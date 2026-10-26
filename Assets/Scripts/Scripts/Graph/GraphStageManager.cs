@@ -22,19 +22,26 @@ namespace LogicLegends.Graph
         private bool onboardingPending = true;
         public bool OnboardingPending => onboardingPending;
         public bool TutorialActive => controlsTutorial != null && controlsTutorial.IsActive;
+        public GraphChallengeIntroductions Introductions { get; private set; }
+        public GraphQuestionView QuestionView { get; private set; }
+        public GraphBoardView BoardView { get; private set; }
+        public bool GraphRevealed { get; private set; }
         public AudioClip correctSound, wrongSound;
         [Min(30)] public float countdownSeconds = 600;
         [Min(.1f)] public float feedbackSeconds = 1.2f;
         public GraphStageState State { get; private set; } = GraphStageState.WAITING_FOR_ACTIVATION;
         public GraphTraversalTracker Tracker { get; } = new GraphTraversalTracker();
         public int ChallengeIndex { get; private set; }
+        public int QuestionIndex { get; private set; }
         public int Correct { get; private set; }
         public int Mistakes { get; private set; }
         public int? Answer { get; private set; }
         private List<int> runChallengeIndices;
         public IReadOnlyList<int> RunChallengeIndices => runChallengeIndices.AsReadOnly();
-        public int ChallengeCount => runChallengeIndices.Count;
-        public int CatalogIndex => runChallengeIndices[ChallengeIndex];
+        public int ChallengeCount => GraphChallengeCatalog.ChallengesPerRun;
+        public int TotalQuestions => ChallengeCount * GraphChallengeCatalog.QuestionsPerChallenge;
+        public int SelectedVariant(int challenge, int question) => runChallengeIndices[challenge * 2 + question];
+        public int CatalogIndex => SelectedVariant(ChallengeIndex, QuestionIndex);
         public int ActiveVariantIndex => CatalogIndex;
         private GraphChallengeData activeChallenge;
         public GraphChallengeData Challenge => activeChallenge ?? catalog.variantSets[ChallengeIndex].variants[ActiveVariantIndex];
@@ -58,8 +65,9 @@ namespace LogicLegends.Graph
         private bool navigating;
         public const string NextStageScene = "Trees";
         private void Awake() => StageSelectionState.Select(9);
-        public bool CanAct => Ready && !Moving && !lessonOpen && !TutorialActive && Time.timeScale > 0 &&
-            (input == null || !input.GameplayInputBlocked) &&
+        public bool CanAct => Ready && !Moving && !lessonOpen && !TutorialActive && (BoardView == null || !BoardView.IsOpen) &&
+            (Introductions == null || !Introductions.IsOpen) && Time.timeScale > 0 &&
+            (input == null || !input.GameplayInputBlocked || QuestionView != null && QuestionView.IsOpen) &&
             (TeleportManager.Instance == null || !TeleportManager.Instance.IsTransitioning);
         public bool NearBook => LocalPlayer != null && Vector3.Distance(LocalPlayer.transform.position, bookStatue.position) < 5f * GraphGeometry.VertexScale;
 
@@ -69,8 +77,8 @@ namespace LogicLegends.Graph
             for (int round = 0; round < previous.Length; round++)
                 previous[round] = PlayerPrefs.GetInt("LogicLegends.Graph.LastVariant." + round, -1);
             runChallengeIndices = catalog.SelectRun(new System.Random(Guid.NewGuid().GetHashCode()), previous);
-            for (int round = 0; round < runChallengeIndices.Count; round++)
-                PlayerPrefs.SetInt("LogicLegends.Graph.LastVariant." + round, runChallengeIndices[round]);
+            for (int round = 0; round < ChallengeCount; round++)
+                PlayerPrefs.SetInt("LogicLegends.Graph.LastVariant." + round, SelectedVariant(round,0));
             PlayerPrefs.Save();
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.playOnAwake = false;
@@ -80,6 +88,11 @@ namespace LogicLegends.Graph
             if (wrongSound != null) wrongSound.LoadAudioData();
             GraphGeometry.EnsureBookCollision(bookStatue);
             ui.Build(this);
+            BoardView = GetComponent<GraphBoardView>();
+            if (BoardView == null) BoardView = gameObject.AddComponent<GraphBoardView>();
+            BoardView.Initialize(this);
+            QuestionView = gameObject.AddComponent<GraphQuestionView>(); QuestionView.Initialize(this);
+            Introductions = gameObject.AddComponent<GraphChallengeIntroductions>(); Introductions.Initialize(this);
             timer.Initialize(countdownSeconds, HandleGameOver);
             // Database character selection is asynchronous in a signed-in session.
             while (Player.LocalInstance == null) yield return null;
@@ -104,6 +117,7 @@ namespace LogicLegends.Graph
         }
         private void OnDestroy()
         {
+            BoardView?.CloseImmediately();
             SetLesson(false);
             if (input != null) input.OnInteractAction -= OnInteract;
         }
@@ -111,9 +125,11 @@ namespace LogicLegends.Graph
         private void LateUpdate()
         {
             BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && Ready && !Moving &&
-                !TutorialActive && !lessonOpen && State == GraphStageState.WAITING_FOR_ACTIVATION);
+                !TutorialActive && !lessonOpen && (BoardView == null || !BoardView.IsOpen) && State == GraphStageState.WAITING_FOR_ACTIVATION);
             if (!Ready) return;
-            if (State == GraphStageState.ACTIVE && !Moving && !lessonOpen && Time.timeScale > 0)
+            if (State == GraphStageState.ACTIVE && GraphRevealed && !Moving && !lessonOpen && !TutorialActive &&
+                (BoardView == null || !BoardView.IsOpen) &&
+                (QuestionView == null || !QuestionView.IsOpen) && Time.timeScale > 0)
             {
                 Tracker.Sample(arena.InverseTransformPoint(LocalPlayer.transform.position), Time.deltaTime,
                     TeleportManager.Instance != null && TeleportManager.Instance.IsTeleporting);
@@ -138,6 +154,7 @@ namespace LogicLegends.Graph
             if (!CanAct || !NearBook) return;
             if (State == GraphStageState.WAITING_FOR_ACTIVATION)
             {
+                if (Introductions != null && !Introductions.HasSeen(ChallengeIndex)) return;
                 // Every activation begins at the configured start, even after exploration.
                 StartCoroutine(Activate());
             }
@@ -149,6 +166,7 @@ namespace LogicLegends.Graph
             ui.HideAnnouncement();
             yield return ResetPosition(false);
             if (State != GraphStageState.WAITING_FOR_ACTIVATION) yield break;
+            SetGraphRevealed(true);
             State = GraphStageState.ACTIVE;
             Feedback = Challenge.objective;
             timer.Resume();
@@ -157,7 +175,7 @@ namespace LogicLegends.Graph
         public void SelectAnswer(int number)
         {
             if (!CanAct || State != GraphStageState.ACTIVE || Challenge.type != GraphChallengeType.Degree) return;
-            Answer = number; Feedback = "Selected " + number + ". Confirm at the Book Statue or tap CONFIRM.";
+            Answer = number; Feedback = "Selected " + number + ". Tap Confirm.";
         }
         public void ClearSelection()
         {
@@ -179,7 +197,8 @@ namespace LogicLegends.Graph
                 // fully opaque. The destination is read after this callback.
                 if (nextChallenge)
                 {
-                    ChallengeIndex++;
+                    QuestionIndex++;
+                    if (QuestionIndex == 2) { QuestionIndex = 0; ChallengeIndex++; }
                     BuildChallenge();
                 }
                 UpdateSpawnPoint();
@@ -223,7 +242,30 @@ namespace LogicLegends.Graph
             bookStatue.position = arena.TransformPoint(Challenge.Vertex(Challenge.start).position + GraphGeometry.BookOffset);
             Answer = null;
             ResetTracker(Challenge.Vertex(Challenge.start).position);
+            SetGraphRevealed(false);
+        }
+        private void SetGraphRevealed(bool revealed)
+        {
+            GraphRevealed = revealed;
+            // Configure the whole graph first so bridge alignment can use both platforms.
+            // Deactivate geometry and colliders together; the book's platform always remains.
+            foreach (var vertex in vertices) vertex.gameObject.SetActive(revealed || vertex.vertexId == Challenge.start);
+            foreach (var bridge in bridges) bridge.gameObject.SetActive(revealed);
             ui.RebuildMap();
+        }
+        public string BoardInstructions
+        {
+            get
+            {
+                if (State == GraphStageState.STAGE_COMPLETE) return "Trial complete!\nYou completed all five challenges and ten questions.";
+                if (State == GraphStageState.GAME_OVER) return "Time is up.\nUse Play Again to begin a new attempt.";
+                if (State == GraphStageState.ACTIVE || State == GraphStageState.VALIDATING) return Challenge.objective;
+                if (State == GraphStageState.WAITING_FOR_ACTIVATION && QuestionIndex == 0 && ChallengeIndex > 0)
+                    return "Challenge " + ChallengeIndex + " completed! Interact with the Book Statue to start Challenge " + (ChallengeIndex + 1) + ".";
+                if (State == GraphStageState.CHALLENGE_COMPLETE && QuestionIndex == 1 && ChallengeIndex < 4)
+                    return "Challenge " + (ChallengeIndex + 1) + " completed! Interact with the Book Statue to start Challenge " + (ChallengeIndex + 2) + ".";
+                return "Interact with the Book Statue to start the challenge.";
+            }
         }
         private void ResetTracker(Vector3 position)
         {
@@ -246,7 +288,7 @@ namespace LogicLegends.Graph
             if (!valid)
             {
                 Mistakes++;
-                Feedback = "INCORRECT  /  -10 seconds\n" + reason;
+                Feedback = Challenge.type == GraphChallengeType.Degree ? "" : reason;
                 ui.ShowPenalty();
                 timer.Penalize(10);
                 if (State == GraphStageState.GAME_OVER) return;
@@ -257,7 +299,11 @@ namespace LogicLegends.Graph
             timer.Pause();
             State = GraphStageState.CHALLENGE_COMPLETE;
             Feedback = "";
-            if (Correct < ChallengeCount) ui.ShowCompletionAnnouncement(ChallengeIndex + 1, ChallengeIndex + 2);
+            if (Correct < TotalQuestions)
+            {
+                if (QuestionIndex == 1) ui.ShowCompletionAnnouncement(ChallengeIndex + 1, ChallengeIndex + 2);
+                else ui.ShowQuestionAnnouncement(ChallengeIndex + 1);
+            }
             else ui.HideAnnouncement();
             StartCoroutine(Advance());
         }
@@ -266,22 +312,29 @@ namespace LogicLegends.Graph
         {
         if (!AdminAuthorization.TryUseGameplayAdmin()) return;
             if (!CanDebugClearChallenge) return;
-            Correct++; timer.Pause(); State = GraphStageState.CHALLENGE_COMPLETE;
+            Correct += 2 - QuestionIndex; QuestionIndex = 1; timer.Pause(); State = GraphStageState.CHALLENGE_COMPLETE;
             Feedback = "Challenge cleared by Admin."; StartCoroutine(Advance());
+        }
+        public void DebugClearCurrentQuestion()
+        {
+            if (!AdminAuthorization.TryUseGameplayAdmin() || !CanDebugClearChallenge) return;
+            Correct++; timer.Pause(); State = GraphStageState.CHALLENGE_COMPLETE;
+            Feedback = "Question cleared by Admin."; StartCoroutine(Advance());
         }
         private IEnumerator WrongFeedback()
         {
             LocalPlayer.ToggleControl(false);
             yield return new WaitForSeconds(feedbackSeconds);
             if (State != GraphStageState.VALIDATING) yield break;
-            LocalPlayer.ToggleControl(true);
+            LocalPlayer.ToggleControl(QuestionView == null || !QuestionView.IsOpen);
             State = GraphStageState.ACTIVE;
         }
         private IEnumerator Advance()
         {
             LocalPlayer.ToggleControl(false);
+            if (QuestionView != null) yield return QuestionView.CloseView();
             yield return new WaitForSeconds(feedbackSeconds);
-            if (Correct == ChallengeCount)
+            if (Correct == TotalQuestions)
             {
                 State = GraphStageState.STAGE_COMPLETE;
                 input.SetGameplayInputBlocked(true);
@@ -298,6 +351,7 @@ namespace LogicLegends.Graph
         {
             if (State == GraphStageState.GAME_OVER || State == GraphStageState.STAGE_COMPLETE) return;
             State = GraphStageState.GAME_OVER;
+            BoardView?.CloseImmediately();
             timer.Pause();
             LocalPlayer?.ToggleControl(false);
             input?.SetGameplayInputBlocked(true);

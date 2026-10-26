@@ -37,6 +37,7 @@ public sealed class LaserMappingController : MonoBehaviour
     public Transform[] DomainDiamonds => domainDiamonds;
     public Transform[] RangeDiamonds => rangeDiamonds;
     public bool CanUndo => LastUndoablePair.HasValue;
+    public bool IsLocked(MappingPair pair) => locked.Contains(pair);
     public MappingPair? LastUndoablePair
     {
         get
@@ -99,7 +100,7 @@ public sealed class LaserMappingController : MonoBehaviour
         if (!canEdit || Array.IndexOf(domainIds, id) < 0) return false;
         selectedDomain = id;
         SetDomainGlow();
-        Feedback?.Invoke("Domain " + id + " selected. Go to the RANGE diamond and choose an output.");
+        Feedback?.Invoke("Input " + id + " selected. Use the hand at Range.");
         return true;
     }
 
@@ -114,11 +115,11 @@ public sealed class LaserMappingController : MonoBehaviour
         var pair = new MappingPair(selectedDomain, id);
         if (beams.ContainsKey(pair))
         {
-            Feedback?.Invoke(pair + " is already connected. Use Undo at RANGE to remove a connection.");
+            Feedback?.Invoke(pair + " already exists. Use its Remove button to delete it.");
             return false;
         }
         if (!AddConnection(pair, false)) return false;
-        Feedback?.Invoke("Blue laser connected " + pair + ". You can choose another output or change the selected input.");
+        Feedback?.Invoke("Connected " + pair + ". Choose the next input at Domain.");
         return true;
     }
 
@@ -152,7 +153,7 @@ public sealed class LaserMappingController : MonoBehaviour
         Destroy(line.gameObject);
         beams.Remove(pair);
         connectionOrder.Remove(pair);
-        Feedback?.Invoke("Removed " + pair + ". Choose a new output at RANGE.");
+        Feedback?.Invoke("Removed " + pair + ". Choose an input at Domain.");
         return true;
     }
 

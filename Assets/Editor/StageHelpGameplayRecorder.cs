@@ -36,6 +36,24 @@ public static class StageHelpGameplayRecorder
     {SessionState.SetBool("Help.InductionVerify",true);Begin("Induction");}
     public static void CheckInductionPresentation()
     {SessionState.SetBool("Help.InductionPresentationVerify",true);Begin("Induction");}
+    public static void CheckSets()
+    {SessionState.SetBool("Help.SetsVerify",true);Begin("Setssss");}
+    public static void CheckFunctionsTutorial()
+    {SessionState.SetBool("Help.FunctionsTutorialVerify",true);Begin("Functions and Relations");}
+    public static void CheckFunctionsGarden()
+    {SessionState.SetBool("Help.FunctionsGardenVerify",true);CheckFunctionsTutorial();}
+    public static void CheckGraphRevision()
+    {SessionState.SetBool("Help.GraphRevisionVerify",true);Begin("Graph");}
+    public static void CheckGraphHighlights()
+    {SessionState.SetBool("Help.GraphHighlightsOnly",true);CheckGraphRevision();}
+    public static void CheckGraphPlaylist()
+    {SessionState.SetBool("Help.GraphPlaylistOnly",true);CheckGraphRevision();}
+    public static void CheckGraphDirected()
+    {SessionState.SetBool("Help.GraphDirectedOnly",true);CheckGraphRevision();}
+    public static void CheckGraphAdmin()
+    {SessionState.SetBool("Help.GraphRevisionAdminOnly",true);CheckGraphRevision();}
+    public static void CheckFunctions()
+    {SessionState.SetBool("Help.FunctionsVerify",true);Begin("Functions and Relations");}
     public static void Begin(string onlyScene="")
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode||SceneManager.GetActiveScene().isDirty)throw new InvalidOperationException("Exit Play Mode and save the scene first.");
@@ -61,6 +79,15 @@ public static class StageHelpGameplayRecorder
         SessionState.SetBool(Flag,false);SceneManager.sceneLoaded-=Loaded;
         SessionState.SetBool("Help.InductionVerify",false);
         SessionState.SetBool("Help.InductionPresentationVerify",false);
+        SessionState.SetBool("Help.SetsVerify",false);
+        SessionState.SetBool("Help.FunctionsVerify",false);
+        SessionState.SetBool("Help.FunctionsTutorialVerify",false);
+        SessionState.SetBool("Help.FunctionsGardenVerify",false);
+        SessionState.SetBool("Help.GraphRevisionVerify",false);
+        SessionState.SetBool("Help.GraphHighlightsOnly",false);
+        SessionState.SetBool("Help.GraphPlaylistOnly",false);
+        SessionState.SetBool("Help.GraphDirectedOnly",false);
+        SessionState.SetBool("Help.GraphRevisionAdminOnly",false);
         // Restore these explicitly as Editor statics may survive a Play Mode transition.
         StageCompleteManager.SuppressPersistenceForValidation=SessionState.GetBool(Flag+".PriorStagePersistence",false);
         LogicLegends.Graph.GraphCompletion.SuppressPersistenceForValidation=SessionState.GetBool(Flag+".PriorGraphPersistence",false);
@@ -97,6 +124,15 @@ public static class StageHelpGameplayRecorder
             string inductionManifest=CaptureFolder+"/Induction.json";
             var induction=File.Exists(inductionManifest)?JsonUtility.FromJson<StageHelpVideoCatalog.Recording>(File.ReadAllText(inductionManifest)):null;
             bool completeInduction=induction!=null&&induction.clips!=null&&induction.clips.Length==6&&induction.clips.All(k=>File.Exists(CaptureFolder+"/"+k+".mp4")&&File.Exists(CaptureFolder+"/"+k+".json"));
+            string setsManifest=CaptureFolder+"/Sets.json";
+            var sets=File.Exists(setsManifest)?JsonUtility.FromJson<StageHelpVideoCatalog.Recording>(File.ReadAllText(setsManifest)):null;
+            bool completeSets=sets!=null&&sets.clips!=null&&sets.clips.Length==4&&sets.clips.All(k=>File.Exists(CaptureFolder+"/"+k+".mp4")&&File.Exists(CaptureFolder+"/"+k+".json"));
+            string functionsManifest=CaptureFolder+"/FunctionsRelations.json";
+            var functions=File.Exists(functionsManifest)?JsonUtility.FromJson<StageHelpVideoCatalog.Recording>(File.ReadAllText(functionsManifest)):null;
+            bool completeFunctions=functions!=null&&functions.clips!=null&&functions.clips.Length==4&&functions.clips.All(k=>File.Exists(CaptureFolder+"/"+k+".mp4")&&File.Exists(CaptureFolder+"/"+k+".json"));
+            string graphManifest=CaptureFolder+"/Graph.json";
+            var graph=File.Exists(graphManifest)?JsonUtility.FromJson<StageHelpVideoCatalog.Recording>(File.ReadAllText(graphManifest)):null;
+            bool completeGraph=graph!=null&&graph.clips!=null&&graph.clips.Length==4&&graph.clips.All(k=>File.Exists(CaptureFolder+"/"+k+".mp4")&&File.Exists(CaptureFolder+"/"+k+".json"));
             foreach(string manifest in Directory.GetFiles(CaptureFolder,"*.json"))
             {
                 string key=Path.GetFileNameWithoutExtension(manifest);
@@ -112,6 +148,9 @@ public static class StageHelpGameplayRecorder
                 if(key.StartsWith("FormalProofs",StringComparison.Ordinal)&&!completeFormal)continue;
                 if(key.StartsWith("DirectProofs",StringComparison.Ordinal)&&!completeDirect)continue;
                 if(key.StartsWith("Induction",StringComparison.Ordinal)&&!completeInduction)continue;
+                if(key.StartsWith("Sets",StringComparison.Ordinal)&&!completeSets)continue;
+                if(key.StartsWith("FunctionsRelations",StringComparison.Ordinal)&&!completeFunctions)continue;
+                if(key.StartsWith("Graph",StringComparison.Ordinal)&&!completeGraph)continue;
                 string clip=CaptureFolder+"/"+key+".mp4",destination=Folder+"/"+key+".mp4";
                 if(!File.Exists(clip)||new FileInfo(clip).Length<1024)continue;
                 if(!File.Exists(destination)||new FileInfo(destination).Length!=new FileInfo(clip).Length)
@@ -183,6 +222,8 @@ public static class StageHelpGameplayRecorder
             float by=Time.realtimeSinceStartup+35;while(Player.LocalInstance==null&&Time.realtimeSinceStartup<by)yield return null;
             while(TeleportManager.Instance!=null&&TeleportManager.Instance.IsTransitioning&&Time.realtimeSinceStartup<by)yield return null;
             yield return Prepare(scene);yield return new WaitForSecondsRealtime(.6f);
+            if(scene=="Graph"&&SessionState.GetBool("Help.GraphRevisionVerify",false))
+            {yield return GraphRevisionPlayChecks.Run();continue;}
             if(scene=="PRELIM")
             {
                 yield return PropositionalHelpClipCapture.Record();
@@ -215,6 +256,21 @@ public static class StageHelpGameplayRecorder
                 else yield return InductionHelpClipCapture.Record();
                 continue;
             }
+            if(scene=="Setssss")
+            {
+                if(SessionState.GetBool("Help.SetsVerify",false))yield return SetsHelpVerification.Run();
+                else yield return SetsHelpClipCapture.Record();
+                continue;
+            }
+            if(scene=="Functions and Relations")
+            {
+                if(SessionState.GetBool("Help.FunctionsGardenVerify",false))yield return FunctionsGardenPlayChecks.Run();
+                if(SessionState.GetBool("Help.FunctionsTutorialVerify",false))continue;
+                if(SessionState.GetBool("Help.FunctionsVerify",false))yield return FunctionsRelationsPlayVerification.Run();
+                else yield return FunctionsRelationsHelpClipCapture.Record();
+                continue;
+            }
+            if(scene=="Graph"){yield return GraphHelpClipCapture.Record();continue;}
             StartRecording(scene);Cue("Approach the Book Statue and use the hand button.");
             switch(scene)
             {
@@ -239,7 +295,25 @@ public static class StageHelpGameplayRecorder
             while (UnityEngine.Object.FindObjectsByType<StageHelpPage>(FindObjectsSortMode.None).Length == 0 && Time.realtimeSinceStartup < by) yield return null;
             if (UnityEngine.Object.FindObjectsByType<StageHelpPage>(FindObjectsSortMode.None).Length == 0) throw new InvalidOperationException("Automatic first Help did not finish opening: " + scene);
         }
+        if(scene=="Graph")
+        {
+            var s=Find<LogicLegends.Graph.GraphStageManager>();
+            while(!s.Ready)yield return null;
+            s.BeginFromHelp();yield return null;
+            var tutorial=s.controlsTutorial;
+            tutorial.GetType().GetMethod("BeginConfirmation",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(tutorial,null);
+            yield return null;tutorial.ConfirmYes();
+            if(SessionState.GetBool("Help.GraphRevisionVerify",false))yield break;
+            while(!s.Introductions.IsOpen)yield return null;
+            s.Introductions.Finish();while(s.Introductions.IsOpen)yield return null;
+            yield break;
+        }
         if(scene=="Trees"){var s=Find<LogicLegends.Trees.TreeStageManager>();while(!s.Ready)yield return null;if(s.LessonOpen)s.SetLesson(false);}
+        else if(scene=="Functions and Relations"&&SessionState.GetBool("Help.FunctionsTutorialVerify",false))
+        {
+            yield return FunctionsRelationsOnboardingPlayChecks.Run(Find<FunctionsRelationsStageManager>());
+            File.AppendAllText(Report,"PASS complete Functions onboarding: real movement, jump, hand, board, Domain/Range choices, practice Remove, repeat/skip and camera/input cleanup.\n");
+        }
         else
         {
             // Reuse the already-tested cleanup path: Help closes, practice confirms without starting a question.

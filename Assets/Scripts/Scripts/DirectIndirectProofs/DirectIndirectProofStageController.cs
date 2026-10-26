@@ -588,7 +588,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     private void ShowReadyMessage()
     {
-        boardText.text = "CHALLENGE " + ChallengeNumber + " · QUESTION " + QuestionNumber + " OF 2\n\nUse the hand at the Book Statue to start. Read the problem, choose or arrange the proof at the active altar, then confirm at the book. The shared timer is paused.";
+        boardText.text = "CHALLENGE " + ChallengeNumber + " · QUESTION " + QuestionNumber + " OF 2\n\nUse the hand at the book to start.\nRead → choose or arrange at the altar → confirm at the book.\nTimer paused.";
         neutralTabletText.text = "";
         RefreshQuestionCounter();
         selectionText.text = "Timer paused • Activate the Book Statue";
