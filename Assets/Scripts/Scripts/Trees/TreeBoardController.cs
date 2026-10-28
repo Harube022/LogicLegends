@@ -18,10 +18,11 @@ namespace LogicLegends.Trees
             foreach(var node in GetComponentsInChildren<TreeNode>(true)) {node.gameObject.SetActive(false);Destroy(node.gameObject);}Nodes.Clear();
             foreach(var line in GetComponentsInChildren<LineRenderer>(true)){line.gameObject.SetActive(false);Destroy(line.gameObject);}lines.Clear();
             Challenge=data;First=Second=null;Edges=data.initial.Select(e=>new TreeEdgeData(e.source,e.destination){removable=e.removable}).ToList();
-            foreach(var n in data.nodes) {var node=Instantiate(nodePrefab,transform);node.id=n.id;node.label.text=n.id;node.transform.localPosition=Position(n);Nodes.Add(node);}
+            foreach(var n in data.nodes) {var node=Instantiate(nodePrefab,transform);node.id=n.id;node.label.text=n.id;node.transform.localScale*=.58f;node.transform.localPosition=Position(n);Nodes.Add(node);}
             Draw();
         }
-        public static Vector3 Position(TreeNodeData n)=>new Vector3(n.position.x*4.5f,2+n.position.y*5,0);
+        // Same coordinates as the InformationBoard canvas. Keep the diagram below its question.
+        public static Vector3 Position(TreeNodeData n)=>new Vector3(n.position.x*4.7f,(-110+n.position.y*330)*.0094f,-.07f);
         public void Select(string id)
         {
             if(!Nodes.Any(n=>n.id==id))return;

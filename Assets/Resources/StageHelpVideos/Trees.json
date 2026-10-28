@@ -1,22 +1,48 @@
 {
     "scene": "Trees",
-    "source": "Unity Game view; offline Editor test session; first question only; account writes disabled",
+    "source": "Actual isolated Unity Game view. Same question across both clips; normal hand touch, node selection and Submit. Each segment ends with an encoded two-second fade. No player progress or reward writes.",
     "cues": [
         {
             "seconds": 0.0,
-            "caption": "Approach the Book Statue and use the hand button."
+            "caption": "Approach the Book Statue and tap the hand button to begin."
         },
         {
-            "seconds": 3.5416667461395265,
-            "caption": "Read the tree question and inspect its nodes and branches."
+            "seconds": 0.0,
+            "caption": "Read the tree question."
+        }
+    ],
+    "clips": [
+        "Trees",
+        "Trees_02_Board"
+    ],
+    "guides": [
+        {
+            "cues": [
+                {
+                    "seconds": 0.0,
+                    "caption": "Approach the Book Statue and tap the hand button to begin."
+                }
+            ]
         },
         {
-            "seconds": 5.041666507720947,
-            "caption": "Tap the node requested by the question."
-        },
-        {
-            "seconds": 6.541666507720947,
-            "caption": "Confirm checks the answer and pauses after a correct solution."
+            "cues": [
+                {
+                    "seconds": 0.0,
+                    "caption": "Read the tree question."
+                },
+                {
+                    "seconds": 2.75,
+                    "caption": "Nodes are vertices. Branches connect parents to children."
+                },
+                {
+                    "seconds": 5.25,
+                    "caption": "The root has no parent. Tap the requested node."
+                },
+                {
+                    "seconds": 8.625,
+                    "caption": "Tap Submit to check. Back keeps your work."
+                }
+            ]
         }
     ]
 }

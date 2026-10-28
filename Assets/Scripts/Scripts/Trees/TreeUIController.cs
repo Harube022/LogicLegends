@@ -5,289 +5,153 @@ using UnityEngine;
 using UnityEngine.UI;
 namespace LogicLegends.Trees
 {
+    /// <summary>The puzzle and its touch targets share the InformationBoard's world-space canvas.</summary>
     public sealed class TreeUIController : MonoBehaviour
     {
         public RectTransform host;
         public GameObject gameplayControls;
-        public Sprite parchment, nodeCircle;
-        public Sprite hudObjective, hudStatus, hudMap;
+        public Sprite parchment,nodeCircle,hudObjective,hudStatus,hudMap;
         TreeStageManager stage;
-        TMP_Text objective,objectiveProgress,objectiveTitle,feedback,clock,selection,lessonBody;
-        RectTransform diagram,owned,actions,numberRow,settingsButton;
-        RectTransform compactMap, mapTimer, feedbackCard;
-        readonly Vector3[] settingsCorners=new Vector3[4];
-        GameObject lesson,result;
-        Button connect,remove,clear,guide;
+        RectTransform owned,map,diagram,hud,boardCanvas,targets,numberRow,helpRoot;
+        TMP_Text clock,progress,question,boardProgress,status,boardClock;
+        Button help,submit,connect,remove,clear,back;
         readonly Dictionary<string,Button> nodes=new Dictionary<string,Button>();
-        RectTransform focusOverlay, focusTargets, focusNumbers, focusObjectiveCard, focusFeedbackCard, focusTimerCard, focusEdgeControls, focusActionBar;
-        TMP_Text focusObjective, focusProgress, focusTitle, focusFeedback, focusClock, focusSelection, focusFeedbackHeading;
-        Button focusConfirm, focusConnect, focusRemove, focusClear, focusExit, focusGuide;
-        readonly Dictionary<string,Button> focusNodes=new Dictionary<string,Button>();
         bool resultVisible;
-        TMP_Text trialProgress;
-        string laidOutTitle,laidOutObjective;
-        float laidOutWidth;
-        string laidOutFeedback;
+        public RectTransform BoardCanvas=>boardCanvas;
+        public TMP_Text QuestionText=>question;
+        public Button SubmitButton=>submit;
+        public Button BackButton=>back;
+        public Button HelpButton=>help;
         public void Build(TreeStageManager owner)
         {
-            // The camera viewport uses full-screen coordinates; only edge controls receive safe insets.
-            host=(RectTransform)host.GetComponentInParent<Canvas>().transform;
-            settingsButton=gameplayControls.GetComponentsInChildren<RectTransform>(true).FirstOrDefault(r=>r.name=="SettingsButton");
-            stage=owner;owned=StageUITheme.Rect("Trees HUD",host);StageUITheme.Stretch(owned,Vector2.zero,Vector2.one);
-            var info=Panel("Tree objective",owned,new Vector2(0,1),new Vector2(225,-295),new Vector2(410,250),hudObjective);
-            objectiveProgress=Text(info,"Challenge progress",new Vector2(.09f,.80f),new Vector2(.91f,.92f),22);
-            objectiveTitle=Text(info,"Challenge title",new Vector2(.09f,.60f),new Vector2(.91f,.79f),28);
-            objective=Text(info,"Objective",new Vector2(.09f,.12f),new Vector2(.91f,.56f),26,true);
-            objectiveProgress.alignment=objectiveTitle.alignment=objective.alignment=TextAlignmentOptions.TopLeft;
-            var feed=Panel("Feedback",owned,new Vector2(0,1),new Vector2(225,-495),new Vector2(410,135));feedbackCard=feed;
-            feedback=Text(feed,"Feedback",new Vector2(.09f,.12f),new Vector2(.91f,.88f),24,true);
-            var mapDock=StageUITheme.Rect("Tree map safe area",owned);StageUITheme.Stretch(mapDock,Vector2.zero,Vector2.one);mapDock.gameObject.AddComponent<Crystal.SafeArea>();
-            var map=Panel("Tree minimap",mapDock,new Vector2(1,1),new Vector2(-185,-180),new Vector2(330,320),hudMap);compactMap=map;
-            map.localScale=Vector3.one*.86f; ExpandableMinimap.Attach(map);
-            var caption=Text(map,"Diagram title",new Vector2(.15f,.84f),new Vector2(.85f,.94f),24);caption.text=TrialCatalog.ForScene("Trees").Title;
-            diagram=StageUITheme.Rect("Editable diagram",map);StageUITheme.Stretch(diagram,new Vector2(.13f,.13f),new Vector2(.87f,.82f));
-            var time=Panel("Shared countdown",mapDock,new Vector2(1,1),new Vector2(-185,-385),new Vector2(330,136));mapTimer=time;
-            clock=Text(time,"Timer",new Vector2(.1f,.1f),new Vector2(.9f,.9f),32);
-            var trialTitle=Text(time,"CurrentStageLabel",new Vector2(.06f,.63f),new Vector2(.94f,.90f),22);trialTitle.text=TrialCatalog.ForScene("Trees").Title;
-            trialProgress=Text(time,"StageProgress",new Vector2(.40f,.12f),new Vector2(.94f,.60f),22);
-            StageUITheme.Stretch(clock.rectTransform,new Vector2(.06f,.15f),new Vector2(.38f,.60f));
-            StagePresentation.Hud(time,trialTitle,clock,trialProgress);
-            actions=StageUITheme.Rect("Tree actions",owned);Place(actions,new Vector2(.5f,0),new Vector2(0,125),new Vector2(780,175));
-            selection=Text(actions,"Selected endpoints",new Vector2(0,.02f),new Vector2(1,.25f),24,true);
-            Place(selection.rectTransform,new Vector2(.5f,.5f),new Vector2(0,-75),new Vector2(780,40));
-            connect=Action("Connect",actions,"CONNECT",new Vector2(-250,-22),new Vector2(235,65),()=>stage.Edit(false));
-            remove=Action("Remove",actions,"REMOVE",new Vector2(0,-22),new Vector2(235,65),()=>stage.Edit(true));
-            clear=Action("Clear selection",actions,"CLEAR PICK",new Vector2(250,-22),new Vector2(235,65),stage.ClearSelection);
-            guide=Action("Trees Field Guide",owned,"FIELD GUIDE",Vector2.zero,new Vector2(280,88),()=>stage.SetLesson(true));
-            Place((RectTransform)guide.transform,new Vector2(0,1),new Vector2(320,-90),new Vector2(280,88));
-            numberRow=StageUITheme.Rect("Number answers",actions);Place(numberRow,new Vector2(.5f,.5f),new Vector2(0,-22),new Vector2(720,65));
-            for(int i=0;i<=5;i++){int answer=i;Action("Answer "+i,numberRow,i.ToString(),new Vector2(-300+i*120,0),new Vector2(110,65),()=>stage.SelectAnswer(answer));}
-            StagePresentation.Help(guide, settingsButton);
-            BuildFocus();BuildBook();RebuildDiagram();Refresh();
+            stage=owner;host=(RectTransform)host.GetComponentInParent<Canvas>().transform;
+            owned=StageUITheme.Rect("Trees HUD",host);StageUITheme.Stretch(owned,Vector2.zero,Vector2.one);
+            var safe=StageUITheme.Rect("Trees safe area",owned);StageUITheme.Stretch(safe,Vector2.zero,Vector2.one);safe.gameObject.AddComponent<Crystal.SafeArea>();
+            map=Panel("Tree minimap",safe,hudMap);Place(map,Vector2.one,new Vector2(-24,-24),new Vector2(280,250),Vector2.one);ExpandableMinimap.Attach(map);
+            var caption=Text("Map title",map,"TREE MAP",23);Place(caption.rectTransform,new Vector2(.5f,1),new Vector2(0,-28),new Vector2(230,32));
+            diagram=StageUITheme.Rect("Editable diagram",map);StageUITheme.Stretch(diagram,new Vector2(.12f,.10f),new Vector2(.88f,.79f));
+            hud=Panel("Shared countdown",safe,hudStatus);Place(hud,Vector2.one,new Vector2(-24,-286),new Vector2(280,150),Vector2.one);
+            var title=Text("CurrentStageLabel",hud,TrialCatalog.ForScene("Trees").Title,23);StageUITheme.Stretch(title.rectTransform,new Vector2(.07f,.67f),new Vector2(.93f,.91f));
+            clock=Text("Timer",hud,"10:00",34);StageUITheme.Stretch(clock.rectTransform,new Vector2(.07f,.16f),new Vector2(.37f,.62f));
+            progress=Text("StageProgress",hud,"",22);StageUITheme.Stretch(progress.rectTransform,new Vector2(.40f,.14f),new Vector2(.93f,.61f));
+            StagePresentation.Hud(hud,title,clock,progress);
+            help=Action("Trees Help",owned,"Help",new Vector2(320,-90),new Vector2(280,88),()=>stage.SetLesson(true));
+            var settings=gameplayControls.GetComponentsInChildren<RectTransform>(true).FirstOrDefault(r=>r.name=="SettingsButton");StagePresentation.Help(help,settings);
+            helpRoot=StageUITheme.Rect("Trees Help panel",host);StageUITheme.Stretch(helpRoot,Vector2.zero,Vector2.one);helpRoot.gameObject.AddComponent<Image>();helpRoot.gameObject.SetActive(false);
+            BuildBoard();RebuildDiagram();Refresh();
         }
-        RectTransform Panel(string name,Transform parent,Vector2 anchor,Vector2 position,Vector2 size,Sprite artwork=null)
+        void BuildBoard()
         {
-            var rect=StageUITheme.Rect(name,parent);Place(rect,anchor,position,size);var image=rect.gameObject.AddComponent<Image>();
-            image.sprite=artwork!=null?artwork:hudStatus;image.type=Image.Type.Sliced;image.color=Color.white;
-            image.pixelsPerUnitMultiplier=Mathf.Min(image.sprite.rect.width,image.sprite.rect.height)*.01f;
-            image.raycastTarget=false;return rect;
-        }
-        static void Place(RectTransform rect,Vector2 anchor,Vector2 position,Vector2 size){rect.anchorMin=rect.anchorMax=anchor;rect.pivot=new Vector2(.5f,.5f);rect.anchoredPosition=position;rect.sizeDelta=size;}
-        static TMP_Text Text(Transform parent,string name,Vector2 min,Vector2 max,float size,bool reading=false)
-        {var text=StageUITheme.Text(name,parent,"",size,reading);text.color=StageUITheme.ReadingInk;StageUITheme.Stretch(text.rectTransform,min,max);text.enableAutoSizing=true;text.fontSizeMin=size-3;text.fontSizeMax=size;return text;}
-        static Button Action(string name,Transform parent,string title,Vector2 pos,Vector2 size,UnityEngine.Events.UnityAction callback)
-        {
-            var button=StageUITheme.Button(name,parent,title,callback);
-            size=name.StartsWith("Node ")?size:name.Contains("Answer ")?new Vector2(96,72):new Vector2(280,88);
-            Place((RectTransform)button.transform,new Vector2(.5f,.5f),pos,size);
-            button.GetComponent<Image>().pixelsPerUnitMultiplier=4.5f;
-            var label=button.GetComponentInChildren<TMP_Text>();label.rectTransform.offsetMin=new Vector2(24,10);label.rectTransform.offsetMax=new Vector2(-24,-10);
-            return button;
+            boardCanvas=StageUITheme.Rect("InformationBoard puzzle",stage.board.transform);
+            var canvas=boardCanvas.gameObject.AddComponent<Canvas>();canvas.renderMode=RenderMode.WorldSpace;canvas.worldCamera=Camera.main;canvas.sortingOrder=10;
+            boardCanvas.gameObject.AddComponent<GraphicRaycaster>();boardCanvas.sizeDelta=new Vector2(1280,800);boardCanvas.localScale=Vector3.one*.0094f;boardCanvas.localPosition=new Vector3(0,0,-.16f);
+            boardProgress=Text("Board question counter",boardCanvas,"",29);Place(boardProgress.rectTransform,new Vector2(.5f,.5f),new Vector2(-85,363),new Vector2(950,40));
+            boardClock=Text("Board time",boardCanvas,"10:00",30);Place(boardClock.rectTransform,new Vector2(.5f,.5f),new Vector2(510,363),new Vector2(160,40));
+            question=Text("Current tree question",boardCanvas,"",36,true);Place(question.rectTransform,new Vector2(.5f,.5f),new Vector2(0,303),new Vector2(1152,80));
+            targets=StageUITheme.Rect("Tree node targets",boardCanvas);StageUITheme.Stretch(targets,Vector2.zero,Vector2.one);
+            status=Text("Board selection and result",boardCanvas,"",27,true);Place(status.rectTransform,new Vector2(.5f,.5f),new Vector2(0,-175),new Vector2(1152,62));
+            numberRow=StageUITheme.Rect("Board number answers",boardCanvas);Place(numberRow,new Vector2(.5f,.5f),new Vector2(0,-242),new Vector2(1120,72));
+            submit=Action("Submit Tree",boardCanvas,"Submit",new Vector2(405,-328),new Vector2(252,88),stage.Confirm);
+            connect=Action("Board Connect",boardCanvas,"Connect",new Vector2(-405,-328),new Vector2(252,88),()=>stage.Edit(false));
+            remove=Action("Board Remove",boardCanvas,"Remove",new Vector2(-135,-328),new Vector2(252,88),()=>stage.Edit(true));
+            clear=Action("Board Clear Selection",boardCanvas,"Clear Pick",new Vector2(135,-328),new Vector2(252,88),stage.ClearSelection);
+            // Back and Help are always screen-space, including during the camera blend.
+            back=Action("Exit Tree Board",host,"Back",new Vector2(0,0),new Vector2(230,88),stage.ExitBoard);
+            back.gameObject.SetActive(false);
         }
         public void RebuildDiagram()
         {
-            foreach(Transform child in diagram){child.gameObject.SetActive(false);Destroy(child.gameObject);}nodes.Clear();
-            // Edges are independent editable UI graphics; no answers are baked into artwork.
-            foreach(var e in stage.board.Edges)DrawEdge(e);
-            foreach(var n in stage.Challenge.nodes)
+            foreach(Transform child in diagram){child.gameObject.SetActive(false);Destroy(child.gameObject);}
+            foreach(Transform child in targets){child.gameObject.SetActive(false);Destroy(child.gameObject);}nodes.Clear();
+            foreach(var e in stage.board.Edges)
             {
-                string id=n.id;var button=Action("Node "+id,diagram,id,DiagramPoint(n),new Vector2(50,55),()=>stage.SelectNode(id));
-                var image=button.GetComponent<Image>();image.sprite=nodeCircle;image.color=new Color(.16f,.31f,.33f);image.type=Image.Type.Simple;image.preserveAspect=true;
-                var label=button.GetComponentInChildren<TMP_Text>();label.rectTransform.offsetMin=label.rectTransform.offsetMax=Vector2.zero;label.fontSizeMin=22;label.fontSizeMax=26;nodes[id]=button;
+                var a=MapPoint(stage.Challenge.nodes.First(n=>n.id==e.source));var b=MapPoint(stage.Challenge.nodes.First(n=>n.id==e.destination));
+                var edge=StageUITheme.Rect("Branch "+e.source+" "+e.destination,diagram);Place(edge,new Vector2(.5f,.5f),(a+b)*.5f,new Vector2(Vector2.Distance(a,b),3));edge.localRotation=Quaternion.Euler(0,0,Mathf.Atan2(b.y-a.y,b.x-a.x)*Mathf.Rad2Deg);var ink=edge.gameObject.AddComponent<Image>();ink.color=StageUITheme.Ink;ink.raycastTarget=false;
             }
-            RebuildFocusTargets();
-        }
-        void BuildFocus()
-        {
-            focusOverlay=StageUITheme.Rect("Trees Focused Board",host);StageUITheme.Stretch(focusOverlay,Vector2.zero,Vector2.one);
-            // A transparent modal surface consumes unused taps; only the projected node buttons edit the tree.
-            focusOverlay.gameObject.AddComponent<Image>().color=Color.clear;
-            var backdrop=StageUITheme.Rect("Board sidebar backdrop",focusOverlay);StageUITheme.Stretch(backdrop,Vector2.zero,new Vector2(.25f,1));
-            var backdropImage=backdrop.gameObject.AddComponent<Image>();backdropImage.color=new Color(.035f,.085f,.11f);backdropImage.raycastTarget=false;
-            focusTargets=StageUITheme.Rect("Screen node targets",focusOverlay);StageUITheme.Stretch(focusTargets,Vector2.zero,Vector2.one);
-            focusObjectiveCard=Panel("Board objective card",focusOverlay,new Vector2(0,1),new Vector2(230,-225),new Vector2(440,390),hudObjective);
-            focusProgress=Text(focusObjectiveCard,"Board challenge progress",new Vector2(.1f,.82f),new Vector2(.9f,.93f),24);
-            focusTitle=Text(focusObjectiveCard,"Board challenge title",new Vector2(.1f,.62f),new Vector2(.9f,.80f),34);
-            focusObjective=Text(focusObjectiveCard,"Board objective",new Vector2(.1f,.12f),new Vector2(.9f,.57f),30,true);
-            focusProgress.alignment=focusTitle.alignment=focusObjective.alignment=TextAlignmentOptions.TopLeft;
-            focusFeedbackCard=Panel("Board feedback card",focusOverlay,new Vector2(0,1),new Vector2(230,-565),new Vector2(440,250));
-            focusFeedbackHeading=Text(focusFeedbackCard,"Board feedback heading",new Vector2(.1f,.77f),new Vector2(.9f,.91f),24);focusFeedbackHeading.text="FEEDBACK";focusFeedbackHeading.alignment=TextAlignmentOptions.TopLeft;
-            focusFeedback=Text(focusFeedbackCard,"Board feedback",new Vector2(.1f,.12f),new Vector2(.9f,.69f),27,true);focusFeedback.alignment=TextAlignmentOptions.TopLeft;
-            focusTimerCard=Panel("Board timer card",focusOverlay,new Vector2(0,1),new Vector2(230,-770),new Vector2(440,120));
-            var timerHeading=Text(focusTimerCard,"Board timer heading",new Vector2(.1f,.60f),new Vector2(.9f,.80f),20);timerHeading.text="TIME LEFT";
-            focusClock=Text(focusTimerCard,"Board timer",new Vector2(.1f,.12f),new Vector2(.9f,.59f),36);
-            focusGuide=Action("Board Field Guide",focusOverlay,"FIELD GUIDE",Vector2.zero,new Vector2(300,75),()=>stage.SetLesson(true));
-            Place((RectTransform)focusGuide.transform,new Vector2(0,1),new Vector2(230,-885),new Vector2(300,75));
-            focusEdgeControls=StageUITheme.Rect("Board edge controls",focusOverlay);
-            focusExit=Action("Exit Tree Board",focusEdgeControls,"EXIT BOARD",Vector2.zero,new Vector2(280,88),stage.ExitBoard);
-            Place((RectTransform)focusExit.transform,new Vector2(1,1),new Vector2(-164,-68),new Vector2(280,88));
-            var actionBar=StageUITheme.Rect("Focused board actions",focusOverlay);focusActionBar=actionBar;Place(actionBar,new Vector2(.625f,0),new Vector2(0,100),new Vector2(1100,150));
-            focusConfirm=Action("Confirm Tree",actionBar,"CONFIRM",new Vector2(0,55),new Vector2(300,75),stage.Confirm);
-            focusConnect=Action("Board Connect",actionBar,"CONNECT",new Vector2(-296,-30),new Vector2(280,88),()=>stage.Edit(false));
-            focusRemove=Action("Board Remove",actionBar,"REMOVE",new Vector2(0,-30),new Vector2(260,70),()=>stage.Edit(true));
-            focusClear=Action("Board Clear Selection",actionBar,"CLEAR PICK",new Vector2(296,-30),new Vector2(280,88),stage.ClearSelection);
-            focusSelection=StageUITheme.Text("Board selection",focusOverlay,"",28,true);
-            Place(focusSelection.rectTransform,new Vector2(.625f,0),new Vector2(0,220),new Vector2(1100,50));
-            focusSelection.outlineColor=Color.black;focusSelection.outlineWidth=.15f;
-            focusNumbers=StageUITheme.Rect("Board number answers",actionBar);Place(focusNumbers,new Vector2(.5f,.5f),new Vector2(0,-30),new Vector2(840,70));
-            for(int i=0;i<=5;i++){int answer=i;Action("Board Answer "+i,focusNumbers,i.ToString(),new Vector2(-280+i*112,0),new Vector2(96,72),()=>stage.SelectAnswer(answer));}
-            focusOverlay.gameObject.SetActive(false);
-        }
-        void RebuildFocusTargets()
-        {
-            foreach(Transform child in focusTargets){child.gameObject.SetActive(false);Destroy(child.gameObject);}focusNodes.Clear();
             foreach(var node in stage.Challenge.nodes)
             {
-                string id=node.id;var rect=StageUITheme.Rect("Board Node "+id,focusTargets);Place(rect,new Vector2(.5f,.5f),Vector2.zero,new Vector2(100,100));
-                var image=rect.gameObject.AddComponent<Image>();image.color=Color.clear;image.pixelsPerUnitMultiplier=4.5f;
-                var button=rect.gameObject.AddComponent<Button>();button.targetGraphic=image;button.transition=Selectable.Transition.None;button.onClick.AddListener(()=>stage.SelectNode(id));
-                focusNodes[id]=button;
+                var dot=Text("Map node "+node.id,diagram,node.id,20);Place(dot.rectTransform,new Vector2(.5f,.5f),MapPoint(node),new Vector2(32,32));
+                string id=node.id;var target=StageUITheme.Rect("Board Node "+id,targets);Place(target,new Vector2(.5f,.5f),new Vector2(node.position.x*500,-110+node.position.y*330),new Vector2(70,70));
+                var image=target.gameObject.AddComponent<Image>();image.color=Color.clear;
+                var button=target.gameObject.AddComponent<Button>();button.transition=Selectable.Transition.None;button.targetGraphic=image;button.onClick.AddListener(()=>stage.SelectNode(id));nodes[id]=button;
             }
+            foreach(Transform child in numberRow){child.gameObject.SetActive(false);Destroy(child.gameObject);}
+            int count=Mathf.Max(6,stage.Challenge.nodes.Count);
+            float width=Mathf.Min(112,1120f/count);
+            for(int i=0;i<count;i++){int answer=i;Action("Board Answer "+i,numberRow,i.ToString(),new Vector2((i-(count-1)*.5f)*width,0),new Vector2(width-8,72),()=>stage.SelectAnswer(answer));}
         }
-        void LayoutFocusSidebar()
+        static Vector2 MapPoint(TreeNodeData n)=>new Vector2(n.position.x*95,-75+n.position.y*150);
+        public void RefreshDiagram()
         {
-            float width=host.rect.width*.25f-48;
-            if(laidOutTitle==focusTitle.text&&laidOutObjective==focusObjective.text&&laidOutFeedback==focusFeedback.text&&Mathf.Approximately(laidOutWidth,width))return;
-            laidOutTitle=focusTitle.text;laidOutObjective=focusObjective.text;laidOutFeedback=focusFeedback.text;laidOutWidth=width;
-            float textWidth=width-64,center=host.rect.width*.125f;
-            focusTitle.fontSize=34;focusObjective.fontSize=30;
-            float titleHeight=Mathf.Max(42,focusTitle.GetPreferredValues(focusTitle.text,textWidth,float.PositiveInfinity).y);
-            float bodyHeight=Mathf.Max(44,focusObjective.GetPreferredValues(focusObjective.text,textWidth,float.PositiveInfinity).y);
-            float height=112+titleHeight+bodyHeight;
-            Place(focusObjectiveCard,new Vector2(0,1),new Vector2(center,-30-height*.5f),new Vector2(width,height));
-            TopLabel(focusProgress,24,30,textWidth);TopLabel(focusTitle,64,titleHeight,textWidth);TopLabel(focusObjective,80+titleHeight,bodyHeight,textWidth);
-            float nextTop=30+height+20;
-            float feedbackHeight=96+Mathf.Max(64,focusFeedback.GetPreferredValues(focusFeedback.text,textWidth,float.PositiveInfinity).y);
-            Place(focusFeedbackCard,new Vector2(0,1),new Vector2(center,-nextTop-feedbackHeight*.5f),new Vector2(width,feedbackHeight));
-            TopLabel(focusFeedbackHeading,24,30,textWidth);TopLabel(focusFeedback,64,feedbackHeight-88,textWidth);
-            nextTop+=feedbackHeight+20;
-            Place(focusTimerCard,new Vector2(0,1),new Vector2(center,-nextTop-60),new Vector2(width,120));
-            nextTop+=140;
-            Place((RectTransform)focusGuide.transform,new Vector2(0,1),new Vector2(center,-nextTop-44),new Vector2(280,88));
+            // Editing links must not destroy touch targets that still own a finger press.
+            foreach(Transform child in diagram)if(child.name.StartsWith("Branch ")){child.gameObject.SetActive(false);Destroy(child.gameObject);}
+            foreach(var e in stage.board.Edges)
+            {
+                var a=MapPoint(stage.Challenge.nodes.First(n=>n.id==e.source));var b=MapPoint(stage.Challenge.nodes.First(n=>n.id==e.destination));
+                var edge=StageUITheme.Rect("Branch "+e.source+" "+e.destination,diagram);Place(edge,new Vector2(.5f,.5f),(a+b)*.5f,new Vector2(Vector2.Distance(a,b),3));edge.SetAsFirstSibling();edge.localRotation=Quaternion.Euler(0,0,Mathf.Atan2(b.y-a.y,b.x-a.x)*Mathf.Rad2Deg);
+                var ink=edge.gameObject.AddComponent<Image>();ink.color=StageUITheme.Ink;ink.raycastTarget=false;
+            }
+            Refresh();
         }
-        static void TopLabel(TMP_Text text,float top,float height,float width)
+        public void Refresh()
         {
-            var rect=text.rectTransform;rect.anchorMin=rect.anchorMax=new Vector2(0,1);rect.pivot=new Vector2(0,1);
-            rect.anchoredPosition=new Vector2(32,-top);rect.sizeDelta=new Vector2(width,height);
+            if(stage==null)return;
+            progress.text="Challenge "+(stage.ChallengeIndex+1)+" of 5\nQuestion "+(stage.QuestionIndex+1)+" of 2";
+            int seconds=Mathf.CeilToInt(stage.timer.Remaining);clock.text=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
+            boardProgress.text="CHALLENGE "+(stage.ChallengeIndex+1)+" OF 5  •  QUESTION "+(stage.QuestionIndex+1)+" OF 2";
+            question.text=stage.State==TreeStageState.WAITING_FOR_ACTIVATION?"Use the hand at the Book Statue to start.":stage.Challenge.objective;
+            boardClock.text=clock.text;
+            bool active=stage.CanSolve;
+            status.text=stage.State==TreeStageState.ACTIVE?stage.Feedback:stage.State==TreeStageState.VALIDATING?"Incorrect. −10s. Your work is kept.":stage.State==TreeStageState.CHALLENGE_COMPLETE?"Correct!":"";
+            status.color=stage.State==TreeStageState.VALIDATING?new Color(.65f,.08f,.08f):stage.State==TreeStageState.CHALLENGE_COMPLETE?new Color(.06f,.4f,.12f):StageUITheme.ReadingInk;
+            foreach(var pair in nodes)pair.Value.interactable=active;
+            bool numeric=stage.Challenge.type==TreeChallengeType.Depth||stage.Challenge.type==TreeChallengeType.Height;
+            numberRow.gameObject.SetActive(numeric);
+            foreach(var b in numberRow.GetComponentsInChildren<Button>())
+            {b.interactable=active;b.GetComponentInChildren<TMP_Text>().color=stage.Answer.HasValue&&b.name=="Board Answer "+stage.Answer?StageUITheme.Gold:Color.white;}
+            connect.gameObject.SetActive(stage.Challenge.Editable);remove.gameObject.SetActive(stage.Challenge.Editable);
+            connect.interactable=remove.interactable=clear.interactable=submit.interactable=active;
+            if(!stage.Challenge.Editable){Place((RectTransform)clear.transform,new Vector2(.5f,.5f),new Vector2(-145,-328),new Vector2(280,88));Place((RectTransform)submit.transform,new Vector2(.5f,.5f),new Vector2(145,-328),new Vector2(280,88));}
+            else {Place((RectTransform)clear.transform,new Vector2(.5f,.5f),new Vector2(135,-328),new Vector2(252,88));Place((RectTransform)submit.transform,new Vector2(.5f,.5f),new Vector2(405,-328),new Vector2(252,88));}
+            var raycaster=boardCanvas.GetComponent<GraphicRaycaster>();raycaster.enabled=stage.BoardOpen&&!stage.LessonOpen;
+            owned.gameObject.SetActive(!resultVisible&&!stage.LessonOpen);map.gameObject.SetActive(!stage.BoardOpen);
+            hud.gameObject.SetActive(!stage.BoardOpen);help.gameObject.SetActive(!stage.BoardOpen);
+            back.gameObject.SetActive(stage.BoardOpen&&!stage.LessonOpen&&!resultVisible);back.interactable=stage.BoardOpen&&!stage.Moving&&!stage.LessonOpen;
+            gameplayControls.SetActive(!resultVisible&&!stage.BoardOpen&&!stage.LessonOpen);
+            help.interactable=stage.Ready&&!stage.Moving;
         }
         void LateUpdate()
         {
-            if(focusEdgeControls!=null)
+            if(back==null)return;
+            var safe=Screen.safeArea;safe=Rect.MinMaxRect(Mathf.Clamp(safe.xMin,0,Screen.width),Mathf.Clamp(safe.yMin,0,Screen.height),Mathf.Clamp(safe.xMax,0,Screen.width),Mathf.Clamp(safe.yMax,0,Screen.height));float left=safe.xMin/Screen.width*host.rect.width;float top=(Screen.height-safe.yMax)/Screen.height*host.rect.height;
+            Place((RectTransform)back.transform,new Vector2(0,1),new Vector2(left+140,-top-65),new Vector2(230,88));
+            if(!map.GetComponent<ExpandableMinimap>().IsOpen)
             {
-                var safe=Screen.safeArea;var size=new Vector2(Screen.width,Screen.height);
-                // An Editor view can retain stale safe bounds after a resolution change.
-                safe=Rect.MinMaxRect(Mathf.Clamp(safe.xMin,0,size.x),Mathf.Clamp(safe.yMin,0,size.y),Mathf.Clamp(safe.xMax,0,size.x),Mathf.Clamp(safe.yMax,0,size.y));
-                StageUITheme.Stretch(focusEdgeControls,safe.min/size,safe.max/size);
-                focusActionBar.anchoredPosition=new Vector2(0,100+safe.yMin/Screen.height*host.rect.height);
-                actions.anchoredPosition=new Vector2(0,125+safe.yMin/size.y*host.rect.height);
-                if(settingsButton!=null)
-                {
-                    settingsButton.GetWorldCorners(settingsCorners);
-                    var topRight=host.InverseTransformPoint(settingsCorners[2]);
-                    var bottomRight=host.InverseTransformPoint(settingsCorners[3]);
-                    guide.GetComponent<RectTransform>().anchoredPosition=new Vector2(topRight.x-host.rect.xMin+16+140,(topRight.y+bottomRight.y)*.5f-host.rect.yMax);
-                }
-            }
-            if(compactMap!=null&&!compactMap.GetComponent<ExpandableMinimap>().IsOpen)
-            {
-                // Fit the narrow screen in pixels, keeping the map clear of the guide.
-                bool portrait=Screen.height>Screen.width;
-                float scale=portrait?Mathf.Min(.86f,Screen.width*.24f/(330*compactMap.parent.lossyScale.x)):.86f;
-                compactMap.localScale=Vector3.one*scale;compactMap.anchorMin=compactMap.anchorMax=compactMap.pivot=Vector2.one;
-                compactMap.anchoredPosition=new Vector2(-24,-24);
-                if(portrait)
-                {
-                    guide.GetComponent<RectTransform>().GetWorldCorners(settingsCorners);
-                    compactMap.position=new Vector3(compactMap.position.x,Mathf.Min(compactMap.position.y,settingsCorners[0].y-12),compactMap.position.z);
-                }
-                compactMap.GetWorldCorners(settingsCorners);
-                mapTimer.anchorMin=mapTimer.anchorMax=mapTimer.pivot=Vector2.one;mapTimer.localScale=Vector3.one*scale;
-                mapTimer.position=settingsCorners[3]-Vector3.up*12;
-            }
-            if(stage==null||!stage.BoardOpen||stage.boardFocus==null||stage.boardFocus.outputCamera==null)return;
-            var camera=stage.boardFocus.outputCamera;
-            foreach(var node in stage.board.Nodes)
-            {
-                if(!focusNodes.TryGetValue(node.id,out var button))continue;
-                var point=camera.WorldToScreenPoint(node.transform.position);
-                if(RectTransformUtility.ScreenPointToLocalPointInRectangle(focusTargets,point,null,out var local))((RectTransform)button.transform).anchoredPosition=local;
-                button.interactable=stage.CanSolve&&point.z>0;
+                float scale=Mathf.Clamp(Mathf.Min(host.rect.height,host.rect.width)/1080f,.60f,1f);
+                map.localScale=hud.localScale=Vector3.one*scale;hud.anchoredPosition=new Vector2(-24,-24-250*scale-12);
             }
         }
-        Vector2 DiagramPoint(TreeNodeData n)=>new Vector2(n.position.x*105,-85+n.position.y*170);
-        void DrawEdge(TreeEdgeData edge)
+        public void ShowLesson(bool open)
         {
-            var a=DiagramPoint(stage.Challenge.nodes.First(n=>n.id==edge.source));var b=DiagramPoint(stage.Challenge.nodes.First(n=>n.id==edge.destination));
-            var rect=StageUITheme.Rect("Branch "+edge.source+" "+edge.destination,diagram);Place(rect,new Vector2(.5f,.5f),(a+b)*.5f,new Vector2(Vector2.Distance(a,b),3));rect.localRotation=Quaternion.Euler(0,0,Mathf.Atan2(b.y-a.y,b.x-a.x)*Mathf.Rad2Deg);
-            var image=rect.gameObject.AddComponent<Image>();image.color=StageUITheme.ReadingInk;image.raycastTarget=false;
+            helpRoot.gameObject.SetActive(open);
+            if(open)StageHelpPage.Install(helpRoot,"Trees",()=>stage.SetLesson(false));
+            Refresh();
         }
-        public void RefreshDiagram()=>RebuildDiagram();
-        public void Refresh()
-        {
-            trialProgress.text="CHALLENGE "+(stage.ChallengeIndex+1)+" OF "+stage.catalog.challenges.Count;
-            objectiveProgress.text="TREES  /  "+(stage.ChallengeIndex+1)+" OF "+stage.catalog.challenges.Count;
-            objectiveTitle.text=stage.Challenge.title.ToUpperInvariant();objective.text=stage.Challenge.objective;
-            feedback.text=stage.Feedback;
-            int seconds=Mathf.CeilToInt(stage.timer.Remaining);clock.text=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
-            bool active=stage.CanSolve;
-            connect.gameObject.SetActive(false);remove.gameObject.SetActive(false);clear.gameObject.SetActive(false);
-            connect.interactable=remove.interactable=clear.interactable=active;
-            numberRow.gameObject.SetActive(false);
-            foreach(var button in numberRow.GetComponentsInChildren<Button>())button.interactable=active;
-            string selected=stage.Answer.HasValue?"Number selected: "+stage.Answer:string.IsNullOrEmpty(stage.board.First)?"Tap a node on the board.":"Selected: "+stage.board.First+(string.IsNullOrEmpty(stage.board.Second)?"":" to "+stage.board.Second);
-            selection.text="Use the hand button near the Book Statue to open the interactive board.";selection.color=StageUITheme.Ink;
-            bool bookPrompt=stage.NearBook&&!stage.BoardOpen&&(stage.State==TreeStageState.WAITING_FOR_ACTIVATION||stage.State==TreeStageState.ACTIVE);
-            feedbackCard.gameObject.SetActive(!bookPrompt);selection.gameObject.SetActive(!bookPrompt);
-            foreach(var entry in nodes){entry.Value.interactable=false;entry.Value.GetComponentInChildren<TMP_Text>().color=entry.Key==stage.board.First||entry.Key==stage.board.Second?StageUITheme.Gold:StageUITheme.Ink;}
-            guide.interactable=stage.Ready&&!stage.Moving&&(stage.State==TreeStageState.ACTIVE||stage.State==TreeStageState.WAITING_FOR_ACTIVATION);
-            focusProgress.text=objectiveProgress.text;focusTitle.text=objectiveTitle.text;focusObjective.text=objective.text;
-            focusFeedback.text=feedback.text;focusClock.text=clock.text;focusSelection.text=selected;
-            LayoutFocusSidebar();
-            focusConfirm.interactable=active;
-            focusConnect.gameObject.SetActive(stage.Challenge.Editable);focusRemove.gameObject.SetActive(stage.Challenge.Editable);focusClear.gameObject.SetActive(stage.Challenge.Editable);
-            focusConnect.interactable=focusRemove.interactable=focusClear.interactable=active;
-            focusNumbers.gameObject.SetActive(stage.Challenge.type==TreeChallengeType.Depth||stage.Challenge.type==TreeChallengeType.Height);
-            foreach(var button in focusNumbers.GetComponentsInChildren<Button>())button.interactable=active;
-            focusExit.interactable=stage.BoardOpen&&!stage.Moving&&!stage.LessonOpen&&Time.timeScale>0&&(stage.State==TreeStageState.ACTIVE||stage.State==TreeStageState.VALIDATING);
-            focusGuide.interactable=stage.CanAct&&stage.State==TreeStageState.ACTIVE;
-            foreach(var button in focusNodes.Values)button.interactable=active;
-            RefreshVisibility();
-        }
-        void RefreshVisibility()
-        {
-            owned.gameObject.SetActive(!resultVisible&&!stage.BoardOpen&&!stage.LessonOpen);
-            focusOverlay.gameObject.SetActive(!resultVisible&&stage.BoardOpen&&!stage.LessonOpen);
-            gameplayControls.SetActive(!resultVisible&&!stage.BoardOpen&&!stage.LessonOpen);
-        }
-        void BuildBook()
-        {
-            var overlay=StageUITheme.Rect("Trees Lesson",host);StageUITheme.Stretch(overlay,Vector2.zero,Vector2.one);var dim=overlay.gameObject.AddComponent<Image>();dim.color=new Color(0,0,0,.78f);
-            var cover=StageUITheme.Rect("Book cover",overlay);Place(cover,new Vector2(.5f,.5f),Vector2.zero,new Vector2(1480,850));StageUITheme.CompactSurface(cover.gameObject.AddComponent<Image>());
-            cover.Find("CalmContentInset").gameObject.SetActive(false);
-            var spine=StageUITheme.Rect("Book spine",cover);StageUITheme.Stretch(spine,new Vector2(.493f,.18f),new Vector2(.507f,.9f));var spineImage=spine.gameObject.AddComponent<Image>();spineImage.color=new Color(.17f,.075f,.032f);spineImage.raycastTarget=false;
-            foreach(bool left in new[]{true,false})
-            {var page=StageUITheme.Rect(left?"Left page":"Right page",cover);StageUITheme.Stretch(page,new Vector2(left?.055f:.515f,.18f),new Vector2(left?.485f:.945f,.9f));var paper=page.gameObject.AddComponent<Image>();paper.sprite=Resources.LoadAll<Sprite>("StageUI/ReadingPaper")[0];paper.type=Image.Type.Sliced;paper.pixelsPerUnitMultiplier=2;paper.raycastTarget=false;}
-            var title=Text(cover,"Lesson heading",new Vector2(.09f,.75f),new Vector2(.45f,.85f),40);title.color=StageUITheme.ReadingInk;title.text="TREES FIELD GUIDE";
-            lessonBody=Text(cover,"Lesson body",new Vector2(.09f,.25f),new Vector2(.45f,.73f),31,true);lessonBody.color=StageUITheme.ReadingInk;lessonBody.alignment=TextAlignmentOptions.TopLeft;
-            var notes=Text(cover,"Tree conventions",new Vector2(.55f,.27f),new Vector2(.91f,.82f),31,true);notes.color=StageUITheme.ReadingInk;notes.alignment=TextAlignmentOptions.TopLeft;notes.text="TREE CHECKLIST\n\nRoot: no parent\nLeaf: no children\nEach other node: one parent\n\nDepth and height count edges.\nRoot depth and level: 0\n\nSpanning tree: connected, no cycles, <nobr>V - 1</nobr> edges.\n\nTap the minimap for a full view; Close restores it.\n\nWrong confirmation: -10 seconds. Your connections are kept.";
-            Action("Close lesson",cover,"RETURN TO GARDEN",new Vector2(0,-335),new Vector2(380,70),()=>stage.SetLesson(false));lesson=overlay.gameObject;lesson.SetActive(false);
-        }
-        public void ShowLesson(bool open){
-        lesson.SetActive(open);
-        if (open) StageHelpPage.Install((RectTransform)lessonBody.transform.parent, "Trees", () => stage.SetLesson(false));
-        RefreshVisibility();
-    }
         public void ShowResult(bool success)
         {
-            resultVisible=true;lesson.SetActive(false);RefreshVisibility();
-            var view=StageResultCard.Build(host,stage.Return);
-            view.Stage.text=TrialCatalog.ForScene("Trees").Title;
-            view.Heading.text=success?"STAGE COMPLETE":"TIME IS UP";
-            view.Summary.text="Time Played: "+StageJourneyUI.FormatTime(stage.timer.ActiveSeconds)+"\nCorrect: "+stage.Correct+"\nMistakes: "+stage.Mistakes;
-            view.Primary.GetComponentInChildren<TMP_Text>().text="PLAY AGAIN";
-            view.Primary.onClick.AddListener(stage.Restart);view.Extra.gameObject.SetActive(false);
-            result=view.Root.gameObject;result.SetActive(true);
-            if (success) result.GetComponent<StageResultLayout>().Complete(10);
+            resultVisible=true;helpRoot.gameObject.SetActive(false);Refresh();
+            var view=StageResultCard.Build(host,stage.Return);view.Stage.text=TrialCatalog.ForScene("Trees").Title;view.Heading.text=success?"TRIAL COMPLETE":"TIME IS UP";
+            view.Summary.text="Time Played: "+StageJourneyUI.FormatTime(stage.timer.ActiveSeconds)+"\nCorrect: "+stage.Correct+" of 10\nMistakes: "+stage.Mistakes;
+            view.Primary.GetComponentInChildren<TMP_Text>().text="PLAY AGAIN";view.Primary.onClick.AddListener(stage.Restart);view.Extra.gameObject.SetActive(false);
+            if(success)view.Root.GetComponent<StageResultLayout>().Complete(10);
         }
+        RectTransform Panel(string name,Transform parent,Sprite sprite)
+        {var rt=StageUITheme.Rect(name,parent);var image=rt.gameObject.AddComponent<Image>();image.sprite=sprite;image.type=Image.Type.Sliced;image.pixelsPerUnitMultiplier=4.5f;image.raycastTarget=false;return rt;}
+        static TMP_Text Text(string name,Transform parent,string value,float size,bool reading=false)
+        {var text=StageUITheme.Text(name,parent,value,size,reading);text.color=StageUITheme.ReadingInk;text.enableAutoSizing=true;text.fontSizeMin=size-2;text.fontSizeMax=size;text.raycastTarget=false;return text;}
+        static Button Action(string name,Transform parent,string label,Vector2 pos,Vector2 size,UnityEngine.Events.UnityAction callback)
+        {var b=StageUITheme.Button(name,parent,label,callback);Place((RectTransform)b.transform,new Vector2(.5f,.5f),pos,size);b.GetComponent<Image>().pixelsPerUnitMultiplier=4.5f;var t=b.GetComponentInChildren<TMP_Text>();t.fontSizeMin=24;t.fontSizeMax=30;return b;}
+        static void Place(RectTransform rt,Vector2 anchor,Vector2 pos,Vector2 size,Vector2? pivot=null)
+        {rt.anchorMin=rt.anchorMax=anchor;rt.pivot=pivot??new Vector2(.5f,.5f);rt.anchoredPosition=pos;rt.sizeDelta=size;}
     }
 }

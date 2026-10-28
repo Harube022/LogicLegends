@@ -22,6 +22,7 @@ namespace LogicLegends.Trees
     [Serializable] public class TreeChallengeData
     {
         public string title, objective, lesson, root = "A", target;
+        [Range(1, 2)] public int difficulty = 1;
         public TreeChallengeType type;
         public TreeIdentification identification;
         public List<TreeNodeData> nodes = new List<TreeNodeData>();

@@ -42,6 +42,10 @@ public static class StageHelpGameplayRecorder
     {SessionState.SetBool("Help.FunctionsTutorialVerify",true);Begin("Functions and Relations");}
     public static void CheckFunctionsGarden()
     {SessionState.SetBool("Help.FunctionsGardenVerify",true);CheckFunctionsTutorial();}
+    public static void CheckTreesPlaylist()
+    {SessionState.SetBool("Help.TreesPlaylistVerify",true);CheckTreesRevision();}
+    public static void CheckTreesRevision()
+    {SessionState.SetBool("Help.TreesRevisionVerify",true);Begin("Trees");}
     public static void CheckGraphRevision()
     {SessionState.SetBool("Help.GraphRevisionVerify",true);Begin("Graph");}
     public static void CheckGraphHighlights()
@@ -83,6 +87,9 @@ public static class StageHelpGameplayRecorder
         SessionState.SetBool("Help.FunctionsVerify",false);
         SessionState.SetBool("Help.FunctionsTutorialVerify",false);
         SessionState.SetBool("Help.FunctionsGardenVerify",false);
+        SessionState.SetBool("Help.TreesRevisionVerify",false);
+        SessionState.SetBool("Help.TreesPlaylistVerify",false);
+        SessionState.SetBool("Help.TreesInspectOnly",false);
         SessionState.SetBool("Help.GraphRevisionVerify",false);
         SessionState.SetBool("Help.GraphHighlightsOnly",false);
         SessionState.SetBool("Help.GraphPlaylistOnly",false);
@@ -133,6 +140,9 @@ public static class StageHelpGameplayRecorder
             string graphManifest=CaptureFolder+"/Graph.json";
             var graph=File.Exists(graphManifest)?JsonUtility.FromJson<StageHelpVideoCatalog.Recording>(File.ReadAllText(graphManifest)):null;
             bool completeGraph=graph!=null&&graph.clips!=null&&graph.clips.Length==4&&graph.clips.All(k=>File.Exists(CaptureFolder+"/"+k+".mp4")&&File.Exists(CaptureFolder+"/"+k+".json"));
+            string treesManifest=CaptureFolder+"/Trees.json";
+            var trees=File.Exists(treesManifest)?JsonUtility.FromJson<StageHelpVideoCatalog.Recording>(File.ReadAllText(treesManifest)):null;
+            bool completeTrees=trees!=null&&trees.clips!=null&&trees.clips.Length==2&&trees.clips.All(k=>File.Exists(CaptureFolder+"/"+k+".mp4")&&File.Exists(CaptureFolder+"/"+k+".json"));
             foreach(string manifest in Directory.GetFiles(CaptureFolder,"*.json"))
             {
                 string key=Path.GetFileNameWithoutExtension(manifest);
@@ -151,6 +161,7 @@ public static class StageHelpGameplayRecorder
                 if(key.StartsWith("Sets",StringComparison.Ordinal)&&!completeSets)continue;
                 if(key.StartsWith("FunctionsRelations",StringComparison.Ordinal)&&!completeFunctions)continue;
                 if(key.StartsWith("Graph",StringComparison.Ordinal)&&!completeGraph)continue;
+                if(key.StartsWith("Trees",StringComparison.Ordinal)&&!completeTrees)continue;
                 string clip=CaptureFolder+"/"+key+".mp4",destination=Folder+"/"+key+".mp4";
                 if(!File.Exists(clip)||new FileInfo(clip).Length<1024)continue;
                 if(!File.Exists(destination)||new FileInfo(destination).Length!=new FileInfo(clip).Length)
@@ -222,6 +233,8 @@ public static class StageHelpGameplayRecorder
             float by=Time.realtimeSinceStartup+35;while(Player.LocalInstance==null&&Time.realtimeSinceStartup<by)yield return null;
             while(TeleportManager.Instance!=null&&TeleportManager.Instance.IsTransitioning&&Time.realtimeSinceStartup<by)yield return null;
             yield return Prepare(scene);yield return new WaitForSecondsRealtime(.6f);
+            if(scene=="Trees"&&SessionState.GetBool("Help.TreesRevisionVerify",false))
+            {yield return TreesRevisionPlayChecks.Run();continue;}
             if(scene=="Graph"&&SessionState.GetBool("Help.GraphRevisionVerify",false))
             {yield return GraphRevisionPlayChecks.Run();continue;}
             if(scene=="PRELIM")
@@ -271,6 +284,7 @@ public static class StageHelpGameplayRecorder
                 continue;
             }
             if(scene=="Graph"){yield return GraphHelpClipCapture.Record();continue;}
+            if(scene=="Trees"){yield return TreesHelpClipCapture.Record();continue;}
             StartRecording(scene);Cue("Approach the Book Statue and use the hand button.");
             switch(scene)
             {

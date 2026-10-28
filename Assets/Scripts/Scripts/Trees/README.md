@@ -1,3 +1,14 @@
+## Current Trees revision — October 28, 2026
+
+- The existing InformationBoard model holds the live world-space question, diagram, selection and editing controls. The old visual board and separate feedback panels are removed. Submit validates; Back keeps work and restores exploration.
+- Five challenges now require two distinct bank questions each. Each bank retains ten entries: five foundation questions and five harder structures. The second question has more nodes, deeper paths, additional repair links or a larger spanning task. Both picks remain fixed for the attempt.
+- The compact Trial 10 HUD includes the shared timer and both challenge/question counters. Help uses the shared scrollable guide and preserves the previous timer/input state.
+- Admin can clear a question or the remainder of a challenge. Its answer viewer lists all fifty entries, identifies both selected questions and derives complete solutions from validation data. Existing authentication and reward exclusion remain in place.
+- Help has two actual, isolated gameplay clips: book activation and using the board. They share one question, use real touch input, purpose-built close-ups, short captions and encoded two-second fades. Recording effects live only in Editor scripts.
+- Verified fifty solvable entries, 5,000 ordered random selections, normal completion of all ten questions, correction/penalty behavior, Help/Back and mobile layouts at 1920×1080, 2960×1440 and 800×480. Evidence is in Library/TreesRevisionChecks.txt and Library/TreesHelpPlaylistChecks.txt.
+
+The earlier implementation notes below are historical and describe the previous five-question board/sidebar.
+
 # Trees gameplay
 
 Implemented in `Assets/Scenes/Trees.unity` for Android landscape, using temporary assets already in the project. Open Trees and press Play; no manual Inspector wiring is required. The existing final-term Trees menu card now loads this scene.

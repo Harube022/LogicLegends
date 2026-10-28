@@ -241,6 +241,8 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private bool CanClearCondition()
     {
+        if(SceneManager.GetActiveScene().name=="Trees")
+            return FindFirstObjectByType<LogicLegends.Trees.TreeStageManager>()?.CanDebugClearChallenge==true;
         if (SceneManager.GetActiveScene().name == "Graph")
             return FindFirstObjectByType<LogicLegends.Graph.GraphStageManager>()?.CanDebugClearChallenge == true;
         if (SceneManager.GetActiveScene().name != "Setssss") return false;
@@ -439,6 +441,8 @@ public sealed class AdminDebugController : MonoBehaviour
         ClosePanel();
         if (SceneManager.GetActiveScene().name == "Graph")
         { FindFirstObjectByType<LogicLegends.Graph.GraphStageManager>()?.DebugClearCurrentQuestion(); return; }
+        if(SceneManager.GetActiveScene().name=="Trees")
+        {FindFirstObjectByType<LogicLegends.Trees.TreeStageManager>()?.DebugClearCurrentQuestion();return;}
         SetssssChallengeOne sets = FindFirstObjectByType<SetssssChallengeOne>();
         if (sets != null) sets.DebugClearCurrentCondition();
     }
