@@ -146,9 +146,9 @@ namespace LogicLegends.Induction
                 case InductionTutorialStep.AltarArrow:
                     GuideStep(InductionTutorialStep.Place,"Select a scroll at the stand, then approach the indicated altar. Use the hand or Place Scroll button to place it above the surface. Try placing the practice scroll.",(RectTransform)stage.ui.InteractButton.transform,null,false);break;
                 case InductionTutorialStep.Replace:
-                    GuideStep(InductionTutorialStep.Rearrange,"Remove a placed scroll with the hand or context button to carry it again. Place it at another available anchor to rearrange it. Return Scroll sends the carried scroll back to the stand.",(RectTransform)stage.ui.ReturnButton.transform,null,true);break;
+                    GuideStep(InductionTutorialStep.Rearrange,"Use the hand or context button to remove a placed scroll.\nPlace it at another anchor to rearrange. Return Scroll restores it to the stand.",(RectTransform)stage.ui.ReturnButton.transform,null,true);break;
                 case InductionTutorialStep.Rearrange:
-                    GuideStep(InductionTutorialStep.Submit,"Submit checks the entire current challenge arrangement. Incorrect submissions subtract 10 seconds and preserve placements. Correct submissions pause the shared timer and unlock the next challenge. Try this practice Submit.",(RectTransform)stage.ui.SubmitButton.transform,null,false);break;
+                    GuideStep(InductionTutorialStep.Submit,"Submit checks every required slot.\nWrong: −10s; placements stay. Correct: time pauses.\nTap this practice Submit.",(RectTransform)stage.ui.SubmitButton.transform,null,false);break;
                 case InductionTutorialStep.Board:
                     GuideStep(InductionTutorialStep.Back,"Tap Back to return to gameplay. Viewing or closing the board does not start a challenge or change its timer.",(RectTransform)stage.ui.BoardBackButton.transform,null,false);break;
             }
@@ -172,7 +172,7 @@ namespace LogicLegends.Induction
                     instructions.gameObject.SetActive(false);return true;
                 case InductionTutorialStep.Place:
                     if(!practiceCollected)return false;
-                    PlaceDemoScroll();GuideStep(InductionTutorialStep.Replace,"Carrying a different scroll? Use Replace Scroll on an occupied anchor to swap them. The old scroll becomes the one you carry, so you can correct the proof without losing it.",(RectTransform)stage.ui.InteractButton.transform,null,true);return true;
+                    PlaceDemoScroll();GuideStep(InductionTutorialStep.Replace,"Replace Scroll swaps an occupied anchor.\nYou carry its old scroll afterward. No scroll is lost.",(RectTransform)stage.ui.InteractButton.transform,null,true);return true;
                 case InductionTutorialStep.Replace: return true; // Explanation, no real swap.
             }
             return false;

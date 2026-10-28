@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -567,13 +567,13 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         switch (boardStep)
         {
             case Step.BoardPremises:
-                boardExplanation.text = "Premises are statements accepted as true and used to support a conclusion. Read and complete them by dragging the available words into the blanks, then tap Check argument. Their logical structure tells you which rule to collect.";
+                boardExplanation.text = "Premises are statements accepted as true.\nDrag words into their blanks. Tap Check argument.\nTheir structure identifies the rule you need.";
                 break;
             case Step.BoardDiamond:
-                boardExplanation.text = "A rule of inference is a valid reasoning pattern that derives a conclusion from premises. A Rule Crystal represents one rule; its label identifies it. Choose the crystal whose rule fits the completed premises, then carry it back to the altar.";
+                boardExplanation.text = "A rule of inference derives a conclusion from premises.\nEach Rule Crystal represents its labeled rule.\nCollect the matching crystal and return to the altar.";
                 break;
             case Step.BoardConclusion:
-                boardExplanation.text = "The conclusion is the statement that logically follows from the premises using the selected rule. Tap Place Rule Crystal to validate your choice. A correct rule reveals the conclusion and completes this challenge. The next challenge waits at the book.";
+                boardExplanation.text = "The conclusion follows by applying the rule to the premises.\nTap Place Rule Crystal to check. Correct reveals the conclusion.\nStart the next challenge at the book.";
                 break;
             case Step.BoardBack:
                 boardExplanation.text = "Tap Back to return to the stage and learn where to find crystals.";
@@ -596,7 +596,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         CreatePracticeCrystal();
         FocusCamera(practiceCrystal.transform, crystalCameraOffset);
         SetWorldStep(Step.CrystalTower,
-            "A Rule Crystal represents the inference rule on its label. Tap the hand button to try a practice pickup quiz. Answer A–D, read the feedback, then Continue. In gameplay, either answer allows collection, but an incorrect quiz or wrong crystal submission subtracts 10 seconds. Practice costs no time.",
+            "A crystal represents its labeled inference rule.\nTap the hand for a practice quiz. Choose A–D, read feedback, then Continue.\nReal wrong quiz or altar answer: −10s. Either quiz answer allows collection. Practice costs no time.",
             practiceCrystal.transform, false);
         SetInstruction(Step.CrystalTower,instructionText.text,handButton,false);
     }

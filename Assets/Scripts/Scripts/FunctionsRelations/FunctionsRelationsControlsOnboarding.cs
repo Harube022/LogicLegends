@@ -151,10 +151,10 @@ public sealed partial class FunctionsRelationsControlsOnboarding : MonoBehaviour
         {
             case FunctionsRelationsTutorialStep.Interaction:
                 player.ToggleControl(false); StartCameraGuide(); Focus(Stage.BookTarget);
-                ShowStep(FunctionsRelationsTutorialStep.Book, "Interact with the book statue to start each challenge. Tap the hand button. This is practice; the real timer stays paused.", hand, false, Stage.BookTarget);
+                ShowStep(FunctionsRelationsTutorialStep.Book, "Tap the hand at the book to start each question.\nPractice cannot start a real question.", hand, false, Stage.BookTarget);
                 return true;
             case FunctionsRelationsTutorialStep.Book:
-                ShowStep(FunctionsRelationsTutorialStep.Timer, "The book starts or resumes the shared " + StageJourneyUI.FormatTime(Stage.StartingSeconds) + " countdown. Correct submissions pause it; it does not reset between challenges. Incorrect submissions subtract " + Stage.WrongAnswerPenalty.ToString("0.##") + " seconds.", timer, true);
+                ShowStep(FunctionsRelationsTutorialStep.Timer, "Shared time: " + StageJourneyUI.FormatTime(Stage.StartingSeconds) + ". Books resume it.\nCorrect answers pause it. Wrong submissions cost " + Stage.WrongAnswerPenalty.ToString("0.##") + " seconds.\nComplete two questions per challenge.", timer, true);
                 return true;
             case FunctionsRelationsTutorialStep.Domain:
                 ui.domainPanel.gameObject.SetActive(true);
@@ -162,7 +162,7 @@ public sealed partial class FunctionsRelationsControlsOnboarding : MonoBehaviour
                 return true;
             case FunctionsRelationsTutorialStep.Output:
                 ui.rangePanel.gameObject.SetActive(true);
-                ShowStep(FunctionsRelationsTutorialStep.OutputChoice, "PRACTICE: Choose X or Y to connect it to input " + PracticeInput + ". The codomain is {X, Y}; the range will contain only the output you actually use.", Stage.RangeButtons[0].transform as RectTransform);
+                ShowStep(FunctionsRelationsTutorialStep.OutputChoice, "Choose X or Y for input " + PracticeInput + ". These are output choices. Range means outputs actually used.", Stage.RangeButtons[0].transform as RectTransform);
                 return true;
         }
         return false;
@@ -171,11 +171,11 @@ public sealed partial class FunctionsRelationsControlsOnboarding : MonoBehaviour
     {
         if (!IsActive || CurrentStep != FunctionsRelationsTutorialStep.ViewBoard) return;
         Stage.WorldBoardLabels[0].text = "PRACTICE — INFORMATION BOARD";
-        Stage.WorldBoardLabels[1].text = "Domain = {6, 9}\nCodomain = {X, Y}";
+        Stage.WorldBoardLabels[1].text = "<b>Domain</b> = {" + string.Join(", ",practiceInputs) + "}\n<b>Range</b> = {" + string.Join(", ",practiceOutputs) + "}";
         Stage.WorldBoardLabels[2].text = "Practice: choose one input, then one output.\nSubmit checks your connections.\nThe real challenge and timer are waiting.";
         Stage.BoardView.framingPadding = 1.5f;
         if (!Stage.BoardView.OpenView(() => { if (IsActive && CurrentStep == FunctionsRelationsTutorialStep.BoardBack) BeginDomain(); })) return;
-        ShowStep(FunctionsRelationsTutorialStep.Board, "This InformationBoard displays the current challenge, mapping requirements, and instructions. This is a clearly labeled practice condition, separate from the real challenge.", null, true, Stage.BoardView.informationBoard);
+        ShowStep(FunctionsRelationsTutorialStep.Board, "The Information Board shows the question and mapping rules.\nThis is a separate practice example.", null, true, Stage.BoardView.informationBoard);
     }
     public void PracticeBack()
     {
@@ -185,35 +185,40 @@ public sealed partial class FunctionsRelationsControlsOnboarding : MonoBehaviour
     {
         Stage.BoardView.framingPadding = originalBoardPadding;
         SetPracticeChoices(); CreateNodeLabels(); Focus(Stage.DomainTarget);
-        ShowStep(FunctionsRelationsTutorialStep.Domain, "The domain contains the input values. Interact with Domain to open its number-selection panel, then choose a practice input.", null, false, Stage.DomainTarget);
+        ShowStep(FunctionsRelationsTutorialStep.Domain, "Domain contains the inputs. Tap the hand to open its choices.", hand, false, Stage.DomainTarget);
     }
     public void ChoosePracticeInput(int index)
     {
         if (!IsActive || CurrentStep != FunctionsRelationsTutorialStep.Input || index < 0 || index >= practiceInputs.Length) return;
         PracticeInput = practiceInputs[index]; ui.domainPanel.gameObject.SetActive(false);
         Focus(Stage.RangeTarget);
-        ShowStep(FunctionsRelationsTutorialStep.Output, "At the output station, choose an output for your selected input. Codomain means all available possible outputs; range means the outputs actually used. Interact to open the practice choices.", null, false, Stage.RangeTarget);
+        ShowStep(FunctionsRelationsTutorialStep.Output, "Follow the arrow to Range. Tap the hand.\nChoose an available output. Range means outputs actually used.", hand, false, Stage.RangeTarget);
     }
     public void ClosePracticeChoices()
     {
         if (!IsActive) return;
         if (CurrentStep == FunctionsRelationsTutorialStep.Input)
-            ShowStep(FunctionsRelationsTutorialStep.Domain, "Interact with Domain to open the practice input choices.", null, false, Stage.DomainTarget);
+            ShowStep(FunctionsRelationsTutorialStep.Domain, "Tap the hand at Domain to open input choices.", null, false, Stage.DomainTarget);
         else if (CurrentStep == FunctionsRelationsTutorialStep.OutputChoice || CurrentStep == FunctionsRelationsTutorialStep.Connection || CurrentStep == FunctionsRelationsTutorialStep.Undo)
-            ShowStep(FunctionsRelationsTutorialStep.Output, "Interact with the output station to reopen the practice choices. Codomain means available outputs; range means outputs actually used.", null, false, Stage.RangeTarget);
+        {
+            PracticeInput = null; PracticeOutput = null;
+            if (practiceBeam != null) Destroy(practiceBeam.gameObject); practiceBeam = null;
+            Focus(Stage.DomainTarget);
+            ShowStep(FunctionsRelationsTutorialStep.Domain, "Tap the hand at Domain to choose an input again.", hand, false, Stage.DomainTarget);
+        }
     }
     public void ChoosePracticeOutput(int index)
     {
         if (!IsActive || CurrentStep != FunctionsRelationsTutorialStep.OutputChoice || index < 0 || index >= practiceOutputs.Length) return;
         PracticeOutput = practiceOutputs[index]; CreatePracticeBeam();
-        ShowStep(FunctionsRelationsTutorialStep.Connection, "Practice connection: " + PracticeInput + " to " + PracticeOutput + ". The codomain is {X, Y}, while the range is {" + PracticeOutput + "}. In a challenge, repeat input/output selection until all required connections are built.", null, true, Stage.RangeTarget);
+        ShowStep(FunctionsRelationsTutorialStep.Connection, "Connected " + PracticeInput + " → " + PracticeOutput + ".\nRange = {" + PracticeOutput + "}. Other output choices are unused.\nThe arrow returns to Domain for the next pair.", null, true, Stage.RangeTarget);
     }
     public void UndoPracticeConnection()
     {
         if (!IsActive || CurrentStep != FunctionsRelationsTutorialStep.Undo) return;
         if (practiceBeam != null) Destroy(practiceBeam.gameObject); practiceBeam = null; PracticeOutput = null;
         ui.rangePanel.gameObject.SetActive(false);
-        ShowStep(FunctionsRelationsTutorialStep.Submit, "Submit checks the entire current connection arrangement. An incorrect submission subtracts " + Stage.WrongAnswerPenalty.ToString("0.##") + " seconds and preserves connections; correct answers pause the shared timer. The book starts challenges only. Later challenges use answer/property pedestals, followed by this same Submit button.", ui.submit, true);
+        ShowStep(FunctionsRelationsTutorialStep.Submit, "Submit checks the entire current connection arrangement. An incorrect submission subtracts " + Stage.WrongAnswerPenalty.ToString("0.##") + " seconds. Connections stay. Correct answers pause time.\nThe book only starts challenges. Later tasks use answer/property pedestals, then Submit.", ui.submit, true);
     }
     public void NextStep()
     {
@@ -221,13 +226,13 @@ public sealed partial class FunctionsRelationsControlsOnboarding : MonoBehaviour
         switch (CurrentStep)
         {
             case FunctionsRelationsTutorialStep.Timer:
-                ShowStep(FunctionsRelationsTutorialStep.ViewBoard, "Tap View Board to read the InformationBoard up close. Use Back to return; viewing does not submit an answer.", ui.viewBoard); break;
+                ShowStep(FunctionsRelationsTutorialStep.ViewBoard, "Tap View Board to read. Back returns without submitting.", ui.viewBoard); break;
             case FunctionsRelationsTutorialStep.Board:
                 ShowStep(FunctionsRelationsTutorialStep.BoardBack, "Tap Back to return from the board view before choosing your inputs and outputs.", ui.boardBack); break;
             case FunctionsRelationsTutorialStep.Connection:
                 Stage.UndoButton.interactable = true;
-                Stage.UndoButton.GetComponentInChildren<TMP_Text>().text = "UNDO PRACTICE CONNECTION";
-                ShowStep(FunctionsRelationsTutorialStep.Undo, "Undo at the output station removes the last editable connection. Fixed preset connections cannot be undone. Tap Undo to remove this practice laser, then select an input/output again when correcting real work.", Stage.UndoButton.transform as RectTransform); break;
+                Stage.UndoButton.GetComponentInChildren<TMP_Text>().text = "Remove " + PracticeInput + " → " + PracticeOutput;
+                ShowStep(FunctionsRelationsTutorialStep.Undo, "Each connection has its own Remove button. Delete any editable pair. Fixed links stay.\nTap Remove for this practice pair.", Stage.UndoButton.transform as RectTransform); break;
             case FunctionsRelationsTutorialStep.Submit: Confirm(); break;
         }
     }

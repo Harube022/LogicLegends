@@ -30,7 +30,10 @@ namespace LogicLegends.Graph
             if (pathLights != null) foreach (var light in pathLights)
                 if (light != null) light.range = 3f * GraphGeometry.EdgeScale.x;
             reverseGate.enabled = edge.directed || !edge.traversalEnabled;
+            var gateBox=reverseGate as BoxCollider;
+            if(gateBox!=null){var size=gateBox.size;size.x=GraphGeometry.BridgeHalfWidth*2/GraphGeometry.EdgeScale.x;gateBox.size=size;}
             AlignWalkSurface();
+            if (edge.directed && length > GraphGeometry.VertexRadius * 8) BuildContinuousDeck(deckLength);
             SetWalked(false);
         }
         private void AlignWalkSurface()
@@ -49,6 +52,36 @@ namespace LogicLegends.Graph
             gatePosition.y = floor + 2 * transform.lossyScale.y;
             reverseGate.transform.position = gatePosition;
             Physics.SyncTransforms();
+        }
+        Mesh continuousDeck;
+        void BuildContinuousDeck(float length)
+        {
+            // The source long bridge has a two-unit lowered end step. Keep its rails
+            // in their original positions and add a matching level stone landing.
+            if (artwork == null || !GraphGeometry.TryGetSurfaceHeight(artwork,transform.position,out float floor)) return;
+            RaycastHit surface=default;
+            foreach(var collider in artwork.GetComponentsInChildren<Collider>())
+                if(collider.Raycast(new Ray(transform.position+Vector3.up*20,Vector3.down),out var hit,40)&&hit.normal.y>.5f)
+                    if(surface.collider==null||hit.point.y>surface.point.y)surface=hit;
+            var renderer=surface.collider!=null?surface.collider.GetComponent<Renderer>():null;
+            if(renderer==null)return;
+            var child=new GameObject("Continuous stone landing",typeof(MeshFilter),typeof(MeshRenderer),typeof(BoxCollider));
+            child.transform.SetParent(transform,false);
+            float x=GraphGeometry.BridgeHalfWidth*.70f/transform.lossyScale.x,z=length*.5f/transform.lossyScale.z;
+            float y=(floor+.012f-transform.position.y)/transform.lossyScale.y;
+            continuousDeck=new Mesh{name="Graph level bridge landing"};
+            continuousDeck.vertices=new[]{new Vector3(-x,y,-z),new Vector3(-x,y,z),new Vector3(x,y,z),new Vector3(x,y,-z)};
+            continuousDeck.triangles=new[]{0,1,2,0,2,3};
+            continuousDeck.uv=new[]{surface.textureCoord,surface.textureCoord,surface.textureCoord,surface.textureCoord};
+            continuousDeck.RecalculateNormals();continuousDeck.RecalculateBounds();
+            child.GetComponent<MeshFilter>().sharedMesh=continuousDeck;
+            child.GetComponent<MeshRenderer>().sharedMaterial=renderer.sharedMaterial;
+            var box=child.GetComponent<BoxCollider>();box.center=new Vector3(0,y-.125f,0);box.size=new Vector3(x*2,.25f,z*2);
+        }
+        void OnDestroy()
+        {
+            if(continuousDeck==null)return;
+            if(Application.isPlaying)Destroy(continuousDeck);else DestroyImmediate(continuousDeck);
         }
         public void SetWalked(bool walked)
         {
@@ -75,7 +108,8 @@ namespace LogicLegends.Graph
         public void UpdateGate(string currentVertex, Vector3 playerPosition, float playerFootprint)
         {
             if (!data.traversalEnabled) { reverseGate.enabled = true; return; }
-            if (!data.directed || currentVertex == data.source) { reverseGate.enabled = false; return; }
+            // A gate on another incident bridge must not obstruct arrival at this vertex.
+            if (!data.directed || currentVertex != data.destination) { reverseGate.enabled = false; return; }
             // Arrival can be recorded while the capsule still straddles the gate.
             // Wait until it clears the gate before closing behind it, so closing
             // does not push ordinary forward movement off the bridge.

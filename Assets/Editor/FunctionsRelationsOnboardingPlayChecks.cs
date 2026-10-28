@@ -19,16 +19,9 @@ public static class FunctionsRelationsOnboardingPlayChecks
         Check(help.IsOpen && Time.timeScale == 0f && GameInput.Instance.GameplayInputBlocked, "automatic Help pauses input/time");
         stage.ActivateChallenge(); stage.Submit(); GameInput.Instance.MobileInteract();
         Check(stage.State == FunctionsRelationsState.WAITING_FOR_ACTIVATION && stage.TimeRemaining == time, "Help cannot start or grade a challenge");
-        for (int i = 0; i < help.PageCount; i++)
-        {
-            yield return null; yield return new WaitForEndOfFrame();
-            var card = Field<RectTransform>(help, "card");
-            foreach (var text in card.GetComponentsInChildren<TMP_Text>()) { text.ForceMeshUpdate(); Check(!text.isTextOverflowing, "Help text fits: " + text.name); }
-            if (i == 0 || i == help.PageCount - 2) yield return Capture("HelpPage" + i);
-            if (i < help.PageCount - 1) Click(Field<Button>(help, "nextButton"));
-        }
-        Click(Field<Button>(help, "previousButton")); Click(Field<Button>(help, "nextButton"));
-        Click(Field<Button>(help, "beginButton")); yield return null;
+        var page = UnityEngine.Object.FindFirstObjectByType<StageHelpPage>();
+        Check(page != null && page.CloseButton == null, "one scrollable Help with sole Begin exit");
+        Click(page.BeginButton); yield return null;
         var tutorial = FunctionsRelationsControlsOnboarding.Active;
         Check(tutorial != null && tutorial.CurrentStep == FunctionsRelationsTutorialStep.Movement && Time.timeScale == 1f, "Let's Begin starts movement only");
         CheckFrozen(stage, time, variant);
@@ -55,7 +48,7 @@ public static class FunctionsRelationsOnboardingPlayChecks
         Click(hand); yield return null;
         Check(tutorial.CurrentStep == FunctionsRelationsTutorialStep.Book && tutorial.PracticeObject == null, "hand interaction starts book practice");
         yield return new WaitForSecondsRealtime(.9f); yield return Layout(tutorial, "Book");
-        Click(stage.InteractionButton); yield return null;
+        Click(hand); yield return null;
         Check(tutorial.CurrentStep == FunctionsRelationsTutorialStep.Timer, "book practice does not activate real challenge");
         yield return Layout(tutorial, "Timer"); Next(tutorial); yield return null;
         Click(stage.ViewBoardButton); yield return new WaitForSecondsRealtime(.95f);
@@ -69,7 +62,7 @@ public static class FunctionsRelationsOnboardingPlayChecks
         Check(tutorial.CurrentStep == FunctionsRelationsTutorialStep.Input && ui.domainPanel.gameObject.activeSelf, "real hand opens practice input UI");
         yield return Layout(tutorial, "Input"); Click(stage.DomainButtons[0]); yield return new WaitForSecondsRealtime(.9f);
         Check(tutorial.PracticeInput == "6" && stage.SelectedDomain == null, "practice selection leaves real selected input untouched");
-        yield return Layout(tutorial, "Output"); Click(stage.InteractionButton); yield return null;
+        yield return Layout(tutorial, "Output"); Click(hand); yield return null;
         yield return Layout(tutorial, "OutputChoices"); Click(stage.RangeButtons[1]); yield return null;
         Check(tutorial.PracticeOutput == "Y" && stage.Mapping.ConnectionCount == 0, "practice laser is separate from real mapping");
         yield return Layout(tutorial, "Connection"); Next(tutorial); yield return null;
@@ -96,9 +89,9 @@ public static class FunctionsRelationsOnboardingPlayChecks
         Check(UnityEngine.Object.FindObjectsByType<FunctionsRelationsControlsOnboarding>(FindObjectsSortMode.None).Length == 1 &&
             GameObject.Find("Functions Relations Practice Connections") == null && GameObject.Find("PRELIM Shared Skip Tutorial") == null, "no duplicate tutorial or practice content");
         Click(help.HelpButton); yield return new WaitForSecondsRealtime(.2f); Check(help.IsOpen, "Help reopens after onboarding");
-        Click(Field<Button>(help, "beginButton")); yield return null;
+        Click(UnityEngine.Object.FindFirstObjectByType<StageHelpPage>().BeginButton); yield return null;
         Check(FunctionsRelationsControlsOnboarding.Active == null && stage.TimeRemaining == time, "reopening Help does not restart onboarding or clock");
-        Debug.Log("FUNCTIONS_RELATIONS_ONBOARDING_PASS " + Screen.width + "x" + Screen.height + " real movement/jump/hand, guided stations, board Back, choices/Undo, Skip/Yes/No, isolated time/progress, and Help pages");
+        Debug.Log("FUNCTIONS_RELATIONS_ONBOARDING_PASS " + Screen.width + "x" + Screen.height + " real movement/jump/hand, guided stations, board Back, choices/individual Remove, Skip/Yes/No, isolated time/progress, and Help pages");
     }
     public static IEnumerator CheckActiveHelp(FunctionsRelationsStageManager stage)
     {

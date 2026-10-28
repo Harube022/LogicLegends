@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public enum MappingQuestionKind
@@ -55,6 +56,12 @@ public sealed class MappingChallengeData
     public bool correctFunctionAnswer;
     public int correctClassificationIndex = 1;
     public MappingProperty correctProperties;
+
+    // The intended range belongs to the question's full relation, not to its
+    // selectable output choices or the player's unfinished connections.
+    public string[] IntendedRange => (questionKind == MappingQuestionKind.BuildExactRelation ? requiredPairs : initialPairs)
+        .Where(pair => !string.IsNullOrEmpty(pair.codomain)).Select(pair => pair.codomain)
+        .Distinct(StringComparer.Ordinal).OrderBy(value => value, StringComparer.Ordinal).ToArray();
 }
 
 [Serializable]

@@ -24,7 +24,7 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
     public GameObject PracticeObject => null;
     public bool PracticeCarried { get; private set; }
     public int PracticePlacement { get; private set; } = -1;
-    public const string PracticePassage = "PRACTICE ONLY — This example is separate from the challenge bank.\n\nThree equal ribbons together measure 12 cm. Since all three have the same length, each measures 12 ÷ 3 = 4 cm. This explanatory prose is a valid informal proof.";
+    public const string PracticePassage = "PRACTICE ONLY\nThree equal ribbons total 12 cm.\nEach is 12 ÷ 3 = 4 cm.\nThis prose gives a valid informal proof.";
     public float joystickDeadZone = .3f, movementDistance = 1.5f, intentionalMovementSeconds = .7f;
     ProofsLibraryStageController stage;
     ProofsStageUI ui;
@@ -150,16 +150,16 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
         switch (CurrentStep)
         {
             case ProofsTutorialStep.Timer:
-                ShowStep(ProofsTutorialStep.Progress, "This shows the current challenge out of " + stage.ChallengeCount + " and question out of two. Complete two distinct questions per challenge. Correct work pauses the timer; return to the book to start the next question. After both questions, the next challenge becomes available.", ui.Progress.rectTransform, true); break;
+                ShowStep(ProofsTutorialStep.Progress, "This shows the current challenge out of " + stage.ChallengeCount + " and question out of two.\nFinish both questions to advance. Correct work pauses time. Start the next question at the book.", ui.Progress.rectTransform, true); break;
             case ProofsTutorialStep.Progress:
                 StartCamera(); Focus(stage.BookTarget, Vector3.forward);
-                ShowStep(ProofsTutorialStep.Book, "Interact with the book statue to start each challenge. After completing your arrangement, interact with it again to confirm. Tap the hand for a practice interaction; it cannot start the real timer.", hand, false, stage.BookTarget); break;
+                ShowStep(ProofsTutorialStep.Book, "Use the hand at the book to start.\nReturn there to confirm your arrangement.\nTap the hand now; practice does not start time.", hand, false, stage.BookTarget); break;
             case ProofsTutorialStep.FormalAltar:
                 Focus(stage.AltarTargets[1], Vector3.forward);
-                ShowStep(ProofsTutorialStep.InformalAltar, "The Informal Proof altar receives valid reasoning explained in prose. Informal does not mean incorrect. In Challenges 1 and 2, classify each scroll by how it presents its reasoning.", null, true, stage.AltarTargets[1]); break;
+                ShowStep(ProofsTutorialStep.InformalAltar, "Informal proofs explain valid reasoning in prose. Informal does not mean wrong.\nUse this altar for that style in Challenges 1–2.", null, true, stage.AltarTargets[1]); break;
             case ProofsTutorialStep.InformalAltar:
                 CreatePracticeScroll(); Focus(practiceStand.transform, ScrollForward());
-                ShowStep(ProofsTutorialStep.Scroll, "A scroll contains a proof or reasoning passage to examine. This clearly marked practice scroll uses a separate example. Read the full passage rather than guessing from the preview.", null, true, practiceStand.transform); break;
+                ShowStep(ProofsTutorialStep.Scroll, "A scroll contains a proof or reasoning passage.\nRead its full content. This scroll is practice only.", null, true, practiceStand.transform); break;
             case ProofsTutorialStep.Scroll:
                 ShowStep(ProofsTutorialStep.ReadScroll, "Use the hand or Interact button to open the practice scroll's existing reading panel.", hand, false, practiceStand.transform); break;
             case ProofsTutorialStep.Board:
@@ -181,7 +181,7 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
         stage.ReaderPanel.SetActive(false); PracticeCarried = true; practiceScroll.SetActive(false);
         ui.RefreshReader();
         practiceStand.SetTabletVisible(false); Focus(stage.AltarTargets[1], Vector3.forward);
-        ShowStep(ProofsTutorialStep.Place, "You are carrying the practice scroll. Its valid prose belongs on the Informal Proof altar. Use Place Scroll or the hand to place it. Placement alone does not submit your answer.", hand, false, stage.AltarTargets[1]);
+        ShowStep(ProofsTutorialStep.Place, "Place the practice scroll at the Informal altar.\nUse Place Scroll or the hand. Placement does not submit.", hand, false, stage.AltarTargets[1]);
     }
     public void ClosePracticeReader()
     {
@@ -220,7 +220,7 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
     {
         if (!IsActive || CurrentStep != ProofsTutorialStep.TakeBackPicker || !Readable) return;
         stage.TakeBackPanel.SetActive(false); PracticePlacement = -1; PracticeCarried = true; practiceScroll.SetActive(false);
-        ShowStep(ProofsTutorialStep.Replace, "The practice scroll is selected again. Place it back on the Informal altar. In real play, take back and move any misplaced scroll to the altar that matches its presentation.", hand, false, stage.AltarTargets[1]);
+        ShowStep(ProofsTutorialStep.Replace, "Place it back at the Informal altar.\nIn gameplay, take back misplaced scrolls and move them to the matching altar.", hand, false, stage.AltarTargets[1]);
     }
     public void ClosePracticeTakeBack()
     {
@@ -236,10 +236,10 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
     public void OpenPracticeBoard()
     {
         if (!IsActive || CurrentStep != ProofsTutorialStep.ViewBoard || !Readable) return;
-        stage.BoardInstructions.text = "PRACTICE — INFORMATION BOARD\nObjective: read and classify the sample reasoning.\nThree equal ribbons measure 12 cm altogether.\nEach ribbon measures 4 cm because 12 ÷ 3 = 4.\nThis example does not belong to a real challenge.";
+        stage.BoardInstructions.text = "PRACTICE BOARD\nClassify this reasoning:\nThree equal ribbons total 12 cm.\nEach measures 4 cm because 12 ÷ 3 = 4.";
         ui.BoardView.readingArea = new Rect(.40f, .23f, .57f, .66f);
         if (!ui.BoardView.OpenView(BoardClosed)) return;
-        ShowStep(ProofsTutorialStep.Board, "This board displays the current challenge, objectives, and instructions. The clearly labeled practice example leaves the real question bank untouched. During a real active challenge, the timer continues while reading.", null, true, stage.BoardTarget);
+        ShowStep(ProofsTutorialStep.Board, "The board shows the current task and instructions.\nThis is practice only. Normal board reading uses countdown time.", null, true, stage.BoardTarget);
     }
     void BoardClosed() { if (IsActive && CurrentStep == ProofsTutorialStep.BoardBack) Confirm(); }
     public void SkipTutorial() { if (IsActive && CurrentStep != ProofsTutorialStep.Confirm) Confirm(); }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using LogicLegends.Graph;
 using LogicLegends.Trees;
@@ -12,10 +13,27 @@ public static class AdminGraphTreeAnswers
         if (!AdminAuthorization.IsAuthorized) return;
         var stage = Object.FindFirstObjectByType<GraphStageManager>(); if (stage == null || !stage.Ready) return;
         var c = stage.Challenge;
-        var path = new List<string> { c.start };
-        string answer = c.type == GraphChallengeType.Degree ? c.Degree(c.degreeVertex).ToString() : Route(c, path);
-        pages.Add(new AdminAnswerPage("Challenge " + (stage.ChallengeIndex + 1) + " / " + c.title,
-            c.objective + "\n\nCORRECT ANSWER / ONE VALID ROUTE: " + answer + "\n\n" + c.lesson));
+        pages.Add(new AdminAnswerPage("Current — Challenge " + (stage.ChallengeIndex + 1) + ", Question " + (stage.QuestionIndex+1) + " of 2",GraphSolution(c)));
+        for(int challenge=0;challenge<stage.catalog.variantSets.Count;challenge++)
+        {
+            var body=new StringBuilder("Two questions are selected per challenge. Route examples are validated; other valid routes are accepted.\n\n");
+            var bank=stage.catalog.variantSets[challenge].variants;
+            for(int i=0;i<bank.Count;i++)
+            {
+                bool selected=stage.SelectedVariant(challenge,0)==i||stage.SelectedVariant(challenge,1)==i;
+                body.AppendLine("BANK QUESTION "+(i+1)+AdminQuestionAnswers.Mark(selected,challenge==stage.ChallengeIndex&&i==stage.ActiveVariantIndex)+"\n"+GraphSolution(bank[i])+"\n");
+            }
+            pages.Add(new AdminAnswerPage("Challenge "+(challenge+1)+" — "+bank[0].type,body.ToString()));
+        }
+    }
+    static string GraphSolution(GraphChallengeData c)
+    {
+        var path=GraphAnswerValidator.FindSolution(c);
+        string answer=c.type==GraphChallengeType.Degree?c.Degree(c.degreeVertex).ToString():path==null?"No valid route (catalog error)":string.Join(" → ",path);
+        return c.objective+"\n\nCORRECT ANSWER / VALID ROUTE: "+answer+"\nVertices: "+string.Join(", ",c.vertices.Select(v=>v.id))+
+            "\nEdges: "+string.Join(", ",c.edges.Where(e=>e.traversalEnabled).Select(e=>e.source+(e.directed?" → ":" — ")+e.destination))+
+            (c.type==GraphChallengeType.Cycle?"\nMinimum distinct vertices: "+c.minimumCycleVertices:"")+
+            (c.requiredVertices.Length>0?"\nRequired visits: "+string.Join(", ",c.requiredVertices):"");
     }
     static string Route(GraphChallengeData c, List<string> path)
     {

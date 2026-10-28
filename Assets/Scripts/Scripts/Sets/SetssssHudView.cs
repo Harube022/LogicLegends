@@ -20,7 +20,7 @@ public sealed class SetssssHudView : MonoBehaviour
     private RectTransform safeArea;
     private RectTransform jump, hand, settings, help;
     private RectTransform[] minimaps;
-    private int lastChallenge = -1;
+    private int lastChallenge = -1, lastQuestion = -1;
     private Vector3 previousScale;
 
     public void Initialize(SetssssChallengeOne owner, TMP_Text clock, TMP_Text problem, TMP_Text feedback)
@@ -70,7 +70,7 @@ public sealed class SetssssHudView : MonoBehaviour
         text.color = reading ? StageUITheme.Ink : StageUITheme.Gold;
         text.alignment = TextAlignmentOptions.Center;
         text.enableAutoSizing = true; text.fontSizeMin = min; text.fontSizeMax = max;
-        text.textWrappingMode = TextWrappingModes.NoWrap;
+        text.textWrappingMode = reading ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
         text.raycastTarget = false;
         text.margin = Vector4.zero;
     }
@@ -78,9 +78,10 @@ public sealed class SetssssHudView : MonoBehaviour
     private void Refresh()
     {
         if (stage == null || Hud == null) return;
-        if (lastChallenge == stage.ChallengeNumber) return;
-        lastChallenge = stage.ChallengeNumber;
-        Challenge.text = "Challenge " + stage.ChallengeNumber + " of " + stage.ChallengeCount;
+        if (lastChallenge == stage.ChallengeNumber && lastQuestion == stage.QuestionIndex) return;
+        lastChallenge = stage.ChallengeNumber; lastQuestion = stage.QuestionIndex;
+        Challenge.text = "Challenge " + stage.ChallengeNumber + " of " + stage.ChallengeCount +
+            "\nQuestion " + Mathf.Clamp(stage.QuestionIndex + 1, 1, stage.QuestionCount) + " of " + stage.QuestionCount;
     }
 
     private void LateUpdate()

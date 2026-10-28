@@ -87,15 +87,18 @@ public sealed partial class FunctionsRelationsControlsOnboarding
         Stage.SubmitButton.interactable = true;
         ui.boardBack.gameObject.SetActive(board); Stage.BoardView.backButton.interactable = CurrentStep == FunctionsRelationsTutorialStep.BoardBack;
         bool interact = CurrentStep == FunctionsRelationsTutorialStep.Domain || CurrentStep == FunctionsRelationsTutorialStep.Output;
-        ui.interaction.gameObject.SetActive(interact);
+        ui.interaction.gameObject.SetActive(false);
         if (interact) Stage.InteractionButton.GetComponentInChildren<TMP_Text>().text = "PRACTICE: Interact with " + (CurrentStep == FunctionsRelationsTutorialStep.Domain ? "Domain" : "Output");
         ui.domainPanel.gameObject.SetActive(CurrentStep == FunctionsRelationsTutorialStep.Input);
-        ui.rangePanel.gameObject.SetActive(CurrentStep == FunctionsRelationsTutorialStep.OutputChoice || CurrentStep == FunctionsRelationsTutorialStep.Connection || CurrentStep == FunctionsRelationsTutorialStep.Undo);
+        ui.rangePanel.gameObject.SetActive(CurrentStep == FunctionsRelationsTutorialStep.OutputChoice || CurrentStep == FunctionsRelationsTutorialStep.Undo);
+        Stage.UndoButton.gameObject.SetActive(CurrentStep == FunctionsRelationsTutorialStep.Undo);
+        StageUITheme.Stretch((RectTransform)Stage.UndoButton.transform,new Vector2(.53f,.34f),new Vector2(.94f,.53f));
         Stage.UndoButton.interactable = CurrentStep == FunctionsRelationsTutorialStep.Undo;
-        Stage.UndoButton.GetComponentInChildren<TMP_Text>().text = practiceBeam != null ? "UNDO PRACTICE CONNECTION" : "NO PRACTICE CONNECTION";
+        foreach (var button in Stage.RangeButtons) button.interactable = CurrentStep == FunctionsRelationsTutorialStep.OutputChoice;
+        Stage.UndoButton.GetComponentInChildren<TMP_Text>().text = practiceBeam != null ? "Remove " + PracticeInput + " → " + PracticeOutput : "No practice connection";
         ui.domainHint.text = "PRACTICE — Choose input 6 or 9.";
         ui.rangeHint.text = PracticeInput == null ? "PRACTICE — Select an input first." :
-            "PRACTICE input " + PracticeInput + (PracticeOutput == null ? ". Codomain = {X, Y}." : ". Range = {" + PracticeOutput + "}.");
+            "PRACTICE input " + PracticeInput + (PracticeOutput == null ? ". Choices: X, Y." : ". Range = {" + PracticeOutput + "}.");
     }
     private void LateUpdate()
     {

@@ -56,7 +56,7 @@ public static class MappingChallengeVariantFactory
             case 0:
                 challenge.questionKind = MappingQuestionKind.BuildExactRelation;
                 challenge.requiredPairs = fourPairs;
-                challenge.instruction = "Connect " + PairList(fourPairs) + ". The range contains the outputs you use.";
+                challenge.instruction = "Connect " + PairList(fourPairs) + ".";
                 break;
             case 1:
                 challenge.questionKind = MappingQuestionKind.BuildExactRelation;

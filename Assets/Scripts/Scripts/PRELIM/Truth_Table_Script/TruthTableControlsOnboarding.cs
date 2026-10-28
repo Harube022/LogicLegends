@@ -534,7 +534,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         for (int i = 0; i < boardHeaders.Length; i++)
             if (boardHeaders[i] != null) boardHeaders[i].text = "P ? Q";
         AimAtBoard();
-        SetWorldInstruction("Numbered rows identify the four P/Q combinations: TT, TF, FT, FF. True/False element blocks are the expression outputs. Place each output in the highlighted row of the current Truth Table column.",
+        SetWorldInstruction("Rows show P/Q inputs: TT, TF, FT, FF.\nTrue/False blocks represent the expression’s result.\nPlace the output in the highlighted row.",
             true, null, puzzle.GetColumnSnapPoints(0));
     }
 
@@ -592,7 +592,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         step = Step.DoorOpened;
         practiceQuiz.SetActive(false);
         doors.SetTutorialDoorOpen(tutorialHouseIndex, true);
-        SetWorldInstruction("Either answer opens the door. In gameplay, an incorrect answer shows the correct answer and costs 10 seconds. The countdown stays paused while you read the quiz feedback; this practice never deducts time.",
+        SetWorldInstruction("Either answer opens the door.\nWrong in gameplay: −10s; read the correct answer. Time stays paused during feedback.\nPractice has no penalty.",
             true, houseDoor.GetComponentsInChildren<Renderer>(true));
     }
 
@@ -610,7 +610,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
             case Step.DoorOpened:
                 step = Step.Blocks;
                 handButton.gameObject.SetActive(true);
-                SetInstruction("True/False element blocks represent the output for a row. Their bubbles appear only after their house opens. Approach an available block and tap the hand button to collect it. Choose a True or False inventory stack, fill the board rows, and tap Submit Column.", handButton, false, true);
+                SetInstruction("True/False blocks represent row outputs.\nUse the hand to collect from an open house. Closed doors hide prompts.\nSelect an inventory stack. Fill the rows, then tap Submit Column.", handButton, false, true);
                 break;
             case Step.Blocks: BeginConfirmation(); break;
         }

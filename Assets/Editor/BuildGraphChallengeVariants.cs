@@ -17,6 +17,8 @@ public static class BuildGraphChallengeVariants
         var sets = new List<GraphChallengeVariantSet>();
         for (int round = 0; round < GraphChallengeCatalog.ChallengesPerRun; round++)
         {
+            if(round < 3 && catalog.variantSets.Count > round && catalog.variantSets[round].variants.Count == 10)
+            { sets.Add(catalog.variantSets[round]); continue; }
             var set = new GraphChallengeVariantSet();
             for (int variant = 0; variant < 10; variant++)
                 set.variants.Add(Create(round, variant, catalog.challenges[round].lesson));
@@ -124,37 +126,37 @@ public static class BuildGraphChallengeVariants
 
     static GraphChallengeData DirectedChallenge(int variant, string lesson)
     {
-        var ids = Labels(6, variant);
-        var data = New(GraphChallengeType.DirectedPath, "Follow the arrows",
-            "Reach " + ids[5] + " from " + ids[0] + ". Follow each arrow; one branch leads to a dead end.", lesson, ids);
-        SixVertexRoutes(data, ids, variant);
-        bool leftWorks = variant % 2 == 0;
-        Edge(data, ids, 0, 1, true); Edge(data, ids, 1, 3, true);
-        Edge(data, ids, leftWorks ? 3 : 5, leftWorks ? 5 : 3, true);
-        Edge(data, ids, 0, 2, true); Edge(data, ids, 2, 4, true);
-        Edge(data, ids, leftWorks ? 5 : 4, leftWorks ? 4 : 5, true);
-        if (variant % 3 == 1) Edge(data, ids, 1, 2, true);
-        else if (variant % 3 == 2) Edge(data, ids, leftWorks ? 3 : 4, leftWorks ? 4 : 3, true);
+        var ids = Labels(8, variant);
+        int entry = variant % 2, exit = (variant / 2) % 2;
+        var data = New(GraphChallengeType.DirectedPath, "Directed path with a checkpoint",
+            "Reach " + ids[7] + " from " + ids[0] + " via " + ids[3+entry] + ". Follow arrows. Do not repeat vertices.", lesson, ids);
+        data.requiredVertices = new[] { ids[3+entry] };
+        Vertex(data,ids[0],0,0,variant);
+        for(int level=0;level<3;level++)
+        { Vertex(data,ids[1+level*2],-12,10+level*10,variant);Vertex(data,ids[2+level*2],12,10+level*10,variant); }
+        Vertex(data,ids[7],0,40,variant);
+        Edge(data,ids,0,1,true);Edge(data,ids,0,2,true);
+        Edge(data,ids,1,3,true);Edge(data,ids,2,4,true);Edge(data,ids,3,5,true);Edge(data,ids,4,6,true);
+        Edge(data,ids,5+exit,7,true);Edge(data,ids,7,6-exit,true);
+        Edge(data,ids,2-entry,1+entry,true);
+        Edge(data,ids,entry==exit?4-entry:3+entry,3+exit,true);
+        Edge(data,ids,5+exit,6-exit,true);
         return data;
     }
 
     static GraphChallengeData CycleChallenge(int variant, string lesson)
     {
-        var ids = Labels(6, variant);
-        var data = New(GraphChallengeType.Cycle, "Complete a cycle",
-            "Start at " + ids[0] + ", visit the ring, and return to " + ids[0] + " without repeating another vertex. Watch for the dead end.", lesson, ids);
-        data.destination = ids[0];
-        Vertex(data, ids[0], 0, 0, variant);
-        Vertex(data, ids[1], -8, 10, variant);
-        Vertex(data, ids[2], -8, 24, variant);
-        Vertex(data, ids[3], 8, 24, variant);
-        Vertex(data, ids[4], 8, 10, variant);
-        int spur = 1 + variant % 4;
-        float spurX = spur <= 2 ? -18 : 18;
-        float spurZ = spur == 1 || spur == 4 ? 10 : 24;
-        Vertex(data, ids[5], spurX, spurZ, variant);
-        Edge(data, ids, 0, 1); Edge(data, ids, 1, 2); Edge(data, ids, 2, 3);
-        Edge(data, ids, 3, 4); Edge(data, ids, 4, 0); Edge(data, ids, spur, 5);
+        var ids = Labels(10, variant);
+        var data = New(GraphChallengeType.Cycle, "Cycle with a visit requirement",
+            "Return to " + ids[0] + ". Visit " + ids[variant%2==0?4:8] + " and at least " + (6+variant%3) + " distinct vertices. Do not repeat intermediate vertices.", lesson, ids);
+        data.destination = ids[0];data.minimumCycleVertices=6+variant%3;
+        data.requiredVertices=new[]{ids[variant%2==0?4:8]};
+        float[] x={0,-11,-16,-11,0,11,16,11,0,variant%2==0?-25:25};
+        float[] z={0,9,20,32,40,32,20,9,20,20};
+        for(int i=0;i<ids.Length;i++)Vertex(data,ids[i],x[i],z[i],variant);
+        for(int i=0;i<8;i++)Edge(data,ids,i,(i+1)%8);
+        Edge(data,ids,1,7);Edge(data,ids,2,8);Edge(data,ids,8,6);Edge(data,ids,8,4);
+        Edge(data,ids,variant%2==0?2:6,9);
         return data;
     }
 }

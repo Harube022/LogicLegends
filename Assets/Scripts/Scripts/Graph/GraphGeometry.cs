@@ -15,6 +15,7 @@ namespace LogicLegends.Graph
         // Preserve the reference 12-unit connection's 6.2-unit deck, enlarged
         // four times in length, with its ends still overlapping the platforms.
         public const float LayoutScale = ((12f - 5.8f) * 4f + 2f * (VertexRadius - PlatformOverlap)) / 12f;
+        public const float DirectedDepthOffset = -24f;
         public static readonly Vector3 BookOffset = new Vector3(-1.7f, 0, -.7f) * VertexScale;
 
         /// <summary>Fit static compound collision to the imported statue, without blocking its animated page.</summary>
@@ -50,13 +51,16 @@ namespace LogicLegends.Graph
             return !float.IsNegativeInfinity(height);
         }
 
+        // Translate all eight directed platforms inside the chamber, retaining junction angles and spacing.
+        // This changes positions only: IDs, edges, directions and answers are shared unchanged.
         public static GraphChallengeData Layout(GraphChallengeData source) => new GraphChallengeData
         {
             title = source.title, type = source.type, objective = source.objective, lesson = source.lesson,
             start = source.start, destination = source.destination, degreeVertex = source.degreeVertex,
+            requiredVertices = source.requiredVertices, minimumCycleVertices = source.minimumCycleVertices,
             edges = source.edges,
             vertices = source.vertices.Select(v => new GraphVertexData(v.id, 0, 0)
-            { label = v.label, position = new Vector3(v.position.x * LayoutScale, v.position.y, v.position.z * LayoutScale) }).ToList()
+            { label = v.label, position = new Vector3(v.position.x * LayoutScale, v.position.y, v.position.z * LayoutScale + (source.type == GraphChallengeType.DirectedPath && source.vertices.Count >= 8 ? DirectedDepthOffset : 0f)) }).ToList()
         };
     }
 }
