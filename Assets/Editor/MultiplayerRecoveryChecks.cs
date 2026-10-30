@@ -209,6 +209,15 @@ public static class MultiplayerRecoveryChecks
             label + ": reconnect UI blocks input while preserving the scene");
         Check(ArchiveTopicSession.Current.State != null && !ArchiveTopicSession.Current.IsAuthority && !ArchiveTopicSession.Current.hunting.IsAuthority,
             label + ": disconnected gameplay never becomes offline authority");
+        var spawnProbe = new GameObject("Recovery spawn guard QA");
+        try
+        {
+            var spawner = spawnProbe.AddComponent<PlayerSpawner>();
+            var start = (IEnumerator)typeof(PlayerSpawner).GetMethod("Start", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(spawner, null);
+            Check(!start.MoveNext() && spawner.SpawnedPlayer == null && spawner.Status.Contains("original player"),
+                label + ": a fresh scene spawner defers to cached-avatar restoration instead of creating a duplicate");
+        }
+        finally { UnityEngine.Object.DestroyImmediate(spawnProbe); }
         ScreenCapture.CaptureScreenshot(Folder + "/" + label.Replace(' ', '-') + "-reconnecting.png");
         Loss(false);
         yield return Wait(() => !service.IsRecovering && PhotonNetwork.InRoom && Player.LocalInstance != null, label + " recovery completes", 35);

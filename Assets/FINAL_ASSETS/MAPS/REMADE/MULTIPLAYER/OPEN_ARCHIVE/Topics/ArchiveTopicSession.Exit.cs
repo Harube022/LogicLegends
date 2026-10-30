@@ -31,7 +31,10 @@ namespace LogicLegends.OpenArchive.Topics
             if (!Ready) yield break;
             if (!PhotonNetwork.InRoom)
             {
-                if (Player.LocalInstance != null && ActorAlive(-1)) yield return -1;
+                // Admin Lab's existing practice teammate represents a second survivor.
+                // Its preview must obey the same all-survivors escape rule as a real room.
+                foreach(int actor in DebugPracticeActors)
+                    if(ActorPlayer(actor)!=null&&ActorAlive(actor))yield return actor;
                 yield break;
             }
             // A connected living player still counts while their avatar is loading.
@@ -54,10 +57,12 @@ namespace LogicLegends.OpenArchive.Topics
         bool AdvanceExitProgress()
         {
             if (!Ready || !IsAuthority) return false;
+            bool clockChanged=TickMatchTime();
+            if (!MatchTimeAllowsGameplay) return clockChanged;
             NormalizeExit();
             var exit = State.exit;
             if (exit.won) return false;
-            bool dirty = false;
+            bool dirty = clockChanged;
             if (!exit.opened && AllTopicsComplete)
             {
                 exit.opened = true; exit.openedAt = Clock; dirty = true;

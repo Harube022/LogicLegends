@@ -112,9 +112,11 @@ namespace LogicLegends.OpenArchive.Topics
         public void Initialize(int seed)
         {
             if (!IsAuthority || catalog == null) return;
+            ReleaseMatchTimeout();
             ReleaseEscapedPlayers();
             State = new ArchiveTeamState { seed = seed, stations = Enumerable.Range(0, 10).Select(i => new ArchiveStationState { topic = i }).ToArray() };
             InitializeFairness();
+            InitializeMatchTime();
             questions.Clear();lastSubmit.Clear();localSequence=0;LocalNotice=""; Commit();
         }
         public ArchiveQuestion Question(int topic)
@@ -137,7 +139,7 @@ namespace LogicLegends.OpenArchive.Topics
         }
         public Player ActorPlayer(int actor)
         {
-            if (!PhotonNetwork.InRoom) return actor == -1 ? Player.LocalInstance : null;
+            if (!PhotonNetwork.InRoom) return actor == -1 ? Player.LocalInstance : DebugActorPlayer(actor);
             foreach (var player in FindObjectsByType<Player>(FindObjectsSortMode.None))
             {
                 var view = player.GetComponent<PhotonView>();
@@ -147,9 +149,10 @@ namespace LogicLegends.OpenArchive.Topics
         }
         public bool CanAct(int actor)
         {
+            if (!MatchTimeAllowsGameplay) return false;
             if (MultiplayerLobbyService.IsGameplayRecovering) return false;
             if (PhotonNetwork.InRoom && (PhotonNetwork.CurrentRoom.GetPlayer(actor) == null || PhotonNetwork.CurrentRoom.GetPlayer(actor).IsInactive)) return false;
-            if (HasEscapedActor(actor) || TeamWon) return false;
+            if (HasEscapedActor(actor) || TeamWon || TeamDefeated) return false;
             var player = ActorPlayer(actor);
             if (player == null || !player.gameObject.activeInHierarchy || player.IsMovementLocked) return false;
             if (hunting != null && hunting.State == KhezuHuntState.Caught && hunting.CaughtPlayerId == actor) return false;
@@ -168,9 +171,12 @@ namespace LogicLegends.OpenArchive.Topics
             if (PhotonNetwork.InRoom && PhotonNetwork.CurrentRoom.GetPlayer(actor) == null) return false;
             if (cmd.action == ArchiveAction.AdminCompleteTopic || cmd.action == ArchiveAction.AdminResetTopic)
                 return AcceptTopicAdmin(actor, cmd);
+            if (TickMatchTime()) Commit();
+            if (!MatchTimeAllowsGameplay) return false;
             if (cmd.action == ArchiveAction.BarrierHint || cmd.action == ArchiveAction.BarrierAnswer)
                 return AcceptBarrierLearning(actor, cmd);
             if (cmd.action == ArchiveAction.RequestHint) return AcceptLearningHint(actor, cmd);
+            if (cmd.action == ArchiveAction.ClaimChest || cmd.action == ArchiveAction.UseSurvivalItem || cmd.action == ArchiveAction.EquipSurvivalItem || cmd.action == ArchiveAction.GiveSurvivalItem) return AcceptSurvival(actor, cmd);
             if (cmd.action == ArchiveAction.SetT1Input || cmd.action == ArchiveAction.ConfirmT1Input) return AcceptT1Input(actor,cmd);
             if (cmd.action == ArchiveAction.BonusInteract) return AcceptBonusInteraction(actor,cmd);
             if(ExpireTopicTimer(State.stations[cmd.topic]))return false;
@@ -197,8 +203,8 @@ namespace LogicLegends.OpenArchive.Topics
                 if(s.topic==8)s.routeActor=0;
                 if(s.topic==9)ClearTreeInputs();
                 if(HasTopicTimer(s.topic))StartTopicTimer(s,actor);
-                BeginTopicRelay(s.topic);
-                s.feedback = "Challenge active. Your team shares this work. Optional support relay is open until this whole topic is complete."; Touch(s); return true;
+                if(crystalRestoration)BeginTopicCrystal(s.topic);else BeginTopicRelay(s.topic);
+                s.feedback = crystalRestoration?"Challenge active. Accepted answers restore the crystal; every teammate's meaningful work lights their rune.":"Challenge active. Your team shares this work. Optional support relay is open until this whole topic is complete."; Touch(s); return true;
             }
             if (s.phase != 1) return false;
             var q = Question(cmd.topic);
@@ -301,6 +307,9 @@ namespace LogicLegends.OpenArchive.Topics
         void ClearTreeInputs(){foreach(var actor in State.actors){actor.treeFirst=actor.treeSecond=actor.treeRound=-1;}}
         void Submit(int actor,int sequence,ArchiveStationState s,ArchiveQuestion q)
         {
+            // Recheck at grading time as well as command receipt: a held rune
+            // may finish on the same frame as the shared deadline.
+            if(!MatchTimeAllowsGameplay){if(TickMatchTime())Commit();return;}
             bool correct=ArchiveTopicQuestions.Validate(q,s,out string feedback);
             if(correct)RecordSolvedMilestone(actor,s,q);
             var contributor=State.actors.FirstOrDefault(a=>a.actor==actor);
@@ -344,11 +353,11 @@ namespace LogicLegends.OpenArchive.Topics
                     if(s.topic==7&&s.phase==0){s.links.Clear();s.selection=-1;s.flags=0;}
                     if(s.topic==8&&s.phase==0){s.route.Clear();s.routeEdge=-1;s.routeCrossedMiddle=false;s.routeAtVertex=false;s.routeReason="";s.selection=-1;}
                     if(s.topic==9&&s.phase==0){s.links.Clear();s.selection=-1;s.flags=-1;}
-                    s.feedback=s.phase==2?"Topic complete for the team! Optional relay is now closed.":"Correct! Use the book to start the next challenge.";
+                    s.feedback=s.phase==2?crystalRestoration?"Topic complete! The crystal records your team's solved challenges and contributors.":"Topic complete for the team! Optional relay is now closed.":"Correct! Use the book to start the next challenge.";
                     s.carries.Clear();
                     if(HasTopicTimer(s.topic)&&s.phase==2){s.timerSavedRemaining=TimerRemaining(s);s.timerRunning=false;}
                 }
-                if(s.phase==2)CloseTopicRelay(s.topic);
+                if(s.phase==2){AwardMatchTimeForTopic(s.topic,actor);CloseTopicRelay(s.topic);CreateTopicReward(s,actor);}
             }
             else
             {
@@ -378,6 +387,7 @@ namespace LogicLegends.OpenArchive.Topics
         }
         public string ActorName(int actor)
         {
+            if(actor==-2)return "TEST TEAMMATE";
             if(actor==0)return "Team";
             if(actor==-1)return "Local explorer";
             string current=PhotonNetwork.InRoom?PhotonNetwork.CurrentRoom.GetPlayer(actor)?.NickName:null;
@@ -392,7 +402,11 @@ namespace LogicLegends.OpenArchive.Topics
         void Touch(ArchiveStationState s){s.revision++;Commit();}
         void Commit()
         {
+            NormalizeMatchTime();TickMatchTime();
+            NormalizeSurvival();
             NormalizeCooperation();
+            if(crystalRestoration){NormalizeCrystals();RefreshCrystals();}
+            NormalizeWorldTime();AdvanceWorldTime();
             AdvanceExitProgress();
             SyncEscapedPlayers();
             State.revision++;Changed?.Invoke();
@@ -405,14 +419,20 @@ namespace LogicLegends.OpenArchive.Topics
         }
         void Update()
         {
+            if(Ready&&TickMatchTime())Commit();
+            SyncMatchTimeout();
+            if(Ready)TickSurvival();
+            if(TeamDefeated)return;
             UpdateCommandReceipts();
+            BindLearningEncounter();
             ConfigureEncounterPacing();
             if (Time.unscaledTime >= nextExitSync) { nextExitSync=Time.unscaledTime+.1f; SyncEscapedPlayers(); }
             if(!Ready||!IsAuthority||Time.unscaledTime<nextTick||Time.timeScale<=0)return;
             if(roomMode!=PhotonNetwork.InRoom){enabled=false;return;}
             nextTick=Time.unscaledTime+.1f;
             TickLearningEncounter();
-            TickT1Coop();
+            if(AdvanceWorldTime())Commit();
+            if(crystalRestoration){if(Time.unscaledTime>=nextCrystalRosterTick){nextCrystalRosterTick=Time.unscaledTime+1;if(RefreshCrystals())Commit();}}else TickT1Coop();
             if (AdvanceExitProgress()) Commit();
             if (TeamWon) return;
             int activeTopic=ActiveTopic;
@@ -471,7 +491,7 @@ namespace LogicLegends.OpenArchive.Topics
                 var state=JsonUtility.FromJson<ArchiveTeamState>(json);
                 if(state==null||state.version!=1||state.stations==null||state.stations.Length!=10||(!initial&&State!=null&&state.revision<=State.revision))return;
                 if(State!=null&&State.matchId!=state.matchId)pendingCommands.Clear();
-                State=state;NormalizeExit();NormalizeLearning();NormalizeCooperation();questions.Clear();trustedSnapshot=json;SyncEscapedPlayers();Changed?.Invoke();
+                State=state;NormalizeMatchTime();NormalizeSurvival();NormalizeExit();NormalizeLearning();NormalizeCooperation();NormalizeWorldTime();if(crystalRestoration)NormalizeCrystals();questions.Clear();trustedSnapshot=json;SyncEscapedPlayers();Changed?.Invoke();
             }
             catch(Exception e){Debug.LogWarning("Ignored malformed topic snapshot: "+e.GetType().Name);}
         }
@@ -490,8 +510,8 @@ namespace LogicLegends.OpenArchive.Topics
             Receive(json, true); roomMode = true;
             return Ready;
         }
-        public override void OnLeftRoom(){if(MultiplayerLobbyService.IsGameplayRecovering)return;ReleaseEscapedPlayers();State=null;Changed?.Invoke();}
-        public override void OnDisconnected(DisconnectCause cause){if(MultiplayerLobbyService.IsGameplayRecovering)return;ReleaseEscapedPlayers();State=null;Changed?.Invoke();}
-        void OnDestroy(){UnbindLearningEncounter();ReleaseEscapedPlayers();if(Current==this)Current=null;}
+        public override void OnLeftRoom(){if(MultiplayerLobbyService.IsGameplayRecovering)return;ReleaseMatchTimeout();ReleaseEscapedPlayers();State=null;Changed?.Invoke();}
+        public override void OnDisconnected(DisconnectCause cause){if(MultiplayerLobbyService.IsGameplayRecovering)return;ReleaseMatchTimeout();ReleaseEscapedPlayers();State=null;Changed?.Invoke();}
+        void OnDestroy(){ReleaseMatchTimeout();RemoveAdminTeammate();CleanupRescue();UnbindLearningEncounter();ReleaseEscapedPlayers();if(Current==this)Current=null;}
     }
 }

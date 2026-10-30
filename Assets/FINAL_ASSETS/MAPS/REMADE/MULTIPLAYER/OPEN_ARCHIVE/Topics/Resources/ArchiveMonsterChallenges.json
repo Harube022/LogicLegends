@@ -1,0 +1,1209 @@
+{
+  "version": 1,
+  "questions": [
+    {
+      "id": "DM1-T01-01",
+      "topic": 0,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 1.pptx",
+      "slides": [
+        12,
+        16,
+        17
+      ],
+      "prompt": "Let p mean the left rune is active and q mean the right rune is active. A seal opens when exactly one rune is active. Which formula matches this rule?",
+      "options": [
+        "p ∨ q",
+        "p ⊕ q",
+        "p ∧ q",
+        "p ↔ q"
+      ],
+      "correctIndex": 1,
+      "explanation": "Exclusive OR is true when the inputs differ. Inclusive OR would also accept both runes being active.",
+      "hints": [
+        "Test the situation where both runes are active.",
+        "The word exactly excludes one case that ordinary OR permits.",
+        "Compare the connectives using both unequal and equal input values."
+      ]
+    },
+    {
+      "id": "DM1-T01-02",
+      "topic": 0,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 1.pptx",
+      "slides": [
+        13,
+        15,
+        16
+      ],
+      "prompt": "Let p mean a key is present, q mean the code is correct, and r mean an override is active. Entry is allowed when the key and correct code are both present, or when the override is active. Which formula matches?",
+      "options": [
+        "p ∧ (q ∨ r)",
+        "(p ∨ q) ∧ r",
+        "p ∧ q ∧ r",
+        "(p ∧ q) ∨ r"
+      ],
+      "correctIndex": 3,
+      "explanation": "The key-and-code requirement is one grouped alternative. The override is a separate sufficient alternative, giving (p ∧ q) ∨ r.",
+      "hints": [
+        "Group the two conditions that must hold together.",
+        "Check whether an override alone should allow entry.",
+        "Also test whether a key without a code or override should allow entry."
+      ]
+    },
+    {
+      "id": "DM1-T01-03",
+      "topic": 0,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 1.pptx",
+      "slides": [
+        18
+      ],
+      "prompt": "The archive rule is p → q: if a player submits a proof, the proof is checked. Which observation alone violates the rule?",
+      "options": [
+        "The proof is submitted but not checked.",
+        "The proof is not submitted but is checked.",
+        "The proof is neither submitted nor checked.",
+        "The proof is both submitted and checked."
+      ],
+      "correctIndex": 0,
+      "explanation": "An implication is false only when its antecedent is true and its consequent is false. Submission without checking is that case.",
+      "hints": [
+        "Identify the condition after if and the result after then.",
+        "A rule does not require the if-condition to occur.",
+        "Look for a promised result that fails despite its condition occurring."
+      ]
+    },
+    {
+      "id": "DM1-T01-04",
+      "topic": 0,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 1.pptx",
+      "slides": [
+        13,
+        14,
+        15
+      ],
+      "prompt": "Let p mean the bridge is safe and q mean the gate is open. Which sentence expresses ¬(p ∧ ¬q)?",
+      "options": [
+        "The bridge is unsafe and the gate is closed.",
+        "The bridge is safe and the gate is open.",
+        "It is not the case that the bridge is safe and the gate is closed.",
+        "It is not the case that the bridge is unsafe and the gate is open."
+      ],
+      "correctIndex": 2,
+      "explanation": "The inner ¬q means the gate is closed. The outer negation applies to the entire conjunction p ∧ ¬q.",
+      "hints": [
+        "Translate the negation immediately beside q first.",
+        "Keep track of the parentheses before translating the outer negation.",
+        "Check whether the sentence negates the complete grouped statement."
+      ]
+    },
+    {
+      "id": "DM1-T01-05",
+      "topic": 0,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 1.pptx",
+      "slides": [
+        18,
+        19
+      ],
+      "prompt": "A crystal glows if and only if its two switches have the same truth value. The first switch is false. Which value must the second switch have for the crystal to glow?",
+      "options": [
+        "True, because one true switch is sufficient.",
+        "False, because the switch values must agree.",
+        "True, because false always implies true.",
+        "Either value, because the first switch is false."
+      ],
+      "correctIndex": 1,
+      "explanation": "A biconditional is true for equal inputs, including false and false. Its rule differs from the conditional implication rule.",
+      "hints": [
+        "Distinguish if and only if from a one-way implication.",
+        "A false input does not automatically make a biconditional true.",
+        "Compare both possible settings of the second switch with the first."
+      ]
+    },
+    {
+      "id": "DM1-T02-01",
+      "topic": 1,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx",
+      "slides": [
+        4,
+        5,
+        6,
+        10,
+        11
+      ],
+      "prompt": "Using row order (p,q) = (T,T), (T,F), (F,T), (F,F), what is the output column of (p ∨ q) ∧ ¬p?",
+      "options": [
+        "T, F, T, F",
+        "F, T, F, F",
+        "F, F, F, T",
+        "F, F, T, F"
+      ],
+      "correctIndex": 3,
+      "explanation": "The first two rows fail because ¬p is false. For the last two rows, p ∨ q is true only in the (F,T) row.",
+      "hints": [
+        "Build a separate column for ¬p.",
+        "A conjunction needs both component columns to be true.",
+        "Check the two rows where p is false separately."
+      ]
+    },
+    {
+      "id": "DM1-T02-02",
+      "topic": 1,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx",
+      "slides": [
+        8,
+        9,
+        12
+      ],
+      "prompt": "Using row order (p,q) = (T,T), (T,F), (F,T), (F,F), what is the output column of (p → q) ↔ q?",
+      "options": [
+        "T, T, T, F",
+        "T, F, T, T",
+        "T, F, F, T",
+        "F, T, F, T"
+      ],
+      "correctIndex": 0,
+      "explanation": "The implication column is T,F,T,T. Comparing it with q = T,F,T,F gives T,T,T,F.",
+      "hints": [
+        "Evaluate the implication before the biconditional.",
+        "A biconditional checks whether its two input values match.",
+        "Do not replace the whole compound expression with p → q."
+      ]
+    },
+    {
+      "id": "DM1-T02-03",
+      "topic": 1,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx",
+      "slides": [
+        4,
+        5,
+        6,
+        12
+      ],
+      "prompt": "For which assignment is ¬(p ∧ q) ∨ r false?",
+      "options": [
+        "p=T, q=T, r=T",
+        "p=T, q=F, r=F",
+        "p=T, q=T, r=F",
+        "p=F, q=F, r=F"
+      ],
+      "correctIndex": 2,
+      "explanation": "A disjunction is false only when both parts are false. Thus r must be false and p ∧ q must be true, requiring p=q=true.",
+      "hints": [
+        "Start with the outermost connective.",
+        "Determine what both sides of an OR must be for its result to be false.",
+        "Then work backward through the negation and the AND."
+      ]
+    },
+    {
+      "id": "DM1-T02-04",
+      "topic": 1,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx",
+      "slides": [
+        5,
+        8,
+        9
+      ],
+      "prompt": "Across the four possible assignments of p and q, how many make (p → q) ∧ (q → p) true?",
+      "options": [
+        "0",
+        "2",
+        "1",
+        "4"
+      ],
+      "correctIndex": 1,
+      "explanation": "Both implications hold when p and q agree. The satisfying rows are (T,T) and (F,F), so there are two.",
+      "hints": [
+        "Evaluate each implication as a separate column.",
+        "A conjunction keeps only rows where both columns are true.",
+        "Compare the cases of matching values with the cases of different values."
+      ]
+    },
+    {
+      "id": "DM1-T02-05",
+      "topic": 1,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx",
+      "slides": [
+        4,
+        5,
+        8,
+        12
+      ],
+      "prompt": "Across all eight assignments of p, q and r, how many make ((p ∧ q) → r) ∧ ¬r true?",
+      "options": [
+        "1",
+        "4",
+        "0",
+        "3"
+      ],
+      "correctIndex": 3,
+      "explanation": "The final ¬r forces r=false. With a false consequent, the implication requires p ∧ q to be false. Three of the four (p,q) combinations satisfy that.",
+      "hints": [
+        "Use the final conjunction to restrict r first.",
+        "Recall exactly when an implication with a false consequent is true.",
+        "Count the remaining possibilities for the pair p,q."
+      ]
+    },
+    {
+      "id": "DM1-T03-01",
+      "topic": 2,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 3.pptx",
+      "slides": [
+        8,
+        10,
+        12
+      ],
+      "prompt": "Given p → q, q → r and ¬r, which conclusion must follow?",
+      "options": [
+        "p",
+        "¬p",
+        "q",
+        "r"
+      ],
+      "correctIndex": 1,
+      "explanation": "Modus Tollens on q → r and ¬r gives ¬q. Applying Modus Tollens again to p → q gives ¬p.",
+      "hints": [
+        "Begin with the implication whose consequent matches the known negation.",
+        "A false consequent can rule out an implication’s antecedent.",
+        "Carry the intermediate result backward through the other implication."
+      ]
+    },
+    {
+      "id": "DM1-T03-02",
+      "topic": 2,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 3.pptx",
+      "slides": [
+        13,
+        14
+      ],
+      "prompt": "The premises are p ∨ (q ∧ r) and ¬p. What is the conclusion obtained by applying Disjunctive Syllogism to these two premises?",
+      "options": [
+        "p",
+        "¬q ∧ r",
+        "q ∧ ¬r",
+        "q ∧ r"
+      ],
+      "correctIndex": 3,
+      "explanation": "Treat q ∧ r as the second whole disjunct. Ruling out p leaves that entire disjunct true.",
+      "hints": [
+        "Identify the two top-level alternatives in the first premise.",
+        "The second alternative can itself be a compound statement.",
+        "Apply the rule before simplifying any surviving compound statement."
+      ]
+    },
+    {
+      "id": "DM1-T03-03",
+      "topic": 2,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 3.pptx",
+      "slides": [
+        15,
+        16,
+        17
+      ],
+      "prompt": "Given (p → q) ∧ (r → s) and p ∨ r, which conclusion follows by Constructive Dilemma?",
+      "options": [
+        "q ∨ s",
+        "q ∧ s",
+        "p ∧ r",
+        "¬q ∧ ¬s"
+      ],
+      "correctIndex": 0,
+      "explanation": "At least one antecedent holds, so at least one associated consequent holds. This establishes q ∨ s, not that both consequents must hold.",
+      "hints": [
+        "Pair each antecedent with its own consequent.",
+        "The premise gives an OR of antecedents rather than an AND.",
+        "Preserve that distinction when combining the possible results."
+      ]
+    },
+    {
+      "id": "DM1-T03-04",
+      "topic": 2,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 3.pptx",
+      "slides": [
+        7,
+        8
+      ],
+      "prompt": "A proof has premise p → q and wants to infer q in one use of Modus Ponens. Which additional premise completes that inference?",
+      "options": [
+        "¬p",
+        "¬q",
+        "p",
+        "q → p"
+      ],
+      "correctIndex": 2,
+      "explanation": "Modus Ponens requires the conditional and its antecedent. Adding p supplies the antecedent and allows q.",
+      "hints": [
+        "Write the two-premise pattern of Modus Ponens.",
+        "Distinguish the antecedent from the consequent.",
+        "Reversing an implication does not supply a true antecedent."
+      ]
+    },
+    {
+      "id": "DM1-T03-05",
+      "topic": 2,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 4.pptx",
+      "slides": [
+        14,
+        16
+      ],
+      "prompt": "Which expression is equivalent to p ∧ (q ∨ r) by distribution?",
+      "options": [
+        "(p ∨ q) ∧ r",
+        "(p ∧ q) ∨ (p ∧ r)",
+        "(p ∧ q) ∧ (p ∧ r)",
+        "(p ∨ q) ∨ (p ∨ r)"
+      ],
+      "correctIndex": 1,
+      "explanation": "Conjunction distributes over disjunction. The p condition accompanies each alternative, giving (p ∧ q) ∨ (p ∧ r).",
+      "hints": [
+        "Identify the connective outside the parentheses.",
+        "Each alternative inside the parentheses must retain the outer condition.",
+        "Check both the inner connective and the connective joining the new groups."
+      ]
+    },
+    {
+      "id": "DM1-T04-01",
+      "topic": 3,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 6.pptx",
+      "slides": [
+        5,
+        7,
+        8
+      ],
+      "prompt": "A formal derivation lists 1: p → q (premise), 2: p (premise), 3: q. What should be added to line 3 to make its logical justification explicit?",
+      "options": [
+        "A new assumption that q is false.",
+        "A test using only one chosen truth assignment.",
+        "A statement that every symbolic line is automatically valid.",
+        "Modus Ponens, citing lines 1 and 2."
+      ],
+      "correctIndex": 3,
+      "explanation": "A formal proof identifies the rule and earlier lines supporting each derived statement. Modus Ponens justifies q from p → q and p.",
+      "hints": [
+        "Separate assumptions from statements derived from assumptions.",
+        "A formal line needs a valid rule together with its dependencies.",
+        "Find the inference pattern formed by the two earlier lines."
+      ]
+    },
+    {
+      "id": "DM1-T04-02",
+      "topic": 3,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 6.pptx",
+      "slides": [
+        5,
+        7,
+        8
+      ],
+      "prompt": "A proof has premises p, p → q and q → r. Which order of derived statements makes the dependencies explicit before concluding r?",
+      "options": [
+        "Derive q from p and p → q, then derive r from q and q → r.",
+        "Derive r first, then use r to assume q.",
+        "Derive ¬q first, then infer r from ¬q.",
+        "Assume r as an extra premise, then declare it proved."
+      ],
+      "correctIndex": 0,
+      "explanation": "Each derived line must depend on available premises or earlier established lines. Establishing q first supplies the antecedent needed to establish r.",
+      "hints": [
+        "Look for the conditional whose antecedent is already a premise.",
+        "A later line cannot justify an earlier unproved line.",
+        "Follow the direction of the implications from the known starting statement."
+      ]
+    },
+    {
+      "id": "DM1-T04-03",
+      "topic": 3,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 6.pptx",
+      "slides": [
+        4,
+        7,
+        8,
+        9
+      ],
+      "prompt": "A purported formal proof uses p → q and q, then concludes p without any other premise. What is the problem?",
+      "options": [
+        "A proof cannot contain implications.",
+        "The proof needs a longer conclusion.",
+        "The premises can be true with p false, so the conclusion is not justified.",
+        "Using letters makes the argument informal."
+      ],
+      "correctIndex": 2,
+      "explanation": "Take p=false and q=true. Both premises remain true while p is false. Formal notation alone cannot make an invalid inference valid.",
+      "hints": [
+        "Check whether the conclusion is forced by the premises.",
+        "Try an assignment where the proposed conclusion is false.",
+        "A true consequent does not by itself establish the antecedent."
+      ]
+    },
+    {
+      "id": "DM1-T04-04",
+      "topic": 3,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 6.pptx",
+      "slides": [
+        5,
+        7,
+        11,
+        12
+      ],
+      "prompt": "An informal argument explains: an integer n divisible by 4 can be written 4k, so n = 2(2k) and is even. Which change best formalizes the same reasoning?",
+      "options": [
+        "Replace the reasoning with the single example n = 8.",
+        "State k is an integer and give numbered equalities justified by divisibility and evenness definitions.",
+        "Remove the assumption that n is divisible by 4.",
+        "Assume n is even at the beginning and stop."
+      ],
+      "correctIndex": 1,
+      "explanation": "Formalizing makes the assumptions, intermediate equalities and definitions explicit. It preserves the general argument rather than replacing it with a single example or assuming the conclusion.",
+      "hints": [
+        "Keep the original assumption and conclusion unchanged.",
+        "The integer status of the witness k matters.",
+        "Choose the version that records why each general step is allowed."
+      ]
+    },
+    {
+      "id": "DM1-T04-05",
+      "topic": 3,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 6.pptx",
+      "slides": [
+        4,
+        7,
+        8,
+        13,
+        15
+      ],
+      "prompt": "A student claims every even integer has an even square after checking only 2, 4 and 6. Which evaluation of that reasoning is correct?",
+      "options": [
+        "The claim is false because examples are forbidden in proofs.",
+        "Three successful examples prove a claim about every integer.",
+        "The claim becomes proved if the examples use symbols.",
+        "The examples illustrate the claim but leave the general case unproved."
+      ],
+      "correctIndex": 3,
+      "explanation": "Testing several values does not establish a statement for all even integers. A general argument can use n=2k and n²=2(2k²).",
+      "hints": [
+        "Distinguish a statement about three values from one about every permitted value.",
+        "An example can illustrate a valid idea without settling every case.",
+        "Look for a justification that would apply to an arbitrary even integer."
+      ]
+    },
+    {
+      "id": "DM1-T05-01",
+      "topic": 4,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 7.pptx",
+      "slides": [
+        6,
+        7,
+        8
+      ],
+      "prompt": "In a direct proof, n is an odd integer, so n = 2k + 1 for an integer k. Which next line proves that n − 3 is even?",
+      "options": [
+        "n − 3 = 2(k − 1)",
+        "n − 3 = 2k + 1",
+        "n − 3 = 2(k + 1) + 1",
+        "n − 3 = k − 2"
+      ],
+      "correctIndex": 0,
+      "explanation": "Substitution gives n−3 = 2k+1−3 = 2k−2 = 2(k−1). Since k−1 is an integer, n−3 is even.",
+      "hints": [
+        "Substitute the definition of an odd integer into n − 3.",
+        "Combine the constant terms before factoring.",
+        "An even integer must be twice another integer."
+      ]
+    },
+    {
+      "id": "DM1-T05-02",
+      "topic": 4,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 7.pptx",
+      "slides": [
+        16,
+        17
+      ],
+      "prompt": "Let n be an integer. To prove “if n² is odd, then n is odd” by contraposition, which statement should be proved directly?",
+      "options": [
+        "If n is odd, then n² is odd.",
+        "If n² is even, then n is even.",
+        "If n is even, then n² is even.",
+        "If n is odd, then n² is even."
+      ],
+      "correctIndex": 2,
+      "explanation": "The contrapositive of p → q is ¬q → ¬p. Here ¬q is that n is even, and ¬p is that n² is even.",
+      "hints": [
+        "Name the original antecedent and consequent before transforming them.",
+        "Contraposition reverses the direction and negates both parts.",
+        "For integers, consider how the negation of odd is expressed."
+      ]
+    },
+    {
+      "id": "DM1-T05-03",
+      "topic": 4,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 7.pptx",
+      "slides": [
+        11,
+        12,
+        13,
+        14
+      ],
+      "prompt": "Let n be an integer. To prove “if n² is odd, then n is odd” by contradiction, which pair should be assumed together at the start?",
+      "options": [
+        "n² is even and n is odd.",
+        "n² is odd and n is even.",
+        "n² is even and n is even.",
+        "n² is odd and n is odd."
+      ],
+      "correctIndex": 1,
+      "explanation": "A contradiction proof of p → q assumes p and ¬q. Thus n² is assumed odd while n is assumed even, leading to incompatible parity conclusions.",
+      "hints": [
+        "Retain the hypothesis of the original conditional.",
+        "Temporarily deny the conclusion rather than assume it.",
+        "The contradiction must arise from the original hypothesis together with that denial."
+      ]
+    },
+    {
+      "id": "DM1-T05-04",
+      "topic": 4,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 7.pptx",
+      "slides": [
+        6,
+        18,
+        19,
+        20
+      ],
+      "prompt": "Suppose an integer n = 6k for an integer k. Which equality supplies a direct proof that n is divisible by 3?",
+      "options": [
+        "n = 3(k + 1)",
+        "n = 6(k + 3)",
+        "n = 3k + 1",
+        "n = 3(2k)"
+      ],
+      "correctIndex": 3,
+      "explanation": "Writing n=3(2k) expresses n as 3 times an integer, exactly the definition of divisibility by 3.",
+      "hints": [
+        "A divisibility proof needs an integer multiple of the claimed divisor.",
+        "Factor the required divisor from the given expression.",
+        "Check that the remaining factor is an integer for every integer k."
+      ]
+    },
+    {
+      "id": "DM1-T05-05",
+      "topic": 4,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 7.pptx",
+      "slides": [
+        22,
+        23
+      ],
+      "prompt": "The claim is “for every integer n, n² > n.” Which listed integer is a counterexample?",
+      "options": [
+        "0",
+        "2",
+        "3",
+        "−1"
+      ],
+      "correctIndex": 0,
+      "explanation": "For n=0, n²=0, so the strict inequality 0>0 is false. The other listed values satisfy n²>n.",
+      "hints": [
+        "A counterexample must make the stated inequality false.",
+        "Pay attention to the strict greater-than sign.",
+        "Compare each chosen integer with its own square."
+      ]
+    },
+    {
+      "id": "DM1-T06-01",
+      "topic": 5,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 8-9.pptm",
+      "slides": [
+        6,
+        7,
+        16,
+        17
+      ],
+      "prompt": "For positive integers n, let P(n) state 3 + 6 + ... + 3n = 3n(n+1)/2. Which check is the required base case?",
+      "options": [
+        "For n=0: 0=0.",
+        "For n=1: 3=6.",
+        "For n=1: 3=3.",
+        "For n=2: 6=3."
+      ],
+      "correctIndex": 2,
+      "explanation": "The domain starts at n=1. Substitution gives the one-term sum 3 and 3·1·2/2=3.",
+      "hints": [
+        "Identify the smallest integer included in the claim.",
+        "Use the same value on both sides of the proposed formula.",
+        "A base case checks a specific equality rather than assumes the general formula."
+      ]
+    },
+    {
+      "id": "DM1-T06-02",
+      "topic": 5,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 8-9.pptm",
+      "slides": [
+        8,
+        9,
+        10
+      ],
+      "prompt": "Assume 2 + 4 + ... + 2k = k(k+1). To start proving the n=k+1 case, which next term must be added to the left side?",
+      "options": [
+        "2k + 1",
+        "k + 1",
+        "2k",
+        "2(k + 1)"
+      ],
+      "correctIndex": 3,
+      "explanation": "The sequence term at index i is 2i. At index k+1, the next term is therefore 2(k+1).",
+      "hints": [
+        "Describe the term at a general position in the sequence.",
+        "Increasing the index does not mean adding only one to the previous sum.",
+        "Substitute the new index into the sequence term."
+      ]
+    },
+    {
+      "id": "DM1-T06-03",
+      "topic": 5,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 8-9.pptm",
+      "slides": [
+        10,
+        16,
+        18
+      ],
+      "prompt": "An induction proof assumes 1 + 2 + ... + k = k(k+1)/2. After adding k+1, which expression must the right side simplify to?",
+      "options": [
+        "(k+1)(k+2)/2",
+        "k(k+2)/2",
+        "(k+1)²/2",
+        "k(k+1)/2 + 1"
+      ],
+      "correctIndex": 0,
+      "explanation": "k(k+1)/2 + (k+1) = [k(k+1)+2(k+1)]/2 = (k+1)(k+2)/2, the claimed formula at k+1.",
+      "hints": [
+        "Put the added term over the same denominator.",
+        "Look for a common factor in the numerator.",
+        "Compare with the original formula after replacing its index by k+1."
+      ]
+    },
+    {
+      "id": "DM1-T06-04",
+      "topic": 5,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 8-9.pptm",
+      "slides": [
+        6,
+        8,
+        9,
+        10,
+        12
+      ],
+      "prompt": "A proof establishes P(2) and P(k) → P(k+1) for every integer k ≥ 2. Without any other base case, what range is justified by induction?",
+      "options": [
+        "Every integer n ≥ 1.",
+        "Every integer n ≥ 2.",
+        "Only the integers n ≤ 2.",
+        "Every integer, including negative integers."
+      ],
+      "correctIndex": 1,
+      "explanation": "The verified base is 2, and the step propagates truth forward from there. It does not establish P(1) or any smaller case.",
+      "hints": [
+        "Locate the first established case.",
+        "Consider the direction in which the inductive implication propagates.",
+        "A chain of implications still needs an established starting point."
+      ]
+    },
+    {
+      "id": "DM1-T06-05",
+      "topic": 5,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Midterm_Week 8-9.pptm",
+      "slides": [
+        6,
+        8,
+        10,
+        16
+      ],
+      "prompt": "For S(n)=2+5+8+...+(3n−1), the proposed formula is S(n)=n(3n+1)/2. In the induction step, what is the target expression S(k+1)?",
+      "options": [
+        "k(3k+4)/2",
+        "(k+1)(3k+1)/2",
+        "(k+1)(3k+4)/2",
+        "(k+1)(3k+2)/2"
+      ],
+      "correctIndex": 2,
+      "explanation": "Substitute k+1 everywhere n appears: (k+1)[3(k+1)+1]/2 = (k+1)(3k+4)/2.",
+      "hints": [
+        "The target comes from substituting into the proposed formula.",
+        "The index occurs both outside and inside the parentheses.",
+        "Simplify the inner arithmetic only after making both substitutions."
+      ]
+    },
+    {
+      "id": "DM1-T07-01",
+      "topic": 6,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prefinal_Week 11-12.pptx",
+      "slides": [
+        13,
+        23,
+        29,
+        30
+      ],
+      "prompt": "Let U={1,2,3,4,5,6,7,8}, A={1,2,4,6}, and B={2,3,6,7}. What is (A ∪ B)' (the complement relative to U)?",
+      "options": [
+        "{2,6}",
+        "{1,3,4,7}",
+        "{1,2,3,4,6,7}",
+        "{5,8}"
+      ],
+      "correctIndex": 3,
+      "explanation": "The union is {1,2,3,4,6,7}. Its complement in U contains the remaining elements {5,8}.",
+      "hints": [
+        "First collect elements belonging to either set.",
+        "List a shared element only once.",
+        "For the complement, compare the completed union with the stated universe."
+      ]
+    },
+    {
+      "id": "DM1-T07-02",
+      "topic": 6,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prefinal_Week 11-12.pptx",
+      "slides": [
+        17,
+        18
+      ],
+      "prompt": "Let A={2,4,6,8} and B={4,8,10}. What is A − B?",
+      "options": [
+        "{2,6}",
+        "{4,8}",
+        "{10}",
+        "{2,4,6,8,10}"
+      ],
+      "correctIndex": 0,
+      "explanation": "A−B keeps elements of A that are absent from B. Removing 4 and 8 from A leaves 2 and 6.",
+      "hints": [
+        "Set difference is directional.",
+        "Start with the first set named in the expression.",
+        "Remove elements shared with the second set without adding new ones."
+      ]
+    },
+    {
+      "id": "DM1-T07-03",
+      "topic": 6,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prefinal_Week 11-12.pptx",
+      "slides": [
+        13,
+        15,
+        16
+      ],
+      "prompt": "Let A={1,2,3}, B={2,3,4}, and C={3,4,5}. What is (A ∪ B) ∩ C?",
+      "options": [
+        "{1,2}",
+        "{3,4,5}",
+        "{3,4}",
+        "{1,2,3,4,5}"
+      ],
+      "correctIndex": 2,
+      "explanation": "A∪B={1,2,3,4}. Keeping only elements also in C gives {3,4}.",
+      "hints": [
+        "Respect the parentheses and perform the union first.",
+        "An intersection keeps elements common to its two inputs.",
+        "Use the intermediate set as one input to the final operation."
+      ]
+    },
+    {
+      "id": "DM1-T07-04",
+      "topic": 6,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prefinal_Week 11-12.pptx",
+      "slides": [
+        26,
+        27
+      ],
+      "prompt": "Let A={a,c} and B={a,b,c}. Which statement is true?",
+      "options": [
+        "B ⊂ A",
+        "A ⊂ B",
+        "A = B",
+        "A ∩ B = ∅"
+      ],
+      "correctIndex": 1,
+      "explanation": "Every element of A belongs to B, and b belongs to B but not A. Therefore A is a proper subset of B.",
+      "hints": [
+        "Check every element of the proposed smaller set.",
+        "A proper subset must also differ from the larger set.",
+        "Do not confuse subset containment with having no shared elements."
+      ]
+    },
+    {
+      "id": "DM1-T07-05",
+      "topic": 6,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prefinal_Week 11-12.pptx",
+      "slides": [
+        4,
+        8,
+        15
+      ],
+      "prompt": "Let U={−3,−2,−1,0,1,2,3}, A={x in U: x² ≤ 4}, and B={x in U: x > 0}. What is A ∩ B?",
+      "options": [
+        "{0,1,2}",
+        "{1,2,3}",
+        "{−2,−1,0,1,2}",
+        "{1,2}"
+      ],
+      "correctIndex": 3,
+      "explanation": "The square condition gives A={−2,−1,0,1,2}, while B={1,2,3}. Their common elements are 1 and 2.",
+      "hints": [
+        "Evaluate each set-builder condition inside the given finite universe.",
+        "A square condition can admit negative as well as positive integers.",
+        "An element in an intersection must satisfy both stated conditions."
+      ]
+    },
+    {
+      "id": "DM1-T08-01",
+      "topic": 7,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prefinal_Week 13.pptx",
+      "slides": [
+        3,
+        9,
+        12
+      ],
+      "prompt": "Let A={1,2,3}, B={a,b}, and R={(1,a),(2,b),(2,a),(3,b)}. Why is R not a function from A to B?",
+      "options": [
+        "Two different inputs share an output.",
+        "A and B have different sizes.",
+        "Input 2 has two different outputs.",
+        "Every element of B occurs as an output."
+      ],
+      "correctIndex": 2,
+      "explanation": "A function gives each input exactly one output. R assigns both a and b to input 2. Sharing an output between different inputs is allowed.",
+      "hints": [
+        "Inspect repeated first components of the ordered pairs.",
+        "Many inputs may share one output without violating the function rule.",
+        "The rule concerns how many different outputs each single input receives."
+      ]
+    },
+    {
+      "id": "DM1-T08-02",
+      "topic": 7,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prefinal_Week 13.pptx",
+      "slides": [
+        9,
+        10,
+        11
+      ],
+      "prompt": "Let A={1,2,3}, B={a,b,c,d}, and f={(1,a),(2,c),(3,d)}. Which classification is correct for f:A → B?",
+      "options": [
+        "Bijective.",
+        "Injective but not surjective.",
+        "Surjective but not injective.",
+        "Neither injective nor surjective."
+      ],
+      "correctIndex": 1,
+      "explanation": "All three inputs have distinct outputs, so f is injective. The codomain element b has no preimage, so f is not surjective.",
+      "hints": [
+        "Check whether distinct inputs have distinct outputs.",
+        "Compare the range with the entire stated codomain.",
+        "A bijection must satisfy both of those tests."
+      ]
+    },
+    {
+      "id": "DM1-T08-03",
+      "topic": 7,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prefinal_Week 13.pptx",
+      "slides": [
+        9,
+        10,
+        11
+      ],
+      "prompt": "Let A={1,2,3,4}, B={x,y,z}, and f={(1,x),(2,y),(3,x),(4,z)}. Which classification is correct?",
+      "options": [
+        "Surjective but not injective.",
+        "Injective but not surjective.",
+        "Bijective.",
+        "Not a function because x is used twice."
+      ],
+      "correctIndex": 0,
+      "explanation": "Every codomain element is reached, making f surjective. Inputs 1 and 3 share x, so f is not injective, although each input still has exactly one output.",
+      "hints": [
+        "Check the function condition separately from one-to-one behavior.",
+        "Look for a codomain value that is never reached.",
+        "Then inspect whether two different inputs share a value."
+      ]
+    },
+    {
+      "id": "DM1-T08-04",
+      "topic": 7,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prefinal_Week 13.pptx",
+      "slides": [
+        9,
+        11,
+        13
+      ],
+      "prompt": "Let A={1,2,3} and B={a,b,c}. A bijection from A to B must extend {(1,b),(2,c)} by exactly one ordered pair. Which pair works?",
+      "options": [
+        "(3,b)",
+        "(2,a)",
+        "(1,a)",
+        "(3,a)"
+      ],
+      "correctIndex": 3,
+      "explanation": "Input 3 still needs an output and codomain element a is unused. Adding (3,a) gives one distinct output per input and reaches all of B.",
+      "hints": [
+        "Identify the input without an assigned output.",
+        "A bijection cannot reuse an output assigned to another input.",
+        "Check both complete domain coverage and complete codomain coverage."
+      ]
+    },
+    {
+      "id": "DM1-T08-05",
+      "topic": 7,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Prefinal_Week 13.pptx",
+      "slides": [
+        3,
+        7,
+        8
+      ],
+      "prompt": "For R={(−2,4),(0,4),(3,−1)}, which pair of sets is its domain and range?",
+      "options": [
+        "Domain={−1,4}; range={−2,0,3}.",
+        "Domain={−2,0,3}; range={−1,4}.",
+        "Domain={−2,0}; range={3,4,−1}.",
+        "Domain={−2,0,3}; range={−2,−1,0,3,4}."
+      ],
+      "correctIndex": 1,
+      "explanation": "The domain collects first components {−2,0,3}. The range collects second components {4,−1}, with the repeated 4 listed only once.",
+      "hints": [
+        "The order inside each ordered pair matters.",
+        "Collect first components and second components separately.",
+        "Sets contain distinct values, so repeated occurrences are not repeated elements."
+      ]
+    },
+    {
+      "id": "DM1-T09-01",
+      "topic": 8,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx",
+      "slides": [
+        5,
+        13,
+        14
+      ],
+      "prompt": "A simple undirected graph has V={A,B,C,D,E} and E={AB,AC,BC,CD,DE}. What is deg(C)?",
+      "options": [
+        "2",
+        "4",
+        "3",
+        "5"
+      ],
+      "correctIndex": 2,
+      "explanation": "The edges incident to C are AC, BC and CD. Therefore C has degree 3.",
+      "hints": [
+        "Focus on edges touching the requested vertex.",
+        "An edge elsewhere in the graph does not contribute to this degree.",
+        "Read both endpoints of every listed undirected edge."
+      ]
+    },
+    {
+      "id": "DM1-T09-02",
+      "topic": 8,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx",
+      "slides": [
+        8,
+        9,
+        15,
+        16
+      ],
+      "prompt": "A directed graph has arcs A→B, B→C, A→D, D→C and C→E. Which listed sequence is a directed path from A to E?",
+      "options": [
+        "A→C→E",
+        "A→B→D→E",
+        "D→A→C→E",
+        "A→D→C→E"
+      ],
+      "correctIndex": 3,
+      "explanation": "Every step of A→D→C→E is a listed arc in its forward direction. The other sequences require an absent or reversed arc.",
+      "hints": [
+        "Check the first and last vertices against the requested endpoints.",
+        "Each consecutive pair needs an arc pointing in the direction traveled.",
+        "An undirected-looking connection cannot replace a missing directed arc."
+      ]
+    },
+    {
+      "id": "DM1-T09-03",
+      "topic": 8,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx",
+      "slides": [
+        15,
+        16
+      ],
+      "prompt": "A simple undirected graph has edges AB, BC, CD, DA and AC. Which sequence is a simple path, with no repeated vertex?",
+      "options": [
+        "A→B→C→D",
+        "A→B→A→D",
+        "A→C→B→D",
+        "A→D→B→C"
+      ],
+      "correctIndex": 0,
+      "explanation": "A,B,C,D are distinct and the edges AB,BC,CD all exist. The second sequence repeats A, while the others require the absent edge BD.",
+      "hints": [
+        "Verify that every consecutive pair is an existing edge.",
+        "Then check whether a vertex appears more than once.",
+        "A sequence must pass both checks, not just one."
+      ]
+    },
+    {
+      "id": "DM1-T09-04",
+      "topic": 8,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx",
+      "slides": [
+        8,
+        9,
+        17,
+        18
+      ],
+      "prompt": "A directed graph has arcs A→B, B→C, C→A, A→D and D→C. Which sequence is a simple directed cycle?",
+      "options": [
+        "A→D→C→B→A",
+        "A→B→C→A",
+        "A→B→C→D→A",
+        "A→C→A"
+      ],
+      "correctIndex": 1,
+      "explanation": "A→B→C→A follows listed arcs and repeats only its starting vertex at the end. Each other option requires at least one absent or reversed arc.",
+      "hints": [
+        "A cycle must return to its starting vertex.",
+        "Only the first and last occurrence may repeat a vertex in a simple cycle.",
+        "Check direction as well as the presence of each required arc."
+      ]
+    },
+    {
+      "id": "DM1-T09-05",
+      "topic": 8,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 16.pptx",
+      "slides": [
+        5,
+        13,
+        14
+      ],
+      "prompt": "A simple undirected graph starts with edges AB, AC, BC and CD on vertices A,B,C,D. After adding edge AD, what are the degrees in the order A,B,C,D?",
+      "options": [
+        "2,2,3,2",
+        "3,2,4,1",
+        "3,3,3,2",
+        "3,2,3,2"
+      ],
+      "correctIndex": 3,
+      "explanation": "The initial degrees are 2,2,3,1. Adding AD increases only the degrees of A and D, producing 3,2,3,2.",
+      "hints": [
+        "Count the initial incident edges for each vertex.",
+        "An added edge changes the degrees of its two endpoints.",
+        "Do not change a vertex that the new edge does not touch."
+      ]
+    },
+    {
+      "id": "DM1-T10-01",
+      "topic": 9,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx",
+      "slides": [
+        6,
+        8
+      ],
+      "prompt": "A rooted tree has parent→child edges R→A, R→B, A→C, A→D, B→E and E→F. Which node is the parent of F?",
+      "options": [
+        "B",
+        "R",
+        "E",
+        "F"
+      ],
+      "correctIndex": 2,
+      "explanation": "The edge E→F makes E the immediate parent of F. B and R are higher ancestors rather than the immediate parent.",
+      "hints": [
+        "Follow the edge immediately entering the requested node.",
+        "A parent is the adjacent node one generation toward the root.",
+        "Distinguish an immediate parent from a more distant ancestor."
+      ]
+    },
+    {
+      "id": "DM1-T10-02",
+      "topic": 9,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx",
+      "slides": [
+        8,
+        9,
+        11
+      ],
+      "prompt": "A rooted tree has edges R→A, R→B, A→C, A→D and D→E. Which set contains exactly its leaves?",
+      "options": [
+        "{B,C,E}",
+        "{R,B,C}",
+        "{C,D,E}",
+        "{A,B,D}"
+      ],
+      "correctIndex": 0,
+      "explanation": "Leaves have no children. B, C and E have no outgoing parent→child edges, while R, A and D do.",
+      "hints": [
+        "A leaf is determined by whether it has children.",
+        "Being near the root does not prevent a node from being a leaf.",
+        "Inspect every node for outgoing parent→child edges."
+      ]
+    },
+    {
+      "id": "DM1-T10-03",
+      "topic": 9,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx",
+      "slides": [
+        8,
+        12
+      ],
+      "prompt": "Use edge counts, with root depth 0. A rooted tree has edges R→A, R→B, A→C, A→D and D→E. What are the depth of D and the height of the tree?",
+      "options": [
+        "Depth 3; height 4.",
+        "Depth 2; height 2.",
+        "Depth 1; height 3.",
+        "Depth 2; height 3."
+      ],
+      "correctIndex": 3,
+      "explanation": "The path R→A→D has two edges, so D has depth 2. The longest root-to-leaf path R→A→D→E has three edges, so the tree height is 3.",
+      "hints": [
+        "Count edges rather than vertices along a path.",
+        "Depth uses the path from the root to the specified node.",
+        "Height uses the longest path from the root to any leaf."
+      ]
+    },
+    {
+      "id": "DM1-T10-04",
+      "topic": 9,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx",
+      "slides": [
+        19,
+        20,
+        21
+      ],
+      "prompt": "An undirected graph has vertices A,B,C,D and edges AB, BC, CD, DA and AC. Which listed edge set forms a spanning tree of the graph?",
+      "options": [
+        "{AB,BC,AC}",
+        "{AB,BC,CD}",
+        "{AB,CD}",
+        "{AB,BC,CD,DA}"
+      ],
+      "correctIndex": 1,
+      "explanation": "AB,BC,CD connects all four vertices without a cycle. The other sets respectively omit D while forming a cycle, remain disconnected, or form a cycle.",
+      "hints": [
+        "A spanning tree must include every vertex.",
+        "Its edges must connect the vertices without forming a cycle.",
+        "Check coverage and connectivity as well as the number of edges."
+      ]
+    },
+    {
+      "id": "DM1-T10-05",
+      "topic": 9,
+      "module": "IT 105_Discrete Structures 1_2nd Sem_Final_Week 17-18.pptx",
+      "slides": [
+        19,
+        20,
+        21
+      ],
+      "prompt": "A connected simple undirected graph has 6 vertices and 8 edges. How many edges must be removed to obtain a spanning tree, choosing removals that preserve connectivity?",
+      "options": [
+        "2",
+        "4",
+        "3",
+        "5"
+      ],
+      "correctIndex": 2,
+      "explanation": "A spanning tree on 6 vertices has 6−1=5 edges. Reducing 8 edges to 5 requires removing 3 edges while maintaining connectivity.",
+      "hints": [
+        "The spanning tree keeps the same vertex set.",
+        "Use the tree edge-count rule stated in the module.",
+        "Compare the required remaining edge count with the original edge count."
+      ]
+    }
+  ]
+}

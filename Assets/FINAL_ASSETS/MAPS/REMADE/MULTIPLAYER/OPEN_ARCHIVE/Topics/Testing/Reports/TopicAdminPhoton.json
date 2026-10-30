@@ -1,7 +1,7 @@
 {
     "passed": true,
     "acceptedRemoteCommands": 14,
-    "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+    "scope": "Live private Photon host/independent Realtime peer. Native pointer hit tests, guest-forged command rejection, all ten Admin topic skips/resets and checkpointing. Monster threats and their full-screen entrance are suppressed in this isolated UI test; native AdminLab Play and separate WorldPhoton checks verify the actual night event.",
     "checks": [
         {
             "name": "Independent clients share an invisible private room",

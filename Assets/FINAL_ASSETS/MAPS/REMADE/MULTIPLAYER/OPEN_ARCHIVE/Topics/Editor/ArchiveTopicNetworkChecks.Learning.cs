@@ -25,7 +25,16 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         static ArchiveCommand BarrierCommand(Peer peer, ArchiveAction action, int choice = -1)
         {
             var b = session.State.barrier; var cmd = Command(peer, b.sourceTopic, action, choice);
-            cmd.revision = b.revision; cmd.captureSerial = b.captureSerial; cmd.encounterHuntSerial = b.huntSerial; return cmd;
+            cmd.revision = b.revision; cmd.captureSerial = b.captureSerial; cmd.encounterHuntSerial = b.huntSerial; cmd.encounterId = b.encounterId; return cmd;
+        }
+        static bool SameMonsterBankCheckpoint(ArchiveTeamState checkpoint)
+        {
+            var expected = session.State.barrier; var actual = checkpoint?.barrier;
+            if (actual == null || checkpoint.monsterChallengeDrawIndex != session.State.monsterChallengeDrawIndex ||
+                actual.bankVersion != expected.bankVersion || actual.questionIndex != expected.questionIndex || actual.seed != expected.seed ||
+                actual.encounterId != expected.encounterId || actual.captureSerial != expected.captureSerial || actual.huntSerial != expected.huntSerial) return false;
+            var problem = new ArchiveBarrierProblem(session.catalog, actual);
+            return problem.QuestionId == session.BarrierProblem().QuestionId && problem.options.SequenceEqual(session.BarrierProblem().options);
         }
         static IEnumerator LearningPacket(Peer peer, ArchiveCommand cmd)
         {
@@ -51,6 +60,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             var ui = ArchiveLearningUI.Current; var h = session.hunting; int host = PhotonNetwork.LocalPlayer.ActorNumber;
             Status = "Tutorial and personal hints";
             yield return Wait(() => ui != null, "Learning UI exists in saved scene");
+            yield return MonsterAuthorityFlow(a);
             var t2 = session.stations[1]; ArchiveTopicPlayChecks.MoveTo(t2, ArchiveTopicStation.BookPosition + Vector3.back * 1.7f);
             int revision = session.State.revision; ui.OpenGuide(1); yield return .2f;
             Check(ui.GuideVisible && !Player.LocalInstance.IsMovementLocked && session.State.revision == revision && !session.State.stations[1].timerRunning,
@@ -90,15 +100,26 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             h.Request(KhezuCommand.Sleep); deadline = state.timerDeadline; string work = JsonUtility.ToJson(state); mistakes = session.State.mistakes.Count;
 
             Status = "Rajang capture, authenticated answers and handoff";
+            int firstDraw = session.State.monsterChallengeDrawIndex;
             yield return LearningCapture(a.Actor, true);
+            int firstQuestion = session.State.barrier.questionIndex;
+            Check(session.State.monsterChallengeDrawIndex == firstDraw + 1 && firstQuestion == ArchiveTopicSession.MonsterChallengeIndex(session.State.seed, firstDraw),
+                "Confirmed capture advances the one shared deterministic 50-question deck exactly once");
+            yield return Wait(() => SameMonsterBankCheckpoint(a.state), "Captured peer receives bank checkpoint", 8);
+            Check(SameMonsterBankCheckpoint(a.state), "Captured peer receives the same bank question, option shuffle and shared draw cursor");
             Check(!ui.BarrierVisible && !session.CanAct(a.Actor) && session.CanAct(host), "Remote capture hides math controls on the host and locks only the captured actor");
-            Check(session.State.barrier.kind == 1 && session.State.barrier.sourceTopic == 2 && !session.learningEncounter.DevelopmentOutcomesEnabled,
-                "Rajang uses original inference rules and the old development outcome selector is disabled");
+            Check(session.State.barrier.kind == 1 && session.State.barrier.bankVersion == ArchiveMonsterChallengeBank.CurrentVersion &&
+                session.State.barrier.sourceTopic == ArchiveMonsterChallengeBank.Get(firstQuestion).topic && session.BarrierProblem().options.Length == 4 &&
+                !session.learningEncounter.DevelopmentOutcomesEnabled,
+                "Rajang uses the module-referenced DM1 bank with four shuffled options and the development outcome selector disabled");
             double barrierDeadline = h.BarrierDeadline;
+            Check(Math.Abs(h.BarrierDeadline-h.BarrierStartedAt-120)<.001,
+                "Rajang's actual captured-player countdown starts at exactly two minutes");
             var b = Connect("Archive learning guest B QA"); yield return Wait(() => b.client.State == ClientState.ConnectedToMasterServer, "Learning late peer connected");
             b.client.OpJoinRoom(new EnterRoomParams { RoomName = room }); yield return Wait(() => b.client.InRoom && b.state != null && b.state.barrier.actor == a.Actor, "Late peer receives same barrier problem");
             Spawn(b, Position(t2, new Vector3(3, 0, 0))); yield return Wait(() => session.ActorPlayer(b.Actor) != null, "Learning late avatar ready");
-            Check(b.state.barrier.seed == session.State.barrier.seed && b.state.barrier.captureSerial == h.CaptureSerial, "Late join does not regenerate the captured player's question");
+            Check(SameMonsterBankCheckpoint(b.state) && session.State.monsterChallengeDrawIndex == firstDraw + 1,
+                "Late join preserves the bank question, shuffled answer order and cursor without drawing again");
             revision = session.State.revision; int hearts = h.health.ActorHearts(a.Actor);
             Packet(b, BarrierCommand(b, ArchiveAction.BarrierAnswer, 0), true);
             a.client.OpRaiseEvent(KhezuCaptureEncounterController.DevelopmentOutcomeEvent, new object[] { KhezuCaptureEncounterController.DevelopmentOutcomeChannel, h.CaptureSerial, true }, new RaiseEventOptions { Receivers = ReceiverGroup.MasterClient }, SendOptions.SendReliable);
@@ -107,28 +128,46 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 "Another actor cannot spoof the captured player and a client boolean outcome cannot bypass math validation");
             var stale = BarrierCommand(a, ArchiveAction.BarrierAnswer, 0);
             yield return LearningPacket(a, BarrierCommand(a, ArchiveAction.BarrierHint));
+            Check(session.State.barrier.questionIndex == firstQuestion && session.State.monsterChallengeDrawIndex == firstDraw + 1 &&
+                SameMonsterBankCheckpoint(a.state), "A free hint updates hint state without rerolling the question, answers or shared deck cursor");
             revision = session.State.revision; Packet(a, stale); yield return .15f;
             var bad = BarrierCommand(a, ArchiveAction.BarrierAnswer, 999); Packet(a, bad); yield return .15f;
             bad = BarrierCommand(a, ArchiveAction.BarrierAnswer, 0); bad.encounterHuntSerial--; Packet(a, bad); yield return .15f;
+            bad = BarrierCommand(a, ArchiveAction.BarrierAnswer, 0); bad.encounterId = session.State.barrier.encounterId + ".other-monster"; Packet(a, bad); yield return .15f;
             Check(session.State.revision == revision && h.ResolvedOutcome == 0 && h.BarrierDeadline == barrierDeadline,
-                "Stale revision, malformed option and wrong hunt serial cannot resolve capture or alter its clock");
+                "Stale revision, malformed option, wrong hunt serial and another monster identity cannot resolve capture or alter its clock");
             int seed = session.State.barrier.seed; int hint = session.State.barrier.hintLevel;
+            string bankCheckpoint = JsonUtility.ToJson(session.State.barrier);
+            yield return Wait(() => SameMonsterBankCheckpoint(a.state) && SameMonsterBankCheckpoint(b.state), "Both guests checkpoint the bank before handoff", 8);
             PhotonNetwork.SetMasterClient(PhotonNetwork.CurrentRoom.GetPlayer(a.Actor)); yield return Wait(() => !PhotonNetwork.IsMasterClient && a.client.CurrentRoom.MasterClientId == a.Actor, "Learning host handoff");
+            yield return .2f;
+            var legacyDock=UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include,FindObjectsSortMode.None).First(t=>t.name=="Khezu_Test_Tools_Dock");
+            Check(!LogicLegends.Tests.Khezu.KhezuLegacyTestPermission.CanUse&&!legacyDock.gameObject.activeSelf,
+                "The rendered guest loses legacy monster test permission and the entire test dock during handoff");
             a.client.CurrentRoom.SetMasterClient(a.client.CurrentRoom.GetPlayer(host)); yield return Wait(() => PhotonNetwork.IsMasterClient, "Learning host regains authority"); yield return .2f;
-            Check(session.State.barrier.seed == seed && session.State.barrier.hintLevel == hint && h.BarrierDeadline == barrierDeadline,
-                "Authority handoff preserves problem identity, personal hints and the exact original barrier deadline");
+            Check(LogicLegends.Tests.Khezu.KhezuLegacyTestPermission.CanUse&&legacyDock.gameObject.activeSelf,
+                "A development host regains its existing test dock after authority returns");
+            Check(session.State.barrier.seed == seed && session.State.barrier.hintLevel == hint && h.BarrierDeadline == barrierDeadline &&
+                JsonUtility.ToJson(session.State.barrier) == bankCheckpoint && session.State.monsterChallengeDrawIndex == firstDraw + 1 &&
+                SameMonsterBankCheckpoint(a.state) && SameMonsterBankCheckpoint(b.state),
+                "Authority handoff preserves the complete bank checkpoint, shuffled options, draw cursor, hints and exact original barrier deadline");
             var problem = session.BarrierProblem(); int correct = Enumerable.Range(0, problem.options.Length).First(i => problem.Validate(i, out _));
             var accepted = BarrierCommand(a, ArchiveAction.BarrierAnswer, correct); yield return LearningPacket(a, accepted);
             Check(session.State.barrier.outcome == 1 && h.ResolvedOutcome == 1 && h.health.ActorHearts(a.Actor) == hearts,
-                "Captured guest's correct inference answer enters the existing success outcome without damage");
+                "Captured guest's correct DM1 answer enters the existing success outcome without damage");
             Packet(a, accepted); yield return .15f;
             yield return Wait(() => h.State == KhezuHuntState.NestSleeping, "Existing monster returns to nest and sleeps", 20);
             Check(Math.Abs(h.NestSleepEndsAt - h.NestArrivedAt - 30) < .001 && session.State.stations[1].timerDeadline == deadline && JsonUtility.ToJson(session.State.stations[1]) == work && session.State.mistakes.Count == mistakes,
                 "Success preserves arena work and its clock, causes no puzzle completion, and retains thirty-second nest sleep");
 
-            Status = "Khezu counterexample failure, attack contact and five-second stun";
+            Status = "Khezu DM1 failure, attack contact and five-second stun";
             yield return LearningCapture(a.Actor, false); problem = session.BarrierProblem();
-            Check(session.State.barrier.kind == 0 && problem.options.Length == 5, "Khezu uses a counterexample problem with an explicit no-counterexample option");
+            Check(Math.Abs(h.BarrierDeadline-h.BarrierStartedAt-120)<.001,
+                "Khezu's actual captured-player countdown starts at exactly two minutes");
+            Check(session.State.barrier.kind == 0 && session.State.barrier.bankVersion == ArchiveMonsterChallengeBank.CurrentVersion && problem.options.Length == 4 &&
+                session.State.barrier.questionIndex != firstQuestion && session.State.monsterChallengeDrawIndex == firstDraw + 2 &&
+                session.State.barrier.questionIndex == ArchiveTopicSession.MonsterChallengeIndex(session.State.seed, firstDraw + 1),
+                "Khezu draws the next distinct question from the same shared 50-question DM1 deck");
             int wrong = Enumerable.Range(0, problem.options.Length).First(i => !problem.Validate(i, out _)); hearts = h.health.ActorHearts(a.Actor);
             accepted = BarrierCommand(a, ArchiveAction.BarrierAnswer, wrong); yield return LearningPacket(a, accepted);
             Check(h.ResolvedOutcome == 2 && session.State.barrier.outcome == 2 && h.health.ActorHearts(a.Actor) == hearts,
@@ -153,6 +192,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 "Expired barrier uses its existing failure timer, exactly one heart and explanatory timeout feedback");
             Check(session.State.stations[1].timerDeadline == deadline && session.State.mistakes.Count == mistakes, "Barrier hints, answers and timeout never change topic mistake totals or its shared deadline");
             session.Initialize(314159); h.Request(KhezuCommand.Sleep);
+            Check(session.State.monsterChallengeDrawIndex == 0, "A fresh match resets the shared monster question cursor");
             Status = "Completed learning transport checks";
         }
     }

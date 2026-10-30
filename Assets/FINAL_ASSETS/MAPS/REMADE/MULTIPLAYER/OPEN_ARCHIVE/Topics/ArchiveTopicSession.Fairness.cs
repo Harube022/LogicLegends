@@ -12,7 +12,7 @@ namespace LogicLegends.OpenArchive.Topics
     {
         public const byte CommandReceiptEvent = 176;
         [Header("Cooperative pacing")]
-        [Tooltip("Learning: 50% more topic time and the original three-minute barrier. Normal: 90-second barrier. Chosen by the host before a fresh match.")]
+        [Tooltip("Learning adds 50% more topic time. Both profiles keep the two-minute monster barrier.")]
         public bool learningPace;
         public bool suggestTeamRoles = true;
         public bool CommandPending => pendingCommands.Count > 0;
@@ -46,7 +46,8 @@ namespace LogicLegends.OpenArchive.Topics
         void ConfigureEncounterPacing()
         {
             if (!Ready || !enableBarrierMath || hunting == null || State.pacingVersion == 0) return;
-            hunting.barrierTimeLimitSeconds = State.learningPace ? 180 : 90;
+            hunting.barrierTimeLimitSeconds = 120;
+            if(worldProgression!=null&&worldProgression.secondary!=null)worldProgression.secondary.barrierTimeLimitSeconds=hunting.barrierTimeLimitSeconds;
             hunting.counterWarningSeconds = Mathf.Max(.9f, hunting.counterWarningSeconds);
         }
         void StampCommandContext(ArchiveCommand cmd)
@@ -182,7 +183,8 @@ namespace LogicLegends.OpenArchive.Topics
             return "PACE: " + (State.learningPace ? "Learning" : "Normal") + " · " + State.pacingPlayers + "-player starting team\n\n" + roles + "YOUR PARTICIPATION\n" + (mine == null ? "No recorded contributions yet." :
                 mine.qualityMilestones + " unique accepted contributions\n" + mine.contributions + " puzzle edits (not points) · " + mine.correctAnswers + " correct / " + mine.answers + " confirmed attempts\n" +
                 mine.assistedAnswers + " correct attempts with team hints · " + mine.hintsUsed + " free hints used") +
-                "\nTeam completion is shared. These counts describe participation, not individual mastery.";
+                "\nTeam completion is shared. These counts describe participation, not individual mastery."+
+                (crystalRestoration?"\n\nTOPIC CRYSTAL\nAccepted main challenges rebuild 80% of the crystal. Meaningful accepted work from every eligible teammate lights the remaining team runes. Pressing Submit alone does not light a rune. Fully restored crystals record team-bonus eligibility; solo practice and Admin skips do not.\n"+CrystalStatus(topic):"");
         }
     }
 }

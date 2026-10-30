@@ -29,7 +29,7 @@ namespace LogicLegends.OpenArchive.Topics
         bool AcceptTopicAdmin(int actor, ArchiveCommand command)
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (!CanUseTopicAdmin || actor != LocalActor || command.topic != ActiveTopic || TeamWon) return false;
+            if (!CanUseTopicAdmin || actor != LocalActor || command.topic != ActiveTopic || TeamWon || TeamDefeated) return false;
             var previous = State.stations[command.topic];
             var record = State.actors.FirstOrDefault(a => a.actor == actor);
             if (command.revision != previous.revision || command.sequence <= (record?.lastSequence ?? 0)) return false;
@@ -48,6 +48,7 @@ namespace LogicLegends.OpenArchive.Topics
                 feedback=complete?"Completed by Admin for testing.":"Reset by Admin. Read the Book to restart this topic."
             };
             ResetTopicRelay(command.topic,complete);
+            if(crystalRestoration)ResetTopicCrystal(command.topic,complete);
             if (command.topic == 7) ClearMappingInputs();
             if (command.topic == 9) ClearTreeInputs();
             string prefix=command.topic+":";

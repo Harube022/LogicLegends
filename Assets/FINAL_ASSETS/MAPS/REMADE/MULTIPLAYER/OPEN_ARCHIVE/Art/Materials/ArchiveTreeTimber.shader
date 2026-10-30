@@ -38,6 +38,9 @@ Shader "LogicLegends/OpenArchive/TreeTimber"
             #pragma fragment Frag
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             struct A{float4 p:POSITION;float3 n:NORMAL;float2 uv:TEXCOORD0;float4 detail:TEXCOORD2;UNITY_VERTEX_INPUT_INSTANCE_ID};
@@ -76,6 +79,7 @@ Shader "LogicLegends/OpenArchive/TreeTimber"
                 }
                 n=ArchiveFineNormal(i.world,n,height,footprint);
                 Light sun=ArchiveMainLight(i.world);half3 light=SampleSH(n)+sun.color*saturate(dot(n,sun.direction))*sun.shadowAttenuation;
+                light+=ArchiveAdditionalDiffuse(i.world,n,i.p);
                 return half4(MixFog(albedo*light,i.fog),1);
             }
             ENDHLSL

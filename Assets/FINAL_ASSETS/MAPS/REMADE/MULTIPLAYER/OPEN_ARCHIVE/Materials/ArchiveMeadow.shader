@@ -9,13 +9,18 @@ Shader "LogicLegends/OpenArchive/Meadow"
             Name "MeadowForward"
             Tags { "LightMode"="UniversalForward" }
             HLSLPROGRAM
+            #pragma target 3.0
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "../Art/Materials/ArchiveStableLighting.hlsl"
             CBUFFER_START(UnityPerMaterial)
                 half4 _BaseColor;
             CBUFFER_END
@@ -40,6 +45,7 @@ Shader "LogicLegends/OpenArchive/Meadow"
                 half3 normal = normalize(i.normalWS);
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
                 half3 diffuse = SampleSH(normal) + sun.color * saturate(dot(normal,sun.direction)) * sun.shadowAttenuation;
+                diffuse += ArchiveAdditionalDiffuse(i.positionWS,normal,i.positionCS);
                 return half4(MixFog(i.color.rgb * diffuse,i.fog),1);
             }
             ENDHLSL

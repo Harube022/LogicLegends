@@ -30,8 +30,11 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             foreach(var station in session.stations)
             {
                 if(!station.transform.parent.name.StartsWith("StructureSlot_"))result.errors.Add("Station is outside its reserved anchor: "+station.name);
-                var solid=station.GetComponentsInChildren<Collider>(true).Where(c=>c.enabled&&!c.isTrigger).ToArray();result.solidKitColliders+=solid.Length;
-                if(solid.Length!=1||solid[0].GetComponent<NavMeshObstacle>()==null)result.errors.Add("Unexpected collision in T"+(station.topic+1));
+                var solid=station.GetComponentsInChildren<Collider>(true).Where(c=>c.gameObject.activeInHierarchy&&c.enabled&&!c.isTrigger).ToArray();result.solidKitColliders+=solid.Length;
+                var lecterns=solid.Where(c=>c.GetComponent<NavMeshObstacle>()!=null).ToArray();
+                var crystalBases=solid.Where(c=>c.name=="Pillar_Dais"&&c.GetComponentInParent<ArchiveCrystalPillar>()!=null).ToArray();
+                if(lecterns.Length!=1||crystalBases.Length!=(session.CrystalsEnabled?1:0)||solid.Except(lecterns).Except(crystalBases).Any())
+                    result.errors.Add("Unexpected active collision in T"+(station.topic+1));
                 foreach(int agent in agents)
                 {
                     var filter=new NavMeshQueryFilter{agentTypeID=agent,areaMask=NavMesh.AllAreas};NavMeshHit origin;
@@ -57,7 +60,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 var mesh=AssetDatabase.LoadAssetAtPath<Mesh>(AssetDatabase.GUIDToAssetPath(guid));result.meshTriangles+=mesh.triangles.Length/3;
                 if(mesh.vertexCount==0||mesh.normals.Length!=mesh.vertexCount||mesh.uv.Length!=mesh.vertexCount)result.errors.Add("Invalid mesh data: "+mesh.name);
             }
-            result.checks.Add("Ten reserved anchors; one carved lectern collider per kit; floor props add no collision fences.");
+            result.checks.Add("Ten reserved anchors; active collision is limited to each lectern and its crystal dais. Inactive legacy relay props add no collision fences.");
             result.checks.Add("Existing Khezu and Rajang navigation data; four routes per topic and monster profile.");
             result.checks.Add("Reusable prefab scripts, supported materials, mesh normals and UVs.");
             result.passed=result.errors.Count==0;

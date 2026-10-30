@@ -23,7 +23,30 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             yield return Wait(()=>session.HasEscapedActor(peer.Actor)||session.ActorPlayer(peer.Actor)!=null&&Vector3.Distance(session.ActorPlayer(peer.Actor).transform.position,position)<.3f,"Remote avatar reaches exit probe",10);
             yield return .22f;
         }
+        static Action exitFixtureCleanup;
+        static void CleanupExitFixture()
+        {
+            var cleanup=exitFixtureCleanup;exitFixtureCleanup=null;
+            cleanup?.Invoke();
+        }
         static IEnumerator ExitFlow(Peer a,string room)
+        {
+            bool oldHunting=session.hunting.enabled,oldDefeat=session.suppressDefeatForVerification;
+            var world=session.worldProgression;bool oldThreats=world!=null&&world.suppressThreatsForVerification;
+            exitFixtureCleanup=()=>
+            {
+                if(session==null)return;
+                session.hunting.enabled=oldHunting;session.suppressDefeatForVerification=oldDefeat;
+                if(world!=null)world.suppressThreatsForVerification=oldThreats;
+            };
+            // The World suite verifies night arrival. This suite's nine-topic
+            // checkpoint isolates portal transactions from its cinematic/threats.
+            session.hunting.enabled=false;session.suppressDefeatForVerification=true;
+            if(world!=null)world.suppressThreatsForVerification=true;
+            try { yield return ExitPortalFlow(a,room); }
+            finally { CleanupExitFixture(); }
+        }
+        static IEnumerator ExitPortalFlow(Peer a,string room)
         {
             session.hunting.Request(KhezuCommand.Sleep);
             var portal=session.exitPortal;int host=PhotonNetwork.LocalPlayer.ActorNumber;

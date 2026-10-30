@@ -21,7 +21,7 @@ namespace LogicLegends.OpenArchive.Topics
         };
         public const string PropositionReference = "IT 105 · Prelim Week 1, slides 12–19 (connectives and negation)";
         public const string TruthReference = "IT 105 · Prelim Week 2, slides 4–12 (connective tables and compound expressions)";
-        public const string InferenceReference = "IT 105 · Prelim Week 3, slides 7–19 (inference patterns); Week 1, slides 13–18 (compound statements)";
+        public const string InferenceReference = "IT 105 · Prelim Week 3, slides 7–27; Week 4, slides 3–24 (inference rules and equivalences); Week 1, slides 13–19 (compound statements)";
 
         public static int Tier(int topic, int round)
         {

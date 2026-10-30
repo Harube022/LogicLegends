@@ -26,14 +26,21 @@ namespace LogicLegends.OpenArchive.Hunting
         int direction=1;
         public bool Active {get;private set;}
         public Vector3 Goal => goal;
-        public KhezuWaterPursuit(OpenArchiveWater water) {this.water=water; BuildShoreline();}
+        public KhezuWaterPursuit(OpenArchiveWater water,KhezuWaterPursuit source=null)
+        {
+            this.water=water;
+            // Late-awakening actors reuse the immutable boundary built before static batching.
+            // Each actor retains its own target, pacing direction and route candidates.
+            if(source!=null&&source.water==water&&source.edges.Count>0)edges.AddRange(source.edges);
+            else BuildShoreline();
+        }
         public void Reset() {target=null; hasGoal=pacing=Active=false; direction=1;}
         static string Key(Vector3 p) => Mathf.RoundToInt(p.x*1000)+","+Mathf.RoundToInt(p.z*1000);
         void BuildShoreline()
         {
             foreach(var surface in water.surfaces)
             {
-                if(surface==null || surface.sharedMesh==null)continue;
+                if(surface==null || surface.sharedMesh==null || !surface.sharedMesh.isReadable)continue;
                 var vertices=surface.sharedMesh.vertices; var triangles=surface.sharedMesh.triangles;
                 var boundary=new Dictionary<string,Edge>();
                 for(int i=0;i<triangles.Length;i+=3)
@@ -100,6 +107,14 @@ namespace LogicLegends.OpenArchive.Hunting
                     {goal=sampled;hasGoal=pacing=Active=true;direction=sign;route=path;return true;}
                 }
             return KeepCurrent(agent);
+        }
+        // A fallen actor cannot run away: fetch the closest reachable bank rather than pace past it.
+        public bool TryRescueApproach(Transform selected,NavMeshAgent agent,out NavMeshPath route)
+        {
+            route=null;
+            if(!FindBank(selected.position,agent,out var found,out route))return false;
+            target=selected;lastTarget=selected.position;anchor=found;goal=found.bank;
+            hasGoal=Active=true;pacing=false;return true;
         }
         bool KeepCurrent(NavMeshAgent agent)
         {

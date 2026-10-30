@@ -496,6 +496,7 @@ public partial class Player : MonoBehaviourPun
 
     private bool IsLocalPlayer()
     {
+        if(GetComponent<LogicLegends.OpenArchive.Topics.ArchivePracticeAvatar>()!=null)return false;
         if (photonView == null || !PhotonNetwork.InRoom) return true;
         // IsMine also becomes true on the Master for an inactive owner's avatar.
         return photonView.Owner != null && photonView.Owner.IsLocal;

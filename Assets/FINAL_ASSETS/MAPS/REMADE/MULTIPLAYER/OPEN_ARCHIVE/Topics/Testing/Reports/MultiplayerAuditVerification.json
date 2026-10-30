@@ -1,0 +1,280 @@
+{
+  "status": "PASS - Editor and live Photon audit; physical device validation remains",
+  "verifiedAtUtc": "2026-10-29T14:49:19.649951+00:00",
+  "scene": "Assets/Scenes/MultiplayerGameplay.unity",
+  "protocol": "LL-private-lobby-19",
+  "requestedChange": {
+    "monsterBarrierSeconds": 120,
+    "appliesTo": [
+      "Khezu",
+      "Rajang"
+    ],
+    "topicTimeBudgets": "preserved"
+  },
+  "bugsFixed": [
+    {
+      "issue": "Main Menu still targeted a removed test scene and could not start a match.",
+      "change": "Saved the canonical MultiplayerGameplay scene path and made the mode callback use the shared route."
+    },
+    {
+      "issue": "Rejoining while cached avatar instantiation is delayed could create a duplicate owned avatar.",
+      "change": "Scene spawner defers to the existing recovery flow before/after async waits."
+    },
+    {
+      "issue": "A second disconnect during restore could leave an older restore coroutine running.",
+      "change": "Cancel the stale restore before retry while preserving the original recovery deadline."
+    },
+    {
+      "issue": "Automatic revival could target an unavailable disconnected/missing teammate.",
+      "change": "Automatic and targeted revival now use the same connection/avatar eligibility gate."
+    },
+    {
+      "issue": "Downed body floor detection could select an overhead bridge/pillar cap.",
+      "change": "Search downward near delivered feet instead of from far above the body."
+    },
+    {
+      "issue": "A reused match could retain its previous defeat-return latch.",
+      "change": "Clear the latch when a new match is active."
+    },
+    {
+      "issue": "Admin practice teammate did not count toward all-survivor portal victory.",
+      "change": "Use the existing practice roster for offline escape testing."
+    },
+    {
+      "issue": "Nightfall could leave a partially awakening guardian asleep.",
+      "change": "Promote partial wakes to Full_Awaken while retaining tranquilizer, earned sleep and an existing full wake."
+    },
+    {
+      "issue": "Reused secondary monster could retain another species attack lengths and reach bones.",
+      "change": "Refresh animation clips and active reach bones after profile application/activation."
+    },
+    {
+      "issue": "Guest legacy debug events could sleep/reset/wake a production guardian.",
+      "change": "Reject remote legacy debug commands when the production Archive session owns gameplay."
+    },
+    {
+      "issue": "Legacy test dock and public test callbacks could remain usable by release hosts/guests.",
+      "change": "Restrict legacy awakening/hunt/cinematic/swap controls to authorized Editor/development testing and hide the whole dock otherwise."
+    },
+    {
+      "issue": "Settings closed externally could leak its local input/control/time state.",
+      "change": "Restore its owned pause state during OnDisable and preserve Photon callback cleanup."
+    }
+  ],
+  "regressionSuites": [
+    {
+      "suite": "AllTopicFlow",
+      "passed": true,
+      "checks": 383,
+      "scope": "Offline Editor Play Mode. Real books/props and validated commands; graph routes use small CharacterController.Move steps. Native OS mouse/touch and physical Android are not verified.",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "MonsterFixes",
+      "passed": true,
+      "checks": 9,
+      "scope": "Fresh offline Play Mode fixtures. Advances night presentation directly; does not claim natural chase collision or physical-device coverage.",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "SurvivalFixes",
+      "passed": true,
+      "checks": 11,
+      "scope": "Offline saved-scene fixtures: the practice teammate must also escape, automatic Revival Kit skips an unavailable closest body, overhead solid geometry cannot become the delivered body's floor, and a reused match resets defeat-return state. Inactive Photon membership is checked by the same production target-availability gate; this fixture does not simulate a disconnected phone.",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "SharingRetry",
+      "passed": true,
+      "checks": 32,
+      "scope": "Native saved MultiplayerGameplay. Explicit offline practice teammate and supplies; actual GIVE/USE button pointer events, authoritative quantities/health, used flashlight charge conservation, duplicate unique-tool rejection, distance/solid-wall/lock checks, original nest revival. No physical Android or second rendered client tested.",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "DownedSpectator",
+      "passed": true,
+      "checks": 40,
+      "scope": "Native offline MultiplayerGameplay Play: real practice avatar, nest body bounds, original player/CharacterController orientation, actual Revival Kit consumption, local spectator target, camera restoration. Two real network peers and physical Android remain separate verification.",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "MobileItems",
+      "passed": true,
+      "checks": 35,
+      "scope": "Native offline saved MultiplayerGameplay. Real circular mobile button pointer events, 240-second battery, actual camera-reticle/server-origin shots, moving pooled 3D dart, existing Sleep clips on both Rajang and Khezu at exact hit root anchors, normal wake and preserved hunt counters. Test supplies/awake states are explicit fixtures. Physical Android/two rendered clients are unverified.",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "WorldProgression",
+      "passed": true,
+      "checks": 30,
+      "scope": "Editor Play Mode with authorized Admin topic-completion fixtures. Checks real lighting, existing second rig, entrance, warning and navigation release. Academic rounds are verified separately; physical Android remains unverified.",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "NightBarriers",
+      "passed": true,
+      "checks": 23,
+      "scope": "Offline Editor night fixture with the two real rig/controller instances. Confirmed-capture fixtures invoke the existing capture transaction directly (not claimed physical collision tests). Answers use the actual mathematical validator and native request path; tests real attack, movement lock, stun and one-heart deduction for each monster.",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "SceneAndNavigation",
+      "passed": true,
+      "checks": 3,
+      "scope": "Native saved-scene or independent Photon-client fixture",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "PauseCleanup",
+      "passed": true,
+      "checks": 3,
+      "scope": "Native saved-scene or independent Photon-client fixture",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "LegacyTestGuard",
+      "passed": true,
+      "checks": 6,
+      "scope": "Native permission-policy checks. Release and guest cases exercise the pure build/session policy, not an Android release executable or second rendered guest.",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "PhotonLearningFinal",
+      "passed": true,
+      "checks": 43,
+      "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+      "acceptedRemoteCommands": 7
+    },
+    {
+      "suite": "PhotonSurvival",
+      "passed": true,
+      "checks": 32,
+      "scope": "Live invisible private Photon room: rendered Unity host plus independent Realtime peer. Actual five T1 rune answers earn a chest for the authenticated final solver. Validates ownership, distance, duplicate receipts, inventory checkpoints, medkit and two-player nest revival. Authority-only health/item/at-nest fixtures are explicitly used for consumable tests; actual carrying is covered by separate native tests. No physical Android or second rendered client is verified.",
+      "acceptedRemoteCommands": 5
+    },
+    {
+      "suite": "PhotonHotbarSharing",
+      "passed": true,
+      "checks": 81,
+      "scope": "Live invisible private Photon room: rendered Editor host and independent Realtime peers. Explicit host-authorized supply grants and a confirmed chest fixture exercise equip/unequip authority, sender binding, inventory preservation, actual final-copy medkit use, remote accepted physical dart hit, pooled host FX, stationary real Sleep and its remote monster checkpoint, replay protection, late join and master transfer. The rendered host also checks the guest avatar hand model; native mobile-style UI is tested separately. No physical Android or second rendered client is verified. Sharing additionally uses actual sender-bound guest commands against the rendered host: partial-charge flashlight transfer, unique-tool and replay rejection, targeted medkit/battery use, self/distance/solid-wall checks, gun/ammo conservation, recipient late join and host-transfer checkpoints. Stock, charge and one-heart setup are explicit host-authorized test fixtures.",
+      "acceptedRemoteCommands": 24
+    },
+    {
+      "suite": "PhotonFairnessRetry",
+      "passed": true,
+      "checks": 45,
+      "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+      "acceptedRemoteCommands": 6
+    },
+    {
+      "suite": "PhotonWorld",
+      "passed": true,
+      "checks": 29,
+      "scope": "Live private Photon room with rendered Editor host and independent Realtime peers. Admin completion fixtures exercise day/night thresholds, shared entrance clocks, namespace isolation, protected players, real second-agent movement, late join and host transfer. This is not a played seven-topic academic journey or physical Android test.",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "PhotonExitRetry",
+      "passed": true,
+      "checks": 30,
+      "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+      "acceptedRemoteCommands": 14
+    },
+    {
+      "suite": "PhotonGraphRetry",
+      "passed": true,
+      "checks": 43,
+      "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+      "acceptedRemoteCommands": 19
+    },
+    {
+      "suite": "PhotonTreeRetry",
+      "passed": true,
+      "checks": 33,
+      "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+      "acceptedRemoteCommands": 77
+    },
+    {
+      "suite": "PhotonCrystals",
+      "passed": true,
+      "checks": 21,
+      "scope": "Live private Photon room: real main-topic answers from a rendered Editor host and independent Realtime peers. Validates single-solver cap, shared restoration, confirmation-only exclusion, wrong-answer rejection, late join, checkpoint and authority handoff. Physical Android/two rendered mobile clients are unverified.",
+      "acceptedRemoteCommands": 12
+    },
+    {
+      "suite": "LobbyStartChat",
+      "passed": true,
+      "checks": 64,
+      "scope": "Native saved-scene or independent Photon-client fixture",
+      "acceptedRemoteCommands": 0
+    },
+    {
+      "suite": "PacketLossRecovery",
+      "passed": true,
+      "checks": 48,
+      "scope": "Rendered PUN client plus independent live Realtime peer. Transport: Udp. Simulated 100% SDK packet loss; no physical Android/carrier testing.",
+      "acceptedRemoteCommands": 0
+    }
+  ],
+  "totals": {
+    "suites": 22,
+    "gameplayNetworkAssertions": 1044,
+    "allTopicRounds": 59,
+    "allTopicCommands": 591,
+    "sourceQuestionBuilds": 2048,
+    "correctAndIncorrectSourceValidations": 4096,
+    "monsterOptionValidations": 2400,
+    "monsterDeckDraws": 35000,
+    "monsterNavigationRoutes": 80
+  },
+  "cleanup": {
+    "playing": false,
+    "compiling": false,
+    "scene": "Assets/Scenes/MultiplayerGameplay.unity",
+    "dirty": false,
+    "missingScripts": 0,
+    "burst": true,
+    "nextMonster": 0,
+    "protocol": "LL-private-lobby-19",
+    "primaryAndSecondary": [
+      {
+        "name": "Night_Second_Monster",
+        "encounterId": "night-secondary",
+        "barrierTimeLimitSeconds": 120.0
+      },
+      {
+        "name": "Active_Test_Monster",
+        "encounterId": "",
+        "barrierTimeLimitSeconds": 120.0
+      }
+    ]
+  },
+  "console": {
+    "compilationFailed": false,
+    "errors": 0,
+    "warnings": 0
+  },
+  "testInfrastructureCorrections": [
+    "Scene collision audit ignores inactive legacy relays and allows the authored crystal base.",
+    "Graph and Tree fixtures use party-scaled timers, team timeout attribution and current multi-edge variants.",
+    "Fairness tests current crystal cooperation instead of retired optional relays.",
+    "Portal fixtures isolate night cinematics; the separate world suite verifies night behavior.",
+    "A sharing run interrupted by an Editor assembly reload was rerun cleanly and passed."
+  ],
+  "boundaries": [
+    "No physical Android device was attached in adb devices.",
+    "No final APK was generated, installed or run in this task.",
+    "Photon validation uses one rendered Unity Editor and independent Realtime clients, not multiple rendered phones.",
+    "Packet loss was simulated at the SDK transport layer; this is not a mobile-carrier test.",
+    "Native Play verification temporarily disabled the existing Windows Burst JIT issue and restored Burst afterward.",
+    "Release-control checks cover compile-time guards, permission policy and a real guest/host handoff, not a built Android release executable."
+  ],
+  "beforeFinalBuild": [
+    "Install the same updated test APK on 2-4 Android devices.",
+    "Run a complete match on separate mobile data/Wi-Fi networks, including temporary signal loss and rejoin.",
+    "Verify native touch/keyboard, frame rate, heat, battery and low-memory behavior on target phones.",
+    "Exercise night dual monsters, two-minute captures, rescue/revival and all surviving players escaping.",
+    "Create the final release APK after those device acceptance checks pass."
+  ]
+}

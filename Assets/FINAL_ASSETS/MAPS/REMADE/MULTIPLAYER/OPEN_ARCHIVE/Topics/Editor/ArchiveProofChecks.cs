@@ -42,9 +42,10 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         }
         static IEnumerator Flow(){
             Status="Book and reader";session.Initialize(314159);ArchiveTopicUI.Current.Close();Move(Vector3.zero);yield return .7f;var book=station.GetComponentInChildren<ArchiveAnimatedBook>();
-            Check(book!=null&&book.OpenAmount<.01f,"Existing T4 Book starts closed");Check(!State.timerRunning&&State.timerAttempt==0&&Mathf.Abs(session.TimerRemaining(State)-360)<.01f,"Arrival does not start the six-minute clock");
+            float expectedLimit=session.proofsTimeLimitSeconds*session.PacingMultiplier;
+            Check(book!=null&&book.OpenAmount<.01f,"Existing T4 Book starts closed");Check(!State.timerRunning&&State.timerAttempt==0&&Mathf.Abs(session.TimerRemaining(State)-expectedLimit)<.01f,"Arrival preserves the current configured T4 clock without starting it");
             ArchiveTopicUI.Current.Open(station);yield return .15f;Check(ui.IsOpen&&!State.timerRunning,"Reader preview cannot start or reset the clock");ArchiveTopicUI.Current.Close();Book();yield return .8f;double deadline=State.timerDeadline;
-            Check(State.phase==1&&State.timerRunning&&State.timerAttempt==1&&State.timerActor==-1&&session.TimerRemaining(State)>358,"Native Book starts the shared 360-second T4 clock");Check(book.OpenAmount>.98f,"Existing Book opens and floats during the proof challenge");
+            Check(State.phase==1&&State.timerRunning&&State.timerAttempt==1&&State.timerActor==-1&&State.timerLimit==expectedLimit&&session.TimerRemaining(State)>expectedLimit-2,"Native Book starts the current configured shared T4 clock");Check(book.OpenAmount>.98f,"Existing Book opens and floats during the proof challenge");
             var q=session.Question(3);ui.SelectItem(0);yield return .1f;Check(ui.ReadingText.text.Contains(q.details[0]),"Each manuscript can be read in full before classifying it");Check(string.IsNullOrEmpty(State.reveal),"Reader never publishes a solved proof before success");
             ArchiveTopicUI.Current.Close();yield return .1f;var corners=new Vector3[4];ui.Objective.GetWorldCorners(corners);Check(ui.IsObjectiveVisible&&corners.Min(p=>p.x)>Screen.width*.60f&&corners.Max(p=>p.x)<=Screen.width+1,"Compact T4 objective stays on the right side");Check(!ui.CheckButton.interactable,"Incomplete classification cannot be submitted accidentally");
             yield return Preview("T4_Classification",false);yield return Preview("T4_Reader",true);ArchiveTopicUI.Current.Close();

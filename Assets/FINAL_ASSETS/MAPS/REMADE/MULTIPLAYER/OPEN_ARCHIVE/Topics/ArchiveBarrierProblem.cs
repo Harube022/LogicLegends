@@ -6,7 +6,9 @@ namespace LogicLegends.OpenArchive.Topics
     [Serializable] public sealed class ArchiveBarrierChallengeState
     {
         public int actor, captureSerial, huntSerial, kind, sourceTopic, sourceRound, seed, revision, hintLevel, outcome;
+        public int bankVersion, questionIndex = -1;
         public int selected = -1;
+        public string encounterId = "";
         public string feedback = "";
     }
     [Serializable] public sealed class ArchiveLearningHint
@@ -15,7 +17,7 @@ namespace LogicLegends.OpenArchive.Topics
         public string diagnosis;
     }
 
-    /// <summary>A short encounter adapter over the original solo question bank and validator.</summary>
+    /// <summary>The shared module-based monster bank; retains legacy solo adapters for old content checks.</summary>
     public sealed class ArchiveBarrierProblem
     {
         public readonly ArchiveQuestion source;
@@ -23,9 +25,24 @@ namespace LogicLegends.OpenArchive.Topics
         public readonly string title, prompt;
         public readonly string[] options;
         readonly int[] optionIds;
+        readonly ArchiveMonsterChallenge bankQuestion;
+        public string QuestionId=>bankQuestion?.id??"legacy";
+        public string ModuleSource=>bankQuestion?.module??"";
+        public int Topic=>bankQuestion?.topic??(inference?2:1);
+        public int[] SourceSlides=>bankQuestion?.slides??Array.Empty<int>();
         public ArchiveBarrierProblem(ArchiveTopicCatalog catalog, ArchiveBarrierChallengeState state)
         {
             inference = state.kind == 1;
+            if(state.bankVersion>0)
+            {
+                if(state.bankVersion!=ArchiveMonsterChallengeBank.CurrentVersion)throw new InvalidOperationException("Monster challenge content version mismatch.");
+                bankQuestion=ArchiveMonsterChallengeBank.Get(state.questionIndex);
+                title=(inference?"RAJANG":"KHEZU")+" · DM1 ESCAPE CHALLENGE";
+                prompt=ArchiveTopicCatalog.Names[bankQuestion.topic]+"\n\n"+bankQuestion.prompt;
+                optionIds=ArchiveTopicQuestions.Permutation(bankQuestion.options.Length,unchecked(state.seed ^ state.questionIndex*7919 ^ 0x4d3101));
+                options=optionIds.Select(i=>bankQuestion.options[i]).ToArray();
+                return;
+            }
             source = ArchiveTopicQuestions.Build(catalog, inference ? 2 : 1, state.sourceRound, state.seed, inference ? 1 : 0);
             title = inference ? "RAJANG · PROVE YOUR ESCAPE" : "KHEZU · BREAK THE FALSE CLAIM";
             prompt = inference
@@ -40,11 +57,19 @@ namespace LogicLegends.OpenArchive.Topics
             }
             else options = source.slots.Concat(new[] { "No counterexample · always true" }).ToArray();
         }
-        public string OptionDetail(int choice) => inference && choice >= 0 && choice < options.Length ? source.details[optionIds[choice]] : "";
+        public string OptionDetail(int choice) => bankQuestion!=null?
+            (choice>=0&&choice<options.Length?"Selected: "+options[choice]+". Confirm when ready.":""):
+            inference && choice >= 0 && choice < options.Length ? source.details[optionIds[choice]] : "";
         public bool Validate(int choice, out string explanation)
         {
             explanation = "Select an answer before confirming.";
             if (choice < 0 || choice >= options.Length) return false;
+            if(bankQuestion!=null)
+            {
+                bool accepted=optionIds[choice]==bankQuestion.correctIndex;
+                explanation=(accepted?"Correct. ":"The correct answer is "+bankQuestion.options[bankQuestion.correctIndex]+". ")+bankQuestion.explanation;
+                return accepted;
+            }
             var candidate = new ArchiveStationState();
             ArchiveTopicQuestions.Prepare(source, candidate);
             if (inference) candidate.placements[0] = optionIds[choice];
@@ -70,6 +95,7 @@ namespace LogicLegends.OpenArchive.Topics
         public string Hint(int level)
         {
             if (level <= 0) return "Hints are free. The shared encounter clock keeps running. Answer promptly to rejoin your team.";
+            if(bankQuestion!=null)return bankQuestion.hints[Math.Min(3,level)-1];
             if (inference)
             {
                 if (level == 1) return "Treat the premises as given. Compare their logical structure with the conclusion; the story's real-world truth is irrelevant.";

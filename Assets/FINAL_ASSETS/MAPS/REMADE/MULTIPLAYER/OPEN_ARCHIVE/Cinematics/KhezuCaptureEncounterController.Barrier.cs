@@ -75,7 +75,7 @@ namespace LogicLegends.OpenArchive.Cinematics
             barrierPlayer=null;lockedActor=lockedSerial=0;nextPlayerSearch=0;
         }
         static Player CapturedAvatar(int actor){
-            if(!PhotonNetwork.InRoom)return actor==-1?Player.LocalInstance:null;
+            if(!PhotonNetwork.InRoom)return actor==-1?Player.LocalInstance:LogicLegends.OpenArchive.Topics.ArchiveTopicSession.Current?.DebugActorPlayer(actor);
             foreach(var p in FindObjectsByType<Player>(FindObjectsSortMode.None)){var view=p.GetComponent<PhotonView>();if(view!=null && view.ViewID!=0 && view.OwnerActorNr==actor)return p;}return null;
         }
         public bool SubmitDevelopmentOutcome(bool success){

@@ -68,9 +68,12 @@ public sealed partial class MultiplayerLobbyService
     {
         if (recovering)
         {
+            // A second loss during cached-avatar/checkpoint replay invalidates
+            // that restore. Only the next accepted rejoin may release recovery.
+            CancelPlayerRestore();
             if (retryDisconnect) { retryDisconnect = false; nextRecoveryAttempt = Time.realtimeSinceStartup + 2; return true; }
             if (!Recoverable(cause)) { RecoveryFailed(DisconnectExplanation(cause)); return true; }
-            restoring = false; nextRecoveryAttempt = Time.realtimeSinceStartup + Mathf.Min(5, recoveryAttempt * 2);
+            nextRecoveryAttempt = Time.realtimeSinceStartup + Mathf.Min(5, recoveryAttempt * 2);
             Notify("Connection interrupted. Reconnecting…"); return true;
         }
         var scene = SceneManager.GetActiveScene();
@@ -152,6 +155,7 @@ public sealed partial class MultiplayerLobbyService
             recovering = restoring = false; Busy = false; deadline = 0; onlineSession = true; committed = false;
             EndRecoveryPresentation(); Notify("Reconnected to the same lobby. Your ready status was kept."); RecordRecoveryResult(true); return;
         }
+        CancelPlayerRestore();
         restoring = true; Notify("Connection restored. Restoring your player…");
         restoreRoutine = StartCoroutine(RestoreRecoveredPlayer());
     }
@@ -164,7 +168,7 @@ public sealed partial class MultiplayerLobbyService
         if (!recovering) yield break;
         var player = Player.LocalInstance;
         var view = player != null ? player.GetComponent<PhotonView>() : null;
-        if (view == null || view.OwnerActorNr != recoveryActor || !view.Owner.IsLocal)
+        if (view == null || view.Owner == null || view.OwnerActorNr != recoveryActor || !view.Owner.IsLocal)
         { RecoveryFailed("The original player could not be restored."); yield break; }
         yield return null;
         var topics = LogicLegends.OpenArchive.Topics.ArchiveTopicSession.Current;
@@ -201,7 +205,7 @@ public sealed partial class MultiplayerLobbyService
     }
     void EndRecoveryPresentation()
     {
-        if (restoreRoutine != null) { StopCoroutine(restoreRoutine); restoreRoutine = null; }
+        CancelPlayerRestore();
         if (recoveryUI != null) recoveryUI.Hide();
         if (recoveryOwnsInput && recoveryInput != null)
         {
@@ -210,6 +214,11 @@ public sealed partial class MultiplayerLobbyService
             recoveryInput.SetGameplayInputBlocked(originalBlock);
         }
         recoveryOwnsInput = false; recoveryInput = null; MobileLookInput.ResetDelta();
+    }
+    void CancelPlayerRestore()
+    {
+        if (restoreRoutine != null) { StopCoroutine(restoreRoutine); restoreRoutine = null; }
+        restoring = false;
     }
     AvatarCheckpoints ReadAvatarCheckpoints()
     {

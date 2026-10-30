@@ -16,6 +16,8 @@ namespace LogicLegends.OpenArchive.Hunting
         public const byte SnapshotEvent = 171, CommandEvent = 172;
         public const string Channel = "ll.khezu.phase2.v1";
         public const string SnapshotKey = Channel + ".snapshot";
+        public string SyncChannel => string.IsNullOrEmpty(GetComponent<KhezuHuntingController>().encounterId)?Channel:Channel+"."+GetComponent<KhezuHuntingController>().encounterId;
+        public string StateKey => SyncChannel+".snapshot";
         [Min(.05f)] public float snapshotInterval = .1f;
         [Min(1)] public float checkpointInterval = 2;
         KhezuHuntingController controller;
@@ -44,7 +46,7 @@ namespace LogicLegends.OpenArchive.Hunting
             if (controller == null || !controller.Initialized || !PhotonNetwork.InRoom || !controller.IsAuthority) return;
             if (Time.unscaledTime >= nextSnapshot)
             {
-                bool moving = controller.State == KhezuHuntState.Hunting || controller.State == KhezuHuntState.NavigationBlocked || controller.State==KhezuHuntState.ReturningToNest;
+                bool moving = controller.State == KhezuHuntState.Hunting || controller.State == KhezuHuntState.NavigationBlocked || controller.State==KhezuHuntState.ReturningToNest || controller.State==KhezuHuntState.CarryingToNest;
                 nextSnapshot = Time.unscaledTime + (moving ? snapshotInterval : controller.State == KhezuHuntState.Waking || controller.State == KhezuHuntState.Caught ? .2f : 1f);
                 bool checkpoint = Time.unscaledTime >= nextCheckpoint;
                 if (checkpoint) nextCheckpoint = Time.unscaledTime + checkpointInterval;
@@ -54,32 +56,36 @@ namespace LogicLegends.OpenArchive.Hunting
         void Changed() { if (PhotonNetwork.InRoom && controller.IsAuthority) Broadcast(true, true); }
         void Broadcast(bool reliable, bool checkpoint)
         {
-            latest = new object[] { Channel, PhotonNetwork.LocalPlayer.ActorNumber, ++sequence, JsonUtility.ToJson(controller.GetSnapshot()) };
+            latest = new object[] { SyncChannel, PhotonNetwork.LocalPlayer.ActorNumber, ++sequence, JsonUtility.ToJson(controller.GetSnapshot()) };
             PhotonNetwork.RaiseEvent(SnapshotEvent, latest, new RaiseEventOptions { Receivers = ReceiverGroup.Others },
                 new SendOptions { Reliability = reliable });
-            if (checkpoint) PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { [SnapshotKey] = latest });
+            if (checkpoint) PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { [StateKey] = latest });
         }
         void Request(KhezuCommand command)
         {
             if (!PhotonNetwork.InRoom) return;
-            PhotonNetwork.RaiseEvent(CommandEvent, new object[] { Channel, ++commandSequence, (int)command },
+            PhotonNetwork.RaiseEvent(CommandEvent, new object[] { SyncChannel, ++commandSequence, (int)command },
                 new RaiseEventOptions { Receivers = ReceiverGroup.MasterClient }, SendOptions.SendReliable);
         }
         public void OnEvent(EventData data)
         {
             if (controller == null || !controller.Initialized || !PhotonNetwork.InRoom) return;
             var payload = data.CustomData as object[];
-            if (payload == null || payload.Length < 3 || !(payload[0] is string) || (string)payload[0] != Channel) return;
+            if (payload == null || payload.Length < 3 || !(payload[0] is string) || (string)payload[0] != SyncChannel) return;
             if (data.Code == SnapshotEvent)
             {
                 if (data.Sender != PhotonNetwork.MasterClient.ActorNumber || controller.IsAuthority) return;
                 Receive(payload, false);
             }
-            else if (data.Code == CommandEvent && controller.IsAuthority && PhotonNetwork.CurrentRoom.GetPlayer(data.Sender) != null &&
+            else if (data.Code == CommandEvent && string.IsNullOrEmpty(controller.encounterId) && controller.IsAuthority && PhotonNetwork.CurrentRoom.GetPlayer(data.Sender) != null &&
                 payload[1] is int && payload[2] is int && Enum.IsDefined(typeof(KhezuCommand), (int)payload[2]))
             {
+                // Topic mistakes and the host Admin Lab already enter through their
+                // authoritative services. The old Phase 2 guest debug channel must
+                // never let a room member sleep/reset/wake a production guardian.
+                if(Topics.ArchiveTopicSession.Current!=null||!Debug.isDebugBuild)return;
                 // Remote debug controls may not release a captured actor or skip an outcome.
-                if(controller.State==KhezuHuntState.Caught || controller.State==KhezuHuntState.ReturningToNest || controller.State==KhezuHuntState.NestSleeping || controller.State==KhezuHuntState.AttackRecovery)return;
+                if(controller.State==KhezuHuntState.Caught || controller.State==KhezuHuntState.ReturningToNest || controller.State==KhezuHuntState.NestSleeping || controller.State==KhezuHuntState.AttackRecovery || controller.CarryingRescueActor || controller.IsTranquilized)return;
                 int last; float when;
                 if (commands.TryGetValue(data.Sender, out last) && (int)payload[1] <= last) return;
                 // Per-peer rate limit also bounds repeated test-control traffic.
@@ -111,8 +117,8 @@ namespace LogicLegends.OpenArchive.Hunting
                 state.barrierTimerSerial<0 || state.barrierTimerSerial>state.captureSerial || state.barrierDeadline<state.barrierStartedAt ||
                 state.knockbackPath==null || state.knockbackPath.Length>33 || state.knockbackPath.Any(v=>!Finite(v)) ||
                 state.resolvedSerial<0 || state.resolvedSerial>state.captureSerial || state.resolvedOutcome<0 || state.resolvedOutcome>2 ||
-                (state.state==(int)KhezuHuntState.Caught && !state.captureAnchorValid) || state.healthStates==null || state.healthStates.Length>4 ||
-                state.healthStates.Any(h=>h==null || h.actor==0 || h.hearts<0 || h.hearts>Mathf.Max(3,controller.health!=null?controller.health.MaximumHealth:3) || h.lastPenaltySerial<0) || state.healthStates.Select(h=>h.actor).Distinct().Count()!=state.healthStates.Length)return;
+                (state.state==(int)KhezuHuntState.Caught && !state.captureAnchorValid) || (state.state==(int)KhezuHuntState.CarryingToNest && state.rescueActor==0) || state.healthStates==null || state.healthStates.Length>4 ||
+                state.healthStates.Any(h=>h==null || h.actor==0 || h.hearts<0 || h.hearts>Mathf.Max(3,controller.health!=null?controller.health.MaximumHealth:3) || h.lastPenaltySerial<0 || !Finite(h.revivedUntil)) || state.healthStates.Select(h=>h.actor).Distinct().Count()!=state.healthStates.Length)return;
             bool initial = !received || restoreAuthority;
             received = true; receivedSequence = (int)packet[2]; sequence = Mathf.Max(sequence, receivedSequence); latest = packet;
             controller.ApplySnapshot(state, initial);
@@ -122,14 +128,14 @@ namespace LogicLegends.OpenArchive.Hunting
         void LoadCheckpoint()
         {
             if (!PhotonNetwork.InRoom || controller == null || !controller.Initialized) return;
-            if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(SnapshotKey, out var value) && value is object[])
+            if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(StateKey, out var value) && value is object[])
                 Receive((object[])value, controller.IsAuthority);
             controller.AuthorityChanged();
         }
         public bool RestoreRecoveryCheckpoint()
         {
             if (!PhotonNetwork.InRoom || controller == null || !controller.Initialized) return false;
-            if (!PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(SnapshotKey, out var data) || !(data is object[] packet)) return false;
+            if (!PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(StateKey, out var data) || !(data is object[] packet)) return false;
             // A live snapshot can be newer than the periodic room checkpoint.
             if (received && latest != null && Equals(latest[1], PhotonNetwork.MasterClient.ActorNumber))
             {
@@ -144,7 +150,7 @@ namespace LogicLegends.OpenArchive.Hunting
         public override void OnJoinedRoom() { received = false; receivedSequence = -1; LoadCheckpoint(); }
         public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
         {
-            if (!received && controller != null && !controller.IsAuthority && propertiesThatChanged.TryGetValue(SnapshotKey, out var packet) && packet is object[])
+            if (!received && controller != null && !controller.IsAuthority && propertiesThatChanged.TryGetValue(StateKey, out var packet) && packet is object[])
                 Receive((object[])packet, false);
         }
         public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)

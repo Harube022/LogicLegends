@@ -1,0 +1,222 @@
+{
+  "verifiedAt": "2026-10-30T19:45:20.2041933+08:00",
+  "passed": true,
+  "scene": "Assets/Scenes/MultiplayerGameplay.unity",
+  "protocol": "LL-private-lobby-20",
+  "policy": {
+    "readinessGraceSeconds": 15,
+    "uniqueTopicBonusMinutes": 2,
+    "maximumNormalMinutes": 60,
+    "startCountdownSeconds": 5,
+    "timeoutHeartDeduction": 0,
+    "warningsMinutes": [
+      10,
+      5,
+      1
+    ],
+    "finalEscapeMinutes": 2,
+    "baseMinutes": 40,
+    "maximumAbsoluteMinutes": 62
+  },
+  "native": {
+    "passed": true,
+    "scope": "Fresh offline MultiplayerGameplay Editor Play: production clock transitions, actual final T1 validator, ten-topic award receipt fixtures, real Admin no-farming, command/portal expiry ordering, checkpoint receive/master-restore callbacks, timescale-zero passage, and unchanged hearts. Clock timestamps are shortened in the authoritative state to exercise long deadlines. Live Photon, rendered remote clients, physical Android, and a naturally played 40-minute match are not claimed.",
+    "checks": [
+      "PASS Policy is 40 minutes, 2 minutes per unique topic, and 2 minutes for escape",
+      "PASS Overall ceiling is 60 minutes of academic play plus at most two final escape minutes",
+      "PASS New existing team checkpoint owns an unstarted clock and empty award ledger",
+      "PASS Ready player starts one five-second countdown before gameplay",
+      "PASS Repeated readiness ticks never restart the countdown",
+      "PASS Late countdown update anchors the 40-minute deadline to its original start",
+      "PASS Readiness fallback uses its stored deadline and cannot postpone the match indefinitely",
+      "PASS Actual accepted final T1 submission grants exactly 120 seconds",
+      "PASS Replaying a final academic receipt cannot grant its topic twice",
+      "PASS Existing Admin reset remains usable for a fixture",
+      "PASS Admin reset and completion neither clear nor refill the one-time award ledger",
+      "PASS Incorrect, unattributed and out-of-range final receipts never award time",
+      "PASS A different actor cannot claim another final solver's award",
+      "PASS A stale final receipt from before this match cannot award time",
+      "PASS Unique academic final receipt awards T2",
+      "PASS Unique academic final receipt awards T3",
+      "PASS Unique academic final receipt awards T4",
+      "PASS Unique academic final receipt awards T5",
+      "PASS Unique academic final receipt awards T6",
+      "PASS Unique academic final receipt awards T7",
+      "PASS Unique academic final receipt awards T8",
+      "PASS Unique academic final receipt awards T9",
+      "PASS Unique academic final receipt awards T10",
+      "PASS Ten unique topics cap normal play at 60 minutes with solver attribution",
+      "PASS Additional receipts cannot exceed the ten-topic cap",
+      "PASS Tenth completion switches to exactly two final escape minutes without refilling normal time",
+      "PASS Repeated ticks and award attempts cannot restart or extend escape",
+      "PASS JSON checkpoint preserves deadlines and unique award receipts; normal expected=3620.3575027990364 actual=3620.3575027990369 escape expected=141.35750279903627 actual=141.35750279903627",
+      "PASS Existing snapshot receive restores the saved clock without a local refill; end expected=141.35750279903627 actual=141.35750279903627 start expected=21.357502799036279 actual=21.357502799036279 bonuses=10",
+      "PASS Existing master-restore callback retains original deadlines; normal expected=3620.3575027990364 actual=3620.3575027990369 escape expected=141.35750279903627 actual=141.35750279903627",
+      "PASS A valid production start exposes its fixed 62-minute absolute end",
+      "PASS Final escape remaining time respects the absolute 62-minute ceiling even for a late completion",
+      "PASS Local zero-timescale pause still consumes unscaled match time",
+      "PASS Item grants and supplies never refill the shared match timer",
+      "PASS Exact deadline expiry becomes one timeout defeat instead of victory",
+      "PASS Match timeout deducts no hearts and invents no academic mistakes",
+      "PASS Expired state is monotonic and cannot restart gameplay",
+      "PASS A final academic receipt at the deadline cannot rescue an expired normal clock",
+      "PASS Tenth completion at expiry cannot create a fresh escape window",
+      "PASS A held rune completing at the shared deadline cannot grade an answer or award time",
+      "PASS A valid Book command at the deadline expires before it can start work",
+      "PASS Saved portal exists for the physical aperture race",
+      "PASS Deadline probe is physically inside the formed portal",
+      "PASS Portal entry at expiry cannot beat the timeout or publish an escape receipt",
+      "PASS Final living survivor may win through the real aperture before expiry",
+      "PASS A completed victory cannot turn into a later timeout defeat"
+    ],
+    "errors": []
+  },
+  "photon": {
+    "passed": true,
+    "acceptedRemoteCommands": 10,
+    "scope": "Live private Photon room: rendered Editor host and independent Realtime peers. Five genuine guest T1 rune answers verify the one-time +120s completion award. Tests frozen timer replication, forged peer snapshots, replay rejection, late join, live Master handoff and two-minute escape/timeout replication. Remaining nine topics and shortened timeout are explicitly Admin/clock fixtures. Remote rendered UI and Android devices are unverified.",
+    "checks": [
+      {
+        "name": "Independent clients share an invisible private room",
+        "passed": true
+      },
+      {
+        "name": "Native player retains local control ownership",
+        "passed": true
+      },
+      {
+        "name": "Remote replica cannot consume host input",
+        "passed": true
+      },
+      {
+        "name": "Host starts one exactly forty-minute clock after the shared readiness countdown",
+        "passed": true
+      },
+      {
+        "name": "Guest receives the exact host start, deadline and five-second countdown timestamps",
+        "passed": true
+      },
+      {
+        "name": "An intermediate accepted T1 answer cannot award topic-completion time (round 1)",
+        "passed": true
+      },
+      {
+        "name": "An intermediate accepted T1 answer cannot award topic-completion time (round 2)",
+        "passed": true
+      },
+      {
+        "name": "An intermediate accepted T1 answer cannot award topic-completion time (round 3)",
+        "passed": true
+      },
+      {
+        "name": "An intermediate accepted T1 answer cannot award topic-completion time (round 4)",
+        "passed": true
+      },
+      {
+        "name": "Genuine final guest T1 answer adds exactly two minutes without resetting the match start",
+        "passed": true
+      },
+      {
+        "name": "Host and guest retain one completed-topic award and the authenticated final solver",
+        "passed": true
+      },
+      {
+        "name": "Replaying the final rune command cannot award the same topic twice",
+        "passed": true
+      },
+      {
+        "name": "A guest-authored timer snapshot cannot refill time or manufacture a topic award",
+        "passed": true
+      },
+      {
+        "name": "Late join preserves elapsed time and the one earned bonus without refilling either clock",
+        "passed": true
+      },
+      {
+        "name": "Shared Photon time keeps counting while the rendered client is no longer Master",
+        "passed": true
+      },
+      {
+        "name": "Master handoff preserves exact match identity, original start, deadline and one-time awards",
+        "passed": true
+      },
+      {
+        "name": "Explicit Admin fixture completes the remaining nine topics",
+        "passed": true
+      },
+      {
+        "name": "All topics replace normal remaining time with exactly two minutes; Admin completion awards no extra normal time",
+        "passed": true
+      },
+      {
+        "name": "Repeated completion/checkpoint updates cannot restart the escape window or award victory",
+        "passed": true
+      },
+      {
+        "name": "Expiration commits the exact shared deadline as team timeout, never a late victory",
+        "passed": true
+      },
+      {
+        "name": "Global timeout deducts no hearts and records no academic mistake",
+        "passed": true
+      },
+      {
+        "name": "Every peer receives the same timeout reason and all gameplay actions close",
+        "passed": true
+      }
+    ],
+    "errors": []
+  },
+  "escapeHud": {
+    "visible": true,
+    "time": "01:29",
+    "phase": "ESCAPE · ALL SURVIVORS",
+    "notice": "EVERY SURVIVING TEAMMATE MUST ENTER THE PORTAL",
+    "clockCanvasNonblocking": true,
+    "bonusCount": 0,
+    "phaseSeconds": 120.0,
+    "hearts": 3
+  },
+  "timeoutPresentation": {
+    "defeated": true,
+    "expired": true,
+    "reason": "timeout",
+    "state": "Sleeping",
+    "caught": 0,
+    "locked": true,
+    "hearts": 3,
+    "hudHidden": true,
+    "timeoutScreen": true,
+    "cinematicStopped": true,
+    "barrierStillTwoMinutes": true
+  },
+  "lobbyReturn": {
+    "passed": true,
+    "scene": "Assets/Scenes/Main Menu.unity",
+    "lobbyVisible": true,
+    "sessionCleared": true
+  },
+  "compile": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "scopeNotes": [
+    "Long match timestamps shortened only in test fixtures; a naturally played full match was not performed.",
+    "Live Photon ran one rendered Unity Editor host and independent Realtime peers, not multiple rendered phones.",
+    "A final grading-time deadline guard was added after live transport checks and passed the final 46 native assertions.",
+    "No Android APK generated, installed or device-tested in this task.",
+    "Existing topic timers and 120-second monster barrier settings remain.",
+    "Clock added to the saved canonical scene; all clients require the updated protocol."
+  ],
+  "remainingBeforeFinalBuild": [
+    "Install the same updated test APK on 2-4 real phones and complete a full match.",
+    "Test real separate mobile-data connections, host/background switching, disconnect/rejoin and deadline continuity.",
+    "Profile worst-case night fog, dual monsters, particles, capture/rescue, memory, heat and battery on target Android hardware.",
+    "Playtest the 40-minute/+2-minute balance with students and review module coverage with the DM1 instructor.",
+    "Create and smoke-test a non-development release build with Admin tools excluded."
+  ],
+  "deferredByUser": [
+    "Leaderboards",
+    "Dedicated match-result/scoring presentation"
+  ]
+}

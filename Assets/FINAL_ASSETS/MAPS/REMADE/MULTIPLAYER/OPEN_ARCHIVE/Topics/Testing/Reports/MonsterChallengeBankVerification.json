@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "verifiedAtUtc": "2026-10-29T11:47:43.292292+00:00",
+  "bank": {
+    "questions": 50,
+    "perTopic": 5,
+    "sharedBy": [
+      "Khezu",
+      "Rajang"
+    ],
+    "sha256": "dd08a81ee978922fb3a340cb5ec46515b20dbe4ff17ef3abdc9a23e4abea21ac",
+    "resource": "ArchiveMonsterChallenges",
+    "version": 1
+  },
+  "modules": {
+    "originalFiles": 11,
+    "originalSlides": 240,
+    "reviewedQuestions": 50
+  },
+  "randomization": {
+    "nativeDeckDraws": 35000,
+    "nativeCaptureFixtures": 51,
+    "noRepeatUntilAll50": true,
+    "noImmediateCycleBoundaryRepeat": true,
+    "answerChoicesAlsoShuffled": true
+  },
+  "validation": {
+    "displayedAnswerChecks": 2400,
+    "twoRealMonsterControllerChecks": 23,
+    "livePhotonChecks": 34,
+    "acceptedRemoteCommands": 7,
+    "lateJoin": true,
+    "hostHandoff": true,
+    "hintPreservesQuestionAndDeadline": true,
+    "forgedCaptureIdentityRejected": true
+  },
+  "presentation": {
+    "longestProofAnswerUiCheckedAt": "1920x1080",
+    "truncatedAnswerRows": 0,
+    "staticBakedGlyphFallback": "Archive_Monster_Math_SDF.asset",
+    "scrollbarsPreserved": true
+  },
+  "preserved": [
+    "3-minute barrier deadline",
+    "captured-player-only controls and movement lock",
+    "one-heart attack contact",
+    "five-second stun",
+    "thirty-second nest sleep",
+    "existing hunt rotation",
+    "topic puzzle progress and clocks"
+  ],
+  "protocol": "LL-private-lobby-18",
+  "cleanup": {
+    "playMode": "stopped",
+    "scene": "Assets/Scenes/MultiplayerGameplay.unity",
+    "sceneDirty": false,
+    "burstRestored": true,
+    "nextMonsterPreferenceRestored": true
+  },
+  "limits": [
+    "No physical Android device test or new APK build in this task.",
+    "51 captures use confirmed-capture snapshot fixtures, not natural chase/collision tests.",
+    "Native tests temporarily disabled Burst for the existing editor JIT issue; restored afterward.",
+    "Live Photon guests are independent Realtime clients in a private room, not separate phones."
+  ]
+}

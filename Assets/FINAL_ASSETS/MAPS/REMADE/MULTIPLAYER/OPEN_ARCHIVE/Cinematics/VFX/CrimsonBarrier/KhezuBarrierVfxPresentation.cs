@@ -44,7 +44,7 @@ namespace LogicLegends.OpenArchive.Cinematics.VFX
         }
         static Vector3 Feet(Player p){var cc=p.GetComponent<CharacterController>();var position=p.transform.position;if(cc!=null)position.y=OpenArchiveWater.Feet(cc).y;return position+Vector3.up*.045f;}
         static Player FindPlayer(int id){
-            if(!PhotonNetwork.InRoom)return id==-1?Player.LocalInstance:null;
+            if(!PhotonNetwork.InRoom)return id==-1?Player.LocalInstance:LogicLegends.OpenArchive.Topics.ArchiveTopicSession.Current?.DebugActorPlayer(id);
             foreach(var p in FindObjectsByType<Player>(FindObjectsSortMode.None)){var view=p.GetComponent<PhotonView>();if(view!=null && view.ViewID!=0 && view.OwnerActorNr==id)return p;}
             return null;
         }

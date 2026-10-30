@@ -12,7 +12,7 @@ namespace LogicLegends.OpenArchive.Topics
     {
         public static readonly string[] References = {
             PropositionReference, TruthReference, InferenceReference,
-            "IT 105 · Midterm Week 6, slides 4–16; Prelim Week 3, inference justifications",
+            "IT 105 · Midterm Week 6, slides 4–16; Prelim Weeks 3–4, inference justifications",
             "IT 105 · Midterm Week 7, slides 6–23 (direct, contradiction, contrapositive)",
             "IT 105 · Midterm Weeks 8–9, slides 6–12 and 16–20 (base, hypothesis, inductive step)",
             "IT 105 · Prefinal Weeks 11–12, slides 4–8, 12–18 and 23–30 (membership, operations, complement)",
@@ -41,6 +41,9 @@ namespace LogicLegends.OpenArchive.Topics
                 var rule = c.inferenceRules.First(r => r.abbreviation == spec.RuleCode);
                 p.context = string.Join("\n", spec.Premises.Select((s, i) => (i + 1) + ". " + Display(s) + " — Premise")) +
                     "\n∴ " + Display(spec.Conclusion) + " — [MISSING JUSTIFICATION]";
+                // This is a new argument. Do not append the copied Solo variant's
+                // unrelated steps below it in the shared question reader.
+                p.steps = Array.Empty<ProofStepData>();
                 p.expectedRule = rule.ruleName;
                 var others = ArchiveTopicQuestions.Permutation(c.inferenceRules.Length, random.Next()).Select(i => c.inferenceRules[i].ruleName)
                     .Where(s => s != p.expectedRule).Take(3).Append(p.expectedRule).ToArray();

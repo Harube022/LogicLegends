@@ -1,0 +1,152 @@
+{
+  "verifiedUtc": "2026-10-30T07:01:02.0177508Z",
+  "scene": "Assets/Scenes/MultiplayerGameplay.unity",
+  "passed": true,
+  "presentation": {
+    "passed": true,
+    "physicsPreserved": true,
+    "navigationPreserved": true,
+    "roads": {
+      "passed": true,
+      "meshCount": 1,
+      "beforeTriangles": 9602,
+      "afterTriangles": 47293,
+      "disabledRenderers": 11,
+      "boundaryEdges": 2179,
+      "terrainSamples": 25824,
+      "terrainFallbacks": 0,
+      "sourceProjectedArea": 58031.32421875,
+      "unifiedProjectedArea": 37496.31640625,
+      "removedOverlapArea": 20535.0078125,
+      "maxTriangleEdge": 2.997436046600342,
+      "scope": "Saved render-only union of the actual current main/secondary road faces. Original renderers are disabled; original meshes, transforms, colliders and navigation are not modified."
+    },
+    "carvings": {
+      "passed": true,
+      "physicsPreserved": true,
+      "navigationPreserved": true,
+      "originalMeshPreserved": true,
+      "arches": 4,
+      "sourceTriangles": 308,
+      "keptStrokeQuads": 170,
+      "rejectedStrokeQuads": 22,
+      "outputTriangles": 340,
+      "bakedFloatingTrianglesRemoved": 48,
+      "largestOutputEdge": 0.2504940629005432,
+      "sourceMesh": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Art/Meshes/Weathered_Math_Carvings.asset",
+      "outputMesh": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Topics/Art/EnvironmentPolish/Archive_Math_Carvings_SurfaceAligned.asset"
+    },
+    "dressing": {
+      "clusters": 10,
+      "renderers": 4,
+      "triangles": 3264,
+      "skippedCandidates": 78,
+      "placementPoints": [
+        {
+          "x": 152.07737731933594,
+          "y": 0.02500000037252903,
+          "z": 6.108058452606201
+        },
+        {
+          "x": 155.07655334472656,
+          "y": 0.02500000037252903,
+          "z": -9.21325397491455
+        },
+        {
+          "x": -17.399999618530273,
+          "y": 0.02500000037252903,
+          "z": 82.19999694824219
+        },
+        {
+          "x": -17.399999618530273,
+          "y": 0.02500000037252903,
+          "z": 107.19999694824219
+        },
+        {
+          "x": 82.19999694824219,
+          "y": 0.02500000037252903,
+          "z": 18.04999542236328
+        },
+        {
+          "x": 187.60000610351562,
+          "y": 0.02500000037252903,
+          "z": -17.400007247924805
+        },
+        {
+          "x": 18.69999122619629,
+          "y": 0.02500000037252903,
+          "z": -82.19999694824219
+        },
+        {
+          "x": 18.699989318847656,
+          "y": 0.02500000037252903,
+          "z": -107.19999694824219
+        },
+        {
+          "x": -82.19999694824219,
+          "y": 0.02500000037252903,
+          "z": -17.39999771118164
+        },
+        {
+          "x": -107.19999694824219,
+          "y": 0.02500000037252903,
+          "z": -17.39999771118164
+        }
+      ],
+      "scope": "Editor-authored scenery only. Discontinuous low stones and plant drifts stay outside original paved travel lanes, topic courts, bridges and solid props. No collision, lighting, particles or gameplay state is added."
+    },
+    "scope": "Production MultiplayerGameplay presentation only. Original physical walking surfaces, source meshes, player controls and encounter code are retained."
+  },
+  "coverage": {
+    "passed": true,
+    "sampleCount": 36100,
+    "originalRoadSamples": 5240,
+    "lostRoadSamples": 0,
+    "addedOutsideSamples": 0
+  },
+  "navigation": {
+    "passed": true,
+    "stationCount": 10,
+    "prefabCount": 52,
+    "solidKitColliders": 20,
+    "meshTriangles": 500,
+    "navigationRoutes": 80,
+    "errors": [],
+    "checks": [
+      "Ten reserved anchors; active collision is limited to each lectern and its crystal dais. Inactive legacy relay props add no collision fences.",
+      "Existing Khezu and Rajang navigation data; four routes per topic and monster profile.",
+      "Reusable prefab scripts, supported materials, mesh normals and UVs."
+    ]
+  },
+  "playerControls": {
+    "passed": true,
+    "movedMeters": 446.720154,
+    "movementLocked": false,
+    "colliderEnabled": true,
+    "gameplayInputBlocked": false,
+    "frame": 25067
+  },
+  "runtimeAssets": {
+    "passed": true,
+    "roadRenderers": 1,
+    "roadTriangles": 47293,
+    "newColliders": 0,
+    "checkedMaterialCount": 5,
+    "invalidMeshes": [],
+    "playerMovementLocked": false
+  },
+  "console": {
+    "runtimeErrors": 0,
+    "runtimeWarnings": 0,
+    "excludedToolDiagnostic": "CLI status readiness probe generated an unavailable 'editor status' command message; no gameplay exception. Cleared and rechecked with zero errors."
+  },
+  "visualReview": [
+    "Road junctions: continuous paving, no green tiled rectangles",
+    "Stone-to-grass shoulder blend and discontinuous low masonry/plant drifts",
+    "All four gateway render copies cleaned; both original source variants and physics preserved"
+  ],
+  "limitations": [
+    "Unity Editor Play Mode and desktop URP rendered views verified. Physical Android performance, remote mobile controls and a multiplayer device session were not run for this scenery-only change."
+  ],
+  "previews": "C:/Users/jhayf/.codex/visualizations/2026/10/16/01a1436d-771e-7190-abf8-1ab636024fb9/roadside-repair-2026-10-30"
+}

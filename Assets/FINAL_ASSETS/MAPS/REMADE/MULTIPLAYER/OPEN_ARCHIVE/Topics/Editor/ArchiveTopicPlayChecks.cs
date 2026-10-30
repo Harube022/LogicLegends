@@ -24,7 +24,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         static IEnumerator run;
         static ArchiveTopicSession session;
         static double nextTick;
-        static bool oldHuntingEnabled;
+        static bool oldHuntingEnabled,oldWorldSuppression;
         public static string Status{get;private set;}="Idle";
         [MenuItem("Tools/Logic Legends/Open Archive/Topics/Test All Adapted Activities (Play Mode)")]
         public static void Begin()
@@ -33,6 +33,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             if(run!=null)throw new InvalidOperationException("A topic check is already running.");
             session=UnityEngine.Object.FindFirstObjectByType<ArchiveTopicSession>();if(session==null||!session.Ready)throw new InvalidOperationException("Topic session is not ready.");
             report=new Report();oldHuntingEnabled=session.hunting.enabled;session.hunting.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.Sleep);session.hunting.enabled=false;
+            if(session.worldProgression!=null){oldWorldSuppression=session.worldProgression.suppressThreatsForVerification;session.worldProgression.suppressThreatsForVerification=true;}
             run=Flow();nextTick=0;Application.logMessageReceived+=Log;EditorApplication.update+=Tick;
         }
         static void Tick()
@@ -46,7 +47,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             }
             catch(Exception e){report.errors.Add(Status+": "+e);Finish(false);}
         }
-        static void Log(string message,string stack,LogType type){if(type==LogType.Error||type==LogType.Exception||type==LogType.Assert)report.errors.Add(message);}
+        static void Log(string message,string stack,LogType type){if(report.errors.Count<20&&(type==LogType.Error||type==LogType.Exception||type==LogType.Assert))report.errors.Add(message);}
         static void Record(string name,bool pass){report.checks.Add(new Check{name=name,passed=pass});if(!pass)throw new InvalidOperationException(name);Save();}
         // Progress reports are not Unity assets. Keeping frequently rewritten output in
         // Temp avoids the importer holding the JSON file while the next check writes it.
@@ -55,6 +56,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         {
             EditorApplication.update-=Tick;Application.logMessageReceived-=Log;run=null;
             if(session!=null&&Application.isPlaying){session.hunting.enabled=oldHuntingEnabled;session.hunting.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.Sleep);}
+            if(session!=null&&session.worldProgression!=null)session.worldProgression.suppressThreatsForVerification=oldWorldSuppression;
             report.passed=complete&&report.errors.Count==0&&report.checks.All(c=>c.passed);Status=report.passed?"Passed":"Failed";Save();
             Debug.Log("Open Archive activity flow: "+Status+", "+report.completedRounds+" rounds, "+report.acceptedCommands+" commands.");
         }
@@ -70,7 +72,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                     Status="T"+(topic+1)+" / round "+(round+1);MoveTo(station,ArchiveTopicStation.BookPosition+Vector3.back*1.7f);
                     station.points.First(p=>p.role==ArchivePointRole.Book).Interact();yield return .12f;
                     Record(Status+" starts through the existing hand/Book action",state.phase==1);
-                    Record(Status+" keeps the optional activity available while this topic is active",session.RelayAvailable(topic));
+                    Record(Status+" tracks crystal work without a separate optional puzzle",session.CrystalsEnabled?session.Crystal(topic).started&&!session.RelayAvailable(topic):session.RelayAvailable(topic));
                     Record(Status+" reserves this topic for the whole team",session.ActiveTopic==topic&&Enumerable.Range(0,10).Where(i=>i!=topic).All(i=>!session.CanStartTopic(i)));
                     while(state.round==round)
                     {
@@ -146,7 +148,12 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 }
                 if(topic==0){var relayFlow=ArchiveCoopOfflineChecks.CompletePendingRelay();while(relayFlow.MoveNext())yield return relayFlow.Current;}
                 report.completedTopics++;Record("T"+(topic+1)+" completes once for the team",state.phase==2);
-                Record("T"+(topic+1)+" closes unfinished optional work immediately",session.Relay(topic).closed&&!session.RelayAvailable(topic)&&!session.Relay(topic).completed);
+                if(session.CrystalsEnabled)
+                {
+                    Record("T"+(topic+1)+" restores its body from actual accepted challenge receipts",ArchiveCrystalProgress.Body(session.State,topic)==1);
+                    Record("T"+(topic+1)+" keeps offline practice at 80 percent without inventing teamwork",ArchiveCrystalProgress.Percent(session.State,session.Crystal(topic))==80&&!session.Crystal(topic).fullyRestored);
+                }
+                Record("T"+(topic+1)+" closes unfinished optional work immediately",session.CrystalsEnabled?session.Crystal(topic).closed&&!session.RelayAvailable(topic):session.Relay(topic).closed&&!session.RelayAvailable(topic)&&!session.Relay(topic).completed);
                 var late=new ArchiveCommand{topic=topic,action=ArchiveAction.SetT1Input,a=0,b=1,sequence=int.MaxValue,matchId=session.State.matchId,captureSerial=session.Relay(topic).serial};
                 Record("T"+(topic+1)+" rejects a delayed optional input after main completion",!session.Accept(-1,late));
                 if(topic==6){report.completedSetProblems=state.round;Record("Sets completes five challenges with exactly two problems each",state.round==10&&ArchiveTopicCatalog.SetChallengeCount==5&&ArchiveTopicCatalog.SetProblemsPerChallenge==2);}

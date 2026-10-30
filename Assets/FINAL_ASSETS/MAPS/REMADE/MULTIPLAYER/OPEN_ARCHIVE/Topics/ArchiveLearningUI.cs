@@ -23,7 +23,9 @@ namespace LogicLegends.OpenArchive.Topics
         ScrollRect guideScroll, prisonScroll;
         KhezuBarrierStatusUI encounterStatus;
         int guideTopic, shownRevision = -1, shownHintLevel = -1, shownReset = -1;
-        int displayedCapture = -1, displayedHunt = -1, selected = -1, pendingRevision = -1, reviewedCapture = -1, displayedBarrierRevision = -1;
+        int selected = -1, pendingRevision = -1, reviewedCapture = -1, displayedBarrierRevision = -1;
+        string displayedMonsterProblem="";
+        float displayedChoiceWidth=-1;
         bool guideOpen, pending;
         float retryAt;
         public bool GuideVisible => guide != null && guide.gameObject.activeSelf;
@@ -169,10 +171,12 @@ namespace LogicLegends.OpenArchive.Topics
         }
         void RefreshBarrier()
         {
-            var b = session.State.barrier; var problem = session.BarrierProblem(); var hunt = session.hunting;
-            if (b.captureSerial != displayedCapture || b.huntSerial != displayedHunt)
+            var b = session.State.barrier; var problem = session.BarrierProblem(); var hunt = session.LearningHunting;
+            string identity=b.encounterId+":"+b.captureSerial+":"+b.huntSerial+":"+b.bankVersion+":"+b.questionIndex+":"+b.seed;
+            if (identity!=displayedMonsterProblem)
             {
-                displayedCapture = b.captureSerial; displayedHunt = b.huntSerial; selected = -1; pending = false; displayedBarrierRevision = -1;
+                displayedMonsterProblem=identity;
+                selected = -1; pending = false; displayedBarrierRevision = -1; displayedChoiceWidth=-1;
                 foreach (Transform child in prisonContent) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
                 foreach (Transform child in choiceContent) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
                 Paragraph("Barrier_Instructions", prisonContent, problem.prompt, 27);
@@ -182,8 +186,8 @@ namespace LogicLegends.OpenArchive.Topics
                     int choice = i;
                     choices[i] = Button("Barrier_Choice_" + i, choiceContent, "", () => { if (!pending && b.outcome == 0) selected = choice; });
                     choices[i].gameObject.AddComponent<LayoutElement>().preferredHeight = 60;
-                    var choiceLabel = choices[i].GetComponentInChildren<TMP_Text>(); choiceLabel.enableAutoSizing = true;
-                    choiceLabel.fontSizeMin = 22; choiceLabel.fontSizeMax = 24;
+                    var choiceLabel = choices[i].GetComponentInChildren<TMP_Text>(); choiceLabel.enableAutoSizing = false;
+                    choiceLabel.fontSize = 24;
                 }
                 selectedDetail = Paragraph("Selected_Rule_Definition", prisonContent, "", 24);
                 prisonHint = Paragraph("Barrier_Progressive_Hints", prisonContent, "", 24); prisonHint.color = Teal;
@@ -196,12 +200,19 @@ namespace LogicLegends.OpenArchive.Topics
             int seconds = Mathf.CeilToInt(hunt.BarrierSecondsRemaining);
             prisonClock.text = b.outcome == 0 ? (seconds / 60).ToString("00") + ":" + (seconds % 60).ToString("00") : b.outcome == 1 ? "SOLVED" : "FAILED";
             prisonClock.color = prisonTitle.color = accent;
+            float choiceWidth=Mathf.Max(100,(choiceContent.rect.width-5)*.91f);
+            bool resized=Mathf.Abs(choiceWidth-displayedChoiceWidth)>.5f;
+            displayedChoiceWidth=choiceWidth;
             for (int i = 0; i < choices.Length; i++)
             {
                 bool picked = (b.outcome == 0 ? selected : b.selected) == i;
                 choices[i].interactable = !pending && b.outcome == 0 && hunt.BarrierSecondsRemaining > 0;
                 var label = choices[i].GetComponentInChildren<TMP_Text>();
-                label.text = (picked ? "> " : "") + (char)('A' + i) + ". " + problem.options[i];
+                string caption=(picked ? "> " : "") + (char)('A' + i) + ". " + problem.options[i];
+                bool changed=label.text!=caption;label.text=caption;
+                // Longer proof answers stay readable at the same font size and scroll vertically.
+                if(changed||resized)choices[i].GetComponent<LayoutElement>().preferredHeight=
+                    Mathf.Max(60,(label.GetPreferredValues(caption,choiceWidth,float.PositiveInfinity).y+12)/.84f);
                 label.color = picked ? new Color(1, .88f, .42f) : StageUITheme.Ink;
             }
             selectedDetail.text = selected < 0 ? "Select one option, read it, then confirm. Only you can answer your capture." : problem.OptionDetail(selected);
