@@ -39,6 +39,7 @@ public static class BuildTreesChallengeVariants
         catalog.variantSets = sets;
         EditorUtility.SetDirty(catalog);
         AssetDatabase.SaveAssets();
+        TreesQuestionRevision.Apply();
         Debug.Log("Trees catalog saved: five challenges with ten authored variants each.");
     }
 

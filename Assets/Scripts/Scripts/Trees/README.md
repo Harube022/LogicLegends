@@ -1,3 +1,41 @@
+## Chamber lighting and collision — October 30, 2026
+
+- Preserved the current Stage, ceiling, border, bookshelves, tables, chairs, five original LAMP placements and gameplay references, including the unsaved chamber arrangement present at the start of this change. A safety copy is in `Library/TreesChamberBefore.unity`.
+- New art is grouped under `ChamberDecorations`: four wall banners, two chained reading-aisle chandeliers and two small perimeter crystal niches. Existing assets are reused. The main book/board approaches and side aisles remain open.
+- Each of the five original lamps and both chandeliers has one warm, shadow-free light and a scene-owned emissive interior. Ambient/daylight fill is reduced; nearby floors have distinct warm pools while unlit walls remain dim. Source-pack materials and global render-pipeline/quality assets are unchanged. Emission flags survive URP import.
+- Disabled the four obsolete garden fences at x=±14 and z=-10/18, which blocked empty space within the larger chamber. The original Stage retains floor/wall collision. Added a 76-triangle collider to the visible ChamberBorder to close seams in the inner shell. The book uses one combined static-geometry collider independent of animated pages; the board uses its visible meshes instead of enclosing boxes across empty gaps.
+- Play Mode passed a continuous 17-waypoint walk, both side aisles, access around/behind the board, book approaches, physical perimeter containment and 216 boundary ray samples. Each of seven lamps measurably brightens a nearby floor patch. All five practice tutorials and ten real questions passed at three Editor screen sizes. Reports: `Library/TreesChamberPlayChecks.txt` and `Library/TreesRevisionChecks.txt`.
+- Mobile cost is bounded to seven shadow-free local lights, 14 new decorative renderers, combined chain meshes and no particles or decoration behaviours. Physical-device performance profiling has not been performed.
+
+## Action-guided Trees onboarding — October 30, 2026
+
+- Help opens automatically on arrival. Let's Begin releases its input/timer snapshot, then starts the first practice introduction. Reopening Help later returns to the previous game state without replaying practice or activating the book.
+- Each challenge's separate X/Y/Z/W example now waits for every required action. The instruction and spotlight advance immediately after the expected tap succeeds. Next is only available for explanatory steps; one shared Skip remains available throughout.
+- Walkthroughs cover root selection and Clear Pick; building links and undoing/reconnecting a branch; removing a wrong parent and assigning the requested parent; correcting a numerical answer; and removing cycle edges before spanning-tree submission. Practice submission uses the normal validator without real penalties or progress changes.
+- Challenge 3's authored banks start as connected, acyclic rooted trees with incorrect requested parent assignments. Repair requires matching every required directed link with no extra edges. The practice does not claim those starting puzzles contain cycles or disconnected nodes.
+- Play Mode checks completed every action in all five walkthroughs at 1920×1080, 2960×1440 and 800×480 using Input System touch events. They also verified arrival Help, Help reopening, early/mid-practice Skip, unchanged real data/time, both questions in all challenges, and camera/input restoration. See `Library/TreesRevisionChecks.txt`. These are Editor touch simulations, not physical-device tests.
+
+## Restored Trees workspace — October 28, 2026
+
+- Restored the earlier screen-space instruction sidebar and right-hand board workspace from the previous implementation. The InformationBoard model remains; Submit, Connect, Remove, Clear Pick, Help and Back still use the existing gameplay logic.
+- Questions, counters, buttons and world node labels now use Liberation Sans, with bold labels/headings. The diagram uses more of the parchment, preserves authored node/edge data, separates close rows and stops branches at node borders.
+- The Trees Book Statue matches PRELIM's measured visible height (about 4.27 m). Its static collision bounds follow its new size. It is offset clear of spawn; the InformationBoard has separate solid base/frame colliders. Existing prefab page animation and indicators remain attached.
+- Each challenge has one separate X/Y/Z/W practice introduction using the existing board-facing camera. Next and the shared Skip button restore the book-controlled start. Practice cannot alter the real tree, selected questions, timer, penalties, retries or rewards. Question 2 does not repeat the introduction.
+- Play Mode verified all ten questions, all five introductions, touch input at three landscape sizes, skipping during a blend, Help/Back restoration, and live CharacterController collision from three book approaches and the board front. All fifty bank diagrams have separated nodes and valid solutions. Help clips were refreshed for this restored UI.
+
+The previous revision notes below describe the superseded full-board UI.
+
+## Current Trees revision — October 28, 2026
+
+- The existing InformationBoard model holds the live world-space question, diagram, selection and editing controls. The old visual board and separate feedback panels are removed. Submit validates; Back keeps work and restores exploration.
+- Five challenges now require two distinct bank questions each. Each bank retains ten entries: five foundation questions and five harder structures. The second question has more nodes, deeper paths, additional repair links or a larger spanning task. Both picks remain fixed for the attempt.
+- The compact Trial 10 HUD includes the shared timer and both challenge/question counters. Help uses the shared scrollable guide and preserves the previous timer/input state.
+- Admin can clear a question or the remainder of a challenge. Its answer viewer lists all fifty entries, identifies both selected questions and derives complete solutions from validation data. Existing authentication and reward exclusion remain in place.
+- Help has two actual, isolated gameplay clips: book activation and using the board. They share one question, use real touch input, purpose-built close-ups, short captions and encoded two-second fades. Recording effects live only in Editor scripts.
+- Verified fifty solvable entries, 5,000 ordered random selections, normal completion of all ten questions, correction/penalty behavior, Help/Back and mobile layouts at 1920×1080, 2960×1440 and 800×480. Evidence is in Library/TreesRevisionChecks.txt and Library/TreesHelpPlaylistChecks.txt.
+
+The earlier implementation notes below are historical and describe the previous five-question board/sidebar.
+
 # Trees gameplay
 
 Implemented in `Assets/Scenes/Trees.unity` for Android landscape, using temporary assets already in the project. Open Trees and press Play; no manual Inspector wiring is required. The existing final-term Trees menu card now loads this scene.

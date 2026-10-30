@@ -116,6 +116,8 @@ public sealed partial class FunctionsRelationsControlsOnboarding : MonoBehaviour
     }
     private void BeginMovement()
     {
+        // Idempotently restore the same shared control on every replay.
+        skip = PrelimTutorialSkipControl.Create(safe, SkipTutorial);
         ResetPractice(); RestoreCamera();
         PrelimTeleportTransition.MovePlayerImmediately(player.gameObject, initialPosition, initialRotation);
         player.ToggleControl(true); input.SetGameplayInputBlocked(false); mobile.ResetJoystick();

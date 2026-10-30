@@ -162,6 +162,8 @@ namespace LogicLegends.Graph
 
         private void BeginMovement()
         {
+        // Idempotently restore the same shared control on every replay.
+        skipControl = PrelimTutorialSkipControl.Create(safeArea, SkipTutorial);
             RestoreGuidedView();
 
             stage.ui.SetControlsTutorialVisible(true);

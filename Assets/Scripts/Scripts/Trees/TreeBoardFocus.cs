@@ -35,6 +35,7 @@ namespace LogicLegends.Trees
             foreach (var look in FindObjectsByType<CinemachinePinchZoom>(FindObjectsSortMode.None)) FreezeLook(look);
             MobileLookInput.ResetDelta();
             outputCamera.rect = new Rect(.25f, 0, .75f, 1);
+            FrameBoard();
             focusCamera.gameObject.SetActive(true);
             GuardSwitch();
             return true;
@@ -45,8 +46,19 @@ namespace LogicLegends.Trees
             lookControllers.Add(look);
             look.enabled = false;
         }
+        void LateUpdate() { if(IsOpen) FrameBoard(); }
+        void FrameBoard()
+        {
+            if(focusCamera==null||board==null)return;
+            focusCamera.transform.SetPositionAndRotation(board.position-Vector3.up*.35f-board.forward*5,board.rotation);
+            var lens=focusCamera.Lens;
+            lens.OrthographicSize=Mathf.Max(5.4f,8.6f/Mathf.Max(.5f,outputCamera.aspect));
+            lens.NearClipPlane=.05f;lens.FarClipPlane=150;
+            focusCamera.Lens=lens;
+        }
         void GuardSwitch()
         {
+            if(!isActiveAndEnabled||!Application.isPlaying){switching=false;return;}
             if (switchGuard != null) StopCoroutine(switchGuard);
             switching = true;
             switchGuard = StartCoroutine(WaitForBrain());

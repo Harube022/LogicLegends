@@ -283,6 +283,8 @@ public sealed class SetssssControlsOnboarding : MonoBehaviour
 
     private void BeginMovement()
     {
+        // Idempotently restore the same shared control on every replay.
+        PrelimTutorialSkipControl.Create(safeArea, SkipTutorial);
         DestroySampleBlocks();
         RestoreBoardAndTimer();
         RestoreGameplayCamera();

@@ -418,6 +418,8 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
 
     private void BeginMovement()
     {
+        // Idempotently restore the same shared control on every replay.
+        skipControl = PrelimTutorialSkipControl.Create(safeArea, SkipTutorial);
         joystickInput?.ResetJoystick();
         input.SetGameplayInputBlocked(false);
         step = Step.Movement;
@@ -626,8 +628,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         PrelimTutorialSkipControl.CancelCamera(demonstrationCamera);
         demonstrationCamera = null;
         RestoreDemonstration();
-        if (skipControl != null) skipControl.Release();
-        skipControl = null;
+        skipControl?.Show(false);
         RestoreHudAndBoard();
         BeginConfirmation();
     }

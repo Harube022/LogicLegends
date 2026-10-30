@@ -69,36 +69,36 @@ public static class TreesStageChecks
                 switch(round)
                 {
                     case 0:
-                        check(v.nodes.Count==7&&v.initial.Count==6&&TreeAnswerValidator.Rooted(v,v.initial),label+" seven-node terminology tree");
+                        check(v.nodes.Count==(v.difficulty==2?9:7)&&v.initial.Count==v.nodes.Count-1&&TreeAnswerValidator.Rooted(v,v.initial),label+" seven-node terminology tree");
                         check(v.nodes.Any(n=>TreeAnswerValidator.Validate(v,v.initial,n.id,null,out reason)),label+" has a correct node");
                         check(v.nodes.Any(n=>!TreeAnswerValidator.Validate(v,v.initial,n.id,null,out reason)),label+" has an incorrect node");
                         break;
                     case 1:
-                        check(v.nodes.Count==5&&v.initial.Count==0&&v.required.Count==4,label+" four connection task");
+                        check(v.nodes.Count==(v.difficulty==2?9:5)&&v.initial.Count==0&&v.required.Count==v.nodes.Count-1,label+" four connection task");
                         check(TreeAnswerValidator.Validate(v,v.required,null,null,out reason),label+" complete build accepted");
                         check(!TreeAnswerValidator.Validate(v,v.initial,null,null,out reason),label+" empty build rejected");
                         break;
                     case 2:
-                        check(v.nodes.Count==5&&v.initial.Count==4&&v.required.Count==4&&TreeAnswerValidator.Rooted(v,v.initial),label+" intact starting tree");
-                        check(v.initial.Count(e=>!v.required.Any(r=>r.Key(true)==e.Key(true)))==1,label+" exactly one wrong branch");
+                        check(v.nodes.Count==(v.difficulty==2?9:5)&&v.initial.Count==v.nodes.Count-1&&v.required.Count==v.nodes.Count-1&&TreeAnswerValidator.Rooted(v,v.initial),label+" intact starting tree");
+                        check(v.initial.Count(e=>!v.required.Any(r=>r.Key(true)==e.Key(true)))==(v.difficulty==2?2:1),label+" correct number of wrong branches");
                         check(TreeAnswerValidator.Validate(v,v.required,null,null,out reason),label+" repair accepted");
                         check(!TreeAnswerValidator.Validate(v,v.initial,null,null,out reason),label+" broken version rejected");
                         break;
                     case 3:
                         int depth=TreeAnswerValidator.Depth(v,v.initial,v.target);
-                        check(v.nodes.Count==6&&v.initial.Count==5&&(depth==2||depth==3),label+" comparable depth task");
+                        check(v.nodes.Count==(v.difficulty==2?9:6)&&v.initial.Count==v.nodes.Count-1&&(v.difficulty==2?depth>=4:depth==2||depth==3),label+" comparable depth task");
                         check(TreeAnswerValidator.Validate(v,v.initial,null,depth,out reason),label+" correct depth accepted");
                         check(!TreeAnswerValidator.Validate(v,v.initial,null,depth-1,out reason),label+" wrong depth rejected");
                         break;
                     case 4:
-                        check(v.nodes.Count==4&&v.initial.Count==5&&TreeAnswerValidator.Connected(v,v.initial),label+" five-edge graph");
+                        check(v.nodes.Count==(v.difficulty==2?6:4)&&v.initial.Count==(v.difficulty==2?9:5)&&TreeAnswerValidator.Connected(v,v.initial),label+" five-edge graph");
                         int solutions=0;
-                        for(int mask=0;mask<32;mask++)
+                        for(int mask=0;mask<(1<<v.initial.Count);mask++)
                         {
                             var subset=v.initial.Where((e,i)=>(mask&(1<<i))!=0).ToList();
                             if(TreeAnswerValidator.Validate(v,subset,null,null,out reason))solutions++;
                         }
-                        check(solutions==8,label+" eight accepted spanning trees");
+                        check(v.difficulty==2?solutions>8:solutions==8,label+" valid spanning alternatives");
                         break;
                 }
             }
