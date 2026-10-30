@@ -34,22 +34,25 @@ namespace LogicLegends.Trees
         public bool LessonOpen {get;private set;}
         public bool Moving {get;private set;}
         public bool BoardOpen {get;private set;}
+        public TreeChallengeIntroductions Introductions{get;private set;}
         bool inputBeforeBoard, playerBeforeBoard;
         bool lessonInputBlocked, lessonPlayerEnabled, lessonTimerRunning, lessonCursorVisible;
         float lessonTimeScale;
         CursorLockMode lessonCursorLock;
         readonly System.Collections.Generic.List<Behaviour> lessonCameraInputs = new System.Collections.Generic.List<Behaviour>();
         public bool NearBook=>LocalPlayer!=null&&Vector3.Distance(LocalPlayer.transform.position,bookStatue.position)<4.5f;
-        public bool CanAct=>Ready&&!Moving&&!LessonOpen&&Time.timeScale>0&&(boardFocus==null||!boardFocus.Transitioning)&&(BoardOpen||GameInput.Instance==null||!GameInput.Instance.GameplayInputBlocked)&&(TeleportManager.Instance==null||!TeleportManager.Instance.IsTransitioning);
+        public bool CanAct=>Ready&&(Introductions==null||!Introductions.IsOpen)&&!Moving&&!LessonOpen&&Time.timeScale>0&&(boardFocus==null||!boardFocus.Transitioning)&&(BoardOpen||GameInput.Instance==null||!GameInput.Instance.GameplayInputBlocked)&&(TeleportManager.Instance==null||!TeleportManager.Instance.IsTransitioning);
         public bool CanSolve=>CanAct&&BoardOpen&&State==TreeStageState.ACTIVE;
         AudioSource audioSource;
         GameInput input;
+        bool arrivalHelpShown;
         void Awake()=>StageSelectionState.Select(10);
         IEnumerator Start()
         {
             audioSource=gameObject.AddComponent<AudioSource>();audioSource.playOnAwake=false;audioSource.spatialBlend=0;AudioVolumeSettings.Route(audioSource,GameAudioChannel.SoundFX);
             if(boardFocus==null)boardFocus=gameObject.AddComponent<TreeBoardFocus>();
             boardFocus.board=board.transform;
+            Introductions=gameObject.AddComponent<TreeChallengeIntroductions>();Introductions.Initialize(this);
             SelectPlaythrough();ChooseVariant();board.Build(Challenge);timer.Initialize(countdownSeconds,HandleGameOver);ui.Build(this);
             while(Player.LocalInstance==null)yield return null;
             LocalPlayer=Player.LocalInstance;input=GameInput.Instance;input.SetGameplayInputBlocked(false);input.OnInteractAction+=OnInteract;
@@ -57,16 +60,20 @@ namespace LogicLegends.Trees
             var look=LocalPlayer.GetComponentInChildren<CameraTargetController>();if(look!=null)look.SetViewAngles(18,0);
             Ready=true;
             BookStatuePresentation.BindHand(bookStatue, () => isActiveAndEnabled && CanAct && !BoardOpen && NearBook && (State == TreeStageState.WAITING_FOR_ACTIVATION || State == TreeStageState.ACTIVE), InteractBook);
+            SetLesson(true);arrivalHelpShown=LessonOpen;
         }
         void OnDestroy(){if(input!=null){input.OnInteractAction-=OnInteract;if(BoardOpen)input.SetGameplayInputBlocked(inputBeforeBoard);}if(boardFocus!=null)boardFocus.Exit();}
         void OnInteract(object sender,EventArgs args){InteractBook();}
-        void OnDisable() { SetLesson(false); BookStatuePresentation.SetRequired(bookStatue, false); }
+        void OnDisable() { Introductions?.CancelImmediate(); SetLesson(false); BookStatuePresentation.SetRequired(bookStatue, false); }
         void Update()
         {
             BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && Ready && !Moving && !BoardOpen &&
-                !LessonOpen && (State == TreeStageState.WAITING_FOR_ACTIVATION || State == TreeStageState.ACTIVE));
+                !LessonOpen && (Introductions==null||!Introductions.IsOpen) && (State == TreeStageState.WAITING_FOR_ACTIVATION || State == TreeStageState.ACTIVE));
             if(!Ready)return;
             ui.Refresh();
+            // Help owns the arrival. Its Let's Begin restores the snapshot before practice can begin.
+            if(!arrivalHelpShown){SetLesson(true);arrivalHelpShown=LessonOpen;return;}
+            if(Introductions!=null&&!Introductions.IsOpen)Introductions.TryBegin();
         }
         public void InteractBook()
         {
@@ -146,6 +153,7 @@ namespace LogicLegends.Trees
         }
         public void HandleGameOver()
         {
+            Introductions?.CancelImmediate();
             if(State==TreeStageState.STAGE_COMPLETE||State==TreeStageState.GAME_OVER)return;
             CloseBoard(false);LessonOpen=false;State=TreeStageState.GAME_OVER;timer.Pause();LocalPlayer?.ToggleControl(false);input?.SetGameplayInputBlocked(true);gameOver.ShowGameOver();ui.ShowResult(false);
         }
@@ -153,7 +161,7 @@ namespace LogicLegends.Trees
         {
             if (open)
             {
-                if (LessonOpen || !Ready || Moving || Time.timeScale <= 0 ||
+                if (LessonOpen || !Ready || Moving || (Introductions!=null&&Introductions.IsOpen) || Time.timeScale <= 0 ||
                     (boardFocus != null && boardFocus.Transitioning) ||
                     (State != TreeStageState.ACTIVE && State != TreeStageState.WAITING_FOR_ACTIVATION)) return;
                 lessonInputBlocked = input.GameplayInputBlocked;
@@ -183,7 +191,7 @@ namespace LogicLegends.Trees
         }
         public void Restart() { TrialRewards.RecordRetry(10); Navigate("Trees"); }
         public void Return()=>Navigate("Main Menu");
-        void Navigate(string scene){CloseBoard(false);Time.timeScale=1;input?.SetGameplayInputBlocked(false);TeleportManager.EnsureExists().LoadSceneWithFade(scene);}
+        void Navigate(string scene){Introductions?.CancelImmediate();CloseBoard(false);Time.timeScale=1;input?.SetGameplayInputBlocked(false);TeleportManager.EnsureExists().LoadSceneWithFade(scene);}
         void SelectPlaythrough()
         {
             if (catalog.variantSets.Count != 5) throw new InvalidOperationException("Trees needs five question banks.");

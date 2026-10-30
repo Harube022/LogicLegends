@@ -15,7 +15,7 @@ using UnityEngine.UI;
 using Unity.Cinemachine;
 using LogicLegends.Trees;
 
-/// <summary>Four actual Game view clips. Normal touch, physics and validation; all effects are Editor-only.</summary>
+/// <summary>Two actual Game view clips. Normal touch, physics and validation; all effects are Editor-only.</summary>
 public static class TreesHelpClipCapture
 {
     const string Output="Library/StageHelpCaptures/", Evidence="Library/TreesHelpSequence.txt";
@@ -44,9 +44,9 @@ public static class TreesHelpClipCapture
         File.WriteAllText(Evidence,"Actual offline Game view. Real physical walk, hand touch, InformationBoard node selection and Submit. No account writes.\n");
         try
         {
-            Position(new Vector3(0,stage.spawnPoint.position.y,-3.5f),stage.bookStatue.position);
+            Position(new Vector3(1.5f,stage.spawnPoint.position.y,-5f),stage.bookStatue.position);
             SetCamera(new Vector3(5,7,-9),stage.bookStatue.position+Vector3.up*1.2f,54);
-            Start(0);yield return FadeIn();yield return Walk(stage.bookStatue.position+new Vector3(1.7f,stage.spawnPoint.position.y,-1.4f),4);
+            Start(0);yield return FadeIn();yield return Walk(stage.bookStatue.position+new Vector3(2.8f,stage.spawnPoint.position.y,-2.1f),4);
             Face(stage.bookStatue.position);yield return ZoomButton(hand,1.45f);yield return Focus(ScreenRect((RectTransform)hand.transform,12),1.55f);Snapshot("01_Hand");
             brain.enabled=true;yield return Tap((RectTransform)hand.transform);yield return Overview();ResetView();
             yield return Until(()=>stage.CanSolve,140,"hand opens live board and starts clock");AssertSame();yield return Frames(16);yield return Finish();

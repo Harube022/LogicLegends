@@ -34,7 +34,7 @@ namespace LogicLegends.Trees
             foreach (var look in FindObjectsByType<CinemachineInputAxisController>(FindObjectsSortMode.None)) FreezeLook(look);
             foreach (var look in FindObjectsByType<CinemachinePinchZoom>(FindObjectsSortMode.None)) FreezeLook(look);
             MobileLookInput.ResetDelta();
-            outputCamera.rect = new Rect(0, 0, 1, 1);
+            outputCamera.rect = new Rect(.25f, 0, .75f, 1);
             FrameBoard();
             focusCamera.gameObject.SetActive(true);
             GuardSwitch();
@@ -50,9 +50,9 @@ namespace LogicLegends.Trees
         void FrameBoard()
         {
             if(focusCamera==null||board==null)return;
-            focusCamera.transform.SetPositionAndRotation(board.position-board.forward*5,board.rotation);
+            focusCamera.transform.SetPositionAndRotation(board.position-Vector3.up*.35f-board.forward*5,board.rotation);
             var lens=focusCamera.Lens;
-            lens.OrthographicSize=Mathf.Max(5.4f,7.4f/Mathf.Max(.5f,outputCamera.aspect));
+            lens.OrthographicSize=Mathf.Max(5.4f,8.6f/Mathf.Max(.5f,outputCamera.aspect));
             lens.NearClipPlane=.05f;lens.FarClipPlane=150;
             focusCamera.Lens=lens;
         }

@@ -212,8 +212,10 @@ public sealed partial class DirectProofsGuide : MonoBehaviour
     }
     public void PracticeAction(bool alternate = false)
     {
-        if (!IsPractice || !Readable) return;
+        if (!IsPractice) return;
+        // Confirmation choices must respond immediately, including repeated Skip / No.
         if (Step == DirectProofsPracticeStep.Confirmation) { if (alternate) BeginMovement(); else FinishPractice(); return; }
+        if (!Readable) return;
         if (Step == DirectProofsPracticeStep.Choose)
         {
             if (alternate) { body.text = "This practice derivation starts from the given facts and solves directly, so choose Direct Proof. This practice correction has no penalty."; return; }

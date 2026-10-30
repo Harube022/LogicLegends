@@ -8,6 +8,11 @@ namespace LogicLegends.Trees
         public TMP_Text label;
         public Renderer face;
         MaterialPropertyBlock block;
+        public void ConfigureLabel()
+        {
+            label.font=StageUITheme.ReadingFont;label.fontStyle=FontStyles.Bold;
+            label.enableAutoSizing=false;label.fontSize=8;label.outlineWidth=.06f;label.outlineColor=Color.black;
+        }
         public void SetSelected(bool selected, bool target = false)
         {
             label.color=selected?StageUITheme.ReadingInk:Color.white;

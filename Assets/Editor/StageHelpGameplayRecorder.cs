@@ -46,6 +46,12 @@ public static class StageHelpGameplayRecorder
     {SessionState.SetBool("Help.TreesPlaylistVerify",true);CheckTreesRevision();}
     public static void CheckTreesRevision()
     {SessionState.SetBool("Help.TreesRevisionVerify",true);Begin("Trees");}
+    public static void CheckTruthSunset()
+    {SessionState.SetBool("Help.TruthNightOnly",true);Begin("TruthTable");}
+    public static void CheckTruthNight()
+    {SessionState.SetBool("Help.TruthNightOnly",true);Begin("TruthTable");}
+    public static void CheckTruthHolograms()
+    {SessionState.SetBool("Help.TruthHologramVerify",true);Begin("TruthTable");}
     public static void CheckGraphRevision()
     {SessionState.SetBool("Help.GraphRevisionVerify",true);Begin("Graph");}
     public static void CheckGraphHighlights()
@@ -90,6 +96,8 @@ public static class StageHelpGameplayRecorder
         SessionState.SetBool("Help.TreesRevisionVerify",false);
         SessionState.SetBool("Help.TreesPlaylistVerify",false);
         SessionState.SetBool("Help.TreesInspectOnly",false);
+        SessionState.SetBool("Help.TruthHologramVerify",false);
+        SessionState.SetBool("Help.TruthNightOnly",false);
         SessionState.SetBool("Help.GraphRevisionVerify",false);
         SessionState.SetBool("Help.GraphHighlightsOnly",false);
         SessionState.SetBool("Help.GraphPlaylistOnly",false);
@@ -244,7 +252,9 @@ public static class StageHelpGameplayRecorder
             }
             if(scene=="TruthTable")
             {
-                yield return TruthTableHelpClipCapture.Record();
+                if(SessionState.GetBool("Help.TruthNightOnly",false))yield return TruthTableNightChecks.Run();
+                else if(SessionState.GetBool("Help.TruthHologramVerify",false))yield return TruthTableHologramChecks.Run();
+                else yield return TruthTableHelpClipCapture.Record();
                 continue;
             }
             if(scene=="RulesOfInference")
@@ -322,7 +332,11 @@ public static class StageHelpGameplayRecorder
             s.Introductions.Finish();while(s.Introductions.IsOpen)yield return null;
             yield break;
         }
-        if(scene=="Trees"){var s=Find<LogicLegends.Trees.TreeStageManager>();while(!s.Ready)yield return null;if(s.LessonOpen)s.SetLesson(false);}
+        if(scene=="Trees"){var s=Find<LogicLegends.Trees.TreeStageManager>();while(!s.Ready)yield return null;
+            if(SessionState.GetBool("Help.TreesRevisionVerify",false))yield break;
+            if(s.LessonOpen)s.SetLesson(false);
+            while(!s.Introductions.IsOpen)yield return null;s.Introductions.Finish();while(s.Introductions.IsOpen)yield return null;}
+
         else if(scene=="Functions and Relations"&&SessionState.GetBool("Help.FunctionsTutorialVerify",false))
         {
             yield return FunctionsRelationsOnboardingPlayChecks.Run(Find<FunctionsRelationsStageManager>());

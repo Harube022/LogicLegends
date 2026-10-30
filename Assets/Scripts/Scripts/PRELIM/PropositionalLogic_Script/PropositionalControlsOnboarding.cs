@@ -223,6 +223,8 @@ public sealed class PropositionalControlsOnboarding : MonoBehaviour
 
     private void BeginMovement()
     {
+        // Idempotently restore the same shared control on every replay.
+        skipControl = PrelimTutorialSkipControl.Create(safeArea, SkipTutorial);
         mobileControls?.ResetJoystick();
         input.SetGameplayInputBlocked(false);
         step = Step.Movement;

@@ -12,17 +12,18 @@ namespace LogicLegends.Trees
         public string Second { get; private set; }
         public TreeChallengeData Challenge { get; private set; }
         public readonly List<TreeNode> Nodes = new List<TreeNode>();
+        Dictionary<string,Vector3> positions=new Dictionary<string,Vector3>();
         readonly List<LineRenderer> lines=new List<LineRenderer>();
         public void Build(TreeChallengeData data)
         {
             foreach(var node in GetComponentsInChildren<TreeNode>(true)) {node.gameObject.SetActive(false);Destroy(node.gameObject);}Nodes.Clear();
             foreach(var line in GetComponentsInChildren<LineRenderer>(true)){line.gameObject.SetActive(false);Destroy(line.gameObject);}lines.Clear();
-            Challenge=data;First=Second=null;Edges=data.initial.Select(e=>new TreeEdgeData(e.source,e.destination){removable=e.removable}).ToList();
-            foreach(var n in data.nodes) {var node=Instantiate(nodePrefab,transform);node.id=n.id;node.label.text=n.id;node.transform.localScale*=.58f;node.transform.localPosition=Position(n);Nodes.Add(node);}
+            Challenge=data;positions=TreeDiagramLayout.Calculate(data);First=Second=null;Edges=data.initial.Select(e=>new TreeEdgeData(e.source,e.destination){removable=e.removable}).ToList();
+            foreach(var n in data.nodes) {var node=Instantiate(nodePrefab,transform);node.id=n.id;node.label.text=n.id;node.transform.localScale*=.84f;node.transform.localPosition=positions[n.id];node.ConfigureLabel();Nodes.Add(node);}
             Draw();
         }
         // Same coordinates as the InformationBoard canvas. Keep the diagram below its question.
-        public static Vector3 Position(TreeNodeData n)=>new Vector3(n.position.x*4.7f,(-110+n.position.y*330)*.0094f,-.07f);
+        public static Vector3 Position(TreeNodeData n)=>new Vector3(n.position.x*5.4f,-3.35f+n.position.y*6.7f,-.07f);
         public void Select(string id)
         {
             if(!Nodes.Any(n=>n.id==id))return;
@@ -63,8 +64,9 @@ namespace LogicLegends.Trees
             foreach(var edge in Edges)
             {
                 var line=Instantiate(edgePrefab,transform);line.name=edge.source+" to "+edge.destination;line.useWorldSpace=false;line.positionCount=2;
-                line.SetPosition(0,Position(Challenge.nodes.First(n=>n.id==edge.source))+Vector3.back*.08f);
-                line.SetPosition(1,Position(Challenge.nodes.First(n=>n.id==edge.destination))+Vector3.back*.08f);lines.Add(line);
+                var a=positions[edge.source];var b=positions[edge.destination];var direction=(b-a).normalized;
+                line.SetPosition(0,a+direction*.46f+Vector3.back*.08f);
+                line.SetPosition(1,b-direction*.46f+Vector3.back*.08f);lines.Add(line);
             }
             RefreshSelection();
         }

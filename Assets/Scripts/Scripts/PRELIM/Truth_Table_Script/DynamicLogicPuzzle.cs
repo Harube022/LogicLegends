@@ -64,6 +64,7 @@ public partial class DynamicLogicPuzzle : MonoBehaviour
     [SerializeField] private TMP_Text columnFeedbackText;
     [SerializeField, Min(0.5f)] private float columnFeedbackSeconds = 3f;
     private Coroutine columnFeedbackCoroutine;
+    private int incorrectHologramColumn = -1;
 
     private void OnEnable()
     {
@@ -85,6 +86,7 @@ public partial class DynamicLogicPuzzle : MonoBehaviour
         // The quiz has its own feedback label. Never leave the previous
         // column result visible behind or above the quiz panel.
         if (houseDoors != null && houseDoors.IsQuizOpen) ClearColumnFeedback();
+        UpdatePlacementIndicator();
         if (submitColumnButton == null) return;
         bool ready = isActivePuzzle && !PuzzleCompleted &&
                      (houseDoors == null || houseDoors.IsStageRunning) &&
@@ -119,7 +121,7 @@ public partial class DynamicLogicPuzzle : MonoBehaviour
     private void ShowColumnFeedback(bool correct)
     {
         if (columnFeedbackPanel == null || columnFeedbackText == null) return;
-        ClearColumnFeedback();
+        ClearColumnFeedback(false);
         columnFeedbackText.text = correct ? "Correct" : "Incorrect, Try again";
         columnFeedbackText.color = correct ? new Color(0.25f, 0.95f, 0.35f) :
                                              new Color(1f, 0.27f, 0.27f);
@@ -134,8 +136,9 @@ public partial class DynamicLogicPuzzle : MonoBehaviour
         ClearColumnFeedback();
     }
 
-    private void ClearColumnFeedback()
+    private void ClearColumnFeedback(bool clearHologram=true)
     {
+        if(clearHologram)ClearIncorrectHologram();
         if (columnFeedbackCoroutine != null)
         {
             StopCoroutine(columnFeedbackCoroutine);
@@ -212,7 +215,9 @@ public partial class DynamicLogicPuzzle : MonoBehaviour
 
         Transform targetSnap = currentPhase.GetActiveSnapPoint();
 
-        if (isPlayerNear && targetSnap != null && !PuzzleCompleted)
+        bool available=houseDoors==null||houseDoors.IsStageRunning&&!houseDoors.IsQuizOpen&&
+            (houseDoors.GetComponent<TruthTableStageClock>()==null||!houseDoors.GetComponent<TruthTableStageClock>().IsTutorialOpen);
+        if (isPlayerNear && available && targetSnap != null && !PuzzleCompleted)
         {
             placementIndicator.gameObject.SetActive(true);
             placementIndicator.position = targetSnap.position;
@@ -280,7 +285,34 @@ public partial class DynamicLogicPuzzle : MonoBehaviour
         if (barrier.TryGetComponent(out Collider col)) 
             col.enabled = blockPlayer;
 
-        barrier.SetActive(blockPlayer || renderer.material == null); // Hide completely if needed
+        var hologram=barrier.GetComponent<TruthTableColumnHologram>();
+        if(hologram!=null)
+        {
+            // Locked columns keep their original physical barrier, with no answer-colored visual.
+            bool green=blockPlayer&&mat==completedMaterial;
+            hologram.SetFeedbackVisible(green);
+            barrier.SetActive(blockPlayer||green);
+        }
+        else barrier.SetActive(blockPlayer || renderer.material == null);
+    }
+
+    public void ShowIncorrectColumnHologram(int column)
+    {
+        ClearIncorrectHologram();
+        GameObject barrier=column==0?col1Barrier:column==1?col2Barrier:col3Barrier;
+        if(barrier==null||!barrier.TryGetComponent<TruthTableColumnHologram>(out var hologram))return;
+        incorrectHologramColumn=column;
+        barrier.GetComponent<MeshRenderer>().sharedMaterial=lockedMaterial;
+        hologram.SetFeedbackVisible(true);barrier.SetActive(true);
+        // Collider state remains owned by UpdateBarrier; a failed answer cannot block the active slot.
+    }
+    void ClearIncorrectHologram()
+    {
+        if(incorrectHologramColumn<0)return;
+        var barrier=incorrectHologramColumn==0?col1Barrier:incorrectHologramColumn==1?col2Barrier:col3Barrier;
+        incorrectHologramColumn=-1;if(barrier==null)return;
+        if(barrier.TryGetComponent<TruthTableColumnHologram>(out var h))h.SetFeedbackVisible(false);
+        var collider=barrier.GetComponent<Collider>();if(collider!=null&&!collider.enabled)barrier.SetActive(false);
     }
 
     public Transform[] GetColumnSnapPoints(int columnIndex)

@@ -24,6 +24,8 @@ public static class MobileTutorialInteractionChecks
     static readonly string[] History={"FunctionsRelations.LastVariant.","LogicLegends.Induction.LastVariant.","LogicLegends.ProofsLibrary.LastVariant.","LogicLegends.Graph.LastVariant.","LogicLegends.Trees.LastVariant."};
     static Touchscreen touchscreen;
     static int finger;
+    public static void BeginRemaining(string scene)
+    { SessionState.SetInt(Flag+".Start",Mathf.Max(0,Array.IndexOf(Scenes,scene)));Begin(); }
     [MenuItem("Logic Legends/Mobile/Check Quizzes and Tutorial Touch")]
     public static void Begin()
     {
@@ -32,7 +34,7 @@ public static class MobileTutorialInteractionChecks
         SessionState.SetInt(Flag+".Size",BookMapMobileChecks.GetSize());SessionState.SetBool(Flag,true);
         foreach(var prefix in History)for(int i=0;i<5;i++)
         {var key=prefix+i;SessionState.SetBool(Flag+key,PlayerPrefs.HasKey(key));SessionState.SetInt(Flag+key+".Value",PlayerPrefs.GetInt(key));}
-        File.WriteAllText(Report,"Saved-scene mobile quiz and tutorial checks\n");
+        if(SessionState.GetInt(Flag+".Start",0)==0)File.WriteAllText(Report,"Saved-scene mobile quiz and tutorial checks\n");else File.AppendAllText(Report,"Resuming remaining scenes after fixing the reported failure.\n");
         EditorSceneManager.OpenScene("Assets/Scenes/TruthTable.unity");EditorApplication.isPlaying=true;
     }
     [InitializeOnLoadMethod]
@@ -40,7 +42,7 @@ public static class MobileTutorialInteractionChecks
     static void Restore(PlayModeStateChange state)
     {
         if(state!=PlayModeStateChange.EnteredEditMode||!SessionState.GetBool(Flag,false))return;
-        SessionState.SetBool(Flag,false);SceneManager.sceneLoaded-=Loaded;
+        SessionState.SetBool(Flag,false);SessionState.SetInt(Flag+".Start",0);SceneManager.sceneLoaded-=Loaded;
         var testFlags=BindingFlags.Static|BindingFlags.NonPublic;
         foreach(string field in new[]{"ValidationTransport","ValidationUid","ValidationEmail"})
             typeof(TrialBackendClient).GetField(field,testFlags).SetValue(null,null);
@@ -92,7 +94,7 @@ public static class MobileTutorialInteractionChecks
     static IEnumerator Run()
     {
         Application.runInBackground=true;touchscreen=InputSystem.AddDevice<Touchscreen>();finger=10;
-        foreach(string scene in Scenes)
+        foreach(string scene in Scenes.Skip(SessionState.GetInt(Flag+".Start",0)))
         {
             Time.timeScale=1;GameInput.Instance?.SetGameplayInputBlocked(false);
             StageSelectionState.SelectForEditorSpawn(scene=="PRELIM"?1:scene=="TruthTable"?2:scene=="LogicGarden"?1:TrialCatalog.ForScene(scene).Number);
@@ -111,6 +113,7 @@ public static class MobileTutorialInteractionChecks
             }
             MonoBehaviour coach=Prepare(scene);yield return null;yield return null;
             Check(coach!=null,"tutorial controller "+scene);
+            if(scene!="LogicGarden")yield return ReplaySkips(coach,scene);
             CheckHandNotPremature(coach,scene);
             var hand=UnityEngine.Object.FindObjectsByType<Button>(FindObjectsInactive.Include,FindObjectsSortMode.None).First(b=>b.name=="InteractButton");
             BeginHand(coach,scene,(RectTransform)hand.transform);yield return null;yield return null;
@@ -153,6 +156,22 @@ public static class MobileTutorialInteractionChecks
             if(scene=="TruthTable")yield return Quizzes();
         }
         InputSystem.RemoveDevice(touchscreen);
+    }
+    static IEnumerator ReplaySkips(MonoBehaviour coach,string scene)
+    {
+        foreach(int cycle in new[]{1,2,3})
+        {
+            yield return null;yield return null;
+            var buttons=UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Where(b=>b.GetComponentsInChildren<TMP_Text>().Any(t=>t.text=="Skip Tutorial")).ToArray();
+            Check(buttons.Length==1,"exactly one active shared Skip before replay "+scene+" cycle "+cycle+" count="+buttons.Length);
+            yield return Tap(buttons[0]);yield return null;
+            var no=UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Where(b=>b.GetComponentsInChildren<TMP_Text>().Any(t=>t.text=="No")).ToArray();
+            Check(no.Length==1,"one confirmation No "+scene);
+            yield return Tap(no[0]);yield return null;yield return null;
+            Check(Step(coach)=="Movement","Skip then No returns to movement "+scene+" cycle "+cycle);
+            Check(!UnityEngine.Object.FindObjectsByType<TMP_Text>(FindObjectsSortMode.None).Any(t=>t.text.Contains("Interact with me")),"no stale practice content after replay "+scene);
+        }
+        Log("PASS "+scene+": three actual touch Skip then No cycles, one Skip/confirmation, movement restored.");
     }
     static MonoBehaviour Prepare(string scene)
     {

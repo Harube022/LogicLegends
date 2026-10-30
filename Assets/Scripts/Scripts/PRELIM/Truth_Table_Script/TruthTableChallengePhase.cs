@@ -196,6 +196,7 @@ public sealed partial class TruthTableChallengePhase : IPuzzlePhase
                 if (block != null && !block.ReturnToInventory()) block.ReturnToOrigin(false);
             Array.Clear(placedBlocks, 0, placedBlocks.Length);
             currentRow = 0;
+            puzzle.ShowIncorrectColumnHologram(columnIndex);
             puzzle.UpdatePlacementIndicator();
             return false;
         }

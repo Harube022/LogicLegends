@@ -5,25 +5,25 @@ using UnityEngine.Rendering;
 
 /// <summary>
 /// Lighting for the Truth_Table area only. Its parent is enabled by AreaVisibilityManager.
-/// The streetlamp FBX has one renderer, so fixture positions are derived from its bounds.
+/// The yellow lantern submesh supplies the fixture position, independent of the curved post.
 /// </summary>
 public sealed class TruthTableDuskLighting : MonoBehaviour
 {
-    [Header("Late Afternoon")]
+    [Header("Truth Table Sunset Environment")]
     [SerializeField] private Light sunlight;
-    [SerializeField, Range(0f, 2f)] private float sunlightIntensity = 0.72f;
-    [SerializeField] private Color sunlightColor = new Color(1f, 0.8f, 0.62f);
-    [SerializeField] private Color ambientSky = new Color(0.18f, 0.18f, 0.23f);
-    [SerializeField] private Color ambientEquator = new Color(0.11f, 0.1f, 0.12f);
-    [SerializeField] private Color ambientGround = new Color(0.055f, 0.048f, 0.05f);
-    [SerializeField, Range(0f, 2f)] private float skyExposure = 0.72f;
-    [SerializeField] private Color skyTint = new Color(0.59f, 0.49f, 0.48f, 0.5f);
+    [SerializeField, Range(0f, 2f)] private float sunlightIntensity = 0.85f;
+    [SerializeField] private Color sunlightColor = new Color(1f, 0.74f, 0.5f);
+    [SerializeField] private Color ambientSky = new Color(0.36f, 0.29f, 0.36f);
+    [SerializeField] private Color ambientEquator = new Color(0.3f, 0.24f, 0.22f);
+    [SerializeField] private Color ambientGround = new Color(0.15f, 0.125f, 0.15f);
+    [SerializeField, Range(0f, 2f)] private float skyExposure = 1.05f;
+    [SerializeField] private Color skyTint = new Color(0.6f, 0.52f, 0.48f, 1f);
 
     [Header("Streetlamp Fixture")]
     [SerializeField] private Color lampColor = new Color(1f, 0.71f, 0.4f);
-    [SerializeField, Min(0f)] private float lampIntensity = 14f;
+    [SerializeField, Min(0f)] private float lampIntensity = 22f;
     [SerializeField, Min(0.1f)] private float lampRange = 17f;
-    [SerializeField, Min(0f)] private float fixtureGlow = 1.7f;
+    [SerializeField, Min(0f)] private float fixtureGlow = 1.2f;
     [SerializeField, Range(-1f, 1f)] private float fixtureHeightOffset = 0.32f;
     [SerializeField, Range(-1f, 1f)] private float fixtureSideOffset = -0.52f;
     [SerializeField, Min(0f)] private float lightBelowFixture = 1f;
@@ -34,7 +34,7 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
     [SerializeField, Min(0)] private int flickerEveryNthLamp = 4;
     [SerializeField, Min(0.1f)] private float minimumFlickerInterval = 4f;
     [SerializeField, Min(0.1f)] private float maximumFlickerInterval = 9f;
-    [SerializeField, Range(0.5f, 1f)] private float lowestFlickerBrightness = 0.78f;
+    [SerializeField, Range(0.5f, 1f)] private float lowestFlickerBrightness = 0.88f;
     [SerializeField, Min(0.1f)] private float flickerDuration = 0.48f;
 
     private sealed class LampState
@@ -50,6 +50,13 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
         public float flickerStarted = -1f;
         public float flickerLength;
     }
+
+    public readonly List<Light> LampLights = new List<Light>();
+    public int FixtureCount => lamps.Count;
+    public int FlickeringCount { get { int count=0;foreach(var lamp in lamps)if(lamp.flickers)count++;return count; } }
+    System.Random flickerRandom;
+    float lastIntensity, lastGlow;
+    float NextFloat(float min,float max)=>min+(float)flickerRandom.NextDouble()*(max-min);
 
     private readonly List<LampState> lamps = new List<LampState>();
     private readonly Dictionary<Material, Material> glowingMaterials = new Dictionary<Material, Material>();
@@ -93,9 +100,10 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
         RenderSettings.ambientGroundColor = ambientGround;
         if (originalSkybox != null)
         {
-            duskSkybox = new Material(originalSkybox) { name = "Truth Table Dusk Sky (Runtime)" };
+            duskSkybox = new Material(originalSkybox) { name = "TruthTableSunsetSky (Runtime)" };
             if (duskSkybox.HasProperty("_Exposure")) duskSkybox.SetFloat("_Exposure", skyExposure);
             if (duskSkybox.HasProperty("_Tint")) duskSkybox.SetColor("_Tint", skyTint);
+            if (duskSkybox.HasProperty("_SkyTint")) duskSkybox.SetColor("_SkyTint", skyTint);
             RenderSettings.skybox = duskSkybox;
         }
         lightingApplied = true;
@@ -103,7 +111,8 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
 
     private void ConfigureStreetlamps()
     {
-        lamps.Clear();
+        lamps.Clear();LampLights.Clear();flickerRandom=new System.Random(21428);
+        lastIntensity=lampIntensity;lastGlow=fixtureGlow;
         var found = new List<Transform>();
         foreach (Transform child in GetComponentsInChildren<Transform>(true))
             if (child.name == "STREETLAMP2" || child.name.StartsWith("STREETLAMP2 (", StringComparison.Ordinal))
@@ -118,6 +127,12 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
             Bounds bounds = fixture.bounds;
             Vector3 fixturePosition = bounds.center + Vector3.up * (bounds.extents.y * fixtureHeightOffset)
                 + lamp.right * (Mathf.Max(bounds.extents.x, bounds.extents.z) * fixtureSideOffset);
+            // Use the actual yellow lantern submesh, not the bounds of the entire curved post.
+            var filter=fixture.GetComponent<MeshFilter>();var materials=fixture.sharedMaterials;
+            if(filter!=null&&filter.sharedMesh!=null)
+                for(int slot=0;slot<materials.Length&&slot<filter.sharedMesh.subMeshCount;slot++)
+                    if(materials[slot]!=null&&materials[slot].name.IndexOf("Celestial Gold",StringComparison.OrdinalIgnoreCase)>=0)
+                    {fixturePosition=filter.transform.TransformPoint(filter.sharedMesh.GetSubMesh(slot).bounds.center);break;}
 
             Transform lightTransform = lamp.Find("TruthTableFixtureLight");
             if (lightTransform == null)
@@ -126,13 +141,13 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
                 lightTransform = lightObject.transform;
                 lightTransform.SetParent(lamp, false);
             }
-            // The imported lamp has an opaque shade. Put the light below it and
-            // aim toward the path, rather than losing most of a point light to air.
-            lightTransform.position = fixturePosition + Vector3.down * lightBelowFixture;
+            // Unshadowed light in the translucent-looking yellow lantern reaches the ground
+            // without the imported opaque glass blocking its entire pool.
+            lightTransform.position = fixturePosition;
             lightTransform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
             Light poolLight = lightTransform.GetComponent<Light>();
             if (poolLight == null) poolLight = lightTransform.gameObject.AddComponent<Light>();
-            poolLight.type = LightType.Spot;
+            poolLight.type = LightType.Point;
             poolLight.color = lampColor;
             poolLight.intensity = lampIntensity;
             poolLight.range = lampRange;
@@ -150,13 +165,13 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
                 light = poolLight,
                 renderer = fixture,
                 flickers = flickerEveryNthLamp > 0 && index % flickerEveryNthLamp == 1,
-                nextFlicker = Time.unscaledTime + UnityEngine.Random.Range(minimumFlickerInterval, maximumFlickerInterval)
+                nextFlicker = Time.unscaledTime + NextFloat(minimumFlickerInterval, maximumFlickerInterval)
                     + index * 0.13f
             };
             ConfigureFixtureGlow(state);
             if (state.glowMaterialIndex < 0) ConfigureFallbackGlow(state, lightTransform, fixturePosition);
             SetBrightness(state, 1f);
-            lamps.Add(state);
+            lamps.Add(state);LampLights.Add(poolLight);
         }
         if (found.Count == 0)
             Debug.LogWarning("Truth_Table has no STREETLAMP2 fixtures under its hierarchy.", this);
@@ -193,6 +208,8 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
             if (!glowingMaterials.TryGetValue(original, out Material glowing))
             {
                 glowing = new Material(original) { name = original.name + " (Truth Table Glow)" };
+                glowing.SetColor("_EmissionColor",lampColor*fixtureGlow);
+                glowing.globalIlluminationFlags=MaterialGlobalIlluminationFlags.BakedEmissive;
                 glowing.EnableKeyword("_EMISSION");
                 glowingMaterials.Add(original, glowing);
             }
@@ -239,13 +256,16 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
     private void Update()
     {
         float now = Time.unscaledTime;
+        bool changed=!Mathf.Approximately(lastIntensity,lampIntensity)||!Mathf.Approximately(lastGlow,fixtureGlow);
+        lastIntensity=lampIntensity;lastGlow=fixtureGlow;
         foreach (LampState state in lamps)
         {
-            if (!state.flickers) continue;
+            if (!state.flickers) {if(changed)SetBrightness(state,1);continue;}
+            if(changed&&state.flickerStarted<0)SetBrightness(state,1);
             if (state.flickerStarted < 0f && now >= state.nextFlicker)
             {
                 state.flickerStarted = now;
-                state.flickerLength = flickerDuration * UnityEngine.Random.Range(0.8f, 1.2f);
+                state.flickerLength = flickerDuration * NextFloat(0.8f, 1.2f);
             }
             if (state.flickerStarted < 0f) continue;
             float progress = (now - state.flickerStarted) / state.flickerLength;
@@ -253,7 +273,7 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
             {
                 SetBrightness(state, 1f);
                 state.flickerStarted = -1f;
-                state.nextFlicker = now + UnityEngine.Random.Range(minimumFlickerInterval, maximumFlickerInterval);
+                state.nextFlicker = now + NextFloat(minimumFlickerInterval, maximumFlickerInterval);
                 continue;
             }
             float dip = Mathf.Sin(Mathf.PI * Mathf.Clamp01(progress));
@@ -283,18 +303,22 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
                 state.renderer.sharedMaterials = state.originalMaterials;
             }
         }
-        lamps.Clear();
+        lamps.Clear();LampLights.Clear();
         if (!lightingApplied) return;
         if (sunlight != null)
         {
             sunlight.intensity = originalSunIntensity;
             sunlight.color = originalSunColor;
         }
+        // A newly loaded scene owns its own environment; never overwrite it on unload.
+        if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name=="TruthTable")
+        {
         RenderSettings.ambientMode = originalAmbientMode;
         RenderSettings.ambientSkyColor = originalAmbientSky;
         RenderSettings.ambientEquatorColor = originalAmbientEquator;
         RenderSettings.ambientGroundColor = originalAmbientGround;
         RenderSettings.skybox = originalSkybox;
+        }
         if (duskSkybox != null) Destroy(duskSkybox);
         duskSkybox = null;
         lightingApplied = false;

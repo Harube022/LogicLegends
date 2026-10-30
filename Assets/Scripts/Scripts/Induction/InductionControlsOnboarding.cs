@@ -105,6 +105,8 @@ namespace LogicLegends.Induction
         }
         void BeginMovement()
         {
+            // Idempotently restore the same shared control on every replay.
+            skip = PrelimTutorialSkipControl.Create(safeArea, SkipTutorial);
             ResetGuide();
             confirmation.SetActive(false);Time.timeScale=previousTimeScale;input.SetGameplayInputBlocked(false);player.ToggleControl(true);
             PrelimTeleportTransition.MovePlayerImmediately(player.gameObject,originalPosition,originalRotation);
