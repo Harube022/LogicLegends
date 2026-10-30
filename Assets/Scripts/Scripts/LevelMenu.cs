@@ -12,6 +12,14 @@ public class LevelMenu : MonoBehaviourPunCallbacks
     private bool previousPlayerEnabled;
     private readonly System.Collections.Generic.List<Behaviour> pausedLookControllers = new System.Collections.Generic.List<Behaviour>();
 
+    public override void OnDisable()
+    {
+        // A disconnect, defeat or scene transition can close Settings without Resume.
+        // Release its local input block before the persistent GameInput reaches the next match.
+        ClosePause();
+        base.OnDisable();
+    }
+
     public void OpenPause()
     {
         if (pauseOpen || pausePanel == null) return;

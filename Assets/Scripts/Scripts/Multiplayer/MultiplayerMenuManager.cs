@@ -9,7 +9,9 @@ public class MultiplayerMenuManager : MonoBehaviour
     public void OnClickMultiplayerButton()
     {
         var service = MultiplayerLobbyService.EnsureExists();
-        service.TargetScene = multiplayerScene;
+        // Older menu scenes serialized the temporary Topics/Testing scene, which
+        // was moved to Assets/Scenes. The production mode has one canonical route.
+        service.TargetScene = MultiplayerSceneRoutes.GameplayPath;
         if (lobbyUI != null) lobbyUI.Open();
         else Debug.LogError("The multiplayer lobby UI has not been assigned.");
     }

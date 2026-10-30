@@ -34,6 +34,7 @@ namespace LogicLegends.Tests.Monsters
         [SerializeField] DevelopmentMonsterProfile khezuProfile, rajangProfile;
         public bool HasSharedEncounter => sharedDriver != null;
         public DevelopmentMonsterProfile RajangEncounterProfile => rajangProfile;
+        public DevelopmentMonsterProfile KhezuEncounterProfile => khezuProfile;
         public bool CanSwap => SwapBlockedReason.Length == 0;
         public string SwapBlockedReason
         {
@@ -41,9 +42,13 @@ namespace LogicLegends.Tests.Monsters
             {
                 if (!HasSharedEncounter || !Application.isPlaying) return "";
                 if (PhotonNetwork.InRoom) return "Swap is an offline development control.";
+                var archive=LogicLegends.OpenArchive.Topics.ArchiveTopicSession.Current;
+                if(archive!=null&&archive.worldProgression!=null&&archive.worldProgression.secondary!=null&&archive.worldProgression.secondary.gameObject.activeInHierarchy)
+                    return "Both monster rigs are active at night. Restart the test match to change the first guardian.";
                 var cinematic = sharedDriver.GetComponent<KhezuCinematicJumpscareController>();
                 if (cinematic != null && cinematic.IsPlaying) return "Wait for the POV preview to finish.";
                 var hunt = sharedDriver.GetComponent<KhezuHuntingController>();
+                if(hunt!=null&&hunt.IsTranquilized)return "Wait for the tranquilizer sleep to finish before swapping the existing rig.";
                 if (hunt != null && (hunt.State == KhezuHuntState.Caught || hunt.State == KhezuHuntState.ReturningToNest ||
                     hunt.State == KhezuHuntState.NestSleeping || hunt.State == KhezuHuntState.AttackRecovery))
                     return "Finish the captured player's challenge and recovery first.";

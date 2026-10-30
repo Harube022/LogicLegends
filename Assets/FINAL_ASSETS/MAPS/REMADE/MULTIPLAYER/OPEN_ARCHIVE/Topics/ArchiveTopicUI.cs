@@ -55,6 +55,7 @@ namespace LogicLegends.OpenArchive.Topics
         void Hand(object sender,EventArgs args)
         {
             if(!session.Ready||!session.CanAct(session.LocalActor)||Time.timeScale<=0)return;
+            if(ArchiveRewardView.HandlesHand(session)){ArchiveRewardView.HandleHand(session);return;}
             if(ArchiveCoopActivityView.HandlesHand(session))return;
             focus?.Interact();
         }

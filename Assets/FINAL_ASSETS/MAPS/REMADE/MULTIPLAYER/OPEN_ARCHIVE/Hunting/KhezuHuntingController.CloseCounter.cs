@@ -45,6 +45,7 @@ namespace LogicLegends.OpenArchive.Hunting
         {
             get
             {
+                if(rajangCounterProfile)return true;
                 if (counterSelection == null) counterSelection = FindFirstObjectByType<DevelopmentMonsterSelection>();
                 return counterSelection != null && counterSelection.ActiveTest != null &&
                     counterSelection.ActiveTest.gameObject == gameObject && counterSelection.Selected == DevelopmentMonster.Rajang;
@@ -190,10 +191,13 @@ namespace LogicLegends.OpenArchive.Hunting
         }
         void CatchTarget(Target target)
         {
+            if(Topics.ArchiveTopicSession.Current!=null&&Topics.ArchiveTopicSession.Current.NightEntranceActive)return;
+            if(!CaptureSlotAvailable()||ReservedByAnotherMonster(TargetPlayerId))return;
+            if(health!=null&&(!health.IsActorAlive(TargetPlayerId)||health.IsActorProtected(TargetPlayerId)))return;
             ResetCloseCounter(false);
             CapturePosition = target.transform.position; CaptureAnchorValid = true;
             StopNavigation(); Blend("Idle"); animator.speed = 1; CancelBarrierSequence();
-            State = KhezuHuntState.Caught; CaughtPlayerId = TargetPlayerId; CaptureSerial++;
+            State = KhezuHuntState.Caught; CaughtPlayerId = TargetPlayerId; CaptureSerial=NextSharedCaptureSerial();
             CaptureStartedAt = EncounterClock; EncounterPhase = 0; Status = "Caught " + TargetName;
             var encounter = GetComponent<KhezuCaptureEncounterController>();
             if (encounter != null) encounter.SynchronizeBarrierMovement();
@@ -201,17 +205,19 @@ namespace LogicLegends.OpenArchive.Hunting
         }
         void FillCloseCounterSnapshot(KhezuSnapshot snapshot)
         {
-            snapshot.counterPhase = (int)CloseCounterPhase; snapshot.counterSerial = CloseCounterSerial;
-            snapshot.counterTarget = counterTarget; snapshot.counterStartedAt = CloseCounterStartedAt;
+            snapshot.counterPhase = (int)(IsTranquilized?MonsterCloseCounterPhase.None:CloseCounterPhase); snapshot.counterSerial = CloseCounterSerial;
+            snapshot.counterTarget = IsTranquilized?0:counterTarget; snapshot.counterStartedAt = CloseCounterStartedAt;
             snapshot.counterCooldownUntil = CloseCounterCooldownUntil; snapshot.counterAim = CloseCounterAim;
             snapshot.counterLungeMoved = counterLungeMoved;
-            if (CloseCounterPhase == MonsterCloseCounterPhase.None) return;
+            if (IsTranquilized || CloseCounterPhase == MonsterCloseCounterPhase.None) return;
             snapshot.animation = "Attack";
             snapshot.normalizedTime = Mathf.Clamp01((float)(EncounterClock - CloseCounterStartedAt) / CounterTotalSeconds);
             snapshot.animationSpeed = ClipSeconds("Attack") / CounterTotalSeconds;
         }
         void RestoreCloseCounterSnapshot(KhezuSnapshot snapshot)
         {
+            // An in-flight pursuit packet must not restore a counter over checkpoint-owned sleep.
+            if(IsTranquilized){ResetCloseCounter(true);return;}
             CloseCounterPhase = (MonsterCloseCounterPhase)snapshot.counterPhase; CloseCounterSerial = snapshot.counterSerial;
             counterTarget = snapshot.counterTarget; CloseCounterStartedAt = snapshot.counterStartedAt;
             CloseCounterCooldownUntil = snapshot.counterCooldownUntil; CloseCounterAim = snapshot.counterAim;
@@ -220,7 +226,7 @@ namespace LogicLegends.OpenArchive.Hunting
 
         void UpdateCloseCounterPresentation()
         {
-            bool visible = Initialized && !MultiplayerLobbyService.IsGameplayRecovering &&
+            bool visible = Initialized && !IsTranquilized && !MultiplayerLobbyService.IsGameplayRecovering &&
                 (State == KhezuHuntState.Hunting || State == KhezuHuntState.NavigationBlocked) &&
                 (CloseCounterPhase == MonsterCloseCounterPhase.Warning || CloseCounterPhase == MonsterCloseCounterPhase.Strike) &&
                 EncounterClock < CloseCounterStartedAt + counterWarningSeconds + counterStrikeSeconds;

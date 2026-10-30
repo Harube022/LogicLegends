@@ -57,10 +57,10 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         public static void BeginGraph(){StartChecks(false,false,false,false,false,false,true);}
         [MenuItem("Tools/Logic Legends/Open Archive/Topics/Test T10 Shared Progress (Live Photon)")]
         public static void BeginTree(){StartChecks(false,false,false,false,false,false,false,true);}
-        static void StartChecks(bool inference,bool proofs=false,bool methods=false,bool induction=false,bool sets=false,bool mapping=false,bool graph=false,bool tree=false,bool exit=false,bool admin=false,bool learning=false,bool fairness=false,bool optional=false,bool topicBonuses=false)
+        static void StartChecks(bool inference,bool proofs=false,bool methods=false,bool induction=false,bool sets=false,bool mapping=false,bool graph=false,bool tree=false,bool exit=false,bool admin=false,bool learning=false,bool fairness=false,bool optional=false,bool topicBonuses=false,bool crystals=false,bool world=false,bool survival=false,bool hotbar=false,bool matchTime=false)
         {
             if(!Application.isPlaying||PhotonNetwork.InRoom||active)throw new InvalidOperationException("Run in offline Play Mode with no active room.");
-            topicBonusesOnly=topicBonuses;optionalRelaysOnly=optional;fairnessOnly=fairness;inferenceOnly=inference;proofsOnly=proofs;methodsOnly=methods;inductionOnly=induction;setsOnly=sets;mappingOnly=mapping;graphOnly=graph;treeOnly=tree;exitOnly=exit;adminOnly=admin;learningOnly=learning;report=new Report();peers.Clear();stack.Clear();previousSync=PhotonNetwork.AutomaticallySyncScene;previousName=PhotonNetwork.NickName;
+            matchTimeOnly=matchTime;hotbarOnly=hotbar;survivalOnly=survival;worldOnly=world;crystalsOnly=crystals;topicBonusesOnly=topicBonuses;optionalRelaysOnly=optional;fairnessOnly=fairness;inferenceOnly=inference;proofsOnly=proofs;methodsOnly=methods;inductionOnly=induction;setsOnly=sets;mappingOnly=mapping;graphOnly=graph;treeOnly=tree;exitOnly=exit;adminOnly=admin;learningOnly=learning;report=new Report();peers.Clear();stack.Clear();previousSync=PhotonNetwork.AutomaticallySyncScene;previousName=PhotonNetwork.NickName;
             PhotonNetwork.AutomaticallySyncScene=false;PhotonNetwork.NickName="Archive host QA";
             session=ArchiveTopicSession.Current;if(session!=null)session.enabled=false;
             active=true;nextTick=0;stack.Push(Flow());EditorApplication.update+=Tick;EditorApplication.playModeStateChanged+=PlayState;Save();
@@ -82,9 +82,15 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         }
         static void PlayState(PlayModeStateChange state){if(state==PlayModeStateChange.ExitingPlayMode&&active){report.errors.Add("Play Mode interrupted.");Finish(false);}}
         static void Check(bool pass,string name){report.checks.Add(new CheckResult{name=name,passed=pass});if(!pass)throw new InvalidOperationException(name);}
-        static void Save(){if(topicBonusesOnly){Directory.CreateDirectory("Temp/ArchiveTopicBonuses");File.WriteAllText("Temp/ArchiveTopicBonuses/Photon.json",JsonUtility.ToJson(report,true));return;}if(optionalRelaysOnly){Directory.CreateDirectory("Temp/ArchiveCurriculum");File.WriteAllText("Temp/ArchiveCurriculum/OptionalRelaysPhoton.json",JsonUtility.ToJson(report,true));return;}if(fairnessOnly){Directory.CreateDirectory("Temp/ArchiveFairness");File.WriteAllText("Temp/ArchiveFairness/Photon.json",JsonUtility.ToJson(report,true));return;}Directory.CreateDirectory(ArchiveTopicSetup.Folder+"/Testing/Reports");File.WriteAllText(ArchiveTopicSetup.Folder+"/Testing/Reports/"+(learningOnly?"LearningSprintPhoton.json":adminOnly?"TopicAdminPhoton.json":exitOnly?"ExitPortalPhoton.json":treeOnly?"T10SharedProgressPhoton.json":graphOnly?"T9SharedProgressPhoton.json":mappingOnly?"T8SharedProgressPhoton.json":setsOnly?"T7SharedProgressPhoton.json":inductionOnly?"T6SharedProgressPhoton.json":methodsOnly?"T5SharedProgressPhoton.json":proofsOnly?"T4SharedProgressPhoton.json":inferenceOnly?"T3SharedProgressPhoton.json":"SharedProgressPhoton.json"),JsonUtility.ToJson(report,true));}
+        static void Save(){if(matchTimeOnly){Directory.CreateDirectory("Temp/ArchiveMatchTime");File.WriteAllText("Temp/ArchiveMatchTime/Photon.json",JsonUtility.ToJson(report,true));return;}if(learningOnly){Directory.CreateDirectory("Temp/ArchiveMonsterBank");File.WriteAllText("Temp/ArchiveMonsterBank/Photon.json",JsonUtility.ToJson(report,true));return;}if(hotbarOnly){Directory.CreateDirectory("Temp/ArchiveHotbar");File.WriteAllText("Temp/ArchiveHotbar/Photon.json",JsonUtility.ToJson(report,true));return;}if(survivalOnly){Directory.CreateDirectory("Temp/ArchiveSurvival");File.WriteAllText("Temp/ArchiveSurvival/Photon.json",JsonUtility.ToJson(report,true));return;}if(worldOnly){Directory.CreateDirectory("Temp/ArchiveWorld");File.WriteAllText("Temp/ArchiveWorld/Photon.json",JsonUtility.ToJson(report,true));return;}if(crystalsOnly){Directory.CreateDirectory("Temp/ArchiveCrystals");File.WriteAllText("Temp/ArchiveCrystals/Photon.json",JsonUtility.ToJson(report,true));return;}if(topicBonusesOnly){Directory.CreateDirectory("Temp/ArchiveTopicBonuses");File.WriteAllText("Temp/ArchiveTopicBonuses/Photon.json",JsonUtility.ToJson(report,true));return;}if(optionalRelaysOnly){Directory.CreateDirectory("Temp/ArchiveCurriculum");File.WriteAllText("Temp/ArchiveCurriculum/OptionalRelaysPhoton.json",JsonUtility.ToJson(report,true));return;}if(fairnessOnly){Directory.CreateDirectory("Temp/ArchiveFairness");File.WriteAllText("Temp/ArchiveFairness/Photon.json",JsonUtility.ToJson(report,true));return;}Directory.CreateDirectory(ArchiveTopicSetup.Folder+"/Testing/Reports");File.WriteAllText(ArchiveTopicSetup.Folder+"/Testing/Reports/"+(learningOnly?"LearningSprintPhoton.json":adminOnly?"TopicAdminPhoton.json":exitOnly?"ExitPortalPhoton.json":treeOnly?"T10SharedProgressPhoton.json":graphOnly?"T9SharedProgressPhoton.json":mappingOnly?"T8SharedProgressPhoton.json":setsOnly?"T7SharedProgressPhoton.json":inductionOnly?"T6SharedProgressPhoton.json":methodsOnly?"T5SharedProgressPhoton.json":proofsOnly?"T4SharedProgressPhoton.json":inferenceOnly?"T3SharedProgressPhoton.json":"SharedProgressPhoton.json"),JsonUtility.ToJson(report,true));}
         static void Finish(bool success)
         {
+            try{CleanupExitFixture();}catch(Exception e){report.errors.Add("Exit fixture cleanup: "+e.Message);}
+            if(hotbarDartCleanup!=null)
+            {
+                try{hotbarDartCleanup();}catch(Exception e){report.errors.Add("Dart fixture cleanup: "+e.Message);}
+                hotbarDartCleanup=null;
+            }
             active=false;stack.Clear();EditorApplication.update-=Tick;EditorApplication.playModeStateChanged-=PlayState;
             foreach(var p in peers)
             {
@@ -192,6 +198,12 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             var truth=session.stations[1];var t1=session.stations[0];
             Spawn(a,Position(t1,ArchiveTopicStation.BookPosition+Vector3.back*1.7f));yield return Wait(()=>session.ActorPlayer(a.Actor)!=null,"Guest-owned prefab ready");
             Check(!session.ActorPlayer(a.Actor).enabled,"Remote replica cannot consume host input");
+            yield return Wait(()=>session.MatchTimeAllowsGameplay,"Shared match readiness and countdown finish",25);
+            if(matchTimeOnly){yield return MatchTimeFlow(a,room);yield break;}
+            if(hotbarOnly){yield return HotbarFlow(a,room);yield break;}
+            if(survivalOnly){yield return SurvivalFlow(a,room);yield break;}
+            if(worldOnly){yield return WorldFlow(a,room);yield break;}
+            if(crystalsOnly){yield return CrystalsFlow(a,room);yield break;}
             if(topicBonusesOnly){yield return TopicBonusesFlow(a,room);yield break;}
             if(optionalRelaysOnly){yield return OptionalRelayFlow(a,room);yield break;}
             if(fairnessOnly){yield return FairnessFlow(a,room);yield break;}

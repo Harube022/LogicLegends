@@ -19,7 +19,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
     {
         public const string Root="Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE";
         public const string Folder=Root+"/Topics";
-        public const string ScenePath=Folder+"/Testing/MultiplayerGameplay.unity";
+        public const string ScenePath=MultiplayerSceneRoutes.GameplayPath;
         const string Source=Root+"/Testing/MonsterEncounter/OpenArchive_MonsterEncounter_Test.unity";
         static Material stone,wood,paper,teal,gold,lines,labelMaterial;
         static Mesh cube,padMesh,ringMesh,crystalMesh;

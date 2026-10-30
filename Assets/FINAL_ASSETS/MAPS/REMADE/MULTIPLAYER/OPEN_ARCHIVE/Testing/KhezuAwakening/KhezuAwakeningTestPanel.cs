@@ -29,24 +29,24 @@ namespace LogicLegends.Tests.Khezu
         }
         public void IncreaseMistakes()
         {
-            if (test != null) test.IncreaseMistakeCount();
+            if (KhezuLegacyTestPermission.CanUse && test != null) test.IncreaseMistakeCount();
             Refresh();
         }
         public void AwakenAll()
         {
-            if (test == null) return;
+            if (!KhezuLegacyTestPermission.CanUse || test == null) return;
             if (test.IsPreviewing) test.ResetTest();
             for (int i = test.Mistakes; i < 4; i++) test.IncreaseMistakeCount();
             Refresh();
         }
         public void ResetToSleep()
         {
-            if (test != null) test.ResetTest();
+            if (KhezuLegacyTestPermission.CanUse && test != null) test.ResetTest();
             Refresh();
         }
         void Refresh()
         {
-            bool ready = Application.isPlaying && test != null && test.isActiveAndEnabled && Time.timeScale > 0;
+            bool ready = KhezuLegacyTestPermission.CanUse && test != null && test.isActiveAndEnabled && Time.timeScale > 0;
             if (status != null) status.text = test == null ? "KHEZU TEST — Monster unavailable" :
                 "KHEZU TEST   |   Mistakes " + test.Mistakes + " / 4   |   " + test.CurrentState;
             bool canIncrease = ready && (test.Mistakes < 4 || test.IsPreviewing);

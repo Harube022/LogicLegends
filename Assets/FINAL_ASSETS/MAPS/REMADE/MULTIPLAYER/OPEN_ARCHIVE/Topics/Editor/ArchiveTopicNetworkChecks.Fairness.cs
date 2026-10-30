@@ -34,7 +34,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         {
             Status="Two-player match pacing";
             Check(session.State.pacingPlayers==2&&session.PacingMultiplier==1.25f,"Two-player party receives 25% more topic time");
-            Check(session.hunting.barrierTimeLimitSeconds==90&&session.hunting.counterWarningSeconds>=.9f,"Normal barrier is bounded to 90 seconds with a readable counter warning");
+            Check(session.hunting.barrierTimeLimitSeconds==120&&session.hunting.counterWarningSeconds>=.9f,"Normal barrier uses two minutes with a readable counter warning");
             var station=session.stations[5];
             yield return Move(a,station,ArchiveTopicStation.BookPosition+Vector3.back*1.7f);
             yield return Receipt(a,Intent(a,5,ArchiveAction.Start),true,"Guest starts the native Book");
@@ -93,7 +93,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Check(copy.pacingPlayers==2&&copy.matchId==session.State.matchId&&copy.actors.First(p=>p.actor==a.Actor).hintsUsed==2,"Pacing, match identity and hint participation survive checkpoints");
             Check(session.CooperationGuide(5).Contains("participation"),"Participation is distinguished from individual mastery");
             session.learningPace=true;session.Initialize(271828);yield return .2f;
-            Check(session.PacingMultiplier==1.875f&&session.hunting.barrierTimeLimitSeconds==180,"Learning profile preserves the three-minute barrier and extra thinking time");
+            Check(session.PacingMultiplier==1.875f&&session.hunting.barrierTimeLimitSeconds==120,"Learning profile preserves the two-minute barrier and adds topic thinking time");
             session.learningPace=false;
             yield return Move(a,session.stations[0],ArchiveTopicStation.BookPosition+Vector3.back*1.7f);
             var fresh=Intent(a,0,ArchiveAction.Start);
@@ -112,7 +112,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             session.Initialize(161803);yield return .2f;
             Check(session.State.pacingPlayers==3&&Mathf.Abs(session.PacingMultiplier-1.1f)<.001f,"New three-player match receives ten percent extra time");
             Check(ArchiveTopicSession.TeamTimeMultiplier(4)==1,"Four-player profile uses the authored base budgets");
-            Check(session.State.learningPace==false&&session.hunting.barrierTimeLimitSeconds==90,"Fresh Normal match restores bounded barrier pacing");
+            Check(session.State.learningPace==false&&session.hunting.barrierTimeLimitSeconds==120,"Fresh Normal match retains the two-minute barrier");
             var c=Connect("Fairness fourth player QA");yield return Wait(()=>c.client.State==ClientState.ConnectedToMasterServer,"Fourth peer connects");
             c.client.OpJoinRoom(new EnterRoomParams{RoomName=room});yield return Wait(()=>c.client.InRoom&&PhotonNetwork.CurrentRoom.PlayerCount==4,"Four-player party joins");
             session.Initialize(141421);yield return .2f;
@@ -155,7 +155,24 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             a.client.CurrentRoom.SetMasterClient(a.client.CurrentRoom.GetPlayer(PhotonNetwork.LocalPlayer.ActorNumber));
             yield return Wait(()=>PhotonNetwork.IsMasterClient,"Editor regains fairness authority");yield return .3f;
             Check(session.State.matchId==match&&session.State.pacingPlayers==4&&session.State.stations[0].timerDeadline==savedDeadline,"Master handoff preserves match identity, pacing and the exact active deadline");
-            yield return CoopFlow(a);
+            if(session.CrystalsEnabled)
+            {
+                Status="Current crystal cooperation and checkpoint";
+                var crystal=session.Crystal(0);
+                Check(crystal!=null&&crystal.started&&crystal.members.Count==4&&!session.RelayAvailable(0),
+                    "The four-player Book reserves the current crystal roster, not a deprecated optional relay");
+                yield return CrystalChoice(null,0);
+                yield return CrystalChoice(a,1);
+                yield return Wait(()=>a.state!=null&&a.state.stations[0].round==2,"Guest receives cooperative crystal work",8);
+                var contributors=ArchiveCrystalProgress.Contributors(session.State,0).OrderBy(actor=>actor).ToArray();
+                Check(contributors.SequenceEqual(new[]{PhotonNetwork.LocalPlayer.ActorNumber,a.Actor}.OrderBy(actor=>actor))&&
+                    !session.Crystal(0).fullyRestored&&session.State.completedRelays.Count==0,
+                    "Actual host and guest answers restore their crystal contributions without crediting other teammates or old relay bonuses");
+                Check(ArchiveCrystalProgress.Contributors(a.state,0).OrderBy(actor=>actor).SequenceEqual(contributors)&&
+                    session.State.stations[0].timerDeadline==savedDeadline&&a.state.stations[0].timerDeadline==savedDeadline,
+                    "Crystal participation replicates while preserving the exact existing topic deadline");
+            }
+            else yield return CoopFlow(a);
         }
     }
 }

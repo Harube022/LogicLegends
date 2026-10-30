@@ -278,6 +278,12 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
         }
         Notify("Start cancelled because the lobby changed. Check that everyone is ready.");
     }
+    bool reopenLobbyAfterMatch;
+    public void ReturnToLobbyAfterMatch()
+    {
+        reopenLobbyAfterMatch=true;
+        LeaveLobby();
+    }
     public void LeaveLobby()
     {
         if (leaving) return;
@@ -307,6 +313,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
         else if (requested && !Status.Contains("incompatible") && !Status.Contains("already starting")) Status = "You left the lobby. Host or join another game.";
         Changed?.Invoke();
         if (SceneManager.GetActiveScene().name != "Main Menu") SceneManager.LoadScene("Main Menu");
+        if(reopenLobbyAfterMatch){reopenLobbyAfterMatch=false;StartCoroutine(ReturnAfterDisconnect());}
     }
     public override void OnDisconnected(DisconnectCause cause)
     {

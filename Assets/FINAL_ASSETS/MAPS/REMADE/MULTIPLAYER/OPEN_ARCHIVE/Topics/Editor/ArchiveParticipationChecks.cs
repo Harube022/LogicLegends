@@ -130,16 +130,17 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         }
         static void ScalarAndPickupSpam()
         {
-            var q=Find(4,v=>v.trial.kind==TrialProofKind.IdentifyMethod);var s=Fresh(4,q);
-            int before=s.selection;s.selection=q.method;
-            Record(1,new ArchiveCommand{action=ArchiveAction.Select,a=q.method},s,q,before,s.flags);
-            Record(2,new ArchiveCommand{action=ArchiveAction.Select,a=q.method},s,q,s.selection,s.flags);
+            // Degree is still a scalar-choice activity in the current module-based pools.
+            var q=Find(8,v=>v.graph!=null&&v.graph.type==LogicLegends.Graph.GraphChallengeType.Degree);var s=Fresh(8,q);int correct=ArchiveTopicChecks.Solution(q).selection;
+            int before=s.selection;s.selection=correct;
+            Record(1,new ArchiveCommand{action=ArchiveAction.Select,a=correct},s,q,before,s.flags);
+            Record(2,new ArchiveCommand{action=ArchiveAction.Select,a=correct},s,q,s.selection,s.flags);
             Check(s.workCredits.Count==1&&s.workCredits[0].actor==1,"Tapping an already-selected answer cannot steal its original selector's receipt");
-            int original=s.selection;s.selection=(q.method+1)%3;
+            int original=s.selection;s.selection=(correct+1)%7;
             Record(2,new ArchiveCommand{action=ArchiveAction.Select,a=s.selection},s,q,original,s.flags);
             Check(s.workCredits.Count==1&&s.workCredits[0].actor==2,"An actual changed choice records its new selector");
-            before=s.selection;s.selection=q.method;
-            Record(1,new ArchiveCommand{action=ArchiveAction.Select,a=q.method},s,q,before,s.flags);
+            before=s.selection;s.selection=correct;
+            Record(1,new ArchiveCommand{action=ArchiveAction.Select,a=correct},s,q,before,s.flags);
             for(int i=0;i<100;i++)
             {Record(2,new ArchiveCommand{action=ArchiveAction.Pick,a=0},s,q,s.selection,s.flags);Record(2,new ArchiveCommand{action=ArchiveAction.ReturnItem},s,q,s.selection,s.flags);}
             Check(s.workCredits.Count==1&&s.workCredits[0].actor==1&&session.State.quality.Count==0,"Repeated pickup/return creates no quality receipt or accepted milestone");

@@ -29,7 +29,7 @@ namespace LogicLegends.OpenArchive.Topics
     }
 
     public enum ArchiveActivity { Choice, Truth, Premises, Sort, Order, Method, Induction, Sets, Mapping, Graph, Tree }
-    public enum ArchiveAction { Start, Pick, Place, Select, Submit, Connect, Remove, Undo, RetryRoute, BeginChoice, ReturnItem, ClearSelection, AdminCompleteTopic, AdminResetTopic, RequestHint, BarrierHint, BarrierAnswer, SetT1Input, ConfirmT1Input, BonusInteract }
+    public enum ArchiveAction { Start, Pick, Place, Select, Submit, Connect, Remove, Undo, RetryRoute, BeginChoice, ReturnItem, ClearSelection, AdminCompleteTopic, AdminResetTopic, RequestHint, BarrierHint, BarrierAnswer, SetT1Input, ConfirmT1Input, BonusInteract, ClaimChest, UseSurvivalItem, EquipSurvivalItem, GiveSurvivalItem }
     [Serializable] public sealed class ArchiveCarry { public int actor, item; }
     [Serializable] public sealed class ArchiveMistake { public int actor, topic, round, revision, sequence; public double time; public string reason; }
     [Serializable] public sealed class ArchiveActor
@@ -71,11 +71,16 @@ namespace LogicLegends.OpenArchive.Topics
     [Serializable] public sealed class ArchiveTeamState
     {
         public int version = 1, seed, revision;
+        public int monsterChallengeDrawIndex;
         public int pacingVersion, pacingPlayers;
         public bool learningPace;
         public string matchId;
         public List<ArchiveQualityCredit> quality = new List<ArchiveQualityCredit>();
         public List<ArchiveSolvedMilestone> solved = new List<ArchiveSolvedMilestone>();
+        public List<ArchiveCrystalState> crystals = new List<ArchiveCrystalState>();
+        public ArchiveWorldTimeState worldTime = new ArchiveWorldTimeState();
+        public ArchiveMatchTimeState matchTime;
+        public ArchiveSurvivalState survival = new ArchiveSurvivalState();
         public ArchiveT1CoopState coop = new ArchiveT1CoopState();
         public List<ArchiveT1CoopState> topicRelays = new List<ArchiveT1CoopState>();
         public List<ArchiveT1CoopState> completedRelays = new List<ArchiveT1CoopState>();
@@ -86,12 +91,14 @@ namespace LogicLegends.OpenArchive.Topics
         public ArchiveBarrierChallengeState barrier = new ArchiveBarrierChallengeState();
         public List<ArchiveLearningHint> learningHints = new List<ArchiveLearningHint>();
     }
-    [Serializable] public sealed class ArchiveWorkCredit { public string key; public int actor; }
+    [Serializable] public sealed class ArchiveWorkCredit { public string key; public int actor, crystalActor; public bool crystalTracked; }
     [Serializable] public sealed class ArchiveQualityCredit { public string key; public int actor; }
     [Serializable] public sealed class ArchiveSolvedMilestone
     {
-        public int topic, round, subphase;
+        public int topic, round, subphase, resetSerial;
         public int[] contributors;
+        // Actual accepted puzzle work, excluding confirmation-only participation.
+        public int[] crystalContributors = Array.Empty<int>();
     }
     [Serializable] public sealed class ArchiveT1CoopState
     {
@@ -139,6 +146,8 @@ namespace LogicLegends.OpenArchive.Topics
         public int contextVersion, round, subphase, resetSerial, phase, expectedHeld = -1, expectedSlot = -1;
         public string matchId;
         public string workStamp;
+        public string encounterId;
+        public Vector3 aimDirection;
         public int captureSerial, encounterHuntSerial;
         public ArchiveAction action;
     }

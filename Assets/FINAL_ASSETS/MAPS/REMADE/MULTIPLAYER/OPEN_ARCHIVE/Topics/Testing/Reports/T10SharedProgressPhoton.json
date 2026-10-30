@@ -1,6 +1,6 @@
 {
     "passed": true,
-    "acceptedRemoteCommands": 57,
+    "acceptedRemoteCommands": 77,
     "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
     "checks": [
         {
@@ -16,7 +16,7 @@
             "passed": true
         },
         {
-            "name": "Guest Book starts the original ten-minute tree clock and reserves T10",
+            "name": "Guest Book starts the party-scaled tree clock and reserves T10",
             "passed": true
         },
         {
@@ -64,6 +64,10 @@
             "passed": true
         },
         {
+            "name": "Repair variant has incorrect and missing source branches",
+            "passed": true
+        },
+        {
             "name": "Authority requires removing the old parent before connecting a replacement",
             "passed": true
         },
@@ -77,6 +81,10 @@
         },
         {
             "name": "Remote directed-branch removal accepts either selected endpoint order",
+            "passed": true
+        },
+        {
+            "name": "The teammate repairs every changed parent link in the updated source variant",
             "passed": true
         },
         {
@@ -96,7 +104,7 @@
             "passed": true
         },
         {
-            "name": "Timeout keeps solved challenges, branches and number, attributing one mistake to its Book activator",
+            "name": "Timeout keeps solved challenges, branches and number, attributing one shared team mistake",
             "passed": true
         },
         {

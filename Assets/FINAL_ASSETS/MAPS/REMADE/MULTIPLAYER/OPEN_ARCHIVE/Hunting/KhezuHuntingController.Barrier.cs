@@ -18,9 +18,9 @@ namespace LogicLegends.OpenArchive.Hunting
         public double ReleaseAt {get;private set;}
         public double NestSleepEndsAt {get;private set;}
         public double NestArrivedAt {get;private set;}
-        public const double BarrierChallengeSeconds=180,FailureStunSeconds=5;
-        [Tooltip("Maximum answer time. Open Archive Normal uses 90 seconds; Learning retains 180. A started encounter keeps its checkpointed deadline.")]
-        [Range(30,180)] public float barrierTimeLimitSeconds=180;
+        public const double BarrierChallengeSeconds=120,FailureStunSeconds=5;
+        [Tooltip("Maximum answer time. Open Archive uses two minutes for both guardians. A started encounter keeps its checkpointed deadline.")]
+        [Range(30,180)] public float barrierTimeLimitSeconds=120;
         public const float KnockbackSeconds=.35f;
         [Header("Failed barrier attack")]
         [Tooltip("Contact point in the existing Attack clip. Khezu's claw crosses the player at about 0.62 seconds.")]
@@ -91,7 +91,7 @@ namespace LogicLegends.OpenArchive.Hunting
                 int actor=ResolvedActor;
                 if(ResolvedOutcome==2){
                     KnockbackPath=BuildFailureKnockback(actor);FailureHitApplied=true;
-                    if(health!=null)health.DeductAuthoritativeBarrierHeart(actor,ResolvedSerial);
+                    if(health!=null){health.DeductAuthoritativeBarrierHeart(actor,ResolvedSerial);CheckpointSharedHealth();}
                 }
                 StopNavigation();TargetPlayerId=CaughtPlayerId=0;EncounterPhase=0;pending=false;nextDestination=0;
                 if(ResolvedOutcome==1){State=KhezuHuntState.ReturningToNest;Status="Returning to the Universal Monster Nest";}
@@ -139,14 +139,14 @@ namespace LogicLegends.OpenArchive.Hunting
             s.resolvedAt=ResolvedAt;s.releaseAt=ReleaseAt;s.sleepEndsAt=NestSleepEndsAt;s.nestArrivedAt=NestArrivedAt;s.attackEndsAt=attackEndsAt;s.avoidNextTarget=avoidNextTarget;
             s.barrierTimerSerial=BarrierTimerSerial;s.barrierStartedAt=BarrierStartedAt;s.barrierDeadline=BarrierDeadline;s.barrierTimedOut=BarrierTimedOut;
             s.attackHitAt=AttackHitAt;s.barrierDissolveAt=BarrierDissolveAt;s.stunEndsAt=StunEndsAt;s.failureHitApplied=FailureHitApplied;s.knockbackPath=KnockbackPath;
-            s.healthStates=health!=null?health.ExportActorHealth():new HealthManager.ActorHealth[0];
+            s.healthStates=health!=null&&string.IsNullOrEmpty(encounterId)?health.ExportActorHealth():new HealthManager.ActorHealth[0];
         }
         void RestoreBarrierSnapshot(KhezuSnapshot s){
             CapturePosition=s.capturePosition;CaptureAnchorValid=s.captureAnchorValid;ResolvedSerial=s.resolvedSerial;ResolvedActor=s.resolvedActor;ResolvedOutcome=s.resolvedOutcome;
             ResolvedAt=s.resolvedAt;ReleaseAt=s.releaseAt;NestSleepEndsAt=s.sleepEndsAt;NestArrivedAt=s.nestArrivedAt;attackEndsAt=s.attackEndsAt;avoidNextTarget=s.avoidNextTarget;
             BarrierTimerSerial=s.barrierTimerSerial;BarrierStartedAt=s.barrierStartedAt;BarrierDeadline=s.barrierDeadline;BarrierTimedOut=s.barrierTimedOut;
             AttackHitAt=s.attackHitAt;BarrierDissolveAt=s.barrierDissolveAt;StunEndsAt=s.stunEndsAt;FailureHitApplied=s.failureHitApplied;KnockbackPath=s.knockbackPath??new Vector3[0];
-            if(health!=null)health.ApplyActorHealthSnapshot(s.healthStates);
+            if(health!=null&&s.healthStates!=null&&s.healthStates.Length>0)health.ApplyActorHealthSnapshot(s.healthStates);
         }
     }
 }

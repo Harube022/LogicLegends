@@ -12,7 +12,7 @@ namespace LogicLegends.OpenArchive.Hunting
         Vector3[] BuildFailureKnockback(int actor)
         {
             var player=FindObjectsByType<Player>(FindObjectsSortMode.None).FirstOrDefault(p=>{
-                if(!PhotonNetwork.InRoom)return actor==-1 && p==Player.LocalInstance;
+                if(!PhotonNetwork.InRoom)return actor==-1 && p==Player.LocalInstance || actor==-2 && p.GetComponent<Topics.ArchivePracticeAvatar>()!=null;
                 var view=p.GetComponent<PhotonView>();return view!=null && view.ViewID!=0 && view.OwnerActorNr==actor;
             });
             var path=new List<Vector3>{CapturePosition};

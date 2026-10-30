@@ -39,6 +39,7 @@ namespace LogicLegends.OpenArchive.Topics
             int previousSelection,int previousFlags,int placedItem,int previousPlacement)
         {
             if(s.workCredits==null)s.workCredits=new List<ArchiveWorkCredit>();
+            var crystalOwners=s.workCredits.ToArray();
             string key=null;
             if(cmd.action==ArchiveAction.Place)
             {
@@ -80,7 +81,9 @@ namespace LogicLegends.OpenArchive.Topics
             }
             if(key==null)return;
             s.workCredits.RemoveAll(w=>w.key==key);
-            s.workCredits.Add(new ArchiveWorkCredit{actor=actor,key=key});
+            var original=crystalOwners.FirstOrDefault(w=>w.key==key);
+            s.workCredits.Add(new ArchiveWorkCredit{actor=actor,key=key,crystalTracked=true,
+                crystalActor=original==null?actor:original.crystalTracked?original.crystalActor:original.actor});
             if(s.workCredits.Count>256)s.workCredits.RemoveRange(0,s.workCredits.Count-256);
         }
         bool CreditStillUsed(ArchiveWorkCredit w,ArchiveStationState s)
@@ -96,10 +99,15 @@ namespace LogicLegends.OpenArchive.Topics
         {
             NormalizeCooperation();
             string key=s.topic+":"+s.round+":"+s.subphase;
-            if(State.solved.Any(v=>v.topic==s.topic&&v.round==s.round&&v.subphase==s.subphase))return;
+            if(State.solved.Any(v=>v.topic==s.topic&&v.round==s.round&&v.subphase==s.subphase&&v.resetSerial==s.testResetSerial))return;
             var contributors=s.workCredits.Where(w=>CreditStillUsed(w,s)).Select(w=>w.actor).Append(actor)
                 .Concat(q.graph!=null&&s.routeActor!=0?new[]{s.routeActor}:Array.Empty<int>()).Distinct().ToArray();
-            State.solved.Add(new ArchiveSolvedMilestone{topic=s.topic,round=s.round,subphase=s.subphase,contributors=contributors});
+            var crystalContributors=s.workCredits.Where(w=>CreditStillUsed(w,s)).Select(w=>w.crystalTracked?w.crystalActor:w.actor)
+                .Concat(q.activity==ArchiveActivity.Choice?new[]{actor}:Array.Empty<int>())
+                .Concat(q.graph!=null&&q.graph.type!=LogicLegends.Graph.GraphChallengeType.Degree&&s.routeActor!=0&&s.continuous?new[]{s.routeActor}:Array.Empty<int>())
+                .Where(a=>a!=0).Distinct().ToArray();
+            State.solved.Add(new ArchiveSolvedMilestone{topic=s.topic,round=s.round,subphase=s.subphase,resetSerial=s.testResetSerial,
+                contributors=contributors,crystalContributors=crystalContributors});
             foreach(int contributor in contributors)AddQualityCredit(contributor,key);
             s.workCredits.Clear();
         }

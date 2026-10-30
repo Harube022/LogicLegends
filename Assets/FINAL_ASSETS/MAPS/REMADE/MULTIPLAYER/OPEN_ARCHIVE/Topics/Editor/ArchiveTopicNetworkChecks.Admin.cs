@@ -21,7 +21,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         {
             var toggle=AdminButton("Topic_Admin_Toggle");
             var button=AdminButton(complete?"Admin_Complete_Active_Topic":"Admin_Reset_Active_Topic");
-            if(!button.gameObject.activeInHierarchy)toggle.onClick.Invoke();
+            if(!button.gameObject.activeInHierarchy){toggle.onClick.Invoke();yield return .1f;button=AdminButton(complete?"Admin_Complete_Active_Topic":"Admin_Reset_Active_Topic");}
             yield return Wait(()=>button.isActiveAndEnabled&&button.interactable,"Host Admin action available",8);
             // Verify the real on-screen target is hit before dispatching its normal pointer callback.
             var pointer=new PointerEventData(EventSystem.current){button=PointerEventData.InputButton.Left,
@@ -38,6 +38,8 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         }
         static IEnumerator AdminFlow(Peer a,string room)
         {
+            report.scope="Live private Photon host/independent Realtime peer. Native pointer hit tests, guest-forged command rejection, all ten Admin topic skips/resets and checkpointing. Monster threats and their full-screen entrance are suppressed in this isolated UI test; native AdminLab Play and separate WorldPhoton checks verify the actual night event.";
+            if(session.worldProgression!=null)session.worldProgression.suppressThreatsForVerification=true;
             Status="Admin UI and authenticated guest rejection";
             yield return Wait(()=>AdminButton("Topic_Admin_Toggle")!=null,"Saved scene builds the Admin entry button");
             Check(session.CanUseTopicAdmin&&AdminButton("Topic_Admin_Toggle").gameObject.activeInHierarchy,"Development host can open Admin while the monster test drawer is collapsed");
@@ -91,6 +93,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Check(!session.RequestTopicAdmin(9,session.State.stations[9].revision,true)&&session.State.revision==finalRevision,"A repeated clear cannot duplicate completion or reopen the portal");
             Check(session.hunting.health.ExportActorHealth().All(h=>h.hearts==session.hunting.health.MaximumHealth),"Admin actions do not deduct hearts");
             session.Initialize(314159);session.hunting.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.Sleep);
+            if(session.worldProgression!=null)session.worldProgression.suppressThreatsForVerification=false;
             Status="Completed topic Admin transport checks";
         }
     }

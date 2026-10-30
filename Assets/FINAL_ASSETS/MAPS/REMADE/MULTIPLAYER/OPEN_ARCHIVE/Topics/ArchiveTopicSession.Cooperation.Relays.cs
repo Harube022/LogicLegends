@@ -12,7 +12,7 @@ namespace LogicLegends.OpenArchive.Topics
         public bool RelayAvailable(int topic)
         {
             var c = Relay(topic);
-            return c != null && c.round >= 0 && !c.closed && !c.completed && !TeamWon && ActiveTopic == topic && State.stations[topic].phase != 2;
+            return !crystalRestoration && c != null && c.round >= 0 && !c.closed && !c.completed && !TeamWon && ActiveTopic == topic && State.stations[topic].phase != 2;
         }
         void BeginTopicRelay(int topic)
         {

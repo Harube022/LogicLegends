@@ -25,8 +25,12 @@ public class PlayerSpawner : MonoBehaviour
 
     private IEnumerator Start()
     {
+        // Rejoin replays the original cached Instantiate. Creating another avatar
+        // while that replay is delayed would change its checkpointed view identity.
+        if (DeferToRecovery()) yield break;
         float until = Time.realtimeSinceStartup + 10f;
         while (!PhotonNetwork.InRoom && Time.realtimeSinceStartup < until) yield return null;
+        if (DeferToRecovery()) yield break;
         if (!PhotonNetwork.InRoom) { Status = "Open this stage through Play > Multiplayer."; Debug.LogWarning(Status, this); yield break; }
         if (Player.LocalInstance != null) { SpawnedPlayer = Player.LocalInstance.gameObject; yield break; }
 
@@ -42,7 +46,7 @@ public class PlayerSpawner : MonoBehaviour
                 FirebaseAuth.DefaultInstance.CurrentUser?.UserId == uid &&
                 (task.Result.Value?.ToString() ?? "").ToLowerInvariant().Contains("female")) prefabName = femalePrefabName;
         }
-        if (!PhotonNetwork.InRoom || Player.LocalInstance != null) yield break;
+        if (DeferToRecovery() || !PhotonNetwork.InRoom || Player.LocalInstance != null) yield break;
         var prefab = Resources.Load<GameObject>(prefabName);
         if (prefab == null || prefab.GetComponent<PhotonView>() == null)
         {
@@ -63,6 +67,13 @@ public class PlayerSpawner : MonoBehaviour
             TeleportCameraSync.ResetAfterMove(SpawnedPlayer.transform, Vector3.zero);
             Status = "Your player is ready.";
         }
+    }
+
+    private bool DeferToRecovery()
+    {
+        if (!MultiplayerLobbyService.IsGameplayRecovering) return false;
+        Status = "Restoring your original player...";
+        return true;
     }
 
     /// <summary>The same grounded room-slot placement for either avatar variant.</summary>
