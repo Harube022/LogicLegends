@@ -100,7 +100,7 @@ public sealed class RoomChatPanel : MonoBehaviour
         var card=MultiplayerUIArt.Rect("Message "+entry.Sequence,messageList);
         bool mine=!entry.IsSystem&&entry.Actor==PhotonNetwork.LocalPlayer.ActorNumber;
         var background=card.gameObject.AddComponent<Image>();
-        background.color=entry.IsSystem?new Color(.73f,.62f,.43f,.14f):mine?new Color(.15f,.40f,.33f,.16f):new Color(1,.97f,.86f,.64f);
+        background.color=MultiplayerUIArt.MessageColor(mine,entry.IsSystem);
         background.raycastTarget=false;
         var layout=card.gameObject.AddComponent<VerticalLayoutGroup>();layout.padding=new RectOffset(14,14,8,10);
         layout.spacing=4;layout.childControlWidth=layout.childControlHeight=true;

@@ -22,6 +22,13 @@ public sealed class MenuDataFeedback : MonoBehaviour
     private Coroutine feedbackTimer;
     public bool IsRevealed { get; private set; }
 
+    public void Configure(CanvasGroup[] groups, CanvasGroup feedback, TMP_Text label)
+    {
+        contentGroups = groups;
+        feedbackGroup = feedback;
+        message = label;
+    }
+
     public void BeginLoad(string loadingMessage)
     {
         StopAllCoroutines();

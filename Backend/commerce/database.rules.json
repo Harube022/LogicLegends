@@ -2,10 +2,40 @@
   "rules": {
     ".read": false,
     ".write": false,
+    "social": {
+      "requests": {
+        "$recipient": {
+          ".read": "auth != null && auth.uid === $recipient",
+          "$sender": {
+            ".read": "auth != null && auth.uid === $sender",
+            ".write": "auth != null && $recipient !== $sender && ((auth.uid === $sender && !data.exists() && newData.val() === true && root.child('users').child($recipient).child('username').exists() && !root.child('social/friends').child($recipient).child($sender).exists()) || ((auth.uid === $recipient || auth.uid === $sender) && data.exists() && !newData.exists()))"
+          }
+        }
+      },
+      "friends": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          "$other": {
+            ".write": "auth != null && $uid !== $other && ((!newData.exists() && data.exists() && (auth.uid === $uid || auth.uid === $other)) || (!data.exists() && newData.val() === true && ((auth.uid === $uid && root.child('social/requests').child($uid).child($other).val() === true) || (auth.uid === $other && root.child('social/requests').child($other).child($uid).val() === true))))"
+          }
+        }
+      },
+      "messages": {
+        "$first": {
+          "$second": {
+            ".read": "auth != null && (auth.uid === $first || auth.uid === $second) && root.child('social/friends').child($first).child($second).val() === true && root.child('social/friends').child($second).child($first).val() === true",
+            "$message": {
+              ".write": "auth != null && !data.exists() && (auth.uid === $first || auth.uid === $second) && root.child('social/friends').child($first).child($second).val() === true && root.child('social/friends').child($second).child($first).val() === true",
+              ".validate": "newData.hasChildren(['sender', 'text', 'inviteCode', 'sentAt']) && newData.child('sender').val() === auth.uid && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 200 && newData.child('inviteCode').isString() && (newData.child('inviteCode').val().length === 0 || newData.child('inviteCode').val().length === 6) && newData.child('sentAt').isNumber()"
+            }
+          }
+        }
+      }
+    },
     "users": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        "username": { ".write": "auth != null && auth.uid === $uid", ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
+        "username": { ".read": "auth != null", ".write": "auth != null && auth.uid === $uid", ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
         "base_character": { ".write": "auth != null && auth.uid === $uid && !data.exists()", ".validate": "newData.val() === 'Male_Character' || newData.val() === 'Female_Character'" },
         "coins": { ".write": "auth != null && auth.uid === $uid && newData.exists()", ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 2147483647 && newData.val() % 1 === 0" },
         "equipped": {
