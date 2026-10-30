@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>Explicit Main Menu-only authoring tool; never runs on scene load.</summary>
+[InitializeOnLoad]
 public static class MainMenuSettingsUIBuilder
 {
     private const string Folder = "Assets/Prefabs/UI/Settings";
@@ -18,6 +19,64 @@ public static class MainMenuSettingsUIBuilder
     private static readonly Color Cream = new Color32(255, 242, 212, 255);
     private static readonly Color Blue = new Color32(5, 121, 177, 255);
     private static readonly Color Muted = new Color32(125, 87, 52, 255);
+
+    static MainMenuSettingsUIBuilder() { EditorApplication.update += CheckCloseRequest; }
+
+    private static void CheckCloseRequest()
+    {
+        const string request = "Temp/MainMenuSettingsClose.request";
+        if (!File.Exists(request) || EditorApplication.isCompiling || EditorApplication.isUpdating || EditorApplication.isPlayingOrWillChangePlaymode) return;
+        try
+        {
+            File.Delete(request);
+            CenterExistingSettings();
+            File.WriteAllText("Temp/MainMenuSettingsClose.result", "PASS\nSettings centered with a red X. Prefab connection preserved.");
+        }
+        catch (Exception error)
+        {
+            File.WriteAllText("Temp/MainMenuSettingsClose.result", "FAIL\n" + error);
+            Debug.LogException(error);
+        }
+    }
+
+    [MenuItem("Logic Legends/Main Menu/Center Settings And Add Close X")]
+    public static void CenterExistingSettings()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Exit Play Mode before editing Settings.");
+        var scene = UnityEngine.SceneManagement.SceneManager.GetSceneByPath("Assets/Scenes/Main Menu.unity");
+        bool opened = !scene.isLoaded;
+        if (opened) scene = EditorSceneManager.OpenScene("Assets/Scenes/Main Menu.unity", OpenSceneMode.Additive);
+        try
+        {
+            var settings = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Transform>(true)).Single(t => t.name == "Settings_Menu");
+            var menu = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<MainMenuManager>(true)).Single();
+            var canvas = settings.GetComponentInParent<Canvas>().transform;
+            settings.SetParent(canvas, false);
+            Stretch((RectTransform)settings); settings.localScale = Vector3.one;
+            var ui = settings.Find("MainMenuSettingsUI") as RectTransform;
+            if (!ui) throw new InvalidOperationException("The existing Settings UI is missing.");
+            Stretch(ui); ui.localScale = Vector3.one;
+            var panel = ui.Find("SettingsFrame") as RectTransform;
+            Stretch(panel, .095f, .07f, .905f, .86f);
+            var title = ui.Find("SettingsTitle") as RectTransform;
+            Fixed(title, 0, 0, 560, 102, .5f, .92f);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(ui);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(panel);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(title);
+            var arrow = settings.Find("back_btn");
+            if (arrow) arrow.gameObject.SetActive(false);
+            var existing = ui.Find("CloseSettings");
+            var close = existing ? existing.GetComponent<Button>() : MultiplayerUIArt.CloseAction("CloseSettings", ui, .905f, .92f);
+            MultiplayerUIArt.StyleCloseAction(close);
+            var rect = (RectTransform)close.transform;
+            rect.anchorMin = rect.anchorMax = new Vector2(.905f, .92f);
+            rect.pivot = new Vector2(1, .5f); rect.anchoredPosition = Vector2.zero;
+            if (close.onClick.GetPersistentEventCount() == 0) UnityEventTools.AddPersistentListener(close.onClick, menu.ShowMainMenu);
+            EditorUtility.SetDirty(close);
+            EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
+        }
+        finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
+    }
 
     private static Sprite SpriteAt(string path, string name = null)
     {
@@ -446,14 +505,7 @@ public static class MainMenuSettingsUIBuilder
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(Folder + "/MainMenuSettingsUI.prefab");
         PrefabUtility.InstantiatePrefab(prefab, settings);
         ConnectSettingsConfirmations(settings);
-        var back = settings.Find("back_btn");
-        if (back != null)
-        {
-            Fixed((RectTransform)back, 0, 0, 136.71f, 117.18f, .055f, .9f);
-            back.localScale = Vector3.one;
-            back.SetAsLastSibling();
-            var image = back.GetComponent<Image>(); if (image) image.pixelsPerUnitMultiplier = 4.5f;
-        }
+        CenterExistingSettings();
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         Debug.Log("Main Menu Settings UI created. Tabs, music/SFX volume and confirmed logout/quit work; other controls are unconnected.");

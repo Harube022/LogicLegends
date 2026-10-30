@@ -140,9 +140,7 @@ public static class MainMenuTopUpPresentationSetup
             label.rectTransform.anchorMin = Vector2.zero; label.rectTransform.anchorMax = Vector2.one;
             label.rectTransform.offsetMin = new Vector2(24, 10); label.rectTransform.offsetMax = new Vector2(-24, -10);
         }
-        var data = new SerializedObject(topUp);
-        data.FindProperty("hideWalletBalanceStatus").boolValue = true;
-        data.ApplyModifiedPropertiesWithoutUndo();
+        TopUpPaymentPresentationSetup.Configure(topUp);
         scroll.verticalNormalizedPosition = 1;
         LayoutRebuilder.ForceRebuildLayoutImmediate(content);
         EditorSceneManager.MarkSceneDirty(scene);

@@ -96,7 +96,8 @@ public sealed class MainMenuMobileInput : MonoBehaviour
             switch (t.name)
             {
                 case "Login_Menu": case "SignUp_Menu": case "UsernameCard":
-                case "EditorCard": case "InviteCard": case "ChatInterior": return t;
+                case "EditorCard": case "InviteCard": case "SearchBar":
+                case "ChatComposer": case "SocialChatComposer": return t;
             }
         return (RectTransform)input.transform;
     }

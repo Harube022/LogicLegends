@@ -12,6 +12,10 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
     [SerializeField] private GameObject overlay, choicePanel, joinPanel, waitingPanel, playPanel;
     [SerializeField] private MainMenuManager mainMenu;
     [SerializeField] private TMP_Text status, code, count, startHint;
+    [SerializeField] private TMP_Text eyebrow, heading;
+    [SerializeField] private Button socialEntry;
+    [SerializeField] private GameObject leaveConfirmation;
+    [SerializeField] private Button confirmLeave, cancelLeave;
     [SerializeField] private TMP_Text[] slots;
     [SerializeField] private TMP_InputField inviteInput;
     [SerializeField] private Button host, joinChoice, join, copy, ready, start, leave, back, cancelJoin;
@@ -21,6 +25,38 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
     private bool choosingJoin;
     public bool IsOpen => overlay != null && overlay.activeSelf;
     public TMP_InputField InviteInput => inviteInput;
+
+    public void BindSocialEntry(Button button)
+    {
+        socialEntry = button;
+        ApplyViewLayout(waitingPanel.activeSelf);
+    }
+
+    public void ApplyViewLayout(bool inRoom)
+    {
+        // The waiting-room title sits above its roster; Host / Join keeps the centered title.
+        if (eyebrow != null)
+        {
+            eyebrow.gameObject.SetActive(true);
+            eyebrow.rectTransform.anchorMin = new Vector2(0,.955f);
+            eyebrow.rectTransform.anchorMax = inRoom ? new Vector2(.36f,1) : Vector2.one;
+        }
+        if (heading != null)
+        {
+            heading.gameObject.SetActive(true);
+            heading.rectTransform.anchorMin = inRoom ? new Vector2(0,.86f) : new Vector2(0,.85f);
+            heading.rectTransform.anchorMax = inRoom ? new Vector2(.36f,.955f) : new Vector2(1,.955f);
+        }
+        status.rectTransform.anchorMin = inRoom ? new Vector2(.39f,.155f) : new Vector2(.04f,.14f);
+        status.rectTransform.anchorMax = inRoom ? new Vector2(1,.225f) : new Vector2(.96f,.20f);
+        status.fontSizeMin = inRoom ? 20 : 22;
+        status.fontSizeMax = inRoom ? 22 : 24;
+        if (socialEntry == null) return;
+        var rect = (RectTransform)socialEntry.transform;
+        rect.anchorMin = rect.anchorMax = inRoom ? new Vector2(.49f,.082f) : Vector2.one;
+        rect.pivot = inRoom ? new Vector2(.5f,.5f) : Vector2.one;
+        rect.anchoredPosition = inRoom ? Vector2.zero : new Vector2(-5,-5);
+    }
 
     private void Awake()
     {
@@ -32,6 +68,8 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         ready.onClick.AddListener(ToggleReady);
         start.onClick.AddListener(StartGame);
         leave.onClick.AddListener(Leave);
+        confirmLeave.onClick.AddListener(ConfirmLeave);
+        cancelLeave.onClick.AddListener(CancelLeave);
         back.onClick.AddListener(Back);
         cancelJoin.onClick.AddListener(ShowChoices);
         overlay.SetActive(false);
@@ -47,6 +85,7 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         service = MultiplayerLobbyService.EnsureExists();
         service.Changed += Refresh;
         choosingJoin = false;
+        CancelLeave();
         playPanel.SetActive(false);
         overlay.SetActive(true); overlay.transform.SetAsLastSibling();
         if (GameInput.Instance != null && !ownsBlock)
@@ -72,12 +111,23 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
     private void SubmitJoin(string value) { Join(); }
     private void ToggleReady() { service.ToggleReady(); }
     private void StartGame() { service.StartGame(); }
-    private void Leave() { service.LeaveLobby(); }
+    private void Leave()
+    {
+        if (service == null || !service.InLobby || service.Busy) return;
+        leaveConfirmation.SetActive(true);
+        leaveConfirmation.transform.SetAsLastSibling();
+    }
+    private void CancelLeave() { if (leaveConfirmation != null) leaveConfirmation.SetActive(false); }
+    private void ConfirmLeave()
+    {
+        CancelLeave();
+        if (service != null && service.InLobby && !service.Busy) service.LeaveLobby();
+    }
     private void CopyCode()
     {
         if (!service.InLobby) return;
         GUIUtility.systemCopyBuffer = PhotonNetwork.CurrentRoom.Name;
-        service.Notify("Invite code copied. Share it with your friends outside the game.");
+        service.Notify("Invite code copied. Send it through Friends chat.");
     }
     public void ShowJoin() { choosingJoin = true; inviteInput.text = ""; Refresh(); inviteInput.Select(); }
     public void ShowChoices() { choosingJoin = false; Refresh(); }
@@ -96,16 +146,12 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         joinPanel.SetActive(!inRoom && choosingJoin);
         waitingPanel.SetActive(inRoom);
         status.text = service.Status;
-        // The lobby uses the space formerly reserved for the menu's back button.
-        status.rectTransform.anchorMin = new Vector2(.04f, inRoom ? 0 : .14f);
-        status.rectTransform.anchorMax = new Vector2(.96f, inRoom ? .05f : .20f);
-        status.fontSizeMin = inRoom ? 20 : 22;
-        status.fontSizeMax = inRoom ? 22 : 24;
+        ApplyViewLayout(inRoom);
         host.interactable = joinChoice.interactable = join.interactable = !service.Busy;
         inviteInput.interactable = !service.Busy;
         back.gameObject.SetActive(!inRoom);
         back.interactable = cancelJoin.interactable = !service.Busy;
-        if (!inRoom) return;
+        if (!inRoom) { CancelLeave(); return; }
         code.text = PhotonNetwork.CurrentRoom.Name;
         var players = PhotonNetwork.PlayerList.OrderBy(p => p.ActorNumber).ToArray();
         count.text = players.Length + " / 4 PLAYERS";
@@ -137,9 +183,9 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         var wood=frame.gameObject.AddComponent<Image>();wood.sprite=StageUITheme.Panel;wood.type=Image.Type.Sliced;wood.pixelsPerUnitMultiplier=1.7f;
         // All controls live inside the painted rim, including the footer/back action.
         var inside=MultiplayerUIArt.Rect("Interior",frame,.07f,.08f,.93f,.92f);
-        MultiplayerUIArt.Label("Eyebrow",inside,"ADVENTURE TOGETHER",0,.955f,1,1,24,false,StageUITheme.Gold);
-        MultiplayerUIArt.Label("Heading",inside,"MULTIPLAYER",0,.85f,1,.955f,52,false,StageUITheme.Ink);
-        status=MultiplayerUIArt.Label("Status",inside,"Host a private game or enter a friend's code.",.04f,.14f,.96f,.20f,24,true,StageUITheme.Ink);
+        eyebrow=MultiplayerUIArt.Label("Eyebrow",inside,"ADVENTURE TOGETHER",0,.955f,1,1,24,false,StageUITheme.Gold);
+        heading=MultiplayerUIArt.Label("Heading",inside,"MULTIPLAYER",0,.85f,1,.955f,52,false,StageUITheme.Ink);
+        status=MultiplayerUIArt.Label("Status",inside,"Host a private game or enter a code.",.04f,.14f,.96f,.20f,24,true,StageUITheme.Ink);
         choicePanel=MultiplayerUIArt.Rect("HostOrJoin",inside,0,.21f,1,.83f).gameObject;
         var hostCard=MultiplayerUIArt.GraphCard("HostCard",choicePanel.transform,0,.04f,.48f,1);
         MultiplayerUIArt.Label("CardEyebrow",hostCard,"CREATE A PRIVATE ROOM",.08f,.83f,.92f,.92f,22,false,StageUITheme.ReadingInk);
@@ -161,28 +207,38 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         cancelJoin=LobbyAction("CancelJoin",inviteCard,"BACK",.5f,.185f,width:220);
         ((RectTransform)cancelJoin.transform).anchoredPosition=new Vector2(152,0);
         waitingPanel=MultiplayerUIArt.Rect("WaitingLobby",inside,0,.05f,1,.85f).gameObject;
-        count=MultiplayerUIArt.Label("PlayerCount",waitingPanel.transform,"1 / 4 PLAYERS",0,.86f,.36f,1,30,false,StageUITheme.Ink);
-        MultiplayerUIArt.Label("InviteLabel",waitingPanel.transform,"INVITE CODE",.40f,.86f,.55f,1,26,false,StageUITheme.Gold);
-        code=MultiplayerUIArt.Label("Code",waitingPanel.transform,"------",.56f,.86f,.73f,1,44,false,StageUITheme.Ink);
-        copy=LobbyAction("CopyCode",waitingPanel.transform,"COPY",.85f,1,width:220);
-        ((RectTransform)copy.transform).anchoredPosition=new Vector2(0,-44);
-        var roster=MultiplayerUIArt.GraphCard("PlayerRoster",waitingPanel.transform,0,.20f,.36f,.84f);
-        MultiplayerUIArt.Label("RosterHeading",roster,"YOUR PARTY",.08f,.83f,.92f,.96f,30,false,StageUITheme.ReadingInk);
+        MultiplayerUIArt.Label("InviteLabel",waitingPanel.transform,"INVITE CODE",.40f,1.04f,.55f,1.17f,26,false,StageUITheme.Gold);
+        code=MultiplayerUIArt.Label("Code",waitingPanel.transform,"------",.56f,1.04f,.73f,1.17f,44,false,StageUITheme.Ink);
+        copy=LobbyAction("CopyCode",waitingPanel.transform,"COPY",.85f,1.105f,width:220);
+        var roster=MultiplayerUIArt.GraphCard("PlayerRoster",waitingPanel.transform,0,.24f,.36f,1);
+        count=MultiplayerUIArt.Label("PlayerCount",roster,"1 / 4 PLAYERS",.08f,.87f,.92f,.97f,30,false,StageUITheme.ReadingInk);
+        MultiplayerUIArt.Label("RosterHeading",roster,"YOUR PARTY",.08f,.77f,.92f,.86f,30,false,StageUITheme.ReadingInk);
         slots=new TMP_Text[4];
         for(int i=0;i<4;i++)
         {
-            float top=.81f-i*.18f;
-            slots[i]=MultiplayerUIArt.Label("PlayerSlot"+(i+1),roster,"OPEN SLOT\nWaiting for a friend...",.09f,top-.17f,.91f,top,22,true,StageUITheme.ReadingInk);
+            float top=.74f-i*.15f;
+            slots[i]=MultiplayerUIArt.Label("PlayerSlot"+(i+1),roster,"OPEN SLOT\nWaiting for a friend...",.09f,top-.14f,.91f,top,22,true,StageUITheme.ReadingInk);
             slots[i].alignment=TextAlignmentOptions.Left;
         }
-        var chat=MultiplayerUIArt.ChatSurface("RoomChat",waitingPanel.transform,.38f,.20f,1,.84f);
+        startHint=MultiplayerUIArt.Label("StartHint",roster,"Invite at least one friend to start.",.08f,.005f,.92f,.13f,19,true,StageUITheme.ReadingInk);
+        var chat=MultiplayerUIArt.ChatSurface("RoomChat",waitingPanel.transform,.39f,.24f,1,1);
         MultiplayerUIArt.Label("ChatHeading",chat,"PARTY CHAT",.08f,.87f,.92f,.99f,30,false,StageUITheme.ReadingInk);
-        MultiplayerUIArt.ChatView(chat,25,.85f,true);
-        ready=LobbyAction("ToggleReady",waitingPanel.transform,"READY",.135f,.0775f,true);
-        start=LobbyAction("StartGame",waitingPanel.transform,"START GAME",.47f,.0775f,true);
-        leave=LobbyAction("LeaveLobby",waitingPanel.transform,"LEAVE LOBBY",.835f,.0775f,false,true);
-        startHint=MultiplayerUIArt.Label("StartHint",waitingPanel.transform,"Invite at least one friend to start.",0,.15f,1,.20f,22,true,StageUITheme.Ink);
+        MultiplayerUIArt.ChatView(chat,25,.85f,true,true);
+        ready=LobbyAction("ToggleReady",waitingPanel.transform,"READY",.09f,.04f,true,width:220);
+        start=LobbyAction("StartGame",waitingPanel.transform,"START GAME",.285f,.04f,true,width:220);
+        leave=LobbyAction("LeaveLobby",waitingPanel.transform,"LEAVE LOBBY",1,.04f,false,true);
+        var leaveRect=(RectTransform)leave.transform;
+        leaveRect.pivot=new Vector2(1,.5f);leaveRect.anchoredPosition=new Vector2(-24,0);
         back=LobbyAction("BackToPlay",inside,"BACK TO PLAY",.5f,.07f,false,true);
+        leaveConfirmation=MultiplayerUIArt.Rect("LeaveLobbyConfirmation",overlay.transform).gameObject;
+        var confirmationDim=leaveConfirmation.AddComponent<Image>();confirmationDim.color=new Color(.01f,.02f,.03f,.72f);
+        var confirmationCard=MultiplayerUIArt.GraphCard("ConfirmationCard",leaveConfirmation.transform,.5f,.5f,.5f,.5f);
+        confirmationCard.sizeDelta=new Vector2(820,380);
+        MultiplayerUIArt.Label("Title",confirmationCard,"LEAVE LOBBY?",.08f,.69f,.92f,.91f,42,false,StageUITheme.ReadingInk);
+        MultiplayerUIArt.Label("Message",confirmationCard,"Are you sure you want to leave this lobby?",.10f,.42f,.90f,.66f,28,true,StageUITheme.ReadingInk);
+        cancelLeave=LobbyAction("CancelLeave",confirmationCard,"CANCEL",.30f,.20f,true);
+        confirmLeave=LobbyAction("ConfirmLeave",confirmationCard,"LEAVE",.70f,.20f,false,true);
+        leaveConfirmation.SetActive(false);
         choicePanel.SetActive(true);joinPanel.SetActive(false);waitingPanel.SetActive(false);overlay.SetActive(false);
     }
     private static Button LobbyAction(string name,Transform parent,string label,float x,float y,bool green=false,bool red=false,float width=280)

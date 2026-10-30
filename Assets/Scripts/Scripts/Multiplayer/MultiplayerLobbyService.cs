@@ -22,7 +22,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     public IReadOnlyList<string> Messages => messages;
     public IReadOnlyList<RoomChatMessage> ChatMessages => chatMessages;
     public bool LastChatWasCensored { get; private set; }
-    public string Status { get; private set; } = "Host a private game or enter a friend's code.";
+    public string Status { get; private set; } = "Host a private game or enter a code.";
     public bool Busy { get; private set; }
     public bool InLobby => PhotonNetwork.InRoom && !PhotonNetwork.OfflineMode;
     public bool Starting => InLobby && RoomState != LobbyRules.Waiting;
@@ -93,7 +93,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     public void JoinGame(string code)
     {
         code = LobbyRules.NormalizeCode(code);
-        if (!LobbyRules.IsValidCode(code)) { Notify("Enter a six-character code, such as AB3D7K. Avoid I, O, 0 and 1."); return; }
+        if (!LobbyRules.IsValidCode(code)) { Notify("Invalid code"); return; }
         Begin(Request.Join, code);
     }
     public void StartSolo() { Begin(Request.Solo, null); }
@@ -117,7 +117,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
         PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey] = false });
         profileReady = false;
         StartCoroutine(ResolveProfile(requestVersion));
-        Notify("Connecting to multiplayer...");
+        Notify(request == Request.Host ? "Creating Lobby..." : "Joining Lobby...");
         // Keep the project's fixed Asia region; do not select different best regions for invitees.
         if (PhotonNetwork.IsConnected && PhotonNetwork.GameVersion != LobbyRules.Protocol) { PhotonNetwork.Disconnect(); return; }
         ConnectOrDispatch();
@@ -165,7 +165,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
             if (request == Request.Host) CreatePrivateRoom();
             else
             {
-                Notify("Joining your friend's lobby...");
+                Notify("Joining room...");
                 if (!PhotonNetwork.JoinRoom(pendingCode)) Fail("Couldn't send the join request. Please try again.");
             }
         }
@@ -192,7 +192,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
                 [MultiplayerMonsterRotation.RoomKey] = (int)MultiplayerMonsterRotation.NextHostedMonster
             }
         };
-        Notify("Creating your private lobby...");
+        Notify("Creating room...");
         if (!PhotonNetwork.CreateRoom(LobbyRules.NewCode(), options, TypedLobby.Default)) Fail("Couldn't create a lobby. Please try again.");
     }
     public override void OnCreateRoomFailed(short returnCode, string message)

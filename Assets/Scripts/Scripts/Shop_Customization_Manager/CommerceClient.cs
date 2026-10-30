@@ -52,7 +52,7 @@ public static class CommerceClient
             return Time.realtimeSinceStartup;
         }
     }
-    private static string UserId
+    internal static string UserId
     {
         get
         {

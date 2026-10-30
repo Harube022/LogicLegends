@@ -179,6 +179,19 @@ public class ShopManager : MonoBehaviour
         if (retryButton != null) retryButton.gameObject.SetActive(retry);
     }
 
+    public void ShowTopUpFeedback(string message)
+    {
+        // The existing shop feedback owns loading/errors; pending payments stay on their pack.
+        if (!isActiveAndEnabled || !commerceReady) return;
+        Status(message, false);
+        StartCoroutine(ClearTopUpFeedback(message));
+    }
+    private IEnumerator ClearTopUpFeedback(string message)
+    {
+        yield return new WaitForSecondsRealtime(2.5f);
+        if (loadingMessage != null && loadingMessage.text == message && commerceReady) Status("", false);
+    }
+
     public void RetryLoad()
     {
         if (!isActiveAndEnabled || purchasing) return;
@@ -445,8 +458,8 @@ public class ShopManager : MonoBehaviour
 
     private void UpdateShopUI()
     {
-        if (coinsText != null) coinsText.text = currentCoins.ToString();
-        if (gemsText != null) gemsText.text = currentGems.ToString();
+        if (coinsText != null) coinsText.text = currentCoins.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
+        if (gemsText != null) gemsText.text = currentGems.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
         foreach (var item in allShopItems)
         {
             if (item == null) continue;

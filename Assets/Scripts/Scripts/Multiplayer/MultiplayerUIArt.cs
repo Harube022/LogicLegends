@@ -42,6 +42,26 @@ public static class MultiplayerUIArt
         text.rectTransform.offsetMin=new Vector2(24,10);text.rectTransform.offsetMax=new Vector2(-24,-10);
         text.fontSizeMin=22;text.fontSizeMax=30;text.textWrappingMode=TextWrappingModes.NoWrap;
     }
+    public static Button CloseAction(string name,Transform parent,float x,float y)
+    {
+        var button=Action(name,parent,"X",x,y,x,y,red:true);
+        StyleCloseAction(button);
+        return button;
+    }
+    public static void StyleCloseAction(Button button)
+    {
+        ((RectTransform)button.transform).sizeDelta=new Vector2(80,80);
+        var image=button.GetComponent<Image>();
+        image.sprite=Resources.LoadAll<Sprite>("StageUI/WoodButtonRed")[0];
+        image.color=Color.white;image.type=Image.Type.Sliced;image.pixelsPerUnitMultiplier=4.5f;
+        var text=button.GetComponentInChildren<TMP_Text>();
+        text.text="X";
+        text.rectTransform.offsetMin=new Vector2(8,8);text.rectTransform.offsetMax=new Vector2(-8,-8);
+        text.fontSizeMin=32;text.fontSizeMax=38;
+    }
+    public static Color MessageColor(bool mine,bool system=false) => system
+        ? new Color(.73f,.62f,.43f,.14f) : mine
+        ? new Color(.15f,.40f,.33f,.16f) : new Color(1,.97f,.86f,.64f);
     public static TMP_InputField Input(string name,Transform parent,string hint,float x0,float y0,float x1,float y1,float size,int limit,bool dark=false)
     {
         var rect=Rect(name,parent,x0,y0,x1,y1); var image=rect.gameObject.AddComponent<Image>();
@@ -74,7 +94,7 @@ public static class MultiplayerUIArt
         image.sprite=ChatFrame;image.type=Image.Type.Sliced;image.color=Color.white;
         image.pixelsPerUnitMultiplier=Mathf.Min(ChatFrame.rect.width,ChatFrame.rect.height)*.01f;
     }
-    public static RoomChatPanel ChatView(Transform parent,float fontSize=26,float top=.80f,bool standardActions=false)
+    public static RoomChatPanel ChatView(Transform parent,float fontSize=26,float top=.80f,bool standardActions=false,bool separateComposer=false)
     {
         var root=Rect("Conversation",parent,.055f,.04f,.945f,top);
         var view=root.gameObject.AddComponent<RoomChatPanel>();
@@ -92,9 +112,12 @@ public static class MultiplayerUIArt
         view.history=Label("Transcript",root,"",0,.27f,1,1,fontSize,true,StageUITheme.ReadingInk);
         view.history.gameObject.SetActive(false);
         view.messageList=list;view.scroll=scroll;view.messageFontSize=fontSize;
-        view.input=Input("ChatMessage",root,"Write to your party...",0,0,.77f,0,fontSize,LobbyRules.ChatLimit,true);
+        // On the Main Menu, the Android keyboard lifts this group alone. ChatScroll
+        // stays in the conversation while the field, SEND, and feedback move together.
+        Transform composer=separateComposer?Rect("ChatComposer",root):root;
+        view.input=Input("ChatMessage",composer,"Write to your party...",0,0,.77f,0,fontSize,LobbyRules.ChatLimit,true);
         var inputRect=(RectTransform)view.input.transform;inputRect.offsetMin=new Vector2(0,30);inputRect.offsetMax=new Vector2(0,94);
-        view.send=Action("SendMessage",root,"SEND",.79f,0,1,0,true);
+        view.send=Action("SendMessage",composer,"SEND",.79f,0,1,0,true);
         var sendRect=(RectTransform)view.send.transform;sendRect.offsetMin=new Vector2(0,30);sendRect.offsetMax=new Vector2(0,94);
         if(standardActions)
         {
@@ -104,10 +127,10 @@ public static class MultiplayerUIArt
             inputRect.anchorMax=new Vector2(1,0);inputRect.offsetMax=new Vector2(-236,118);
             scrollRoot.offsetMin=new Vector2(0,132);
         }
-        view.feedback=Label("ChatFeedback",root,"Only your party can read this chat.",0,0,.82f,0,20,true,StageUITheme.ReadingInk);
+        view.feedback=Label("ChatFeedback",composer,"Only your party can read this chat.",0,0,.82f,0,20,true,StageUITheme.ReadingInk);
         view.feedback.rectTransform.offsetMax=new Vector2(0,26);
         view.feedback.alignment=TextAlignmentOptions.Left;
-        view.counter=Label("CharacterCount",root,"0 / 200",.82f,0,1,0,20,true,StageUITheme.ReadingInk);
+        view.counter=Label("CharacterCount",composer,"0 / 200",.82f,0,1,0,20,true,StageUITheme.ReadingInk);
         view.counter.rectTransform.offsetMax=new Vector2(0,26);
         view.counter.alignment=TextAlignmentOptions.Right;
         return view;
