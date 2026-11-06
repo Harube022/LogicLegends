@@ -97,9 +97,10 @@ public sealed class SetElement : MonoBehaviour
         }
 
         IsCarried = true;
-        transform.SetParent(carryPoint, false);
+        transform.SetParent(carryPoint, true);
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
+        CarriedObjectAlignment.Follow(transform, carryPoint, true);
         SetCollidersEnabled(false);
         return true;
     }
@@ -110,6 +111,7 @@ public sealed class SetElement : MonoBehaviour
 
         IsCarried = false;
         IsPlaced = true;
+        GetComponent<CarriedObjectAlignment>()?.Restore();
         reservedZone = zone;
         transform.SetParent(null, true);
         Vector3 placementPosition = zone.ReservePlacementPoint(this);

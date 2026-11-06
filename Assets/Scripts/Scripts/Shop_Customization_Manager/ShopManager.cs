@@ -110,6 +110,8 @@ public class ShopManager : MonoBehaviour
     }
     private void ApplyAccount(CommerceClient.Account account)
     {
+        if (account.economy != null && account.catalog != null) SoloEconomy.ApplyServer(account.economy, account.catalog);
+        else if (SoloEconomyConnection.Enabled) SoloEconomy.ApplyServer(account.economy, account.catalog);
         currentGems = account.gems;
         // Sandbox commerce owns test gems only. Existing gameplay coins stay
         // sourced from the real Firebase account, including after purchases.
@@ -285,8 +287,7 @@ public class ShopManager : MonoBehaviour
     private bool IsCurrent(int version)
     {
         return this != null && isActiveAndEnabled && version == requestVersion &&
-            FirebaseManager.IsReady && FirebaseAuth.DefaultInstance.CurrentUser != null &&
-            FirebaseAuth.DefaultInstance.CurrentUser.UserId == userId;
+            CommerceClient.UserId != null && CommerceClient.UserId == userId;
     }
 
     private IEnumerator DelayedLoadingFeedback(int version)
@@ -372,6 +373,7 @@ public class ShopManager : MonoBehaviour
         Status("", false);
         previewUI.Show(itemToBuy, playerBaseCharacter, BalanceFor(itemToBuy), ownedItems.Contains(itemToBuy.ItemID));
         if (!commerceReady) previewUI.ShowPurchasesUnavailable(commercePaused ? "Purchases aren't available. You can still preview outfits." : null);
+        if (!SoloEconomyConnection.Enabled) previewUI.ShowPurchasesUnavailable("Purchases are not available yet. You can still preview owned outfits.");
     }
 
     // A failed purchase can keep its modal open for feedback/retry, even though
@@ -379,15 +381,24 @@ public class ShopManager : MonoBehaviour
     public bool IsPreviewCurrent => IsCurrent(requestVersion);
     public bool IsPurchasing => purchasing;
     private int BalanceFor(ShopItem item) => item.CurrencyType == ShopItem.Currency.Coins ? currentCoins : currentGems;
+    public void SelectPurchaseCurrency(ShopItem.Currency currency)
+    {
+        if (purchasing || previewedItem == null || previewUI == null || !previewUI.IsOpen || previewUI.IsConfirming) return;
+        previewedItem.SelectCurrency(currency);
+        previewUI.ShowCurrency(BalanceFor(previewedItem));
+        if (!SoloEconomyConnection.Enabled) previewUI.ShowPurchasesUnavailable("Purchases are not available yet.");
+    }
 
     public void RequestPurchaseConfirmation()
     {
         if (!CanPurchasePreview()) return;
+        if (!previewUI.QuoteIsCurrent) { previewUI.ShowCurrency(BalanceFor(previewedItem)); return; }
         previewUI.ShowConfirmation(BalanceFor(previewedItem));
     }
 
     private bool CanPurchasePreview()
     {
+        if (!SoloEconomyConnection.Enabled) { previewUI?.ShowPurchasesUnavailable("Purchases are not available yet."); return false; }
         if (!commerceReady) { if (!commercePaused) Status("Purchases are unavailable. Retry to reconnect.", true); return false; }
         return dataLoaded && IsPreviewCurrent && !revealing && !purchasing && previewUI != null && previewUI.IsOpen &&
             previewedItem != null && Fits(previewedItem) && previewedItem.Price >= 0 &&
@@ -398,6 +409,7 @@ public class ShopManager : MonoBehaviour
     {
         // Only the second, explicit confirmation action can submit a purchase.
         if (!CanPurchasePreview() || !previewUI.IsConfirming) return;
+        if (!previewUI.QuoteIsCurrent) { previewUI.ShowError("Prices changed. Refresh the shop before confirming."); return; }
         var itemToBuy = previewedItem;
         int balance = BalanceFor(itemToBuy);
         int version = requestVersion;
@@ -416,7 +428,7 @@ public class ShopManager : MonoBehaviour
         {
             // Send only the ID: the server owns price, currency, character
             // eligibility, balance checking and the atomic ownership grant.
-            var account = await CommerceClient.BuyItem(itemToBuy.ItemID);
+            var account = await CommerceClient.BuyItem(itemToBuy.ItemID, itemToBuy.CurrencyType, previewUI.QuotedPrice);
             if (!IsCurrent(version)) return;
             purchasing = false;
             ApplyAccount(account);

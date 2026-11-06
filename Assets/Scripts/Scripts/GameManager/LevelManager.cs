@@ -266,7 +266,7 @@ public class LevelManager : MonoBehaviourPun
 
     public void ResetFromGameOver()
     {
-        TrialRewards.RecordRetry(0, true);
+        if (!Photon.Pun.PhotonNetwork.InRoom && TrialRewards.CurrentTrial > 0 && !TrialRewards.TryRecordRetry(0, true)) return;
         if (isSetsStageTimer)
         {
             SetsStageManager setsStageManager = FindFirstObjectByType<SetsStageManager>();

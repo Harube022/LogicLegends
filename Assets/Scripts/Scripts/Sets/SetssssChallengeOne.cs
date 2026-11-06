@@ -426,7 +426,8 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         SetVisible(returnBlockButton, false);
         if (input != null) input.SetGameplayInputBlocked(true);
         if (player != null) player.ToggleControl(false);
-        if (gameOverPanel != null) gameOverPanel.SetActive(true);
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+        SetssssStageResultUI.ShowFailure(RestartChallenge);
         Time.timeScale = 0f;
     }
 
@@ -661,7 +662,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
     // stage restart outside Game Over starts again at Challenge 1.
     public void RestartChallenge()
     {
-        TrialRewards.RecordRetry(7, true);
+        if (!TrialRewards.TryRecordRetry(7, true)) return;
         bool newPlaythrough = !gameOverTriggered;
         introductions?.Cancel();
         if (newPlaythrough) introductions?.ResetPlaythrough();
@@ -1139,6 +1140,8 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
     private void RecordReleasedBlock(GrabbableObject block)
     {
         if (block == null) return;
+        hintPlacementRevision++;
+        hintNeedsCorrection = false;
         // Drop already releases at the hold point with gravity. Never assign a
         // position, slot, region, or parent: the physics result is the answer.
         releasedBlocks.Add(block);
@@ -1349,6 +1352,8 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         }
         PlacementReview review = ReviewIncorrectPlacement();
         bool correct = !review.missingRequired && review.incorrectBlocks.Count == 0;
+        hintCheckRevision++;
+        hintNeedsCorrection = !correct;
         foreach (GrabbableObject block in AnswerBlocks())
             block.GetComponent<SetssssNumberedBlock>()?.SetPlacementFeedback(!review.incorrectBlocks.Contains(block));
         WorldStageAudio.PlayAnswerFeedback(correct);
@@ -1415,6 +1420,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
 
     private void ResetAllBlocks()
     {
+        hintNeedsCorrection = false;
         ClearAllErrorIndicators();
         if (player != null && player.GetHeldObject() != null && GetBlockNumber(player.GetHeldObject()) > 0)
         {

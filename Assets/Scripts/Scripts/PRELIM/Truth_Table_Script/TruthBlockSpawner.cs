@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class TruthBlockSpawner : MonoBehaviour
 {
+    private void OnDestroy(){ClearActiveBlocks(true);}
     [Header("Puzzle Reference")]
     [SerializeField] private DynamicLogicPuzzle puzzle;
 

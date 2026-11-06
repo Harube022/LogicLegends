@@ -1,0 +1,336 @@
+{
+  "truthTable": [
+    {
+      "id": "tt-0",
+      "prompt": "What does a truth table show?",
+      "choices": [
+        "All truth-value combinations and the resulting expression value",
+        "Only true values of p",
+        "Only the final value, without input combinations",
+        "The steps of a formal proof"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "tt-1",
+      "prompt": "If p is true, what is ~p?",
+      "choices": [
+        "False",
+        "True",
+        "Both true and false",
+        "It cannot be evaluated"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "tt-2",
+      "prompt": "If p is true and q is false, what is p ∧ q?",
+      "choices": [
+        "True",
+        "False",
+        "Both true and false",
+        "Cannot be determined from p and q"
+      ],
+      "correctChoice": 1
+    },
+    {
+      "id": "tt-3",
+      "prompt": "If p and q are both false, what is p ∨ q (inclusive OR)?",
+      "choices": [
+        "False",
+        "True",
+        "Both true and false",
+        "Cannot be determined from p and q"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "tt-4",
+      "prompt": "If p and q are both true, what is p ∨ q (inclusive OR)?",
+      "choices": [
+        "True",
+        "False",
+        "Both true and false",
+        "Cannot be determined from p and q"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "tt-5",
+      "prompt": "If p and q are both true, what is p ⊕ q (exclusive OR)?",
+      "choices": [
+        "False",
+        "True",
+        "Both true and false",
+        "Cannot be determined from p and q"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "tt-6",
+      "prompt": "If p is true and q is false, what is p → q?",
+      "choices": [
+        "True",
+        "False",
+        "Both true and false",
+        "Cannot be determined from p and q"
+      ],
+      "correctChoice": 1
+    },
+    {
+      "id": "tt-7",
+      "prompt": "If p and q are both false, what is p ↔ q?",
+      "choices": [
+        "False",
+        "True",
+        "Both true and false",
+        "Cannot be determined from p and q"
+      ],
+      "correctChoice": 1
+    },
+    {
+      "id": "tt-8",
+      "prompt": "If p is true and q is false, what is ~p ∨ q?",
+      "choices": [
+        "False",
+        "True",
+        "Both true and false",
+        "Cannot be determined from p and q"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "tt-9",
+      "prompt": "If p is false and q is true, which row correctly evaluates (p → q) → (~q)?",
+      "choices": [
+        "p → q = T, ~q = F, result = F",
+        "p → q = F, ~q = F, result = T",
+        "p → q = T, ~q = T, result = T",
+        "p → q = F, ~q = T, result = F"
+      ],
+      "correctChoice": 0
+    }
+  ],
+  "inference": [
+    {
+      "id": "roi-DM-description-and",
+      "prompt": "Which law says that negating an AND statement gives an OR statement with both parts negated?",
+      "choices": [
+        "De Morgan's law",
+        "Commutativity",
+        "Associativity",
+        "Exportation"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-DM-description-or",
+      "prompt": "Which law says that negating an OR statement gives an AND statement with both parts negated?",
+      "choices": [
+        "De Morgan's law",
+        "Distribution",
+        "Material implication",
+        "Transposition"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-DM-formula-and",
+      "prompt": "Identify the law:\n¬(P ∧ Q) ↔ (¬P ∨ ¬Q)",
+      "choices": [
+        "De Morgan's law",
+        "Material equivalence",
+        "Commutativity",
+        "Exportation"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-DM-formula-or",
+      "prompt": "Identify the law:\n¬(P ∨ Q) ↔ (¬P ∧ ¬Q)",
+      "choices": [
+        "De Morgan's law",
+        "Distribution",
+        "Associativity",
+        "Transposition"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-COMM-description",
+      "prompt": "Which law allows the order of two propositions joined by AND or OR to be reversed without changing the result?",
+      "choices": [
+        "Commutativity",
+        "Associativity",
+        "Material implication",
+        "Distribution"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-COMM-formula",
+      "prompt": "Identify the law:\n(P ∨ Q) ↔ (Q ∨ P)",
+      "choices": [
+        "Commutativity",
+        "Associativity",
+        "De Morgan's law",
+        "Material equivalence"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-ASSOC-description",
+      "prompt": "Which law changes the grouping of three propositions joined by the same connective, while keeping their order?",
+      "choices": [
+        "Associativity",
+        "Commutativity",
+        "Distribution",
+        "Exportation"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-ASSOC-formula",
+      "prompt": "Identify the law:\n((P ∨ Q) ∨ R) ↔ (P ∨ (Q ∨ R))",
+      "choices": [
+        "Associativity",
+        "Commutativity",
+        "Material implication",
+        "De Morgan's law"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-DIST-description",
+      "prompt": "Which law expands one proposition joined to a grouped expression by combining that proposition with each part of the group?",
+      "choices": [
+        "Distribution",
+        "Transposition",
+        "Commutativity",
+        "Material equivalence"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-DIST-formula",
+      "prompt": "Identify the law:\n(P ∧ (Q ∨ R)) ↔ ((P ∧ Q) ∨ (P ∧ R))",
+      "choices": [
+        "Distribution",
+        "Associativity",
+        "Exportation",
+        "De Morgan's law"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-TRANS-description",
+      "prompt": "Which equivalence reverses a conditional's antecedent and consequent and negates both?",
+      "choices": [
+        "Transposition",
+        "Material implication",
+        "Material equivalence",
+        "Exportation"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-TRANS-formula",
+      "prompt": "Identify the law:\n(P → Q) ↔ (¬Q → ¬P)",
+      "choices": [
+        "Transposition",
+        "Commutativity",
+        "Material implication",
+        "Distribution"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-IMPL-description",
+      "prompt": "Which law rewrites a conditional as an OR statement with its antecedent negated?",
+      "choices": [
+        "Material implication",
+        "Material equivalence",
+        "Transposition",
+        "Associativity"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-IMPL-formula",
+      "prompt": "Identify the law:\n(P → Q) ↔ (¬P ∨ Q)",
+      "choices": [
+        "Material implication",
+        "Transposition",
+        "Exportation",
+        "De Morgan's law"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-EQUIV-description",
+      "prompt": "Which law expresses 'P if and only if Q' as the conjunction of the implications in both directions?",
+      "choices": [
+        "Material equivalence",
+        "Material implication",
+        "Exportation",
+        "Distribution"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-EQUIV-formula",
+      "prompt": "Identify the law:\n(P ↔ Q) ↔ ((P → Q) ∧ (Q → P))",
+      "choices": [
+        "Material equivalence",
+        "Material implication",
+        "Commutativity",
+        "Transposition"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-EXP-description",
+      "prompt": "Which law changes an implication with a conjunction as its antecedent into a nested implication?",
+      "choices": [
+        "Exportation",
+        "Distribution",
+        "Associativity",
+        "Transposition"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-EXP-formula",
+      "prompt": "Identify the law:\n((P ∧ Q) → R) ↔ (P → (Q → R))",
+      "choices": [
+        "Exportation",
+        "Material equivalence",
+        "Distribution",
+        "De Morgan's law"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-TAUTOLOGY-description",
+      "prompt": "A proposition is true for every possible assignment of truth values. What is it called?",
+      "choices": [
+        "Tautology",
+        "Contradiction",
+        "Contingency",
+        "An unassigned proposition"
+      ],
+      "correctChoice": 0
+    },
+    {
+      "id": "roi-TAUTOLOGY-formula",
+      "prompt": "What kind of proposition is\n¬(P ∨ Q) ↔ (¬P ∧ ¬Q)?",
+      "choices": [
+        "Tautology",
+        "Contradiction",
+        "Contingency",
+        "Not a proposition"
+      ],
+      "correctChoice": 0
+    }
+  ]
+}

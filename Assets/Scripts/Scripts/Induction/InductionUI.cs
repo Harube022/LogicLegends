@@ -331,6 +331,7 @@ namespace LogicLegends.Induction
             Result.Menu.GetComponentInChildren<TMP_Text>().text="Go to Menu";
             Result.Primary.onClick.RemoveAllListeners();Result.Primary.onClick.AddListener(()=>{if(hasNext)stage.Navigate(stage.nextScene);else stage.Restart();});Result.Extra.gameObject.SetActive(false);
             if (win) Result.Root.GetComponent<StageResultLayout>().Complete(6);
+            else Result.Root.GetComponent<StageResultLayout>().Fail(6, stage.Restart);
         }
         static void Place(RectTransform rect,float x,float y,float X,float Y)=>StageUITheme.Stretch(rect,new Vector2(x,y),new Vector2(X,Y));
         static RectTransform Panel(string name,Transform parent,Vector2 min,Vector2 max)

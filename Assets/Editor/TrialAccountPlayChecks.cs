@@ -44,9 +44,11 @@ public static class TrialAccountPlayChecks
     {
         if(state!=PlayModeStateChange.EnteredEditMode||!SessionState.GetBool(Flag,false))return;
         SessionState.SetBool(Flag,false);
+        SetConnection(null);
         foreach(string uid in identities)for(int trial=1;trial<=10;trial++)PlayerPrefs.DeleteKey("TrialRewardOutbox.v1."+uid+"."+trial);
         PlayerPrefs.Save();Set("ValidationTransport",null);Set("ValidationUid",null);Set("ValidationEmail",null);AdminAuthorization.Refresh();
     }
+    static void SetConnection(bool? value)=>typeof(SoloEconomyConnection).GetField("ValidationEnabled",StaticHidden).SetValue(null,value);
     static void Set(string name,object value)=>typeof(TrialBackendClient).GetField(name,StaticHidden).SetValue(null,value);
     static void Identity(string name,string email,bool admin)
     {
@@ -76,7 +78,7 @@ public static class TrialAccountPlayChecks
         if(path.EndsWith("/complete")&&run.status!="completed")
         {run.reward=run.admin?0:TrialRewards.RewardForRetries(run.retries);account.coins+=run.reward;run.status="completed";}
         if(path.EndsWith("/complete")&&loseCompletionResponse){loseCompletionResponse=false;throw new TimeoutException("Response lost after commit.");}
-        return Task.FromResult(JsonUtility.ToJson(new TrialBackendClient.Attempt{trial=request.trial,attemptId=id,status=run.status,retries=run.retries,reward=run.reward,coins=account.coins,adminUsed=run.admin}));
+        return Task.FromResult(JsonUtility.ToJson(new TrialBackendClient.Attempt{economyVersion=2,baseReward=1000,maxRetries=2,retryReductionPercent=25,trial=request.trial,attemptId=id,status=run.status,retries=run.retries,reward=run.reward,coins=account.coins,adminUsed=run.admin}));
     }
     static IEnumerator Guard(IEnumerator run)
     {
@@ -93,7 +95,17 @@ public static class TrialAccountPlayChecks
     static IEnumerator Run()
     {
         yield return null;yield return null;
-        Check(new[]{0,1,2,3,4}.Select(TrialRewards.RewardForRetries).SequenceEqual(new[]{1000,750,562,421,316}),"cumulative reward calculation");
+        Check(new[]{0,1,2,3,4}.Select(TrialRewards.RewardForRetries).SequenceEqual(new[]{1000,750,500,500,500}),"original-base reward reductions");
+        Identity("not-connected","ordinary@example.test",false);
+        SetConnection(false);
+        TrialRewards.PrepareNewAttempt(1);TrialRewards.Complete(1);
+        Check(accounts[TrialBackendClient.UserId].trials.Count==0&&accounts[TrialBackendClient.UserId].coins==37,"disconnected economy queues completion without contacting the reward service");
+        bool blocked=false;try{CommerceClient.BuyItem("Common_Skin",ShopItem.Currency.Coins,3000);}catch(InvalidOperationException){blocked=true;}
+        Check(blocked,"disconnected purchase entry point is blocked before any payment request");
+        SetConnection(true);TrialRewards.Complete(1);TrialRewards.Complete(1);yield return null;
+        Check(accounts[TrialBackendClient.UserId].coins==1037,"connecting later pays the queued completion exactly once");
+        SetConnection(null);
+        Log("merge-safe disabled connection, blocked purchases, and deferred reward recovery after connection");
         Check(!AdminAuthorization.IsAuthorized&&!AdminAuthorization.TryUseGameplayAdmin(),"ordinary authenticated account cannot act as Admin");
         var adminUi=UnityEngine.Object.FindFirstObjectByType<AdminDebugController>();
         if(adminUi!=null)
@@ -126,12 +138,12 @@ public static class TrialAccountPlayChecks
             TrialRewards.PrepareNewAttempt(trial);TrialRewards.RecordRetry(trial);TrialRewards.RecordRetry(trial);
             TrialRewards.SceneLoaded();TrialRewards.RecordRetry(trial);
             TrialRewards.Complete(trial);TrialRewards.Complete(trial);yield return null;
-            Check(accounts[TrialBackendClient.UserId].coins==599,"two retries award exactly 562 once, trial "+trial);
+            Check(accounts[TrialBackendClient.UserId].coins==537,"two retries award exactly 500 once, trial "+trial);
             ClearMemory();TrialRewards.Complete(trial);yield return null;
-            Check(accounts[TrialBackendClient.UserId].coins==599,"results/reload cannot duplicate receipt, trial "+trial);
+            Check(accounts[TrialBackendClient.UserId].coins==537,"results/reload cannot duplicate receipt, trial "+trial);
             TrialRewards.PrepareNewAttempt(trial);loseCompletionResponse=true;TrialRewards.Complete(trial);
             int committed=accounts[TrialBackendClient.UserId].coins;ClearMemory();TrialRewards.Complete(trial);yield return null;
-            Check(accounts[TrialBackendClient.UserId].coins==committed&&committed==1599,"lost response and app reload retry the same receipt, trial "+trial);
+            Check(accounts[TrialBackendClient.UserId].coins==committed&&committed==1537,"lost response and app reload retry the same receipt, trial "+trial);
         }
         Log("all ten trials: distinct retry operations, durable outbox reload, duplicate completion and uncertain commit recovery");
         Identity("pending-login","ordinary@example.test",false);TrialRewards.PrepareNewAttempt(4);loseCompletionResponse=true;TrialRewards.Complete(4);
@@ -160,7 +172,8 @@ public static class TrialAccountPlayChecks
         {
             property.SetValue(window,size);TrialRewards.PrepareNewAttempt(10);view.Root.GetComponent<StageResultLayout>().Complete(10);
             yield return null;yield return null;Canvas.ForceUpdateCanvases();yield return null;
-            var label=view.Card.Find("TrialCoinReward").GetComponent<TMP_Text>();Check(label.text.Contains("1,000"),"completion screen shows confirmed coins");
+            var label=view.Card.GetComponentsInChildren<TMP_Text>(true).Single(t=>t.name=="TrialCoinReward");Check(label.text=="1,000","completion screen shows confirmed coins once");
+            Check(view.Card.GetComponentsInChildren<Image>(true).Count(i=>i.name=="Coin Icon"&&i.sprite==TrialRewardArt.Coin)==1,"completion uses one existing Coin icon");
             Check(!Bounds(label.rectTransform).Overlaps(Bounds(view.Menu.GetComponent<RectTransform>())),"coin reward stays clear of navigation");
             Check(!Bounds(label.rectTransform).Overlaps(Bounds(view.Summary.rectTransform)),"coin reward stays clear of summary");
         }

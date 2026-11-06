@@ -12,6 +12,11 @@ namespace LogicLegends.Inference
         [Min(.5f)] public float interactionRange = 2.4f;
         [Min(.5f)] public float detectionRange = 8f;
         public void Initialize(InferenceChallenge owner) { Challenge = owner; Active = this; }
+        public static string QuizEvent(InferenceCrystal crystal)
+        {
+            var rule = crystal != null ? crystal.GetComponent<RuleDiamond>() : null;
+            return rule != null && Active != null ? "roi-c" + (Active.Challenge.SolvedRounds + 1) + "-" + rule.Abbreviation : null;
+        }
         void Update()
         {
             AvailableCrystal = FindAvailable();
@@ -68,7 +73,7 @@ namespace LogicLegends.Inference
             }
             var crystal = FindAvailable();
             if (crystal == null) return false;
-            if(crystal.PickupQuizCompleted)
+            if(crystal.PickupQuizCompleted || TrialRewards.HasQuizAnswer(3, QuizEvent(crystal)))
             {
                 CollectAfterQuiz(crystal,false);
                 return true;
@@ -76,7 +81,7 @@ namespace LogicLegends.Inference
             var quiz = Challenge.GetComponent<InferenceCrystalQuiz>();
             if (quiz == null) return false;
             // Only a crystal's first successful collection needs a quiz this challenge.
-            if (!quiz.Open(() => CollectAfterQuiz(crystal,true))) return true;
+            if (!quiz.Open(() => CollectAfterQuiz(crystal,true), crystal: crystal)) return true;
             AvailableCrystal = null;
             return true;
         }

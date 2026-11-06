@@ -8,7 +8,7 @@ namespace LogicLegends.Graph
 {
     public enum GraphStageState { WAITING_FOR_ACTIVATION, ACTIVE, VALIDATING, CHALLENGE_COMPLETE, STAGE_COMPLETE, GAME_OVER }
 
-    public sealed class GraphStageManager : MonoBehaviour
+    public sealed partial class GraphStageManager : MonoBehaviour
     {
         public GraphChallengeCatalog catalog;
         public GraphVertex vertexPrefab;
@@ -282,6 +282,7 @@ namespace LogicLegends.Graph
             State = GraphStageState.VALIDATING;
             bool valid = GraphAnswerValidator.Validate(Challenge, Tracker.Route, Answer,
                 Tracker.IsContinuous && Tracker.AtVertex, out string reason);
+            if (!valid) hintRejectedGraph = HintGraphArrangement;
             // Queue the preloaded sound immediately, before starting particle feedback.
             audioSource.PlayOneShot(valid ? correctSound : wrongSound);
             foreach (var vertex in vertices) vertex.ShowAnswerFeedback(valid, feedbackSeconds);
@@ -420,7 +421,7 @@ namespace LogicLegends.Graph
         }
         public void RestartStage()
         {
-        TrialRewards.RecordRetry(9);
+        if (!TrialRewards.TryRecordRetry(9)) return;
             Navigate("Graph", 9);
         }
         public void ReturnToMenu()

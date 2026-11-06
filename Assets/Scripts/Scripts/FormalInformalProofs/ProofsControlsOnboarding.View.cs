@@ -76,14 +76,11 @@ public sealed partial class ProofsControlsOnboarding
         hand.gameObject.SetActive(CurrentStep == ProofsTutorialStep.Interaction || CurrentStep == ProofsTutorialStep.Book || CurrentStep == ProofsTutorialStep.ConfirmBook || WantsInteraction);
         bool board = CurrentStep == ProofsTutorialStep.Board || CurrentStep == ProofsTutorialStep.BoardBack;
         ui.BackButton.gameObject.SetActive(board); ui.BackButton.interactable = CurrentStep == ProofsTutorialStep.BoardBack;
-        ui.ViewButton.gameObject.SetActive(WantsViewBoard); ui.InteractionButton.gameObject.SetActive(WantsInteraction);
+        ui.ViewButton.gameObject.SetActive(WantsViewBoard);
         if (WantsViewBoard) ProofsStageUI.Bottom((RectTransform)ui.ViewButton.transform, new Vector2(0, 55), new Vector2(280, 88));
         ui.Hud.gameObject.SetActive(CurrentStep == ProofsTutorialStep.Timer || CurrentStep == ProofsTutorialStep.Progress);
         stage.PromptText.gameObject.SetActive(false); help.HelpButton.gameObject.SetActive(false);
         if (settings != null) settings.gameObject.SetActive(false);
-        string action = CurrentStep == ProofsTutorialStep.Book ? BookStatuePresentation.HandPromptText : CurrentStep == ProofsTutorialStep.ReadScroll ? "Read Practice Scroll" :
-            CurrentStep == ProofsTutorialStep.TakeBack ? "Take Back Scroll" : CurrentStep == ProofsTutorialStep.ConfirmBook ? "Confirm at Book" : "Place Scroll";
-        ui.InteractionButton.GetComponentInChildren<TMP_Text>().text = action;
         if (CurrentStep == ProofsTutorialStep.Reader)
         {
             stage.CollectButton.interactable = Readable;
@@ -108,7 +105,7 @@ public sealed partial class ProofsControlsOnboarding
     {
         if (instructions == null || !instructions.gameObject.activeSelf) return;
         var blockers = new List<RectTransform>(ControlTutorialLayout.FindBlockers());
-        blockers.AddRange(new[] { ui.Hud, (RectTransform)ui.ViewButton.transform, (RectTransform)ui.InteractionButton.transform, (RectTransform)ui.BackButton.transform,
+        blockers.AddRange(new[] { ui.Hud, (RectTransform)ui.ViewButton.transform, (RectTransform)ui.BackButton.transform,
             (RectTransform)stage.ReaderPanel.transform, (RectTransform)stage.TakeBackPanel.transform });
         if (worldRect.gameObject.activeInHierarchy) blockers.Add(worldRect);
         var target = highlight.gameObject.activeSelf ? highlight.parent as RectTransform : worldRect.gameObject.activeSelf ? worldRect : null;

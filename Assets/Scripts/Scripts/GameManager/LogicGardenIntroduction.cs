@@ -48,7 +48,7 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
     {
         "Welcome to the Logic Library.",
         "Here, you can explore Discrete Mathematics topics from prelims through finals.",
-        "Approach a book and select Read to review its lesson.",
+        "Approach a shelf and tap the hand button. Choose a topic to open its book.",
         "Take your time learning. You can return to LogicGarden whenever you’re ready."
     };
 

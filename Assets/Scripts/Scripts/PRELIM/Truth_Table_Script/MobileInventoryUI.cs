@@ -22,18 +22,18 @@ public class MobileInventoryUI : MonoBehaviour
 
     public void RefreshInventoryDisplay(InventorySlot[] slots, int selectedIndex)
     {
-        for (int i = 0; i < uiSlots.Length; i++)
+        for (int i = 0; slots!=null&&i < uiSlots.Length&&i<slots.Length; i++)
         {
+            if(slots[i]==null)continue;
             bool isSelected = (i == selectedIndex);
-            uiSlots[i].slotBackground.color = isSelected ? selectedColor : normalColor;
+            if(uiSlots[i].slotBackground!=null)uiSlots[i].slotBackground.color = isSelected ? selectedColor : normalColor;
 
             if (slots[i].isEmpty)
             {
                 if (uiSlots[i].blockIcon != null)
                     uiSlots[i].blockIcon.gameObject.SetActive(false);
-                uiSlots[i].blockTypeText.gameObject.SetActive(false);
-                uiSlots[i].countText.text = string.Empty;
-                uiSlots[i].countText.gameObject.SetActive(false);
+                if(uiSlots[i].blockTypeText!=null)uiSlots[i].blockTypeText.gameObject.SetActive(false);
+                if(uiSlots[i].countText!=null){uiSlots[i].countText.text = string.Empty;uiSlots[i].countText.gameObject.SetActive(false);}
             }
             else
             {
@@ -43,14 +43,14 @@ public class MobileInventoryUI : MonoBehaviour
                     uiSlots[i].blockIcon.gameObject.SetActive(uiSlots[i].blockIcon.sprite != null);
                 }
                 // ALWAYS turn on text components once a block occupies the slot data
-                uiSlots[i].blockTypeText.gameObject.SetActive(true);
-                uiSlots[i].countText.gameObject.SetActive(true);
+                if(uiSlots[i].blockTypeText!=null)uiSlots[i].blockTypeText.gameObject.SetActive(true);
+                if(uiSlots[i].countText!=null)uiSlots[i].countText.gameObject.SetActive(true);
 
                 // Assign values safely
-                uiSlots[i].blockTypeText.text = slots[i].blockValue ? "T" : "F";
+                if(uiSlots[i].blockTypeText!=null)uiSlots[i].blockTypeText.text = slots[i].blockValue ? "T" : "F";
 
                 // ---> FIXED: Always show the count string regardless of how many items are in the stack <---
-                uiSlots[i].countText.text = $"x{slots[i].count}";
+                if(uiSlots[i].countText!=null)uiSlots[i].countText.text = $"x{slots[i].count}";
             }
         }
     }
@@ -59,12 +59,12 @@ public class MobileInventoryUI : MonoBehaviour
 public void OnClickSlot0()
 {
     // Tells the inventory manager to swap to Slot 0
-    InventoryManager.Instance.SetSelectedSlotDirectly(0);
+    if(InventoryManager.Instance!=null)InventoryManager.Instance.ToggleSelectedSlot(0);
 }
 
 public void OnClickSlot1()
 {
     // Tells the inventory manager to swap to Slot 1
-    InventoryManager.Instance.SetSelectedSlotDirectly(1);
+    if(InventoryManager.Instance!=null)InventoryManager.Instance.ToggleSelectedSlot(1);
 }
 }

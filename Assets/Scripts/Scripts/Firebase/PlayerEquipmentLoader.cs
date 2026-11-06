@@ -22,6 +22,16 @@ public class PlayerEquipmentLoader : MonoBehaviourPun
     [Tooltip("If the player's database is empty, what should they wear?")]
     [SerializeField] private string defaultClothesID = "male_default";
     private bool receivedNetworkEquipment;
+    private bool debugCharacterActive;
+    private string currentClothesID;
+
+    internal void SetDebugCharacterActive(bool active)
+    {
+        if (debugCharacterActive == active) return;
+        if (string.IsNullOrEmpty(currentClothesID)) currentClothesID = SelectedID(clothesModels);
+        debugCharacterActive = active;
+        ApplyEquipment(string.IsNullOrEmpty(currentClothesID) ? defaultClothesID : currentClothesID, clothesModels);
+    }
     private bool IsNetworkAvatar => PhotonNetwork.InRoom && GetComponent<PhotonView>() != null;
 
     private void Start()
@@ -145,7 +155,7 @@ public class PlayerEquipmentLoader : MonoBehaviourPun
         if (clothesModels == null || string.IsNullOrEmpty(itemID)) return false;
         foreach (var entry in clothesModels)
         {
-            if (entry != null && entry.itemID == itemID) return true;
+            if (entry != null && SameEquipmentID(entry.itemID, itemID)) return true;
         }
         return false;
     }
@@ -166,7 +176,8 @@ public class PlayerEquipmentLoader : MonoBehaviourPun
     private void PublishEquipment()
     {
         if (IsNetworkAvatar && photonView.Owner != null && photonView.Owner.IsLocal)
-            photonView.RPC(nameof(SyncEquipmentRPC), RpcTarget.OthersBuffered, SelectedID(clothesModels), SelectedID(petModels));
+            photonView.RPC(nameof(SyncEquipmentRPC), RpcTarget.OthersBuffered,
+                debugCharacterActive ? currentClothesID : SelectedID(clothesModels), SelectedID(petModels));
     }
     [PunRPC]
     private void SyncEquipmentRPC(string clothesID, string petID, PhotonMessageInfo info)
@@ -185,7 +196,7 @@ public class PlayerEquipmentLoader : MonoBehaviourPun
 
         foreach (EquippableModel entry in models)
         {
-            if (entry != null && entry.model != null && entry.itemID == equippedID)
+            if (entry != null && entry.model != null && SameEquipmentID(entry.itemID, equippedID))
             {
                 selectedModel = entry.model;
                 break;
@@ -197,7 +208,7 @@ public class PlayerEquipmentLoader : MonoBehaviourPun
         {
             foreach (EquippableModel entry in models)
             {
-                if (entry != null && entry.model != null && entry.itemID == defaultClothesID)
+                if (entry != null && entry.model != null && SameEquipmentID(entry.itemID, defaultClothesID))
                 {
                     selectedModel = entry.model;
                     break;
@@ -217,15 +228,26 @@ public class PlayerEquipmentLoader : MonoBehaviourPun
             }
         }
 
+        if (models == clothesModels)
+            foreach (var entry in models)
+                if (entry != null && entry.model == selectedModel) { currentClothesID = entry.itemID; break; }
+
         foreach (EquippableModel entry in models)
         {
             if (entry != null && entry.model != null)
             {
-                entry.model.SetActive(entry.model == selectedModel);
+                entry.model.SetActive(entry.model == selectedModel && !(models == clothesModels && debugCharacterActive));
             }
         }
 
         PlayerVisibilityController visibility = GetComponent<PlayerVisibilityController>();
         if (visibility != null) visibility.RefreshRenderers();
+    }
+    // Accept the legacy prefab spelling without rewriting any account's saved ID.
+    public static bool SameEquipmentID(string a, string b)
+    {
+        if (a == "male default") a = "male_default";
+        if (b == "male default") b = "male_default";
+        return string.Equals(a, b, System.StringComparison.Ordinal);
     }
 }

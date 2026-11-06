@@ -7,4 +7,7 @@ public sealed class CommerceSettings : ScriptableObject
     public string backendUrl = "http://127.0.0.1:18080";
     [Tooltip("Keep enabled until hosting, credentials and database rules are configured.")]
     public bool sandbox = true;
+    [Header("Solo Economy v2 — programmer connection")]
+    [Tooltip("Leave off while merging. Deploy Backend/commerce, run the read-only Economy connection check, then enable this before a release build. Uses the SAME backend URL, account and wallet above.")]
+    public bool soloEconomyConnected = false;
 }

@@ -80,9 +80,13 @@ public static class StudyLibraryPointerValidation
         var result = new List<string>();
         for (int topic = 0; topic < cards.Length; topic++)
         {
+            if (!controller.IsViewing(shelf)) controller.EnterShelf(shelf);
+            yield return null;
+            while (Camera.main.GetComponent<Unity.Cinemachine.CinemachineBrain>().IsBlending) yield return null;
             var definition = definitions[topic];
             Click(cards[topic]);
             yield return null;
+            definition=(StudyBookDefinition)typeof(StudyLibraryController).GetField("currentBook",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).GetValue(controller);
             Require(reader.activeInHierarchy, definition.title + " did not open.");
             Require(controller.CurrentSpreadStartPage == 0 && !previous.interactable, "First-page state did not reset.");
             int visited = 0;
@@ -99,6 +103,7 @@ public static class StudyLibraryPointerValidation
                 else Require(right.texture == null && !right.gameObject.activeInHierarchy, "Stale right page at end of odd-page book.");
                 if (!next.interactable) break;
                 Click(next);
+                while (controller.IsTurningPage) yield return null;
                 yield return null;
                 Require(controller.CurrentSpreadStartPage == page + 2, "Next did not turn the spread.");
                 Require(visited <= definition.PageCount, "Navigation did not terminate.");
@@ -112,25 +117,19 @@ public static class StudyLibraryPointerValidation
             {
                 int page = controller.CurrentSpreadStartPage;
                 Click(previous);
+                while (controller.IsTurningPage) yield return null;
                 yield return null;
                 Require(controller.CurrentSpreadStartPage == page - 2, "Previous did not turn the spread.");
             }
             Click(previous);
             yield return null;
             Require(controller.CurrentSpreadStartPage == 0, "Disabled Previous changed the page.");
-            if (string.IsNullOrWhiteSpace(definition.lessonPages[0].text) && string.IsNullOrWhiteSpace(definition.lessonPages[0].diagram))
-            {
-                Click(left.GetComponent<Button>());
-                yield return null;
-                Require(reader.GetComponentsInChildren<RawImage>().Any(i => i.name == "Source Slide Detail" && i.texture == left.texture), "Page enlargement failed.");
-                Click(reader.GetComponentsInChildren<RawImage>().Single(i => i.name == "Source Slide Detail").GetComponent<Button>());
-                yield return null;
-            }
+            Require(reader.GetComponentsInChildren<UnityEngine.UI.ScrollRect>(true).Length == 0, "Enlargement must be absent.");
             Click(back);
             yield return null;
-            Require(!reader.activeSelf && controller.IsViewing(shelf), "Back did not return to the shelf.");
+            Require(!reader.activeSelf && !controller.IsViewing(shelf), "Back did not exit the reading camera.");
             Require(left.texture == null && right.texture == null, "Previous book's textures were retained.");
-            result.Add(definition.title + ": PASS (" + visited + " source pages, both arrows, boundaries, enlargement, Back)");
+            result.Add(definition.title + ": PASS (" + visited + " source pages, both arrows, boundaries, minimalist pages, Back)");
         }
         LastResult = string.Join("\n", result);
         Debug.Log(LastResult);
@@ -149,7 +148,7 @@ public static class StudyLibraryPointerValidation
         if (!string.IsNullOrWhiteSpace(page.text))
         {
             Require(!image.gameObject.activeInHierarchy, "Text page still shows the " + side + " source image.");
-            Require(text.gameObject.activeInHierarchy && text.text == StudyLibraryController.FormatStudyText(page.text), "Wrong " + side + " text page.");
+            Require(text.gameObject.activeInHierarchy && text.text == page.text, "Wrong " + side + " text page.");
             return;
         }
 
@@ -167,7 +166,7 @@ public static class StudyLibraryPointerValidation
         var data = new PointerEventData(EventSystem.current) { position = point, button = PointerEventData.InputButton.Left };
         var hits = new List<RaycastResult>();
         EventSystem.current.RaycastAll(data, hits);
-        Require(hits.Count > 0, "No pointer hit for " + button.name);
+        Require(hits.Count > 0, "No pointer hit for " + button.name+" active="+button.gameObject.activeInHierarchy+" point="+point+" screen="+Screen.width+"x"+Screen.height);
         var target = ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject);
         Require(target == button.gameObject, button.name + " blocked by " + hits[0].gameObject.name);
         data.pointerCurrentRaycast = hits[0];

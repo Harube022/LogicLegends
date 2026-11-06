@@ -72,6 +72,11 @@ public static class StagePresentation
         var view = root.GetComponent<StageResultLayout>();
         if (view != null) view.Complete(trial, next);
     }
+    public static void Failed(GameObject root, int trial, UnityEngine.Events.UnityAction retry)
+    {
+        var view = root != null ? root.GetComponent<StageResultLayout>() : null;
+        if (view != null) view.Fail(trial, retry);
+    }
     public static void NextTrial(int trial)
     {
         if (trial >= TrialCatalog.Count) return;

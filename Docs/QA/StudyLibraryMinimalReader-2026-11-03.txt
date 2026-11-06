@@ -1,0 +1,46 @@
+Study Library minimalist reader - 2026-11-03
+
+Scope: all ten Prelim through Finals books in LogicGarden.
+
+Presentation
+- Removed enlargement, its hint and click handlers, exterior topic heading, source/period/week footers, book-description footer and spread counter.
+- One course/topic cover layout per book. Long cover titles use balanced line breaks at the same size.
+- Plain individual page numbers at bottom-left, with reserved space beneath the content.
+- Reading font uses a fixed 36-point body, 44-point headings and consistent spacing/margins. Defined terms use bold; explanations remain regular.
+- Added measured pagination of authored semantic blocks; paragraphs, formula groups, tables and worked algebra steps stay intact. No runtime shrink-to-fit.
+- Dedicated diagrams receive their own pages and captions.
+- Previous, Next, Back, reversible page turns, rapid-tap protection and input/camera/avatar restoration retained.
+
+Content
+- Reauthored the existing lesson JSON as semantic blocks. Removed quizzes, extraction commentary, duplicate summaries and semester/week labels.
+- Preserved the lesson concepts, definitions, formulas and worked examples in clean explanatory form.
+- Corrected existing mathematical errors: natural-number versus odd-number sums; a mismatched contradiction example; the indirect algebra premise; biconditional/material-equivalence formulas; De Morgan equivalence notation; omitted b in set difference; at-most-one vertical intersection; undirected tree definition; binary-only node bounds; finite versus countably infinite sets; bounded n-ary versus general trees.
+- All rendered symbols pass the reading font/fallback coverage checks. Superscript i and subscript n use TMP formatting instead of unsupported Unicode glyphs.
+
+Page counts
+- propositional-logic: 13
+- truth-tables: 15
+- rules-of-inference: 24
+- formal-informal-proofs: 12
+- direct-indirect-proofs: 18
+- mathematical-induction: 8
+- sets: 13
+- functions-relations: 19
+- graphs: 8
+- trees: 14
+Total: 144 pages.
+
+Editor verification: Unity 6000.3.6f1, Android target
+- All 144 pages checked at 800x480, 1280x720, 1920x1080 and 2960x1440 (576 page-layout checks).
+- Text preferred height, visible glyph bounds and TMP overflow checks for all body text, covers and diagram labels.
+- Number order, bottom-left alignment, footer clearance and empty trailing-page behavior.
+- Absence of removed UI, enlargement handlers and player-facing quiz/editorial metadata.
+- Actual InputSystem simulated touch for shelf entry, every topic card, navigation and Back.
+- Forward/backward animation, rapid alternating input and cancellation mid-turn.
+- Player controls, avatar visibility, camera-input state and isolated milestone flags restored.
+- Final Console has no error entries. Play Mode exited; QA flag and validation profile cleared.
+
+Limit: no physical Android device test. Original source slide images remain stored but are not used by these reading pages.
+Detailed report: Library/MinimalLibraryReadingChecks.txt
+Representative cover/layout previews: Library/MinimalBook-<topic-id>.png
+No commits, pushes, branch changes or real account/reward changes.

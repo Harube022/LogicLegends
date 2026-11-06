@@ -1,0 +1,52 @@
+Existing Generic clips reused; bind-space retargeting, original target proportions and carry mask retained.
+ASSIGN Male_Uniform Walk <- Male_Elite exact clip GUID=b6d43fb5bb8962640ba3aca329dfc6e9; mapped bones=34; leg ratio=1.2197
+ASSIGN Male_Uniform Run <- Male_Elite exact clip GUID=972bc6356d8971e49a0146354906fd58; mapped bones=34; leg ratio=1.2197
+CONTACTS Male_Uniform=66; sampled blends retain destination floor contact.
+ASSIGN Male_Special Walk <- Male_Elite exact clip GUID=b6d43fb5bb8962640ba3aca329dfc6e9; mapped bones=34; leg ratio=1.1709
+CONTACTS Male_Special=65; sampled blends retain destination floor contact.
+ASSIGN Male_Rare Walk <- Male_Elite exact clip GUID=b6d43fb5bb8962640ba3aca329dfc6e9; mapped bones=34; leg ratio=1.2543
+CONTACTS Male_Rare=67; sampled blends retain destination floor contact.
+ASSIGN Male_Epic Jump <- Male_Common exact clip GUID=763cf5ebcc4bd3e41bc6dbf3576387fa; mapped bones=52; leg ratio=1.0044
+CONTACTS Male_Epic=65; sampled blends retain destination floor contact.
+ASSIGN Male_Common Walk <- Male_Elite exact clip GUID=b6d43fb5bb8962640ba3aca329dfc6e9; mapped bones=34; leg ratio=1.1116
+ASSIGN Male_Common Run <- Male_Elite exact clip GUID=972bc6356d8971e49a0146354906fd58; mapped bones=34; leg ratio=1.1116
+CONTACTS Male_Common=70; sampled blends retain destination floor contact.
+ASSIGN Female_Uniform Run <- Female_Special exact clip GUID=f466e3dc979a25447b5989076814a5b9; mapped bones=52; leg ratio=1.0176
+CONTACTS Female_Uniform=66; sampled blends retain destination floor contact.
+ASSIGN Female_Epic Walk <- Female_Rare exact clip GUID=ddc6037bca8fd4240ae54e16d49ac544; mapped bones=52; leg ratio=0.9184
+CONTACTS Female_Epic=65; sampled blends retain destination floor contact.
+STATIC PASS Male_Uniform Walk: 81 phases, unchanged limb offsets/proportions/root, floor min=-0.0008, no missing binding or new clip.
+STATIC PASS Male_Uniform Run: 81 phases, unchanged limb offsets/proportions/root, floor min=0.0000, no missing binding or new clip.
+STATIC PASS Male_Special Walk: 81 phases, unchanged limb offsets/proportions/root, floor min=-0.0008, no missing binding or new clip.
+STATIC PASS Male_Rare Walk: 81 phases, unchanged limb offsets/proportions/root, floor min=-0.0001, no missing binding or new clip.
+STATIC PASS Male_Epic Jump: 81 phases, unchanged limb offsets/proportions/root, floor min=-0.0050, no missing binding or new clip.
+STATIC PASS Male_Common Walk: 81 phases, unchanged limb offsets/proportions/root, floor min=-0.0024, no missing binding or new clip.
+STATIC PASS Male_Common Run: 81 phases, unchanged limb offsets/proportions/root, floor min=0.0000, no missing binding or new clip.
+STATIC PASS Female_Uniform Run: 81 phases, unchanged limb offsets/proportions/root, floor min=-0.0012, no missing binding or new clip.
+STATIC PASS Female_Epic Walk: 81 phases, unchanged limb offsets/proportions/root, floor min=-0.0039, no missing binding or new clip.
+BLEND PASS Male_Uniform Walk: 84 phase/weight combinations, floor minimum delta=-0.0013
+BLEND PASS Male_Uniform Run: 84 phase/weight combinations, floor minimum delta=0.0000
+BLEND PASS Male_Special Walk: 84 phase/weight combinations, floor minimum delta=-0.0031
+BLEND PASS Male_Rare Walk: 84 phase/weight combinations, floor minimum delta=-0.0029
+BLEND PASS Male_Epic Jump: 84 phase/weight combinations, floor minimum delta=-0.0007
+BLEND PASS Male_Common Walk: 84 phase/weight combinations, floor minimum delta=-0.0106
+BLEND PASS Male_Common Run: 84 phase/weight combinations, floor minimum delta=-0.0113
+BLEND PASS Female_Uniform Run: 84 phase/weight combinations, floor minimum delta=-0.0031
+BLEND PASS Female_Epic Walk: 84 phase/weight combinations, floor minimum delta=-0.0022
+Offline integrated skins: actual GameInput, equipment IDs, CharacterController, Animator layers, pickup/drop and hammer stun.
+PLAY PASS Male_Uniform: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PLAY PASS Male_Elite: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PLAY PASS Male_Common: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PLAY PASS Male_Rare: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PLAY PASS Male_Special: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PLAY PASS Male_Epic: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PLAY PASS Female_Uniform: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PLAY PASS Female_Common: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PLAY PASS Female_Rare: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PLAY PASS Female_Elite: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PLAY PASS Female_Special: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PLAY PASS Female_Epic: actual joystick walk/run delay/speed/turn/stop, jump/landing, carry idle/walk/run/jump/turn/release, stable proportions/item size, immediate original stun.
+PASS 12 skins / 7 affected / 9 reused states. Editor only; no account writes or physical-device test.
+ALL 12 INTEGRATED SKINS PASSED
+REFERENCES PASS 28 inherited affected visuals in base players, Resource variants and existing Main Menu previews; clip, calibration and contact bone references intact.
+SOURCE PASS 300 original animation/FBX/importer files unchanged; .anim count=156; no new clips.

@@ -1,0 +1,38 @@
+Study Library presentation - LogicGarden - 2026-11-03
+
+Changes
+- All four shelves now use screen-space topic cards with shared fantasy frames, padding, separate title/description/action areas, and readable reading fonts.
+- Shelf entry uses the mobile hand button. The legacy dedicated Read entry prompt stays hidden; topic cards still open their respective books.
+- Each shelf uses the shared white HandThoughtBubble with a yellow exclamation mark and the actual mobile hand icon. Proximity expands/shrinks the instruction.
+- Browsing captures local avatar renderer forceRenderingOff states, hides all local renderers (including newly loaded costume renderers), then restores previous visibility on Back or reader disable.
+- Gameplay HUD and movement controls are hidden while browsing, leaving one reused Back. Prior HUD, player, input and camera-input states are restored on exit.
+- Library lighting is scoped per camera render, using the same approach as the Propositional Logic chamber lighting. Six existing lamps and chandelier candle lights were balanced. Garden sunlight/ambient values are restored immediately after each library render.
+- Two shared arched glass panes were fitted inside the existing north/south window reveals. A new material reuses the project glass shader with uniform black tint and standard transparency. Original architecture, tracery, source materials and colliders are retained.
+- Library introduction wording and existing shelf QA checks now refer to the hand button.
+
+Verification
+Unity 6000.3.6f1 Editor, Android target. Isolated validation profile; no real progress or rewards.
+- All four shelves: actual InputSystem touch on the mobile hand opens the correct shelf, including stale previous-shelf triggers after teleport.
+- All ten topic cards: touch opens the intended book; Back returns gameplay.
+- 800x480, 1280x720, 1920x1080, 2960x1440: title and description text fits; title/description/action remain separated.
+- Shared bubble expansion, instruction alpha, actual hand icon, and absence of dedicated Read entry UI verified on each shelf.
+- Local avatar hidden on shelf entry and restored on Back; previously hidden renderer preserved.
+- Gameplay HUD hidden/restored on all four shelves.
+- Existing forward/backward page turns, rapid-tap rejection, native text/diagram and image enlargement, touch scrolling, cancellation and disable cleanup pass.
+- Both window renders show complete tint coverage over the sampled exterior scenery: north 46251/46251 pixels; south 45757/45757. Tracery and scenery visually inspected.
+- Outdoor camera does not invoke library lighting; sunlight and ambient settings match their original values after library renders.
+- Final Console: no error entries. Play Mode ended; ReaderQA false; validation profile cleared.
+
+Limits
+No physical Android device test or GPU timing measurement. Point lights use no realtime shadows; no new room lights were duplicated.
+
+Local previews
+Library/StudyLibraryTopics-PRELIM.png
+Library/StudyLibraryTopics-MIDTERMS.png
+Library/StudyLibraryTopics-PRE-FINALS.png
+Library/StudyLibraryTopics-FINALS.png
+Library/NorthTintedWindow.png
+Library/SouthTintedWindow.png
+Detailed pointer/touch report: Library/LibraryReadingPlayChecks.txt
+
+No commits, pushes or branch changes made.

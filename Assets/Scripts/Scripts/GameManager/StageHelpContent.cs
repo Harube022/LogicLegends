@@ -57,20 +57,32 @@ public static class StageHelpContent
     {
         switch (KeyForScene(scene))
         {
-            case "PRELIM": return Propositions();
-            case "TruthTable": return TruthTables();
-            case "RulesOfInference": return Inference();
-            case "Formal vs. Informal Proofs": return ProofStyles();
-            case "Direct&Indirect": return ProofMethods();
-            case "Induction": return Induction();
-            case "Setssss": return Sets();
-            case "Functions and Relations": return Functions();
-            case "Graph": return Graphs();
-            case "Trees": return Trees();
+            case "PRELIM": return WithEconomy(scene, Propositions());
+            case "TruthTable": return WithEconomy(scene, TruthTables());
+            case "RulesOfInference": return WithEconomy(scene, Inference());
+            case "Formal vs. Informal Proofs": return WithEconomy(scene, ProofStyles());
+            case "Direct&Indirect": return WithEconomy(scene, ProofMethods());
+            case "Induction": return WithEconomy(scene, Induction());
+            case "Setssss": return WithEconomy(scene, Sets());
+            case "Functions and Relations": return WithEconomy(scene, Functions());
+            case "Graph": return WithEconomy(scene, Graphs());
+            case "Trees": return WithEconomy(scene, Trees());
             case "LogicGarden": return Garden();
             case "LogicLibrary": return Library();
             default: return "";
         }
+    }
+
+    private static string WithEconomy(string scene, string guide)
+    {
+        int trial = TrialCatalog.ForScene(KeyForScene(scene)).Number;
+        var p = SoloEconomy.Trial(trial);
+        string rules = "Complete the <b>entire trial</b> to earn up to <b>" + p.baseReward.ToString("N0") + " Coins</b>." +
+            "\n<b>Try Again</b> uses this trial’s retry/checkpoint flow. Two retries maximum: the base reward becomes " + (100-SoloEconomy.Current.retryReductionPercent) + "%, then " + (100-2*SoloEconomy.Current.retryReductionPercent) + "%." +
+            "\n<b>Start Over</b> resets the run, retry count and pending bonuses. After two retries, study in the Logic Garden Library or start over." +
+            "\nAdmin clears and tutorial practice earn no completion coins.";
+        if (p.quizBonusLimit > 0) rules += "\nA correct first pickup-quiz answer adds <b>" + p.quizReward + " pending Coins</b>, up to <b>" + p.quizBonusLimit + "</b> per run. Bonus Coins are paid only on trial completion. Retries keep earned bonuses but cannot earn the same event twice. The retry reduction applies to the base reward only.";
+        return guide + "\n\n" + Section("RETRIES & COINS", rules);
     }
 
     private static string Propositions() => Guide(
@@ -84,7 +96,7 @@ public static class StageHelpContent
         Section("THE TOPIC", "A <b>truth table</b> gives an expression’s result for every input combination. Each numbered row shows P and Q.\n<b>¬:</b> reverse T/F. <b>∧:</b> both true. <b>∨:</b> at least one true. <b>XOR:</b> exactly one true. <b>→:</b> false only for T → F. <b>↔:</b> inputs agree."),
         Controls,
         Section("YOUR TASK", "Complete Easy, Medium and Hard. Each challenge has <b>three columns of four rows</b>. True/False element blocks represent each row’s result."),
-        Section("PLAY", "1. Tap the <b><u>hand at the book</u></b>.\n2. Use the hand at a closed house. Answer its four-choice quiz. Either answer opens it.\n3. Collect blocks from open houses with the hand.\n4. Select a True/False inventory stack. Fill the required rows.\n5. Tap <b><u>Submit Column</u></b>. Finish all three columns, then start the next challenge at the book.\nTap the minimap to enlarge it."),
+        Section("PLAY", "1. Tap the <b><u>hand at the book</u></b>.\n2. Use the hand at a closed house. Answer its quiz. Either answer opens it.\n3. Collect up to <b>four blocks</b>. Equipped blocks stack in front of you and slow you down; running cannot bypass their weight.\n4. Tap True or False in inventory to equip its stack. Tap the selected slot again to hide it and restore normal speed. Equip it again to fill the required rows.\n5. Tap <b><u>Submit Column</u></b>. Finish all three columns, then start the next challenge at the book.\nTap the minimap to enlarge it."),
         Section("TIME & CORRECTIONS", "<b>18 minutes per challenge.</b> Help, practice, quizzes and the marked board area pause time.\nWrong quiz: <color=#A42828><b>−10s</b></color>; read the correct answer.\nWrong column: <b>−20s</b>; blocks return to inventory. Retry the expression.\nInvalid placement: that block returns to a house; doors and quizzes reset. No time penalty.\nAt zero, Restart returns to Easy."));
 
     private static string Inference() => Guide(
@@ -98,7 +110,7 @@ public static class StageHelpContent
         Section("THE TOPIC", "<b>Formal proofs:</b> explicit mathematical statements with justified steps.\n<b>Informal proofs:</b> valid reasoning explained in prose. <u>Informal does not mean incorrect.</u>\nA premise is a starting statement. A justification explains a step."),
         Controls,
         Section("YOUR TASK", "Five challenges, <b>two distinct questions each</b>: classify proofs, classify more scrolls, order steps, supply a justification, then formalize prose."),
-        Section("PLAY", "1. Use the <b><u>hand at the book</u></b> to start.\n2. Tap View Board to read; Back returns.\n3. Interact with a scroll. Read it. <b><u>Get This Scroll</u></b> collects it; Back leaves it.\n4. Carry one scroll. Place it on the matching altar or numbered STEP/RULE slot. Arrows mark empty slots, not correct answers.\n5. Return Scroll restores a held scroll. Use Take Back or remove/replace a filled slot to revise.\n6. Return to the book. Use the <b><u>hand to confirm</u></b> the whole arrangement."),
+        Section("PLAY", "1. Use the <b><u>hand at the book</u></b> to start.\n2. Tap View Board to read; Back returns.\n3. Tap the <b>hand</b> near a scroll. Read it. <b><u>Get This Scroll</u></b> collects it; Back leaves it.\n4. Carry one scroll. Tap the <b>hand</b> at an altar or numbered STEP/RULE slot to place it. Yellow arrows mark empty destinations, not correct answers.\n5. <b>Return Scroll</b> restores a held scroll. Tap the hand at an occupied altar or slot to take it back. White bubbles expand nearby to show the hand action.\n6. Return to the book. Use the <b><u>hand to confirm</u></b> the whole arrangement."),
         Section("TIME & CORRECTIONS", "<b>10 minutes shared.</b> Books resume time; correct answers pause it. Scroll reading and View Board keep time running. Help, practice and introductions pause it.\nWrong or incomplete confirmation: <color=#A42828><b>−10s</b></color>. Placements stay; correct them and retry.\nFinish both questions before advancing. At zero, Retry starts a fresh randomized run."));
 
     private static string ProofMethods() => Guide(

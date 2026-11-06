@@ -1,0 +1,121 @@
+Logic Legends — camera, mobile UI and collision audit
+Date: 2026-11-03
+Unity: 6000.3.6f1; Android is the selected build target.
+
+Verification boundary
+All runtime results below are Editor Play Mode results. Input System touch events,
+pointer events and the real player CharacterController were used. ADB reported no
+connected phone or emulator, so no actual Android build/device result is claimed.
+Multiplayer checks were offline; live networking was not exercised.
+
+Findings and fixes
+1. Jump/hand/button touches could also drive pinch zoom. Shared touch routing now
+   assigns camera gestures only when they begin on the look surface. Modal UI,
+   tutorials and fixed board views cannot move the hidden gameplay camera.
+2. A second finger could steal/release joystick or look drags. Each drag now has
+   one pointer owner. Hidden controls, input blocking, pause and focus loss clear
+   stale input, so closing a panel cannot resume an old drag.
+3. Wrapped negative camera pitch could snap to the upper pitch limit. Initial
+   and restored pitch now use a signed angle while retaining the authored limits.
+4. Tutorial rigs could restore another active rig's camera settings, and callbacks
+   could restart a tutorial before its previous camera was disabled. Shared
+   camera leases and idempotent return cleanup preserve the original Brain state.
+   Rigs also copy the rendered camera's clipping planes. Legacy manual camera
+   updates defer to Cinemachine when its Brain controls that camera.
+5. Board cleanup was incomplete when components were disabled. Formal/Informal,
+   Sets and Trees now release their view/input ownership. Induction ignores
+   repeated Back taps during return and resets the Brain after restoring its view.
+6. Rules of Inference's board input guard used scaled time and could block Back
+   during entry. The guard now uses real time; Back has an independent raycast
+   group and remains available. Closing cancels the pending input-enable routine.
+7. Trees Help appeared available while its board camera was still blending, but
+   its handler rejected the tap. Both Help buttons now match that camera guard.
+8. Repeated library book opens could overwrite the original enabled player state
+   with the reading panel's disabled state. Duplicate opens are ignored; switching
+   books first releases the previous reading state. Close remains idempotent.
+9. Rules of Inference's stair support tried to read a non-readable imported mesh.
+   It now samples the cooked collider instead. Imported assets need no Read/Write
+   change, and support remains confined to the visible stairs/dry approaches.
+
+Scene coverage
+- Inspected all 21 game scenes under Assets/Scenes: cameras, UI event systems,
+  scripts and collider configuration. No missing scripts were found.
+- Play Mode camera/touch/board/layout and floor/solid collision checks passed in:
+  PRELIM, TruthTable, RulesOfInference, Formal vs. Informal Proofs, Direct&Indirect,
+  Induction, Setssss, Functions and Relations, Graph, and Trees.
+- Main Menu: real simulated touches through Play and the local multiplayer
+  choices/invite form, cancellation and Back at four landscape sizes.
+- MultiplayerStage and MultiplayerGameplay: offline avatar, touch ownership,
+  camera gestures, nested camera cleanup and floor/solid capsule sweeps.
+- LogicGarden: hand practice and stable tutorial UI; embedded library tour,
+  all replay options, No/Yes, Skip during a blend, reading and repeated travel.
+  Double-open/double-close, switching books and disabled-controller cleanup passed.
+- The seven non-build prototype/cinematic scenes were inspected statically only:
+  CINEMATICS, MAP1_LEVEL1, Stage 1, Stage 2, Stage 1 Multiplayer,
+  Stage 2 Multiplayer and TUTORIAL. Asset-pack demo scenes are outside this audit.
+
+Interaction and layout coverage
+- Landscape: 800x480, 1280x720, 1920x1080 and 2960x1440.
+- Supplemental Help/quiz/tutorial checks: 720x1280 portrait. The app's current
+  supported gameplay orientation remains landscape.
+- Actual simulated touch raycasts, simultaneous fingers, valid pinch gestures,
+  rapid repeated board Open/Back, early Back during camera entry, and paused time.
+- All ten trials: Help scrolling/video controls/Let's Begin, reopened active Help,
+  prior timer/control restoration, and Book Statue interaction afterward.
+- Repeated Skip -> No cycles: one shared Skip control, no duplicate practice
+  content, stable screen-space explanations, hand practice consumed once.
+- Truth Table quizzes: all four choices, unanswered Back, feedback Back,
+  paused countdown, single penalties and restored controls at three resolutions.
+- Graph: ten normal answers, five introductions, degree-view UI, nested board
+  and Help, clear/reselect, penalty recovery, camera restoration and completion.
+- Trees: all ten normal questions and every action in all five practice
+  walkthroughs at 800x480, 1920x1080 and 2960x1440. Editing, Clear/Undo,
+  submission, Help/Back, camera return and terminal cleanup passed.
+
+Collision coverage
+- Real player capsule downward and horizontal sweeps in all ten trials and both
+  multiplayer scenes; movement-speed values were unchanged.
+- Truth Table platform: nine continuous up/down joystick routes using three
+  positions and three approach angles, adjacent grounding, jump and board checks.
+- Truth Table paths: exact stone-mesh collision and grass grounding samples
+  beside at least eight separate paths passed. All six house stairs were walked
+  without jumping; closed doors blocked entry and opened entrances were accessible.
+- Rules of Inference: four accessible stair approaches, without jumping; no ramp
+  support over water beyond the stair footprint. Rear tower/water faces are not
+  treated as walkable approaches.
+- Inactive PRELIM pillar placeholders with empty mesh colliders have no visible
+  geometry. No invisible collision walls were added to those placeholders.
+- Trees: book collision from three sides, InformationBoard collision, 216
+  perimeter samples and a continuous 17-waypoint chamber walk passed. Visible
+  walls blocked the capsule; routes to the board and side aisles remained open.
+
+Main verification logs (generated locally under Library)
+AllScenesMobileInventory.json
+SceneReliabilityPlayChecks.txt
+MobileAuxiliarySceneChecks.txt
+StageHelpPlayChecks.txt
+MobileTutorialInteractionChecks.txt
+LogicLibraryReliabilityPlayChecks.txt
+TruthTablePlatformStairsChecks.txt
+TrialInteractionRepairsChecks.txt
+GraphPolish/Play.txt
+TreesRevisionChecks.txt
+TreesChamberPlayChecks.txt
+
+Scope and integrity
+Gameplay movement speeds, timer rules, validation, progression and intended UI
+styling were retained. Checks used isolated/offline profiles and suppressed trial
+persistence; they did not use real account rewards or purchases. Help recordings
+were not replaced. Verification helpers are Editor-only.
+No branches were switched. Nothing was committed or pushed.
+
+Remaining verification
+The broader Trees chamber helper also ran an unrelated lighting probe. Its
+Reading Aisle Chandelier sample measured zero floor-brightness change. Lighting
+was not changed in this audit; that sample needs a separate rendering/lighting
+investigation. The camera/collision run excludes lamp photometry explicitly.
+
+Run an Android device build on supported phones/tablets, including low frame rates,
+OS pause/resume and notches. Validate live multiplayer separately. Editor checks
+are not a substitute for those hardware/network checks or an exhaustive sweep of
+every mesh from every possible approach angle.

@@ -134,6 +134,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         Introductions = gameObject.AddComponent<ProofsChallengeIntroductions>();
         Introductions.Initialize(this, Presentation);
         gameObject.AddComponent<ProofsPedestalIndicators>().Initialize(this);
+        gameObject.AddComponent<ProofsWorldInteractionIndicators>().Initialize(this);
     }
 
     private void OnEnable()
@@ -182,7 +183,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
             return;
         }
         if (readerPanel.activeSelf || takeBackPanel.activeSelf || player == null) return;
-        promptText.gameObject.SetActive(true);
+        promptText.gameObject.SetActive(false);
         int target = NearestTarget();
         if (transitioning) { promptText.text = QuestionNumber == QuestionsPerChallenge ? "CHALLENGE COMPLETE" : "QUESTION COMPLETE"; return; }
         if (target == 0) promptText.text = started ?
@@ -400,11 +401,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         scrollSources[index].SetTabletVisible(false);
         placedScrollLabels[index].gameObject.SetActive(false);
         Transform visual = carriedVisuals[index].transform;
-        visual.SetParent(player.transform, false);
-        visual.localPosition = new Vector3(.43f, 1.12f, .22f);
-        visual.localRotation = Quaternion.Euler(0, 0, 28f);
-        visual.localScale = Vector3.one * .55f;
-        visual.gameObject.SetActive(true);
+        AttachCarriedScroll(visual);
         RefreshVisuals();
     }
 
@@ -416,7 +413,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         readerPanel.SetActive(false);
         Presentation?.RefreshReader();
         RestoreReaderInput();
-        promptText.gameObject.SetActive(!InputSuppressed && !finished);
+        promptText.gameObject.SetActive(false);
     }
 
     private void LockGameplay()
@@ -496,15 +493,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
             labelObject.transform.SetParent(transform, false);
             TextMeshPro label = labelObject.GetComponent<TextMeshPro>();
             label.text = "SCROLL " + Letter(i);
-            label.fontSize = 2.7f;
-            label.enableAutoSizing = true;
-            label.fontSizeMin = 1.7f;
-            label.fontSizeMax = 2.7f;
-            label.alignment = TextAlignmentOptions.Center;
-            label.rectTransform.sizeDelta = new Vector2(1.45f, .52f);
-            label.color = new Color(1f, .88f, .58f);
-            label.outlineColor = new Color(.08f, .05f, .03f);
-            label.outlineWidth = .25f;
+            ProofScrollTypography.PlacedLabel(label);
             labelObject.SetActive(false);
             placedScrollLabels[i] = label;
         }
@@ -582,7 +571,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         if (Tutorial != null) { Tutorial.ClosePracticeTakeBack(); return; }
         takeBackPedestal = -1;
         takeBackPanel.SetActive(false);
-        promptText.gameObject.SetActive(true);
+        promptText.gameObject.SetActive(false);
         UnlockGameplay();
     }
 
@@ -647,6 +636,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
 
     private void FailSubmission(string message)
     {
+        hintRejectedProof = HintProofArrangement;
         mistakeCount++;
         secondsLeft = Mathf.Max(0f, secondsLeft - wrongPenalty);
         boardText.text = message;
@@ -822,6 +812,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
             "TIME'S UP\nChallenges completed: " + CompletedChallenges + "/5\nQuestions completed: " + correctCount + "/10\nMistakes: " + mistakeCount;
         resultsPanel.SetActive(true);
         if (won) StagePresentation.Completed(resultsPanel, 4);
+        else StagePresentation.Failed(resultsPanel, 4, RetryStage);
         LockGameplay();
 #if UNITY_EDITOR
         if (won && !SuppressProgressionForValidation) StageCompleteManager.UnlockStage(Mathf.Min(5, StageSelectionState.LastStage));
@@ -832,7 +823,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
 
     public void RetryStage()
     {
-        TrialRewards.RecordRetry(4);
+        if (!TrialRewards.TryRecordRetry(4)) return;
         UnlockGameplay();
         Time.timeScale = 1f;
         TeleportManager.Navigate(SceneManager.GetActiveScene().name);

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace LogicLegends.Trees
 {
     public enum TreeStageState { WAITING_FOR_ACTIVATION, ACTIVE, VALIDATING, CHALLENGE_COMPLETE, STAGE_COMPLETE, GAME_OVER }
-    public sealed class TreeStageManager : MonoBehaviour
+    public sealed partial class TreeStageManager : MonoBehaviour
     {
         public TreeChallengeCatalog catalog;
         public TreeBoardController board;
@@ -64,7 +64,7 @@ namespace LogicLegends.Trees
         }
         void OnDestroy(){if(input!=null){input.OnInteractAction-=OnInteract;if(BoardOpen)input.SetGameplayInputBlocked(inputBeforeBoard);}if(boardFocus!=null)boardFocus.Exit();}
         void OnInteract(object sender,EventArgs args){InteractBook();}
-        void OnDisable() { Introductions?.CancelImmediate(); SetLesson(false); BookStatuePresentation.SetRequired(bookStatue, false); }
+        void OnDisable() { Introductions?.CancelImmediate(); SetLesson(false); CloseBoard(true); BookStatuePresentation.SetRequired(bookStatue, false); }
         void Update()
         {
             BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && Ready && !Moving && !BoardOpen &&
@@ -114,6 +114,7 @@ namespace LogicLegends.Trees
             var clip=valid?correctSound:wrongSound;if(clip!=null)audioSource.PlayOneShot(clip);
             if(!valid)
             {
+                hintRejectedTree = HintTreeArrangement;
                 Mistakes++;Feedback="INCORRECT  /  -10 seconds\n"+reason;timer.Penalize(10);
                 if(State!=TreeStageState.GAME_OVER)StartCoroutine(Wrong());return;
             }
@@ -189,7 +190,7 @@ namespace LogicLegends.Trees
             Cursor.lockState = lessonCursorLock; Cursor.visible = lessonCursorVisible;
             MobileLookInput.ResetDelta();
         }
-        public void Restart() { TrialRewards.RecordRetry(10); Navigate("Trees"); }
+        public void Restart() { if (!TrialRewards.TryRecordRetry(10)) return; Navigate("Trees"); }
         public void Return()=>Navigate("Main Menu");
         void Navigate(string scene){Introductions?.CancelImmediate();CloseBoard(false);Time.timeScale=1;input?.SetGameplayInputBlocked(false);TeleportManager.EnsureExists().LoadSceneWithFade(scene);}
         void SelectPlaythrough()

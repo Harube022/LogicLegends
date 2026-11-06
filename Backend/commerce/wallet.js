@@ -1,6 +1,7 @@
 const crypto = require('node:crypto');
 const catalog = require('./catalog.json');
-const fail = (message, status = 400) => Object.assign(new Error(message), { status });
+const { fail } = require('./wallet-errors');
+const economy = require('./economy');
 function balance(value) {
   if (value == null) return 0;
   if (!Number.isSafeInteger(value) || value < 0 || value > 2147483647) throw fail('Invalid wallet balance.', 409);
@@ -31,15 +32,16 @@ function grant(account, order, payment) {
   account.paymentGrants[order.id] = { paymentId: payment.id, gems: order.gems, at: Date.now() };
   return account;
 }
-function buy(account, itemId) {
+function buy(account, itemId, currency = 'gems') {
   const item = catalog.items.find(i => i.id === itemId);
   if (!item) throw fail('This item is unavailable.');
   if (!account || account.base_character !== item.character) throw fail('This outfit does not match your character.', 409);
   account.inventory ||= {};
   if (account.inventory[itemId] === true) return account;
-  const current = balance(account[item.currency]);
-  if (current < item.price) throw fail('Not enough gems. Top up and try again.', 409);
-  account[item.currency] = current - item.price;
+  if (!['coins', 'gems'].includes(currency)) throw fail('Choose Coins or Gems.');
+  const price = economy.pricesFor(item)[currency], current = balance(account[currency]);
+  if (current < price) throw fail('Not enough ' + currency + '.', 409);
+  account[currency] = current - price;
   account.inventory[itemId] = true;
   return account;
 }
@@ -48,7 +50,9 @@ function present(account, sandbox, live) {
     character: account?.base_character || '',
     inventory: Object.keys(account?.inventory || {}).filter(k => account.inventory[k] === true),
     equippedClothes: account?.equipped?.clothes || (account?.base_character === 'Female_Character' ? 'female_default' : 'male_default'),
-    equippedPet: account?.equipped?.pets || '', sandbox, live };
+    equippedPet: account?.equipped?.pets || '', sandbox, live,
+    economy: economy.config,
+    catalog: catalog.items.map(item => ({ id: item.id, rarity: item.rarity, ...economy.pricesFor(item) })) };
 }
 async function mutate(ref, update) {
   await ref.get();

@@ -31,6 +31,7 @@ public static class GraphRevisionAdminChecks
             float until=Time.realtimeSinceStartup+8;
             while(!AdminAuthorization.IsAuthorized&&Time.realtimeSinceStartup<until){AdminAuthorization.Tick();yield return null;}
             Check(AdminAuthorization.IsAuthorized,"existing backend verification authorizes the test identity");yield return null;
+            yield return CharacterControls();
             var pages=AdminQuestionAnswers.Capture();
             Check(pages.Count==6,"viewer includes current question and five banks");
             Check(pages.Sum(p=>Regex.Matches(p.Body,"SELECTED").Count)==10,"both selected questions marked in each bank");
@@ -64,11 +65,47 @@ public static class GraphRevisionAdminChecks
             AdminAuthorization.Refresh();PlayerPrefs.DeleteKey("TrialRewardOutbox.v1."+Uid+".9");PlayerPrefs.Save();
         }
     }
+    static IEnumerator CharacterControls()
+    {
+        var loader=stage.LocalPlayer.GetComponent<PlayerEquipmentLoader>();
+        var flags=BindingFlags.Instance|BindingFlags.NonPublic;
+        string saved=(string)typeof(PlayerEquipmentLoader).GetField("currentClothesID",flags).GetValue(loader);
+        foreach(int size in new[]{6,12,2})
+        {
+            BookMapMobileChecks.SetSize(size);yield return new WaitForSecondsRealtime(.6f);
+            var jump=stage.ui.host.Find("Gameplay_Interface/JumpButton") as RectTransform;
+            Check(jump.anchorMin==new Vector2(1,.5f)&&jump.anchorMax==new Vector2(1,.5f)&&jump.pivot==new Vector2(1,.5f),"Jump retains PRELIM safe-area anchors");
+            Check(jump.anchoredPosition==new Vector2(-60,-100)&&jump.sizeDelta==new Vector2(200,200)&&Vector3.Distance(jump.localScale,new Vector3(1.3f,1.3f,1))<.01f,"Jump retains PRELIM position/size/scale");
+            var admin=UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).First(b=>b.name=="AdminButton").transform as RectTransform;
+            Check(admin.anchoredPosition==new Vector2(-40,40)&&admin.sizeDelta==new Vector2(220,88),"Admin retains PRELIM bottom-right layout");
+            yield return Press("AdminButton");yield return Press("ChangeCharacter");
+            var preview=stage.LocalPlayer.GetComponent<AdminCharacterOverride>();
+            var names=new System.Collections.Generic.HashSet<string>();
+            for(int i=0;i<12;i++)
+            {
+                names.Add(preview.SelectedName);
+                var label=UnityEngine.Object.FindObjectsByType<TMPro.TMP_Text>(FindObjectsSortMode.None).First(t=>t.name=="Selected Skin");
+                label.ForceMeshUpdate();Check(label.text==preview.SelectedName&&!label.isTextOverflowing,"selected skin label fits and matches visual");
+                yield return Press("Next Skin");
+            }
+            Check(names.Count==12,"touch arrows cycle all 12 skins");yield return Press("Previous Skin");
+            yield return Press("Restore Equipped");
+            Check(preview.SelectedIndex==-1&&(string)typeof(PlayerEquipmentLoader).GetField("currentClothesID",flags).GetValue(loader)==saved,"Restore Equipped preserves the saved identity");
+            yield return Press("Character Back");yield return Press("CloseAdminDebug");
+            Check(!GameInput.Instance.GameplayInputBlocked&&stage.LocalPlayer.enabled,"character panel restores movement input");
+        }
+        yield return Press("AdminButton");yield return Press("ChangeCharacter");
+        Set("ValidationEmail","ordinary@example.test");AdminAuthorization.Refresh();yield return null;yield return null;
+        Check(stage.LocalPlayer.GetComponent<AdminCharacterOverride>().SelectedIndex==-1&&!GameInput.Instance.GameplayInputBlocked,"account revocation closes the modal and restores the equipped character");
+        Set("ValidationEmail","sngbdsa137@gmail.com");AdminAuthorization.Refresh();
+        float until=Time.realtimeSinceStartup+8;while(!AdminAuthorization.IsAuthorized&&Time.realtimeSinceStartup<until){AdminAuthorization.Tick();yield return null;}
+        Check(AdminAuthorization.IsAuthorized,"Admin returns only after backend verification");
+    }
     static Task<string> Transport(string path,string json)
     {
         if(path=="/trials/access")return Task.FromResult(JsonUtility.ToJson(new TrialBackendClient.Access{uid=Uid,admin=true}));
         var request=JsonUtility.FromJson<TrialBackendClient.Request>(json);
-        return Task.FromResult(JsonUtility.ToJson(new TrialBackendClient.Attempt{trial=9,attemptId=request.attemptId,status="active",adminUsed=true,coins=0}));
+        return Task.FromResult(JsonUtility.ToJson(new TrialBackendClient.Attempt{economyVersion=2,trial=9,attemptId=request.attemptId,status="active",adminUsed=true,coins=0,baseReward=1000,maxRetries=2,retryReductionPercent=25}));
     }
     static void Set(string field,object value)=>typeof(TrialBackendClient).GetField(field,BindingFlags.Static|BindingFlags.NonPublic).SetValue(null,value);
     static IEnumerator ReverseGate()

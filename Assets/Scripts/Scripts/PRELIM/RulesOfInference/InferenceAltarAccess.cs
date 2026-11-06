@@ -19,17 +19,22 @@ namespace LogicLegends.Inference
             var source = altar != null ? altar.transform.Find("Cylinder.077")?.GetComponent<MeshFilter>() : null;
             var collider = source != null ? source.GetComponent<MeshCollider>() : null;
             if (source == null || source.sharedMesh == null || collider == null) return;
-            var vertices = source.sharedMesh.vertices; var triangles = source.sharedMesh.triangles;
+            // Raycast the cooked collider. Imported meshes may deliberately have
+            // Read/Write disabled on mobile; accessing vertices there cannot build a ramp.
             var area = new Dictionary<float, float>(); var bounds = new Dictionary<float, Bounds>();
-            for (int i = 0; i < triangles.Length; i += 3)
+            Bounds shape = collider.bounds;
+            const int samples = 40;
+            for (int x = 0; x <= samples; x++)
+            for (int z = 0; z <= samples; z++)
             {
-                Vector3 a = source.transform.TransformPoint(vertices[triangles[i]]), b = source.transform.TransformPoint(vertices[triangles[i + 1]]), c = source.transform.TransformPoint(vertices[triangles[i + 2]]);
-                Vector3 cross = Vector3.Cross(b - a, c - a);
-                if (cross.normalized.y < .99f) continue;
-                float y = Mathf.Round((a.y + b.y + c.y) / 3f * 100f) / 100f;
-                if (!area.ContainsKey(y)) { area[y] = 0f; bounds[y] = new Bounds(a, Vector3.zero); }
-                area[y] += cross.magnitude * .5f;
-                Bounds box = bounds[y]; box.Encapsulate(a); box.Encapsulate(b); box.Encapsulate(c); bounds[y] = box;
+                var origin = new Vector3(Mathf.Lerp(shape.min.x,shape.max.x,x/(float)samples),shape.max.y+1,
+                    Mathf.Lerp(shape.min.z,shape.max.z,z/(float)samples));
+                RaycastHit hit;
+                if (!collider.Raycast(new Ray(origin,Vector3.down),out hit,shape.size.y+2) || hit.normal.y < .99f) continue;
+                float y = Mathf.Round(hit.point.y * 100f) / 100f;
+                if (!area.ContainsKey(y)) { area[y] = 0f; bounds[y] = new Bounds(hit.point, Vector3.zero); }
+                area[y] += 1;
+                Bounds box = bounds[y]; box.Encapsulate(hit.point); bounds[y] = box;
             }
             if (area.Count == 0) return;
             float level = area.OrderByDescending(x => x.Value).First().Key;

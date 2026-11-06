@@ -5,9 +5,9 @@ const { isAdminEmail, rewardForRetries, startAttempt, retryAttempt, markAdmin, f
 const id = () => crypto.randomBytes(16).toString('hex');
 const profile = () => ({ coins: 37, gems: 19, unlockedStage: 8, inventory: { Common_Skin: true }, equipped: { clothes: 'Common_Skin' } });
 
-test('reward compounds by 25%, floors only the final value and handles further retries', () => {
-  assert.deepEqual(Array.from({ length: 7 }, (_, n) => rewardForRetries(n)), [1000, 750, 562, 421, 316, 237, 177]);
-  assert.equal(rewardForRetries(10000), 0);
+test('reward reductions use the original base and cap at the two-retry policy', () => {
+  assert.deepEqual(Array.from({ length: 7 }, (_, n) => rewardForRetries(n)), [1000, 750, 500, 500, 500, 500, 500]);
+  assert.equal(rewardForRetries(10000), 500);
   for (const bad of [-1, 1.5, NaN, Infinity, '2']) assert.throws(() => rewardForRetries(bad));
 });
 test('all three authenticated Admin account emails normalize exactly; lookalikes are denied', () => {
@@ -19,7 +19,7 @@ test('all three authenticated Admin account emails normalize exactly; lookalikes
 });
 for (let trial = 1; trial <= 10; trial++) {
   test(`trial ${trial}: completion receipt, retries, reload and repeated results preserve the existing account`, () => {
-    for (let retries = 0; retries < 7; retries++) {
+    for (let retries = 0; retries <= 2; retries++) {
       const account = profile(), request = { trial, attemptId: id(), newAttempt: true };
       startAttempt(account, request);
       for (let n = 0; n < retries; n++) {

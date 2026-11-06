@@ -1,0 +1,47 @@
+name: Solo economy merge checks
+
+on:
+  pull_request:
+    paths:
+      - 'Backend/commerce/**'
+      - 'Assets/Scripts/**'
+      - 'Assets/Editor/Solo*.cs*'
+      - 'Assets/Resources/SoloEconomy.json*'
+      - 'Assets/Resources/CommerceSettings.asset*'
+      - 'Tools/*solo_economy*.py'
+      - '.github/workflows/solo-economy-checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /Backend/commerce/
+            /Assets/Scripts/
+            /Assets/Editor/Solo*.cs*
+            /Assets/Resources/SoloEconomy.json*
+            /Assets/Resources/CommerceSettings.asset*
+            /Tools/*solo_economy*.py
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: Backend/commerce/package-lock.json
+      - name: Check policy, quiz data and Unity metadata
+        run: python3 Tools/check_solo_economy_merge.py
+      - name: Install locked backend dependencies
+        run: npm ci --ignore-scripts
+        working-directory: Backend/commerce
+      - name: Run credential-free backend tests
+        run: node --test
+        working-directory: Backend/commerce
+      # No credentials, deploy step, commit, push, or production account access.

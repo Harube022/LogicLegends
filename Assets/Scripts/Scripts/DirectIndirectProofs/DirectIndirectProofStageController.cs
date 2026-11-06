@@ -508,6 +508,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         if (Current.IsCorrect(selectedMethod, answer)) CompleteChallenge();
         else
         {
+            hintRejectedProof = HintProofArrangement;
             mistakeCount++;
             secondsLeft = Mathf.Max(0f, secondsLeft - wrongPenaltySeconds);
             Play(incorrectSound);
@@ -736,6 +737,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
             "TIME'S UP\nQuestions completed: " + correctCount + "/10\nChallenges completed: " + Mathf.Min(challengeIndex, 5) + "/5\nMistakes: " + mistakeCount;
         resultsPanel.SetActive(true);
         if (won) StagePresentation.Completed(resultsPanel, 5);
+        else StagePresentation.Failed(resultsPanel, 5, RetryStage);
         if (!won) return;
 #if UNITY_EDITOR
         if (SuppressProgressionForValidation) return;
@@ -745,7 +747,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
 
     public void RetryStage()
     {
-        TrialRewards.RecordRetry(5);
+        if (!TrialRewards.TryRecordRetry(5)) return;
         Guide?.Cancel();
         if (input != null) input.SetGameplayInputBlocked(false);
         Time.timeScale = 1f;

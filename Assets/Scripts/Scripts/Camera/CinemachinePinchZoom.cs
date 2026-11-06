@@ -11,10 +11,12 @@ public class CinemachinePinchZoom : MonoBehaviour
     [SerializeField] private float zoomSpeed = 0.01f;
 
     private CinemachineThirdPersonFollow thirdPersonFollow;
+    private CinemachineCamera virtualCamera;
 
     private void Awake()
     {
         thirdPersonFollow = GetComponent<CinemachineThirdPersonFollow>();
+        virtualCamera = GetComponent<CinemachineCamera>();
     }
 
     private void Update()
@@ -24,20 +26,12 @@ public class CinemachinePinchZoom : MonoBehaviour
 
     private void HandlePinchZoom()
     {
-        if (thirdPersonFollow == null || Touchscreen.current == null) return;
+        if (thirdPersonFollow == null || !GameplayTouchRouting.CameraInputAllowed || !CinemachineCore.IsLive(virtualCamera)) return;
 
         UnityEngine.InputSystem.Controls.TouchControl touch0 = null;
         UnityEngine.InputSystem.Controls.TouchControl touch1 = null;
 
-        // Find active touches on the right half of the screen
-        foreach (var touch in Touchscreen.current.touches)
-        {
-            if (touch.isInProgress && touch.position.ReadValue().x > Screen.width / 2f)
-            {
-                if (touch0 == null) touch0 = touch;
-                else if (touch1 == null) touch1 = touch;
-            }
-        }
+        if (!GameplayTouchRouting.TryPinch(out touch0, out touch1)) return;
 
         // Apply pinch zoom if two touches are detected
         if (touch0 != null && touch1 != null)

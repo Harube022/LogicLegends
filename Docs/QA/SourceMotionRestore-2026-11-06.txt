@@ -1,0 +1,106 @@
+SOURCE-MOTION RESTORATION — 2026-11-06
+
+Cause
+The speed fixes introduced PlayerStrideWarp two-bone leg IK, stride enlargement,
+pelvis lowering and dynamic ground corrections after Animator evaluation. This
+changed authored motion to reconcile reduced cadence with unchanged travel speed.
+The first solver also chose a pole from the animated knee, which could flip its
+bend plane. A later stable-pole revision still widened the stride and was not a
+restoration of the source motion. Those procedural corrections are now removed.
+The donor-rig translation origin also used an animated Idle pose; mesh bind origins
+now supply the fixed rig conversion, avoiding borrowed-gait vertical displacement.
+
+Specific changes
+- All 12 Gameplay prefabs: remove PlayerStrideWarp components and ground curves /
+  sole correction data; retain their established uniform scale and controllers.
+- PlayerStrideWarp: inert serialization compatibility only; no update or writes.
+- PlayerAnimator: remove stride-ratio calculation; bounded Walk/Run playback only,
+  smoothed over .18s. Global Animator speed stays 1, root motion stays off.
+- SharedSkinAnimationRetarget: retain only necessary static bind-space conversion
+  for explicitly requested donor states; remove phase/floor-following correction.
+- LatestSkinPlaybackSetup and AnimationReuse setup: no stride fitting, ground
+  calibration or procedural leg solver can be regenerated. Donor assignments and
+  original animation assets are unchanged. Old playback/foot-jitter entry points
+  route to source-motion checks rather than the removed solver.
+- Carry upper-body pose/support, object alignment, all movement penalties and
+  original movement/jump/stun behavior are retained. No gameplay scene was saved.
+
+Verification and limits
+All 12 skins passed isolated Editor Play Mode checks with real GameInput,
+equipment selection, CharacterController movement, turns, state transitions,
+walking, sustained running, carrying, jump/landing, drop, and all four existing
+.95/.88/.80/.75 movement modifiers. The check compares both legs and feet plus
+hips with the assigned clip at the same phase (after required donor bind-space
+conversion), and monitors final-frame knee continuity including blends.
+No limb translation change was measured; final lower-body angular differences
+were at most about .44 degree, with hip differences under .00005 world unit.
+Playback clocks advanced continuously without repeated state entry or duplicate
+animation ticking. Static checks confirm only the nine requested donor states
+changed, no Humanoid foot IK, no root motion and no hidden locomotion multiplier.
+All 300 original animation / FBX / importer hashes match the pre-reuse baseline;
+there are still 156 animation assets. No walking/running animations were created
+or edited. No stride-component GUID references remain in scene or prefab files.
+48 inherited player/resource/menu visuals passed read-only inspection.
+Unity was restored to stopped, clean Formal vs. Informal Proofs; console no errors.
+The isolated fixture does not run account, wallet, reward or progression code.
+No commit, push, branch switch, merge or backend write was performed.
+
+This verifies preservation of authored motion, not zero-slip foot locking. A short
+in-place source gait slowed down at unchanged 13-unit walking / 19.5-unit running
+can still slide relative to terrain. No wider strides, extra bone offsets or
+hidden movement-speed change were added to conceal that constraint. Source
+foot-height variation is retained. Physical Android and live network peers were
+not tested. Review those environments separately after merging locally.
+
+PLAY MODE RESULTS
+Offline source-motion checks: actual GameInput, equipment IDs, CharacterController, source poses, playback clocks, turns, transitions and carrying penalties.
+PASS Male_Uniform: source lower-body match max angle=0.0000deg hip=0.00004 limb offset=0.00000000; peak knee step/60Hz=21.56deg; walk/run frames=560/120; turns/blends/carry=74/71/342.
+PASS Male_Elite: source lower-body match max angle=0.0000deg hip=0.00004 limb offset=0.00000000; peak knee step/60Hz=21.44deg; walk/run frames=558/119; turns/blends/carry=75/72/341.
+PASS Male_Common: source lower-body match max angle=0.0000deg hip=0.00003 limb offset=0.00000000; peak knee step/60Hz=21.09deg; walk/run frames=557/118; turns/blends/carry=74/72/339.
+PASS Male_Rare: source lower-body match max angle=0.0000deg hip=0.00004 limb offset=0.00000000; peak knee step/60Hz=24.24deg; walk/run frames=560/118; turns/blends/carry=75/72/343.
+PASS Male_Special: source lower-body match max angle=0.0000deg hip=0.00004 limb offset=0.00000000; peak knee step/60Hz=18.56deg; walk/run frames=558/119; turns/blends/carry=75/72/339.
+PASS Male_Epic: source lower-body match max angle=0.0000deg hip=0.00000 limb offset=0.00000000; peak knee step/60Hz=20.57deg; walk/run frames=563/117; turns/blends/carry=75/72/344.
+PASS Female_Uniform: source lower-body match max angle=0.0000deg hip=0.00000 limb offset=0.00000000; peak knee step/60Hz=15.48deg; walk/run frames=558/118; turns/blends/carry=77/72/340.
+PASS Female_Common: source lower-body match max angle=0.0000deg hip=0.00000 limb offset=0.00000000; peak knee step/60Hz=18.56deg; walk/run frames=560/119; turns/blends/carry=73/71/342.
+PASS Female_Rare: source lower-body match max angle=0.4334deg hip=0.00001 limb offset=0.00000000; peak knee step/60Hz=16.33deg; walk/run frames=561/120; turns/blends/carry=76/72/344.
+PASS Female_Elite: source lower-body match max angle=0.0000deg hip=0.00000 limb offset=0.00000000; peak knee step/60Hz=17.89deg; walk/run frames=558/119; turns/blends/carry=75/72/340.
+PASS Female_Special: source lower-body match max angle=0.0000deg hip=0.00000 limb offset=0.00000000; peak knee step/60Hz=12.72deg; walk/run frames=561/119; turns/blends/carry=74/72/342.
+PASS Female_Epic: source lower-body match max angle=0.4352deg hip=0.00001 limb offset=0.00000000; peak knee step/60Hz=15.69deg; walk/run frames=556/120; turns/blends/carry=76/72/340.
+ALL 12 SOURCE-MOTION SKINS PASSED. Editor only.
+ALL 12 INTEGRATED SKINS PASSED
+
+PLAYBACK CONFIGURATION AT NORMAL MOVEMENT
+Female_Common Walk playback=1.200x cadence=2.400 steps/s; smoothing=0.18s
+Female_Common Run playback=1.225x cadence=3.500 steps/s; smoothing=0.18s
+Female_Elite Walk playback=1.650x cadence=2.357 steps/s; smoothing=0.18s
+Female_Elite Run playback=1.283x cadence=3.500 steps/s; smoothing=0.18s
+Female_Epic Walk playback=1.580x cadence=2.400 steps/s; smoothing=0.18s
+Female_Epic Run playback=1.108x cadence=3.500 steps/s; smoothing=0.18s
+Female_Rare Walk playback=1.580x cadence=2.400 steps/s; smoothing=0.18s
+Female_Rare Run playback=0.992x cadence=3.500 steps/s; smoothing=0.18s
+Female_Special Walk playback=1.160x cadence=2.400 steps/s; smoothing=0.18s
+Female_Special Run playback=1.400x cadence=3.500 steps/s; smoothing=0.18s
+Female_Uniform Walk playback=1.650x cadence=2.357 steps/s; smoothing=0.18s
+Female_Uniform Run playback=1.400x cadence=3.500 steps/s; smoothing=0.18s
+Male_Common Walk playback=1.650x cadence=2.357 steps/s; smoothing=0.18s
+Male_Common Run playback=0.963x cadence=3.500 steps/s; smoothing=0.18s
+Male_Elite Walk playback=1.650x cadence=2.357 steps/s; smoothing=0.18s
+Male_Elite Run playback=0.963x cadence=3.500 steps/s; smoothing=0.18s
+Male_Epic Walk playback=1.650x cadence=2.302 steps/s; smoothing=0.18s
+Male_Epic Run playback=1.225x cadence=3.500 steps/s; smoothing=0.18s
+Male_Rare Walk playback=1.650x cadence=2.357 steps/s; smoothing=0.18s
+Male_Rare Run playback=0.966x cadence=3.050 steps/s; smoothing=0.18s
+Male_Special Walk playback=1.650x cadence=2.357 steps/s; smoothing=0.18s
+Male_Special Run playback=1.108x cadence=3.500 steps/s; smoothing=0.18s
+Male_Uniform Walk playback=1.650x cadence=2.357 steps/s; smoothing=0.18s
+Male_Uniform Run playback=0.963x cadence=3.500 steps/s; smoothing=0.18s
+
+INHERITANCE CHECK
+Assets/Prefabs/PREFABS/CHARACTERS/Player.prefab: 6 inherited skins, no stride/floor solver; playback-only configuration.
+Assets/Prefabs/PREFABS/CHARACTERS/Player_Female.prefab: 6 inherited skins, no stride/floor solver; playback-only configuration.
+Assets/Resources/Multiplayer_Male.prefab: 6 inherited skins, no stride/floor solver; playback-only configuration.
+Assets/Resources/Multiplayer_Female.prefab: 6 inherited skins, no stride/floor solver; playback-only configuration.
+Menu: CharacterSelection: 12 inherited skins, no stride/floor solver; playback-only configuration.
+Menu: DressingRoom: 12 inherited skins, no stride/floor solver; playback-only configuration.
+TOTAL 48 inherited skins verified. Read-only prefab/preview inspection; no scene files saved.
+

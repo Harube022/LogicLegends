@@ -12,7 +12,7 @@ public sealed class AdminDebugController : MonoBehaviour
     [SerializeField, HideInInspector] private bool allowInPlayerBuilds;
     [Header("UI")]
     [SerializeField] private Canvas uiCanvas;
-    [SerializeField, HideInInspector] private bool adminButtonEnabled;
+    [SerializeField, HideInInspector] private bool adminButtonEnabled = true;
 
     private GameInput input;
     private Player player;
@@ -20,6 +20,9 @@ public sealed class AdminDebugController : MonoBehaviour
     private LevelTimerManager propositionalTimer;
     private RectTransform panelRoot;
     private RectTransform card;
+    private RectTransform characterCard;
+    private TMP_Text characterName;
+    private AdminCharacterOverride characterPreview;
     private Button adminButton;
     private Button clearChallengeButton;
     private Button clearConditionButton;
@@ -37,16 +40,8 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private void Awake()
     {
-        if (SceneManager.GetActiveScene().name != "PRELIM" &&
-            SceneManager.GetActiveScene().name != "TruthTable" &&
-            SceneManager.GetActiveScene().name != "Setssss" &&
-            SceneManager.GetActiveScene().name != "Formal vs. Informal Proofs" &&
-            SceneManager.GetActiveScene().name != "RulesOfInference" &&
-            SceneManager.GetActiveScene().name != "Functions and Relations" &&
-            SceneManager.GetActiveScene().name != "Induction" &&
-            SceneManager.GetActiveScene().name != "Direct&Indirect" &&
-            SceneManager.GetActiveScene().name != "Graph" && SceneManager.GetActiveScene().name != "Trees")
-            enabled = false;
+        try { TrialCatalog.ForScene(gameObject.scene.name); }
+        catch (System.ArgumentException) { enabled = false; }
     }
 
     private void Start()
@@ -68,7 +63,7 @@ public sealed class AdminDebugController : MonoBehaviour
         }
         BuildPanel();
         BuildAdminButton();
-        adminButton.gameObject.SetActive(AdminAuthorization.IsAuthorized);
+        adminButton.gameObject.SetActive(adminButtonEnabled && AdminAuthorization.IsAuthorized && !IsAnotherModalBlocking());
     }
 
     private void BindInput()
@@ -79,9 +74,11 @@ public sealed class AdminDebugController : MonoBehaviour
 
     private void Update()
     {
+        // A trial may create its shared input after this controller starts.
+        if (input == null) BindInput();
         if (!AdminAuthorization.IsAuthorized && panelOpen) ClosePanel();
         if (adminButton != null)
-            adminButton.gameObject.SetActive(AdminAuthorization.IsAuthorized && (panelOpen || !IsAnotherModalBlocking()));
+            adminButton.gameObject.SetActive(adminButtonEnabled && AdminAuthorization.IsAuthorized && (panelOpen || !IsAnotherModalBlocking()));
         if (panelOpen) UpdateLayout();
     }
 
@@ -116,7 +113,7 @@ public sealed class AdminDebugController : MonoBehaviour
             if (quiz != null && quiz.AdminQuestionOpen && clock != null && !clock.IsTutorialOpen &&
                 !clock.IsGameOver && !clock.IsCompleted) return false;
         }
-        if (input == null || input.GameplayInputBlocked || Time.timeScale == 0f) return true;
+        if (input == null || input.GameplayActionsBlocked || Time.timeScale == 0f) return true;
         if (SceneManager.GetActiveScene().name == "Functions and Relations")
         {
             var stage = FindFirstObjectByType<FunctionsRelationsStageManager>();
@@ -261,6 +258,7 @@ public sealed class AdminDebugController : MonoBehaviour
         conditionEligibleAtOpen = CanClearCondition();
         panelOpen = true;
         card.gameObject.SetActive(true);
+        if (characterCard != null) characterCard.gameObject.SetActive(false);
         if (answerViewer != null) answerViewer.Hide();
         player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
         inputWasBlocked = input != null && input.GameplayInputBlocked;
@@ -297,7 +295,7 @@ public sealed class AdminDebugController : MonoBehaviour
     {
         if (!panelOpen) return;
         panelOpen = false;
-        panelRoot.gameObject.SetActive(false);
+        if (panelRoot != null) panelRoot.gameObject.SetActive(false);
         if (answerViewer != null) answerViewer.Hide();
         if (propositionalTimer != null) propositionalTimer.SetTutorialPaused(false);
         if (truthClock != null) truthClock.SetTutorialOpen(false);
@@ -476,21 +474,26 @@ public sealed class AdminDebugController : MonoBehaviour
 
         TextMeshProUGUI title = CreateText("AdminDebugTitle", card, font, 52f);
         title.text = "Admin / Debug";
-        Place(title.rectTransform, new Vector2(0f, 235f), new Vector2(650f, 78f));
+        Place(title.rectTransform, new Vector2(0f, 350f), new Vector2(650f, 78f));
         clearChallengeButton = CreateButton("ClearCurrentChallenge", card, font,
-            "CLEAR CHALLENGE", new Vector2(0f, 120f), ClearCurrentChallenge);
+            "CLEAR CHALLENGE", new Vector2(0f, 250f), ClearCurrentChallenge);
         clearConditionButton = CreateButton("ClearCurrentCondition", card, font,
-            "CLEAR QUESTION", new Vector2(0f, 15f), ClearCurrentCondition);
+            "CLEAR QUESTION", new Vector2(0f, 150f), ClearCurrentCondition);
         CreateButton("ViewQuestionsAndAnswers", card, font, "QUESTIONS & ANSWERS",
-            new Vector2(0f, -90f), OpenAnswerViewer);
+            new Vector2(0f, 50f), OpenAnswerViewer);
         CreateButton("CloseAdminDebug", card, font, "CLOSE",
-            new Vector2(0f, -195f), ClosePanel);
+            new Vector2(0f, -350f), ClosePanel);
+        CreateButton("ShowCurrentHint", card, font, "SHOW HINT",
+            new Vector2(0f, -50f), ShowHint);
+        CreateButton("ChangeCharacter", card, font, "CHANGE CHARACTER",
+            new Vector2(0f, -150f), OpenCharacters);
         answerViewer = overlay.AddComponent<AdminAnswerViewer>();
         answerViewer.Build(uiCanvas, panelRoot, font, () =>
         {
             answerViewer.Hide();
             card.gameObject.SetActive(true);
         });
+        BuildCharacters(font);
         panelRoot.gameObject.SetActive(false);
         UpdateLayout();
     }
@@ -506,7 +509,7 @@ public sealed class AdminDebugController : MonoBehaviour
         rect.SetParent(parent, false);
         rect.anchorMin = rect.anchorMax = new Vector2(1f, 0f);
         rect.pivot = new Vector2(1f, 0f);
-        rect.anchoredPosition = SceneManager.GetActiveScene().name == "Graph" ? new Vector2(-360f, 340f) : new Vector2(-40f, 40f);
+        rect.anchoredPosition = new Vector2(-40f, 40f);
         rect.sizeDelta = new Vector2(220f, 88f);
         Image image = go.GetComponent<Image>();
         image.color = new Color(0.08f, 0.23f, 0.21f, 0.95f);
@@ -534,9 +537,53 @@ public sealed class AdminDebugController : MonoBehaviour
             : new Vector2(Screen.width, Screen.height) * 0.5f;
         Vector2 pixelOffset = safeCenter - new Vector2(Screen.width, Screen.height) * 0.5f;
         float scale = Mathf.Max(0.001f, uiCanvas.scaleFactor);
-        card.sizeDelta = new Vector2(Mathf.Min(760f, (right - left) / scale - 48f),
-            Mathf.Min(620f, (top - bottom) / scale - 48f));
+        float fit = Mathf.Min(1f, Mathf.Min(((right-left)/scale-48f)/760f, ((top-bottom)/scale-48f)/840f));
+        card.sizeDelta = new Vector2(760f, 840f);
+        card.localScale = Vector3.one * Mathf.Max(.2f,fit);
         card.anchoredPosition = pixelOffset / scale;
+        if (characterCard != null)
+        { characterCard.sizeDelta = card.sizeDelta; characterCard.localScale = card.localScale; characterCard.anchoredPosition = card.anchoredPosition; }
+    }
+
+    private void BuildCharacters(TMP_FontAsset font)
+    {
+        var go = new GameObject("Admin Character Testing", typeof(RectTransform), typeof(Image));
+        characterCard = (RectTransform)go.transform; characterCard.SetParent(panelRoot, false);
+        characterCard.anchorMin = characterCard.anchorMax = characterCard.pivot = new Vector2(.5f,.5f);
+        StagePresentation.Frame(go.GetComponent<Image>(), true);
+        var title = CreateText("Title", characterCard, font, 48); title.text = "Change Character";
+        Place(title.rectTransform, new Vector2(0,310), new Vector2(650,80));
+        var note = CreateText("Local Preview", characterCard, font, 30);
+        note.text = "Temporary test skin. Saved equipment and ownership stay unchanged.";
+        note.textWrappingMode = TextWrappingModes.Normal;
+        Place(note.rectTransform, new Vector2(0,200), new Vector2(650,110));
+        characterName = CreateText("Selected Skin", characterCard, font, 42);
+        Place(characterName.rectTransform, new Vector2(0,65), new Vector2(650,95));
+        var left = CreateButton("Previous Skin",characterCard,font,"◀",new Vector2(-200,-50),()=>CycleCharacter(-1));
+        var right = CreateButton("Next Skin",characterCard,font,"▶",new Vector2(200,-50),()=>CycleCharacter(1));
+        ((RectTransform)left.transform).sizeDelta = ((RectTransform)right.transform).sizeDelta = new Vector2(150,100);
+        CreateButton("Restore Equipped",characterCard,font,"RESTORE EQUIPPED",new Vector2(0,-195),()=>
+        {
+            if(!AdminAuthorization.IsAuthorized || !panelOpen) return;
+            characterPreview?.RestoreEquipped(); characterName.text="Account equipment restored";
+        });
+        CreateButton("Character Back",characterCard,font,"BACK",new Vector2(0,-310),()=>
+        { characterCard.gameObject.SetActive(false); card.gameObject.SetActive(true); });
+        go.SetActive(false);
+    }
+    private void OpenCharacters()
+    {
+        if (!AdminAuthorization.IsAuthorized || !panelOpen || player == null) return;
+        characterPreview = player.GetComponent<AdminCharacterOverride>();
+        if(characterPreview == null) characterPreview = player.gameObject.AddComponent<AdminCharacterOverride>();
+        card.gameObject.SetActive(false); characterCard.gameObject.SetActive(true);
+        CycleCharacter(0);
+    }
+    private void CycleCharacter(int direction)
+    {
+        if (!AdminAuthorization.IsAuthorized || !panelOpen || characterPreview == null) return;
+        int index = characterPreview.SelectedIndex < 0 ? 0 : characterPreview.SelectedIndex + direction;
+        characterName.text = characterPreview.Select(index) ? characterPreview.SelectedName : "Character preview unavailable";
     }
 
     private void OpenAnswerViewer()
@@ -546,6 +593,13 @@ public sealed class AdminDebugController : MonoBehaviour
         if (!panelOpen || answerViewer == null) return;
         answerViewer.Show(AdminQuestionAnswers.Capture());
         card.gameObject.SetActive(false);
+    }
+    private void ShowHint()
+    {
+        if (!AdminAuthorization.IsAuthorized || !panelOpen || adminActionPending) return;
+        // Restore the prior gameplay state before asking its provider for the next unfinished action.
+        ClosePanel();
+        TrialContextHints.Instance?.ShowCurrentForAdmin();
     }
 
     private static Button CreateButton(string name, Transform parent, TMP_FontAsset font,

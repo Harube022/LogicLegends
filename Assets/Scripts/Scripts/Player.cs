@@ -17,6 +17,10 @@ public partial class Player : MonoBehaviourPun
     [SerializeField] public float moveSpeed = 8f;
     // Scene-owned movement effects never overwrite the serialized walk speed or jump physics.
     private readonly Dictionary<Object, float> movementSpeedModifiers = new Dictionary<Object, float>();
+    private readonly HashSet<Object> runningSuppressors=new HashSet<Object>();
+    public bool IsRunningSuppressed {get{runningSuppressors.RemoveWhere(o=>o==null);return runningSuppressors.Count>0;}}
+    public void SetRunningSuppressed(Object owner,bool suppressed)
+    {if(owner==null)return;if(suppressed){runningSuppressors.Add(owner);OffRun();}else runningSuppressors.Remove(owner);}
     public float MovementSpeedMultiplier
     {
         get
@@ -128,13 +132,13 @@ public partial class Player : MonoBehaviourPun
     private void GameInput_OnJumpAction(object sender, System.EventArgs e)
     {
         if (!enabled || IsMovementLocked || isGuidedMovementActive || Time.timeScale <= 0f ||
-            (gameInput != null && gameInput.GameplayInputBlocked)) return;
+            (gameInput != null && gameInput.GameplayActionsBlocked)) return;
         jumpBufferTimer = jumpBufferTime;
     }
 
     private void GameInput_OnInteractAction(object sender, System.EventArgs e)
     {
-        if (!enabled || IsMovementLocked || isGuidedMovementActive) return; // Event subscriptions still fire on disabled behaviours.
+        if (!enabled || IsMovementLocked || isGuidedMovementActive || (gameInput!=null&&gameInput.GameplayActionsBlocked)) return; // Event subscriptions still fire on disabled behaviours.
         if (LogicLegends.Induction.InductionStageManager.Instance != null &&
             LogicLegends.Induction.InductionStageManager.Instance.TryHandleInteraction()) return;
         // Setssss uses these same hand/E inputs for its book and numbered blocks.
@@ -177,6 +181,8 @@ public partial class Player : MonoBehaviourPun
         }
 
         // ===== IF HOLDING OBJECT =====
+        if(InventoryManager.Instance!=null&&InventoryManager.Instance.HasBlockSelected()&&heldObject!=null&&heldObject.GetComponent<TruthBlock>()!=null)
+        {InventoryManager.Instance.DropSelectedBlock();return;}
         if (heldObject != null)
         {
             if (Physics.SphereCast(rayStart, castRadius, transform.forward, out RaycastHit hit, interactionDistance))
@@ -249,6 +255,12 @@ public partial class Player : MonoBehaviourPun
     private void Update()
     {
         if (IsMovementLocked) { NoteRejectedMovement(); EnforceMovementLock(); return; }
+        if (ownsLocalInput && gameInput!=null && gameInput.HasGameplayActionBlock)
+        {
+            // Keep the Player/camera hierarchy enabled. Only the trap may move
+            // the capsule until it releases its owner-scoped action restriction.
+            OffRun();ResetMotionAfterTeleport();isWalking=false;isJumping=false;return;
+        }
         if (!ownsLocalInput || controller == null || !controller.enabled)
         {
             OffRun();
@@ -277,6 +289,9 @@ public partial class Player : MonoBehaviourPun
     public bool IsWalking() => isWalking;
     public bool IsJumping() => isJumping;
     public bool IsRunning() => isRunning;
+    public float RunSpeedMultiplier => runSpeedMultiplier;
+    // Animation timing follows the existing launch/gravity values; this never changes jump physics.
+    public float JumpFlightDuration => Mathf.Max(.1f, 2f * jumpForce / Mathf.Max(.01f, Mathf.Abs(gravity)));
 
     public void SetRunningEnabled(bool value)
     {
@@ -287,9 +302,9 @@ public partial class Player : MonoBehaviourPun
 
     public void OnRun()
     {
-        if (!runningEnabled || !enabled || IsMovementLocked || isGuidedMovementActive ||
+        if (!runningEnabled || IsRunningSuppressed || !enabled || IsMovementLocked || isGuidedMovementActive ||
             controller == null || !controller.enabled ||
-            gameInput == null || gameInput.GameplayInputBlocked || !isWalking)
+            gameInput == null || gameInput.GameplayActionsBlocked || !isWalking)
             return;
         isRunning = true;
     }
@@ -381,7 +396,7 @@ public partial class Player : MonoBehaviourPun
 
         // Count continuous movement input, including jumping and falling. Only
         // releasing input or disabling gameplay resets the run state.
-        if (runningEnabled && isWalking && !gameInput.GameplayInputBlocked)
+        if (runningEnabled && !IsRunningSuppressed && isWalking && !gameInput.GameplayActionsBlocked)
         {
             if (!isRunning)
             {
@@ -442,7 +457,7 @@ public partial class Player : MonoBehaviourPun
             if (verticalVelocity < -25f) verticalVelocity = -25f;
         }
 
-        Vector3 movement = (moveDirection * guidedMovementSpeed) + (Vector3.up * verticalVelocity);
+        Vector3 movement = (moveDirection * guidedMovementSpeed * MovementSpeedMultiplier) + (Vector3.up * verticalVelocity);
         controller.Move(movement * Time.deltaTime);
     }
 

@@ -1,0 +1,50 @@
+Foot-jitter regression — 2026-11-06
+
+Cause
+The recently added PlayerStrideWarp used the animated knee as its bend hint.
+When stride extension crossed the hip-to-ankle line, that hint could reverse.
+The ankle could still reach its target, so earlier reach/scale checks passed,
+but the calf rotation changed sharply and shook vertices shared by calf/foot
+skin weights. Near-straight knee locking and abrupt support-leg switching added
+smaller pops.
+
+Comparison
+Used the same source clips, Generic retargeting, clip phases and playback data
+with and without the old stride correction. Saved the original solver locally
+in Library/FootJitterAudit/PlayerStrideWarp.before.txt. The new stride script is
+uncommitted, so this was a preserved-code/native-clip comparison rather than a
+branch switch. No Git checkout, reset, commit or push was performed.
+
+Audit
+- Global Animator and state base speeds are 1; running/walking use direct clip
+  states, not blend trees. Root motion and Humanoid foot IK remain disabled.
+- Carry masks affect the upper body; Generic retargeting runs before stride IK.
+- No other project script was found driving the leg bones after stride IK.
+
+Fix
+- Stable forward/up/outward anatomical knee pole.
+- Small near-extension reserve prevents knee locking/unlocking at singular reach.
+- Continuous support handoff replaces a hard switch between the two legs.
+- Clip assignments, playback/cadence values, movement speed, jump/stun timing,
+  carrying poses, weights and physics remain unchanged.
+
+Passed
+- 24 matched-rate gait comparisons, 241 sampled poses each, observing both knee
+  rotations and actual weighted sole vertices. Worst sampled knee step reduced
+  from 178.9 to 15.2 degrees, with retained reach and ground clearance.
+- All 12 skins in isolated Editor Play Mode: steady walking/running, state
+  transitions, turns, carry/release, four weight levels, jump/landing and pause.
+- Final LateUpdate monitoring after all pose writers: no reversed knee planes,
+  both soles within ground tolerance, and enough samples for each movement mode.
+- Existing cadence-clock, actual movement-speed and carry-alignment checks pass.
+- All 300 original animation/FBX/importer hashes unchanged. No clips replaced.
+- Unity console: no errors at the end. Original saved scene restored, not dirty.
+
+Reports: Assets/Characters_NEW/LATEST_SKINS/Integration/FootJitterChecks.txt
+         Library/FootJitterAudit/before.json and after-soft.json (local A/B data)
+Reproduce live checks: LatestSkinPlayChecks.BeginFootJitter(), outside Play Mode
+with saved scenes. Capture("current") records current native/corrected trajectories.
+Compare() requires the local A/B JSON files; the live check does not.
+
+Limits: Editor test floor only; no physical Android or live multiplayer peer test.
+No production account/progression changes. No commits or pushes.

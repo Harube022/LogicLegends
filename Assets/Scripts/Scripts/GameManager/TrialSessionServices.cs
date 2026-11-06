@@ -24,8 +24,11 @@ public sealed class TrialSessionServices : MonoBehaviour
         if (TrialRewards.CurrentTrial > 0)
         {
             var admin = FindFirstObjectByType<AdminDebugController>(FindObjectsInactive.Include);
-            if (admin == null) new GameObject("Trial Admin").AddComponent<AdminDebugController>();
+            if (admin == null) admin = new GameObject("Trial Admin").AddComponent<AdminDebugController>();
             else { admin.gameObject.SetActive(true); admin.enabled = true; }
+            // Every solo trial enables the shared entry point. Authentication,
+            // modal safety and the actions' backend checks still gate access.
+            admin.AdminButtonOn();
         }
     }
     void Update()

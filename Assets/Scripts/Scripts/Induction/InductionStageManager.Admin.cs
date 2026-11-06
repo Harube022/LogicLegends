@@ -33,14 +33,24 @@ namespace LogicLegends.Induction
             return text.ToString();
         }
 
+        static string AdminCurrentAnswer(InductionChallenge question)
+        {
+            return string.Join("\n",question.answers.OrderBy(a=>a.Key).Select(answer=>
+            {
+                string[] key=answer.Key.Split(':');
+                string altar=key[0]=="Base"?"Base Case":key[0]=="Hypothesis"?"Inductive Hypothesis":"Inductive Step";
+                bool multiple=question.answers.Keys.Count(k=>k.StartsWith(key[0]+":"))>1;
+                return altar+(multiple?" "+key[1]:"")+" → "+question.choices.First(s=>s.id==answer.Value).expression;
+            }));
+        }
+
         public void AppendAdminAnswers(List<AdminAnswerPage> pages)
         {
         if (!AdminAuthorization.IsAuthorized) return;
             bool initialized = runVariantIndices != null;
-            pages.Add(new AdminAnswerPage("Current question — Induction", "Challenge " + (ChallengeIndex + 1) +
-                " of " + InductionChallenges.ChallengesPerRun + " — " + State + "\n" +
-                (initialized ? AdminSolution(Challenge) : "Waiting for question data.") +
-                "\nThe book starts each challenge. Submit at an altar checks the entire proof; this viewer changes neither."));
+            pages.Add(new AdminAnswerPage("Current question — Induction", initialized ?
+                AdminQuestionAnswers.Current(Challenge.theorem+"\n"+Challenge.instructions,AdminCurrentAnswer(Challenge)) :
+                AdminQuestionAnswers.Current("Waiting for question data.","—")));
             for (int c = 0; c < InductionChallenges.VariantSets.Length; c++)
             {
                 var bank = InductionChallenges.VariantSets[c];

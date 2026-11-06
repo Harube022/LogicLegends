@@ -64,6 +64,13 @@ public static class CommerceConnectionChecks
             Check(accounts == 1 && wallets == 1 && shop.Result.gems == 7, "both panels recover after the host wakes");
             await CommerceClient.Wallet();
             Check(health == 1, "warm reads do not repeat health checks");
+            Fixture((url,json,token,timeout) => {
+                Check(json == null, "economy connection verification sends read-only requests");
+                return Task.FromResult(Reply(200,url.EndsWith("/health") ? "{\"mode\":\"live\"}" :
+                    JsonUtility.ToJson(new CommerceClient.EconomyCapabilities {version=2,sandbox=CommerceClient.Sandbox,live=!CommerceClient.Sandbox,capabilities=new[]{"pending-quiz-bonuses"}})));
+            });
+            var capabilities=await CommerceClient.CheckEconomyConnection();
+            Check(capabilities.version==2&&capabilities.capabilities[0]=="pending-quiz-bonuses","read-only economy contract deserializes with the correct environment");
 
             health = 0;
             Fixture((url, json, token, timeout) => Task.FromResult(url.EndsWith("/health") ?

@@ -14,5 +14,5 @@ public sealed class TrialLegacyRewardDisplay : MonoBehaviour
     }
     void OnEnable(){TrialRewards.Changed+=Refresh;Refresh();}
     void OnDisable(){TrialRewards.Changed-=Refresh;}
-    void Refresh(){if(label!=null)label.text=TrialRewards.Status(trial);}
+    void Refresh(){if(label!=null)label.text=TrialRewards.CompletionCoins(trial).ToString("N0");}
 }

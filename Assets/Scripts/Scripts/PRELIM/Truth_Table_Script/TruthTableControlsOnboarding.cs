@@ -612,7 +612,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
             case Step.DoorOpened:
                 step = Step.Blocks;
                 handButton.gameObject.SetActive(true);
-                SetInstruction("True/False blocks represent row outputs.\nUse the hand to collect from an open house. Closed doors hide prompts.\nSelect an inventory stack. Fill the rows, then tap Submit Column.", handButton, false, true);
+                SetInstruction("True/False blocks represent row outputs.\nCollect up to four from open houses. They stack in front of you and slow your movement.\nSelect a truth value in inventory. Fill the rows, then tap Submit Column.", handButton, false, true);
                 break;
             case Step.Blocks: BeginConfirmation(); break;
         }

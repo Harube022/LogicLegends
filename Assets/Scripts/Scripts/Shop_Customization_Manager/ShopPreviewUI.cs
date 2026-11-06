@@ -33,6 +33,11 @@ public sealed class ShopPreviewUI : MonoBehaviour
     private bool refreshRequired;
     private int displayedBalance;
     private Coroutine reveal;
+    private Button payCoins, payGems;
+    int displayedPrice;
+    ShopItem.Currency displayedCurrency;
+    public bool QuoteIsCurrent => item != null && item.Price == displayedPrice && item.CurrencyType == displayedCurrency;
+    public int QuotedPrice => displayedPrice;
     public bool IsOpen => overlay != null && overlay.activeSelf;
     public bool IsConfirming => IsOpen && confirming;
 
@@ -40,6 +45,7 @@ public sealed class ShopPreviewUI : MonoBehaviour
     {
         primary.onClick.AddListener(Primary);
         secondary.onClick.AddListener(Secondary);
+        BuildCurrencyChoices();
         overlay.SetActive(false);
     }
 
@@ -92,9 +98,7 @@ public sealed class ShopPreviewUI : MonoBehaviour
                     model.model.transform.IsChildOf(body.transform))
                 { inspection.ShowCharacter(body.transform,model.model.transform); break; }
         itemName.text = item.DisplayName;
-        price.text = currencyUnit == null ? "Price: " + item.Price.ToString("N0") + " " + item.CurrencyType : item.Price.ToString("N0");
-        if (currencyUnit != null) currencyUnit.text = item.CurrencyType.ToString().ToUpperInvariant();
-        if (currencyIcon != null) currencyIcon.sprite = item.CurrencyType == ShopItem.Currency.Coins ? coinSprite : gemSprite;
+        ShowCurrency(currentBalance);
         ShowResult(previewAvailable ? (owned ? "You already own these clothes." : "Preview only. Equipped clothes stay unchanged.") :
             "This outfit preview is unavailable. Please choose another item.", owned, currentBalance);
         if (!previewAvailable) SetFeedback("This outfit preview is unavailable. Please choose another item.", "PREVIEW UNAVAILABLE", Warning);
@@ -122,6 +126,7 @@ public sealed class ShopPreviewUI : MonoBehaviour
         if (item == null || owned || !previewAvailable) return;
         displayedBalance = currentBalance;
         confirming = true;
+        SetCurrencyEnabled(false);
         title.text = "CONFIRM PURCHASE";
         UpdateBalance(currentBalance, true);
         SetFeedback(currentBalance < item.Price ? "Not enough " + item.CurrencyType.ToString().ToLowerInvariant() + "." :
@@ -144,6 +149,7 @@ public sealed class ShopPreviewUI : MonoBehaviour
 
     public void ShowSaving()
     {
+        SetCurrencyEnabled(false);
         primary.interactable = secondary.interactable = false;
         SetFeedback("", "PROCESSING", Warning);
     }
@@ -175,6 +181,7 @@ public sealed class ShopPreviewUI : MonoBehaviour
         displayedBalance = currentBalance;
         owned = isOwned;
         confirming = false;
+        SetCurrencyEnabled(!isOwned);
         refreshRequired = false;
         title.text = "CLOTHES PREVIEW";
         UpdateBalance(currentBalance, false);
@@ -185,6 +192,37 @@ public sealed class ShopPreviewUI : MonoBehaviour
             SetFeedback("Not enough " + item.CurrencyType.ToString().ToLowerInvariant() + ".", "NOT ENOUGH CURRENCY", Warning);
         secondaryLabel.text = "CLOSE";
         secondary.interactable = true;
+    }
+    void BuildCurrencyChoices()
+    {
+        var portrait = card.Find("CharacterFrame") as RectTransform;
+        if (portrait != null) { portrait.anchorMin = new Vector2(.05f,.20f); portrait.offsetMin = Vector2.zero; }
+        payCoins = CurrencyButton("PayWithCoins", "PAY WITH\nCOINS", .15f, ShopItem.Currency.Coins);
+        payGems = CurrencyButton("PayWithGems", "PAY WITH\nGEMS", .34f, ShopItem.Currency.Gems);
+    }
+    Button CurrencyButton(string name, string text, float x, ShopItem.Currency currency)
+    {
+        var button = StageUITheme.Button(name, card, text, () => shop.SelectPurchaseCurrency(currency));
+        var rect = (RectTransform)button.transform;
+        rect.anchorMin = rect.anchorMax = new Vector2(x,.10f); rect.pivot = new Vector2(.5f,.5f);
+        rect.anchoredPosition = Vector2.zero; rect.sizeDelta = new Vector2(220,88);
+        var label = button.GetComponentInChildren<TMP_Text>(); label.fontSizeMin = 24; label.fontSizeMax = 26;
+        button.image.pixelsPerUnitMultiplier = 4.5f;
+        return button;
+    }
+    void SetCurrencyEnabled(bool enabled)
+    {
+        if (payCoins != null) payCoins.interactable = enabled && item != null && item.CurrencyType != ShopItem.Currency.Coins;
+        if (payGems != null) payGems.interactable = enabled && item != null && item.CurrencyType != ShopItem.Currency.Gems;
+    }
+    public void ShowCurrency(int currentBalance)
+    {
+        if (item == null) return;
+        displayedPrice = item.Price; displayedCurrency = item.CurrencyType;
+        price.text = currencyUnit == null ? "Price: " + item.Price.ToString("N0") + " " + item.CurrencyType : item.Price.ToString("N0");
+        if (currencyUnit != null) currencyUnit.text = item.CurrencyType.ToString().ToUpperInvariant();
+        if (currencyIcon != null) currencyIcon.sprite = item.CurrencyType == ShopItem.Currency.Coins ? coinSprite : gemSprite;
+        ShowResult(owned ? "You already own these clothes." : "Choose Coins or Gems. Review the price, then tap Buy Outfit.", owned, currentBalance);
     }
 
     private void SetFeedback(string text, string heading, Color accent)

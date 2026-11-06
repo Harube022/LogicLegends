@@ -11,7 +11,7 @@ test('all ten trials: authenticated Admin policy and atomic reward receipts use 
     const prefix = 'trial-account-check-' + crypto.randomBytes(6).toString('hex');
     const records = new Map(), uids = new Set();
     const id = () => crypto.randomBytes(16).toString('hex');
-    const app = createApp({ STORAGE_MODE: 'emulator', PAYMENT_MODE: 'test', FIREBASE_DATABASE_EMULATOR_HOST: '127.0.0.1:9000',
+    const app = createApp({ SOLO_ECONOMY_V2_ENABLED: 'true', STORAGE_MODE: 'emulator', PAYMENT_MODE: 'test', FIREBASE_DATABASE_EMULATOR_HOST: '127.0.0.1:9000',
       FIREBASE_PROJECT_ID: 'logic-legends-ac66c' }, {
       verifyIdToken: async token => {
         if (!records.has(token)) throw Error('Invalid token');
@@ -56,11 +56,11 @@ test('all ten trials: authenticated Admin policy and atomic reward receipts use 
             await Promise.all([call(token, 'retry', retry).then(ok), call(token, 'retry', retry).then(ok)]);
           }
           const replies = await Promise.all(Array.from({ length: 6 }, () => call(token, 'complete', request).then(ok)));
-          assert.ok(replies.every(reply => reply.reward === [1000, 750, 562][retries]));
+          assert.ok(replies.every(reply => reply.reward === [1000, 750, 500][retries]));
           const reloaded = await ok(await call(token, 'start', { trial, attemptId: id(), newAttempt: false }));
           assert.equal(reloaded.attemptId, request.attemptId);
           const saved = (await ref.get()).val();
-          assert.equal(saved.coins, 37 + [1000, 750, 562][retries]);
+          assert.equal(saved.coins, 37 + [1000, 750, 500][retries]);
           assert.equal(saved.gems, 19); assert.equal(saved.unlockedStage, 8); assert.equal(saved.inventory.Common_Skin, true);
         }
       }

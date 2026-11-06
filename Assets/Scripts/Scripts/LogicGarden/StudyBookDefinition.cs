@@ -5,6 +5,7 @@ public class StudyBookDefinition
 {
     public string topicId;
     public StudyLessonPage[] lessonPages;
+    public StudyLessonBlock[] lessonBlocks;
     public int PageCount => lessonPages != null && lessonPages.Length > 0 ? lessonPages.Length : (pages == null ? 0 : pages.Length);
     public string title;
     public string preview;
@@ -41,6 +42,15 @@ public class StudyBookDefinition
 public class StudyLesson
 {
     public StudyLessonPage[] pages;
+    public StudyLessonBlock[] blocks;
+}
+
+[Serializable]
+public class StudyLessonBlock
+{
+    public string heading;
+    public string text;
+    public string diagram;
 }
 
 [Serializable]
@@ -50,4 +60,5 @@ public class StudyLessonPage
     public string diagram;
     public string text;
     public string source;
+    public bool cover;
 }

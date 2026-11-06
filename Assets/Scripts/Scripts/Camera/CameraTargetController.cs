@@ -21,7 +21,7 @@ public class CameraTargetController : MonoBehaviour
     {
         Vector3 currentRot = transform.eulerAngles;
         cameraYaw = currentRot.y;
-        cameraPitch = currentRot.x;
+        cameraPitch = Mathf.Clamp(Mathf.DeltaAngle(0, currentRot.x), bottomClamp, topClamp);
         lookInitialized = true;
     }
 
@@ -30,7 +30,7 @@ public class CameraTargetController : MonoBehaviour
         if (!lookInitialized)
         {
             cameraYaw = transform.eulerAngles.y;
-            cameraPitch = transform.eulerAngles.x;
+            cameraPitch = Mathf.Clamp(Mathf.DeltaAngle(0, transform.eulerAngles.x), bottomClamp, topClamp);
             lookInitialized = true;
         }
         // The player's new parent rotation must not change the stored world-space look.
@@ -49,6 +49,7 @@ public class CameraTargetController : MonoBehaviour
     {
         // Only the authoritative local player's target may consume the shared look delta.
         if (owningPlayer != null && owningPlayer != Player.LocalInstance) return;
+        if (!GameplayTouchRouting.CameraInputAllowed) { MobileLookInput.ResetDelta(); return; }
 
         Vector2 lookDelta = MobileLookInput.LookDelta;
 

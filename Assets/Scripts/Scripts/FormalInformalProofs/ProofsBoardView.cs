@@ -175,5 +175,5 @@ public sealed class ProofsBoardView : MonoBehaviour
         var callback = closed; closed = null; if (notify) callback?.Invoke();
     }
 
-    private void OnDisable() => RestoreImmediately(false);
+    private void OnDisable() => RestoreImmediately();
 }

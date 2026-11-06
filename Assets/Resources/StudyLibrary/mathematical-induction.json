@@ -1,12 +1,32 @@
 {
-  "pages": [
+  "blocks": [
     {
-      "source": "User-provided exact content — Mathematical Induction — page 1",
-      "text": "PART 1 — MATHEMATICAL INDUCTION\nWeeks 8–9\nThis part covers the Mathematical Induction material from the earlier Prefinals material.\nTopics:\n\tMathematical Induction\n\tBase Case\n\tInduction Hypothesis\n\tInduction Step\n\tConclusion\n\tProofs using Mathematical Induction\n\tExamples involving sums and sequences\nGeneral structure of Mathematical Induction:\n\tBase Case — Prove that P(1)is true.\n\tInduction Hypothesis — Assume that P(k)is true.\n\tInduction Step — Prove that P(k+1)is true.\n\tConclusion — Therefore, P(n)is true for all natural numbers n.\nExample:\n1+3+5+⋯+n=n(n+1)/2\n\nBase Case:\nFor n=1:\nLHS=1\nRHS=1(1+1)/2=1"
+      "heading": "Mathematical induction",
+      "text": "<b>Mathematical induction</b> proves statements indexed by integers. A starting case and a valid step from each case to the next establish every case in the required range. It is used for sums, powers, and recursive sequences."
     },
     {
-      "source": "User-provided exact content — Mathematical Induction — page 2",
-      "text": "Therefore, the base case is true.\nInduction Hypothesis:\nAssume:\n1+3+5+⋯+k=k(k+1)/2\n\nInduction Step:\nFor n=k+1:\n1+3+5+⋯+k+(k+1)\n\nUsing the induction hypothesis:\n=k(k+1)/2+(k+1)\n=(k(k+1)+2(k+1))/2\n=(k+1)(k+2)/2\n\nTherefore, the statement is true for k+1.\nConclusion: The formula is true for all natural numbers n."
+      "heading": "Base case",
+      "text": "The <b>base case</b> proves the first required statement directly. If the claim starts at n = 1, prove P(1). If it starts at n = 0 or another integer, use that starting value. The base case cannot be omitted."
+    },
+    {
+      "heading": "Inductive hypothesis",
+      "text": "The <b>inductive hypothesis</b> assumes P(k) for an arbitrary integer k at or above the starting value. This is a temporary assumption used to prove the next case—not an assumption that all cases already hold."
+    },
+    {
+      "heading": "Inductive step and conclusion",
+      "text": "The <b>inductive step</b> uses P(k) to derive P(k + 1). Since k was arbitrary, the implication works at every eligible step.\n\nTogether with the base case, this proves P(n) for all integers in the stated range."
+    },
+    {
+      "heading": "Worked example: natural-number sum",
+      "text": "Prove 1 + 2 + ⋯ + n = n(n + 1)/2 for n ≥ 1.\n\n<b>Base case:</b> when n = 1, both sides are 1.\n\n<b>Hypothesis:</b> assume 1 + 2 + ⋯ + k = k(k + 1)/2."
+    },
+    {
+      "heading": "Natural-number sum: next case",
+      "text": "Using the hypothesis,\n\n1 + 2 + ⋯ + k + (k + 1)\n= k(k + 1)/2 + (k + 1)\n= (k(k + 1) + 2(k + 1))/2\n= (k + 1)(k + 2)/2.\n\nThis is the formula for k + 1, so induction proves the claim."
+    },
+    {
+      "heading": "Worked example: odd-number sum",
+      "text": "Prove 1 + 3 + ⋯ + (2n − 1) = n² for n ≥ 1.\n\n<b>Base case:</b> 1 = 1².\n<b>Hypothesis:</b> assume the sum of the first k odd numbers is k².\n<b>Step:</b> add 2k + 1 to obtain k² + 2k + 1 = (k + 1)². The claim follows by induction."
     }
   ]
 }

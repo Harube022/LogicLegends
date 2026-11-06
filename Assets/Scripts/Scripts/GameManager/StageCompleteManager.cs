@@ -68,7 +68,7 @@ public class StageCompleteManager : MonoBehaviour
         if (timeText != null) timeText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
 
         if (heartsLostText != null) heartsLostText.text = heartsLost.ToString();
-        if (coinsRewardText != null) coinsRewardText.text = TrialRewards.Status(trial);
+        if (coinsRewardText != null) coinsRewardText.text = TrialRewards.CompletionCoins(trial).ToString("N0");
         if (gemsRewardText != null) gemsRewardText.text = "+" + finalGems.ToString();
 
         // 6. Push to Google Firebase

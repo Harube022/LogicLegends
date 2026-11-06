@@ -1,24 +1,52 @@
 {
-  "pages": [
-    { "source": "PRELIM — WEEK 1 • Page 1", "text": "IT 105 — DISCRETE STRUCTURES 1\n\n2nd Semester — Prelim — Week 1\n\nPRELIM — WEEK 1" },
-    { "source": "PRELIM — WEEK 1 • Page 2", "text": "1. PROPOSITIONAL LOGIC\n\nWhat is Propositional Logic?\n\nPropositional logic, also known as sentential logic and statement logic, is the branch of logic that studies ways of combining or modifying entire propositions, statements or sentences to form more complicated propositions, statements or sentences, as well as the logical relationships and properties." },
-    { "source": "PRELIM — WEEK 1 • Page 3", "text": "2. DISCRETE MATHEMATICS\n\nWhat is Discrete Mathematics?\n\nDiscrete Mathematics deals with mathematical objects that can be enumerated or logically structured, such as:\n\n• Integers\n• Sets\n• Logical statements\n• Functions\n• Algorithm\n• Graphs\n• Combinatorics\n• etc." },
-    { "source": "PRELIM — WEEK 1 • Page 4", "text": "2. DISCRETE MATHEMATICS\n\nDefinition\n\nDiscrete Mathematics is the branch of mathematics that studies structures that are distinct and countable, rather than continuous.\n\nDiscrete means non-continuous:\n\n“distinct, or not connected”." },
-    { "source": "PRELIM — WEEK 1 • Page 5", "text": "DISCRETE VS. CONTINUOUS\n\nDISCRETE\nThe number of pennies in your pocket.\n\nCONTINUOUS\nThe time measured in minutes.\nThe height of students in a class.\nThe temperature measured in degrees Celsius.\nThe length of a rope measured in meters." },
-    { "source": "PRELIM — WEEK 1 • Page 6", "text": "3. LOGIC\n\nWhat is Logic?\n\nLogic is the study of formal mathematics, the foundation of mathematical reasoning and proofs itself.\n\nIn discrete mathematics, it provides tools for analyzing:\n\n• Statements\n• Arguments\n• Proofs\n• Examples\n\nThe source gives these examples:\n“2 + 2 = 4”\n“The sky is green.”" },
-    { "source": "PRELIM — WEEK 1 • Page 7", "text": "4. PROPOSITIONS\n\nDefinition of a Proposition\n\nA proposition is a declarative statement that is either true or false.\n\nExamples\n\nExample 1\n“2 + 2 = 4” → TRUE\n\nExample 2\n“The sky is green.” → FALSE\n\nExample 3\n“Go home.” → Not a proposition: command\n\nExample 4\n“Are you okay?” → Not a proposition: question" },
-    { "source": "PRELIM — WEEK 1 • Page 8", "text": "4. PROPOSITIONS\n\nKey Idea\n\nFor a statement to be a proposition, it must be a declarative statement that has a truth value:\n\ntrue or false." },
-    { "source": "PRELIM — WEEK 1 • Page 9", "text": "5. LOGICAL CONNECTIVES\n\nDefinition\n\nA logical connective is a symbol which is used to connect two or more propositional or predicate logics in such a manner that resultant logic depends only on the input logics and the meaning of the connective used.\n\nLogical Connective     Symbol\nConjunction                 ∧\nDisjunction                 ∨\nExclusive OR                ⊕\nImplication                 ⇒\nBi-Conditional               ↔\n\nThe source then explains each connective individually." },
-    { "source": "PRELIM — WEEK 1 • Page 10", "text": "6. NEGATION\n\nDefinition\nNegation reverses the truth value of a proposition.\n\nMeaning: NOT p\nSymbols: ¬p or ~p\n\nSuppose p is a proposition.\nThe negation of p is: ~p\nThe meaning of ~p: p is false.\n\nNegation Examples\n\nExample 1\np: “It is raining.”\nTherefore: ~p: “It is not raining.”\n\nExample 2\np: “I will not study.”\nTherefore: ~p: “I will study.”" },
-    { "source": "PRELIM — WEEK 1 • Page 11", "text": "6. NEGATION\n\nCore Rule\n\nNegation changes the truth value of a proposition.\n\nIf:\np = TRUE\nthen:\n~p = FALSE\n\nAnd if:\np = FALSE\nthen:\n~p = TRUE" },
-    { "source": "PRELIM — WEEK 1 • Page 12", "text": "7. CONJUNCTION\n\nDefinition\nA conjunction is TRUE only when BOTH statements are true.\n\nMeaning: AND\nSymbol: ∧\n\nSuppose p, q are propositions.\n\nExample\np: The sky is blue.\nq: The grass is green.\n\nTherefore:\np ∧ q = The sky is blue and the grass is green.\n\nThe source also labels the logical structure with:\n• premises\n• conclusion\n\nCore Rule\nFor p ∧ q, the result is TRUE only when p is TRUE and q is TRUE.\n\nBoth statements must be true." },
-    { "source": "PRELIM — WEEK 1 • Page 13", "text": "8. DISJUNCTION\n\nDefinition\nA disjunction is FALSE only when BOTH statements are false.\n\nMeaning: OR\nSymbol: ∨\n\nSuppose p, q are propositions.\n\nExample\np: It is raining.\nq: It is snowing.\n\nTherefore:\np ∨ q = It is raining or it is snowing.\n\nCore Rule\nFor p ∨ q, the result is FALSE only when p is FALSE and q is FALSE.\n\nIf at least one of the two statements is TRUE, the disjunction is TRUE." },
-    { "source": "PRELIM — WEEK 1 • Page 14", "text": "9. EXCLUSIVE OR\n\nDefinition\nExclusive OR is TRUE if exactly one is true.\n\nMeaning: Exclusive OR (XOR)\nSymbol: ⊕\n\nSuppose p, q are propositions.\n\nExample\np: I will eat burger.\nq: I will eat fries.\n\nTherefore:\np ⊕ q = I will eat either burger or fries.\n\nNOT both at the same time." },
-    { "source": "PRELIM — WEEK 1 • Page 15", "text": "9. EXCLUSIVE OR\n\nCore Rule\n\nFor p ⊕ q, exactly one proposition must be TRUE.\n\nTherefore:\np = TRUE, q = FALSE → TRUE\np = FALSE, q = TRUE → TRUE\np = TRUE, q = TRUE → FALSE\np = FALSE, q = FALSE → FALSE\n\nThe important distinction presented by the source is:\n\nNOT both at the same time" },
-    { "source": "PRELIM — WEEK 1 • Page 16", "text": "10. CONDITIONAL / IMPLICATION\n\nConditional (Implication)\n\nA conditional, or implication, is FALSE only when p is TRUE and q is FALSE.\n\nMeaning: Implies (IF… THEN)\nSymbol: ⇒\n\nSuppose p, q are propositions.\n\nExample\np: I study.\nq: I pass.\n\nTherefore:\np ⇒ q = If I study, then I pass.\n\nImportant Note\nIn implication there is always IF… THEN in conclusion.\n\nCore Rule\nFor p ⇒ q, the implication is FALSE only when p = TRUE and q = FALSE.\n\nAll other combinations result in TRUE." },
-    { "source": "PRELIM — WEEK 1 • Page 17", "text": "11. Bi-Conditional\n\nBi-Conditional (If and only if)\n\nA Bi-Conditional is TRUE when both values are the same.\n\nMeaning: Equivalence (If and only if)\nSymbol: ↔\n\nSuppose p, q are propositions.\n\nExample\np: You can access the system.\nq: You have a password.\n\nTherefore, the source gives:\np ⇒ q = You can access the system if and only if you have a password." },
-    { "source": "PRELIM — WEEK 1 • Page 18", "text": "11. Bi-Conditional\n\nImportant Source Note\n\nThe source's displayed formula uses p ⇒ q in this example even though the section identifies the Bi-Conditional symbol as ↔.\n\nCore Rule\n\nFor p ↔ q, the result is TRUE when both truth values are the same:\n\np = TRUE, q = TRUE → TRUE\np = FALSE, q = FALSE → TRUE\n\nIt is FALSE when their truth values are different." },
-    { "source": "PRELIM — WEEK 1 • Page 19", "text": "12. CONNECTIVE REFERENCE\n\nNEGATION\nMeaning: NOT p\nSymbol: ¬p / ~p\nMain Rule: Reverses the truth value\n\nCONJUNCTION\nMeaning: AND\nSymbol: ∧\nMain Rule: TRUE only when BOTH statements are true\n\nDISJUNCTION\nMeaning: OR\nSymbol: ∨\nMain Rule: FALSE only when BOTH statements are false" },
-    { "source": "PRELIM — WEEK 1 • Page 20", "text": "12. CONNECTIVE REFERENCE\n\nEXCLUSIVE OR\nMeaning: Exclusive OR (XOR)\nSymbol: ⊕\nMain Rule: TRUE if exactly one is true\n\nCONDITIONAL / IMPLICATION\nMeaning: Implies (IF… THEN)\nSymbol: ⇒\nMain Rule: FALSE only when p is TRUE and q is FALSE\n\nBi-Conditional\nMeaning: Equivalence (If and only if)\nSymbol: ↔\nMain Rule: TRUE when both values are the same" }
+  "blocks": [
+    {
+      "heading": "Propositional logic",
+      "text": "<b>Propositional logic</b> studies statements and how logical connectives combine them into compound statements. The truth of a compound statement depends on its parts and its connectives."
+    },
+    {
+      "heading": "Discrete mathematics",
+      "text": "<b>Discrete mathematics</b> studies distinct structures such as integers, sets, logical statements, functions, algorithms, graphs, and combinatorics. Logic provides tools for checking arguments and proofs."
+    },
+    {
+      "heading": "Discrete and continuous",
+      "text": "A count of coins is <b>discrete</b>: it changes in whole-number steps. Time, height, temperature, and length are commonly modeled as <b>continuous</b> quantities."
+    },
+    {
+      "heading": "Propositions",
+      "text": "A <b>proposition</b> is a declarative statement with exactly one truth value: true or false.\n\n“2 + 2 = 4” is true. “2 + 2 = 5” is false. Commands such as “Go home” and questions such as “Are you okay?” are not propositions."
+    },
+    {
+      "heading": "Logical connectives",
+      "text": "A <b>logical connective</b> combines or modifies propositions.\n\n¬ means NOT; ∧ means AND; ∨ means inclusive OR; ⊕ means exclusive OR; → means IF … THEN; ↔ means IF AND ONLY IF."
+    },
+    {
+      "heading": "Negation",
+      "text": "<b>Negation</b> reverses a truth value. We write ¬p or ~p. If p is true, ¬p is false, and conversely.\n\np: It is raining.\n¬p: It is not raining.\n\nNegating “I will not study” gives “I will study.”"
+    },
+    {
+      "heading": "Conjunction",
+      "text": "A <b>conjunction</b>, p ∧ q, is true only when both propositions are true.\n\np: The sky is blue.\nq: The grass is green.\np ∧ q: The sky is blue and the grass is green."
+    },
+    {
+      "heading": "Disjunction",
+      "text": "An <b>inclusive disjunction</b>, p ∨ q, is true when at least one proposition is true, including when both are true. It is false only when both are false.\n\np ∨ q: It is raining or it is snowing, or both."
+    },
+    {
+      "heading": "Exclusive OR",
+      "text": "<b>Exclusive OR</b>, p ⊕ q, is true when exactly one proposition is true. It is false when both truth values match.\n\n“I will eat either a burger or fries, but not both” expresses exclusive OR."
+    },
+    {
+      "heading": "Implication",
+      "text": "A <b>conditional</b>, p → q, means “if p, then q.” Here p is the <b>hypothesis</b> and q is the <b>conclusion</b>. It is false only when p is true and q is false.\n\np: I study.\nq: I pass.\np → q: If I study, then I pass."
+    },
+    {
+      "heading": "Biconditional",
+      "text": "A <b>biconditional</b>, p ↔ q, means “p if and only if q.” It is true when p and q have the same truth value. It asserts both p → q and q → p.\n\np ↔ q: You can access the system if and only if you have a password."
+    },
+    {
+      "heading": "Connective reference",
+      "text": "<b>¬p:</b> reverses p.\n<b>p ∧ q:</b> both true.\n<b>p ∨ q:</b> at least one true.\n<b>p ⊕ q:</b> exactly one true.\n<b>p → q:</b> false only for true → false.\n<b>p ↔ q:</b> matching truth values."
+    }
   ]
 }
