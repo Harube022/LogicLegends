@@ -1,0 +1,431 @@
+{
+  "verifiedOn": "2026-11-02 Asia/Manila",
+  "passed": true,
+  "protocol": "LL-private-lobby-22",
+  "scope": "MultiplayerGameplay reward policy, account outbox and backend wallet integration; solo mechanics and shop prices are unchanged.",
+  "unityChecks": 218,
+  "newRewardChecks": 115,
+  "regressionChecks": 103,
+  "backend": {
+    "fullEmulatorRun": {
+      "passed": true,
+      "tests": 56,
+      "failures": 0,
+      "skipped": 0,
+      "emulatorVersion": "4.11.2",
+      "realAccountsModified": false,
+      "cases": [
+        "Authenticated per-account wallet receipts.",
+        "Duplicate and edited completion reports.",
+        "Concurrent coin/gem child updates preserve complete account fields.",
+        "Concurrent distinct matches do not duplicate lifetime gem milestones.",
+        "Existing solo, shop, payment and database-rule regressions."
+      ],
+      "evidence": "Full emulator run completed by the backend validation agent; its detailed evidence was read during this task before temporary-file cleanup."
+    },
+    "finalNodeTestRun": {
+      "command": "node --test",
+      "passed": 51,
+      "failed": 0,
+      "skipped": 5,
+      "note": "Emulator-gated cases skipped after emulator shutdown; those cases passed in the full run above."
+    }
+  },
+  "rewardPolicy": {
+    "maximumCoins": 1000,
+    "victoryMaximum": 600,
+    "crystalsMaximum": 250,
+    "participationMaximum": 150,
+    "fullParticipationCredits": 3,
+    "defeatMaximum": 150,
+    "gemMilestones": [
+      "1 gem for the first full-participation team victory.",
+      "1 gem for the first full-participation victory with all ten crystals restored."
+    ],
+    "milestonesOncePerAccount": true,
+    "adminAndOfflineRewards": 0,
+    "currencyWrittenLocally": false
+  },
+  "fixes": [
+    "Persisted explicit receipt-confirmation marker prevents JsonUtility null nested objects from appearing as confirmed grants.",
+    "Account-bound immutable reports survive reconnects, scene changes and app restart.",
+    "Gift provenance awards the original donor only when a teammate actually uses the supply; handback and repeated support cannot farm receipts.",
+    "Admin exclusion persists before test mutations; finalized evidence remains immutable.",
+    "The backend retains a complete account snapshot through each wallet transaction to prevent partial cached values from dropping account fields."
+  ],
+  "suites": {
+    "policy": {
+      "source": "Temp/ArchiveRewards/Policy.json",
+      "checks": 75,
+      "result": {
+        "passed": true,
+        "scope": "Deterministic multiplayer reward policy/build fixtures plus optional fresh saved-scene Play checks for startup eligibility and explicit legacy admin exclusion. No backend payout, remote rendering or physical Android claim.",
+        "checks": [
+          "PASS A genuine fully cooperative victory has the exact 600 + 250 + 150 coin breakdown",
+          "PASS The reward ceiling and full-participation requirement remain explicit",
+          "PASS An AFK member cannot collect a team victory without confirmed contributions",
+          "PASS One meaningful contribution earns the rounded one-third reward, not the full team pot",
+          "PASS Two meaningful contributions earn the rounded two-thirds reward",
+          "PASS Extra accepted work cannot exceed the full reward ceiling",
+          "PASS Replaying the same work receipt cannot raise participation tier",
+          "PASS Finishing topics without restoring crystals cannot earn the crystal bonus",
+          "PASS Each genuinely restored crystal adds exactly twenty-five coins at full participation",
+          "PASS Partial crystal shares use integer flooring without rounding above the entitlement",
+          "PASS Even a ten-topic escape failure earns only the capped defeat consolation",
+          "PASS Defeat consolation follows completed topic progress",
+          "PASS A low-contribution defeat receives only its proportional consolation",
+          "PASS Repeated failure without a completed topic cannot farm consolation coins",
+          "PASS Validated healing, power support and rescue can earn participation without requiring last-solver credit",
+          "PASS Passing items repeatedly to the same teammate cannot create unlimited gift credit",
+          "PASS Admin-assisted matches award no permanent currency",
+          "PASS Offline previews award no permanent currency",
+          "PASS Unknown reward evidence versions fail closed",
+          "PASS Malformed match identifiers cannot create a payout",
+          "PASS An anonymous or zero actor cannot receive a multiplayer reward",
+          "PASS An actor absent from the match roster cannot collect its reward",
+          "PASS A single-player room cannot masquerade as cooperative multiplayer",
+          "PASS Duplicated actor identities cannot create a multiplayer roster",
+          "PASS A roster larger than the existing four-player room is rejected",
+          "PASS Missing participant evidence fails closed",
+          "PASS Duplicated topic IDs cannot manufacture ten-topic victory",
+          "PASS Incomplete academic progress cannot claim team victory",
+          "PASS Missing completed-topic evidence fails closed",
+          "PASS Duplicated crystal receipts cannot increase the restoration reward",
+          "PASS Unknown crystal topic IDs cannot grant a bonus",
+          "PASS A crystal cannot qualify before its topic is genuinely complete",
+          "PASS Missing restoration evidence fails closed",
+          "PASS An unfinished match cannot claim its projected reward",
+          "PASS Missing contribution evidence fails closed",
+          "PASS Out-of-range ordinary topic rounds cannot mint work credit",
+          "PASS Truth Table work remains bounded to its original nine rounds",
+          "PASS Sets work remains bounded to its original ten problems",
+          "PASS Only Rules of Inference can report a second subphase",
+          "PASS Rules of Inference cannot invent a third subphase",
+          "PASS Noncanonical strings cannot duplicate equivalent work keys",
+          "PASS Self-healing is not teammate support credit",
+          "PASS Support cannot target an actor outside this match",
+          "PASS Unknown support categories cannot mint participation",
+          "PASS Oversized contribution packets fail closed",
+          "PASS All final Truth Table, Sets and Inference steps remain eligible under their real round counts",
+          "PASS The reward builder derives a full reward from existing solved and crystal receipts",
+          "PASS Becoming downed does not erase work already earned for the team",
+          "PASS A shared defeat takes precedence over an accompanying stale victory flag",
+          "PASS Duplicate milestone receipts do not multiply reward work keys",
+          "PASS Raw edit/answer counters and confirmation-only participation cannot substitute for accepted puzzle work",
+          "PASS The reward builder deduplicates persisted support receipts",
+          "PASS Old reset-era receipts cannot restore a new topic or preserve its old reward work",
+          "PASS An admin crystal skip excludes the whole match rather than only one crystal bonus",
+          "PASS The existing checkpoint preserves whole-match admin exclusion across authority restoration",
+          "PASS A synthetic offline teammate roster cannot enable permanent rewards",
+          "PASS Fresh saved MultiplayerGameplay startup remains eligible until an explicit Admin action",
+          "PASS Reading development UI permission never excludes a legitimate match",
+          "PASS An explicit legacy test action marks the whole match Admin-assisted",
+          "PASS Repeated legacy test actions retain one sticky exclusion without repeatedly committing it",
+          "PASS Explicit legacy test exclusion survives checkpoint serialization",
+          "PASS Giving an unused supply records provenance but grants no immediate support credit",
+          "PASS Returning an unused gift and consuming it yourself cannot farm teammate support",
+          "PASS Ordinary own-item use and self-targeted support cannot create a reward receipt",
+          "PASS Forwarding a gift preserves its original donor until a teammate actually uses it",
+          "PASS Using another item cannot consume a pending gift or claim its support credit",
+          "PASS Gift provenance survives the existing checkpoint serialization",
+          "PASS Only the original donor earns gift credit when the final recipient uses a forwarded supply",
+          "PASS Reusing a consumed gift or replaying its receipt cannot award it twice",
+          "PASS Repeated effective support remains bounded to one actor-target-kind receipt per match",
+          "PASS Terminal finalization freezes one report for every recorded participant",
+          "PASS Later gameplay-list cleanup cannot recalculate or erase a frozen terminal reward",
+          "PASS Post-terminal debug use cannot retroactively rewrite an already sealed payout report",
+          "PASS The sealed terminal report survives checkpoint replay without rebuilding mutable progress",
+          "PASS Admin use recorded before finalization stays excluded for every participant's sealed report"
+        ],
+        "errors": []
+      }
+    },
+    "outbox": {
+      "source": "Temp/ArchiveMatchRewards/Outbox.json",
+      "checks": 22,
+      "result": {
+        "passed": true,
+        "scope": "Editor Play with fake authenticated identities and fake account/reward transports. Exercises the production account-scoped durable outbox, immutable payloads, retry and runtime pump. No real account, deployed reward endpoint, or physical-device claim.",
+        "checks": [
+          "PASS A terminal report can be queued for its original authenticated owner",
+          "PASS The immutable match report reaches persistent storage before the first request",
+          "PASS A lost response never displays coins as earned before confirmation",
+          "PASS Repeated queue calls do not replace or immediately resend the same match report",
+          "PASS Reloading a pending report never mistakes a default nested receipt object for a confirmed grant",
+          "PASS Reloading the outbox retries the original payload and match ID after a lost response",
+          "PASS Only a confirmed server receipt updates the earned display and notifies the shared wallet",
+          "PASS The current account can retrieve its latest confirmed match for the existing lobby status",
+          "PASS A persisted confirmation marker preserves its valid matching server receipt without notifying or paying again",
+          "PASS A confirmed match cannot request another payout or wallet notification",
+          "PASS Another account cannot see or claim the first account's local receipt or latest-match notice",
+          "PASS An in-flight report is retained while its request is waiting",
+          "PASS Repeated queue and pump ticks cannot send a second in-flight request for the same match",
+          "PASS Switching accounts during a request cannot apply that receipt to the replacement account",
+          "PASS The original account keeps an ambiguous request pending after an account swap",
+          "PASS Signing back into the original account safely retrieves its same-match receipt once",
+          "PASS An undeployed route keeps the report pending and does not invent a coin grant",
+          "PASS Exactly one persistent runtime pump finishes saved reports outside the original match scene",
+          "PASS A confirmed admin-assisted receipt shows zero coins with a player-friendly exclusion notice",
+          "PASS A confirmed offline-preview receipt shows zero coins with a player-friendly exclusion notice",
+          "PASS A confirmed no-participation receipt shows zero coins with a player-friendly exclusion notice",
+          "PASS An out-of-range backend response stays pending rather than displaying an impossible grant"
+        ],
+        "errors": []
+      }
+    },
+    "photonRewards": {
+      "source": "Temp/ArchiveMatchRewards/Photon.json",
+      "checks": 18,
+      "result": {
+        "passed": true,
+        "acceptedRemoteCommands": 4,
+        "scope": "Live private Photon: rendered Editor host and independent Realtime guest. Uses actual accepted T1 rune answers, replay/spoof rejection and authority handoff. A clearly marked complete-topic/crystal/downed terminal fixture exercises frozen per-member reports and pre-return durable capture. Backend replies and identities are fake; no real wallet, deployed endpoint, rendered remote phone or naturally completed ten-topic match is claimed.",
+        "checks": [
+          {
+            "name": "Independent clients share an invisible private room",
+            "passed": true
+          },
+          {
+            "name": "Native player retains local control ownership",
+            "passed": true
+          },
+          {
+            "name": "Remote replica cannot consume host input",
+            "passed": true
+          },
+          {
+            "name": "A fresh real two-player match starts with an online, unassisted reward roster",
+            "passed": true
+          },
+          {
+            "name": "Two actual accepted guest rune answers create two unique work credits without crediting an idle host",
+            "passed": true
+          },
+          {
+            "name": "Replaying a rewarded guest command cannot duplicate participation credit",
+            "passed": true
+          },
+          {
+            "name": "A non-master snapshot cannot invent teammate-support reward credit",
+            "passed": true
+          },
+          {
+            "name": "Master handoff preserves the reward roster, match ID and accepted work ledger",
+            "passed": true
+          },
+          {
+            "name": "The existing topic reset command executes through its real admin path",
+            "passed": true
+          },
+          {
+            "name": "Resetting an admin-used topic cannot restore permanent reward eligibility",
+            "passed": true
+          },
+          {
+            "name": "A genuinely new match gets a new identity and clears the previous match's admin exclusion",
+            "passed": true
+          },
+          {
+            "name": "The trusted full-restoration victory freezes separate capped 1000-coin reports for both members",
+            "passed": true
+          },
+          {
+            "name": "The independent peer receives the same frozen terminal topic and crystal evidence",
+            "passed": true
+          },
+          {
+            "name": "A downed teammate retains meaningful work and full team reward eligibility",
+            "passed": true
+          },
+          {
+            "name": "The terminal report is durably queued before a backend reply or party-return cleanup",
+            "passed": true
+          },
+          {
+            "name": "The actual retained-party freeze preserves the pending same-match reward report",
+            "passed": true
+          },
+          {
+            "name": "Only the confirmed backend receipt turns the pending local report into earned currency",
+            "passed": true
+          },
+          {
+            "name": "Repeated capture or edited same-match reports cannot send a second reward request",
+            "passed": true
+          }
+        ],
+        "errors": []
+      }
+    },
+    "terminalRegression": {
+      "source": "Temp/ArchiveTeamCoordination/Hardening.json",
+      "checks": 10,
+      "result": {
+        "passed": true,
+        "scope": "Fresh saved MultiplayerGameplay offline Editor Play. The real exit UI update and return-request/tick code use explicit terminal/recovery fixtures. This synchronous check does not claim an actual transport loss, remote rendering, or physical Android verification.",
+        "checks": [
+          "PASS An escaped survivor sees the real waiting card while the team is unfinished",
+          "PASS An early escaped survivor cannot abandon remaining teammates through the shared-victory return action",
+          "PASS Shared timeout hides an escaped survivor's waiting card so it cannot cover the defeat message",
+          "PASS An unescaped survivor also loses portal notices and victory UI after team defeat",
+          "PASS Defeat takes precedence even if a stale victory flag accompanies the terminal snapshot",
+          "PASS A genuine team victory still displays its proper result",
+          "PASS The team victory retains an available return-to-party button",
+          "PASS The recovery fixture is outside the Photon room and explicitly marked as recovering",
+          "PASS A terminal return requested during recovery queues this match instead of leaving the party",
+          "PASS Repeated disconnected recovery ticks preserve the queued terminal return until transport restoration"
+        ],
+        "errors": []
+      }
+    },
+    "teamRegression": {
+      "source": "Temp/ArchiveTeamCoordination/Native.json",
+      "checks": 31,
+      "result": {
+        "passed": true,
+        "checks": [
+          "PASS Existing offline practice teammate is available for real roster/rescue checks",
+          "PASS Roster uses existing health with one local actor and one teammate",
+          "PASS Impossible medkit, revival and unopened-portal requests are unavailable",
+          "PASS Actual host validator accepts a help signal at the authenticated actor position",
+          "PASS Help anchor is calculated from the real player capsule",
+          "PASS A cloned receipt cannot replace the host-authenticated marker coordinates",
+          "PASS A cloned receipt cannot change the host-authenticated ping kind or target",
+          "PASS Replaying an accepted ping cannot publish another receipt",
+          "PASS A second immediate signal is rejected by the shared four-second cooldown",
+          "PASS Signals never edit academic progress, mistakes, hearts or the shared deadline",
+          "PASS Old match commands cannot place team signals",
+          "PASS Undefined signal values are rejected without state mutation",
+          "PASS An unregistered actor cannot spoof a team signal",
+          "PASS Expired signals disappear and cannot retain an objective marker",
+          "PASS An injured actor can request a medkit with one bounded receipt",
+          "PASS A resolved medkit request no longer redirects teammates",
+          "PASS Downed-at-nest status is derived from the existing rescue state",
+          "PASS A nonexistent revival target cannot be invented by the client",
+          "PASS Revival ping follows the actual downed teammate anchor",
+          "PASS Successful revival immediately invalidates its rescue marker",
+          "PASS A held Revival Kit guides the player to an eligible downed teammate",
+          "PASS A second valid downed fixture creates a rescue receipt for health-first restoration",
+          "PASS Health restoration invalidates a rescue marker before its downed-state cleanup arrives",
+          "PASS A pending downed record cannot make an already-living teammate eligible for a new revival signal",
+          "PASS Default rescue guidance also ignores health-restored teammates awaiting downed cleanup",
+          "PASS The reserved active topic supplies the default team objective",
+          "PASS The existing checkpoint retains ping ownership, cooldown and original timestamp",
+          "PASS The opened final portal replaces the normal topic objective",
+          "PASS Portal guidance becomes available only after completion",
+          "PASS Captured status is shown and movement objectives hide for a captive",
+          "PASS Terminal outcomes close new signals and objective guidance"
+        ],
+        "errors": [],
+        "scope": "Saved MultiplayerGameplay offline Play; real command validator, checkpoint serialization, roster, contextual objectives and receipt bounds. Clock/health/downed states use explicit Admin fixtures. No physical Android claim."
+      }
+    },
+    "clockRegression": {
+      "source": "Temp/ArchiveMatchTime/Play.json",
+      "checks": 46,
+      "result": {
+        "passed": true,
+        "scope": "Fresh offline MultiplayerGameplay Editor Play: production clock transitions, actual final T1 validator, ten-topic award receipt fixtures, real Admin no-farming, command/portal expiry ordering, checkpoint receive/master-restore callbacks, timescale-zero passage, and unchanged hearts. Clock timestamps are shortened in the authoritative state to exercise long deadlines. Live Photon, rendered remote clients, physical Android, and a naturally played 40-minute match are not claimed.",
+        "checks": [
+          "PASS Policy is 40 minutes, 2 minutes per unique topic, and 2 minutes for escape",
+          "PASS Overall ceiling is 60 minutes of academic play plus at most two final escape minutes",
+          "PASS New existing team checkpoint owns an unstarted clock and empty award ledger",
+          "PASS Ready player starts one five-second countdown before gameplay",
+          "PASS Repeated readiness ticks never restart the countdown",
+          "PASS Late countdown update anchors the 40-minute deadline to its original start",
+          "PASS Readiness fallback uses its stored deadline and cannot postpone the match indefinitely",
+          "PASS Actual accepted final T1 submission grants exactly 120 seconds",
+          "PASS Replaying a final academic receipt cannot grant its topic twice",
+          "PASS Existing Admin reset remains usable for a fixture",
+          "PASS Admin reset and completion neither clear nor refill the one-time award ledger",
+          "PASS Incorrect, unattributed and out-of-range final receipts never award time",
+          "PASS A different actor cannot claim another final solver's award",
+          "PASS A stale final receipt from before this match cannot award time",
+          "PASS Unique academic final receipt awards T2",
+          "PASS Unique academic final receipt awards T3",
+          "PASS Unique academic final receipt awards T4",
+          "PASS Unique academic final receipt awards T5",
+          "PASS Unique academic final receipt awards T6",
+          "PASS Unique academic final receipt awards T7",
+          "PASS Unique academic final receipt awards T8",
+          "PASS Unique academic final receipt awards T9",
+          "PASS Unique academic final receipt awards T10",
+          "PASS Ten unique topics cap normal play at 60 minutes with solver attribution",
+          "PASS Additional receipts cannot exceed the ten-topic cap",
+          "PASS Tenth completion switches to exactly two final escape minutes without refilling normal time",
+          "PASS Repeated ticks and award attempts cannot restart or extend escape",
+          "PASS JSON checkpoint preserves deadlines and unique award receipts; normal expected=3652.5805836026079 actual=3652.5805836026079 escape expected=173.5805836026077 actual=173.5805836026077",
+          "PASS Existing snapshot receive restores the saved clock without a local refill; end expected=173.5805836026077 actual=173.5805836026077 start expected=53.58058360260771 actual=53.58058360260771 bonuses=10",
+          "PASS Existing master-restore callback retains original deadlines; normal expected=3652.5805836026079 actual=3652.5805836026079 escape expected=173.5805836026077 actual=173.5805836026077",
+          "PASS A valid production start exposes its fixed 62-minute absolute end",
+          "PASS Final escape remaining time respects the absolute 62-minute ceiling even for a late completion",
+          "PASS Local zero-timescale pause still consumes unscaled match time",
+          "PASS Item grants and supplies never refill the shared match timer",
+          "PASS Exact deadline expiry becomes one timeout defeat instead of victory",
+          "PASS Match timeout deducts no hearts and invents no academic mistakes",
+          "PASS Expired state is monotonic and cannot restart gameplay",
+          "PASS A final academic receipt at the deadline cannot rescue an expired normal clock",
+          "PASS Tenth completion at expiry cannot create a fresh escape window",
+          "PASS A held rune completing at the shared deadline cannot grade an answer or award time",
+          "PASS A valid Book command at the deadline expires before it can start work",
+          "PASS Saved portal exists for the physical aperture race",
+          "PASS Deadline probe is physically inside the formed portal",
+          "PASS Portal entry at expiry cannot beat the timeout or publish an escape receipt",
+          "PASS Final living survivor may win through the real aperture before expiry",
+          "PASS A completed victory cannot turn into a later timeout defeat"
+        ],
+        "errors": []
+      }
+    },
+    "briefingRegression": {
+      "source": "Temp/ArchiveTeamCoordination/Briefing.json",
+      "checks": 16,
+      "result": {
+        "passed": true,
+        "scope": "Native Main Menu lobby Play Mode. Reviews production briefing pages, navigation, visible scrollbar, local seen preference and unchanged match/session state. Physical Android layout is unverified.",
+        "checks": [
+          "PASS Four concise orientation pages are available",
+          "PASS All pages have distinct readable instructions",
+          "PASS Briefing explains existing shared timer, one-time topic bonuses and one active topic",
+          "PASS Briefing explains contributor crystals and teammate item support",
+          "PASS Night phase explains its independent awakening rule",
+          "PASS Capture, rescue and the all-survivors escape rule are covered",
+          "PASS Existing lobby offers a HOW TO PLAY action",
+          "PASS Review opens at the first page without starting gameplay",
+          "PASS Instructions are vertically scrollable with a permanent visible scrollbar",
+          "PASS Next shows the correct authored page",
+          "PASS Back preserves the page navigation sequence",
+          "PASS Skip closes immediately and remembers the local acknowledgement",
+          "PASS A previously acknowledged briefing can still be reviewed",
+          "PASS Got it closes the last page without a mandatory task",
+          "PASS Review does not alter time scale or room membership",
+          "PASS Review never edits a gameplay checkpoint or match timer"
+        ],
+        "errors": []
+      }
+    }
+  },
+  "visualQA": {
+    "passed": true,
+    "resolution": "1280x720",
+    "scope": "Explicit fake-account terminal fixtures, not genuine completed matches.",
+    "victory": "C:/Users/jhayf/.codex/visualizations/2026/10/16/01a1436d-771e-7190-abf8-1ab636024fb9/multiplayer-rewards-2026-11-02/Victory.png",
+    "defeat": "C:/Users/jhayf/.codex/visualizations/2026/10/16/01a1436d-771e-7190-abf8-1ab636024fb9/multiplayer-rewards-2026-11-02/Defeat.png"
+  },
+  "unityConsole": {
+    "unexpectedErrors": 0,
+    "knownWarning": "No active Firebase session detected. Applying default test equipment."
+  },
+  "deployment": {
+    "liveBackendDeployed": false,
+    "realPayoutVerified": false,
+    "required": "Deploy the updated Backend/commerce service before live wallet grants. Undeployed-route responses remain pending in the account outbox.",
+    "instructions": "Backend/commerce/MULTIPLAYER_REWARDS.md"
+  },
+  "limitations": [
+    "Physical Android and multiple rendered mobile-data clients are unverified.",
+    "Gameplay outcomes remain Photon Master Client reported; this is not dedicated-server anti-cheat.",
+    "Existing legacy direct coin-write permissions are unchanged.",
+    "Ten-topic completion and downed reward cases use clearly labeled trusted QA fixtures."
+  ]
+}

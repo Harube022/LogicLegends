@@ -111,6 +111,11 @@ namespace LogicLegends.OpenArchive.Hunting
             if(!Finite(state.capturePosition) || !Finite(state.resolvedAt) || !Finite(state.releaseAt) || !Finite(state.sleepEndsAt) || !Finite(state.nestArrivedAt) || !Finite(state.attackEndsAt) ||
                 state.counterPhase<0 || state.counterPhase>3 || state.counterSerial<0 || !Finite(state.counterStartedAt) || !Finite(state.counterCooldownUntil) ||
                 !Finite(state.counterAim) || !Finite(state.counterLungeMoved) || state.counterLungeMoved<0 || state.counterLungeMoved>5.1f ||
+                state.personalityPhase<0 || state.personalityPhase>3 || state.personalitySerial<0 ||
+                !Finite(state.personalityStartedAt) || !Finite(state.personalityCooldownUntil) || !Finite(state.personalityAimPoint) ||
+                state.personalityCooldownUntil<state.personalityStartedAt ||
+                (state.personalityPhase>0 && (state.personalityTarget==0 || state.personalityTarget!=state.target || state.counterPhase>0 ||
+                    (state.state!=(int)KhezuHuntState.Hunting && state.state!=(int)KhezuHuntState.NavigationBlocked))) ||
                 (state.counterPhase>0 && (state.counterTarget!=state.target || state.counterAim.sqrMagnitude<.5f || state.counterAim.sqrMagnitude>1.5f ||
                     (state.state!=(int)KhezuHuntState.Hunting && state.state!=(int)KhezuHuntState.NavigationBlocked))) ||
                 !Finite(state.barrierStartedAt) || !Finite(state.barrierDeadline) || !Finite(state.attackHitAt) || !Finite(state.barrierDissolveAt) || !Finite(state.stunEndsAt) ||

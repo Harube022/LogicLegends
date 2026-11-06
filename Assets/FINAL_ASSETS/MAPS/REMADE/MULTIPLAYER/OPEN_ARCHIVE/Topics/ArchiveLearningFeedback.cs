@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using LogicLegends.Graph;
+using LogicLegends.Trees;
 
 namespace LogicLegends.OpenArchive.Topics
 {
@@ -81,8 +83,7 @@ namespace LogicLegends.OpenArchive.Topics
                 string slot = i < q.slots.Length ? q.slots[i] : "Socket " + (i + 1);
                 if (value < 0) return slot + " is empty. " + Concept(s.topic);
                 if (q.activity == ArchiveActivity.Truth)
-                    return "Re-evaluate " + slot + " for " + q.prompt + ". The complete expression gives " +
-                        (q.expected[i] == 0 ? "TRUE" : "FALSE") + ". Work inside parentheses, apply NOT, then combine the intermediate values using the displayed connectives.";
+                    return "Re-evaluate " + slot + " for " + q.prompt + ". Write the inner expressions as separate intermediate values, apply their negations, then evaluate the outer connective. Explain how those intermediate values support your final tile before replacing it.";
                 if (q.activity == ArchiveActivity.Induction)
                     return "Check " + slot + ": " + Item(q, value) + " does not fill this role. " +
                         (slot.StartsWith("Base") ? "Substitute the first allowed integer into both sides."
@@ -103,10 +104,66 @@ namespace LogicLegends.OpenArchive.Topics
             if (level == 1) return "CONCEPT\n" + Concept(topic);
             if (level == 2)
             {
-                bool correct = ArchiveTopicQuestions.Validate(q, s, out string reason);
-                return "CHECK YOUR WORK\n" + (correct ? "Your current arrangement meets the validator. Explain why it works before confirming." : Diagnose(q, s, reason));
+                // A hint must not become a free pre-submit answer checker. Only
+                // the topic and visible task kind select this reasoning prompt;
+                // answer keys and the team's current arrangement are not read.
+                return "REASON IT THROUGH\n" + ReasoningStep(topic, q);
             }
             return "SEPARATE WORKED EXAMPLE\n" + Example(topic) + "\n\nApply this method to your current problem; the example does not change your answer.";
+        }
+        static string ReasoningStep(int topic, ArchiveQuestion q)
+        {
+            switch (topic)
+            {
+                case 0:
+                    return "Rewrite the condition using short statements P and Q. Ask when the whole condition should hold and when it should fail. Compare those cases with each connective's rule; pay attention to 'only if', 'exactly when' and whether 'or' allows both. Ask a teammate to explain a case before confirming.";
+                case 1:
+                    return "Choose one row and copy its P and Q values. Evaluate the innermost expression first, record each intermediate value, then apply NOT and the remaining connectives in order. For an implication, keep its antecedent and consequent separate; for a biconditional, compare their truth values. Explain the final tile using those steps.";
+                case 2:
+                    return q?.activity == ArchiveActivity.Premises
+                        ? "Name the simple propositions consistently throughout the sentence. Read each connector as a condition on those propositions, then translate the completed sentence back into ordinary words. Does your reading preserve the original condition, including the direction of 'if ... then'?"
+                        : "Separate the given premises from the conclusion you need. Replace repeated statements with the same letter, then compare the resulting argument shape with each rule's required premises. Check that a conclusion is supported by what is given, rather than inferred from its converse.";
+                case 3:
+                    return q?.activity == ArchiveActivity.Sort
+                        ? "Read how each argument supports its claim. Does it explicitly name and justify its steps, or explain valid reasoning in ordinary language? Classify the style of justification; an argument's length or use of symbols alone does not determine its style."
+                        : "For each proof line, name the earlier statements or definitions it needs. Put those supporting facts before the line, then match its justification to the deduction actually made. Read the finished chain from assumptions to conclusion and ask why every step follows.";
+                case 4:
+                    return "State the claim and what is given before choosing a method. Compare the permitted starting assumptions: direct uses the hypothesis, contrapositive starts from the negated conclusion, and contradiction assumes the negation of the claim. Then check that every tablet follows from the assumptions available at that point.";
+                case 5:
+                    return "Identify the first allowed integer and substitute it into both sides. Write the assumption at an arbitrary k separately from the goal at k+1. Expand that goal, identify the part covered by the k hypothesis, and justify the remaining algebra without assuming the result you are trying to prove.";
+                case 6:
+                    return "Choose one listed element and check its membership in A and in B separately. Translate the requested operation into those membership conditions, then use them to decide a region. Check that shared elements appear once; for a complement, use only elements of the stated universe. Repeat this reasoning for the remaining elements.";
+                case 7:
+                    if (q?.mapping?.questionKind == MappingQuestionKind.BuildExactRelation)
+                        return "Read the requested ordered pairs one input at a time. Compare the first and second coordinates with the direction of each connection. Then inspect every domain input for exactly one output and check that no extra connection changes the requested relation.";
+                    return "Trace each domain input and count its outgoing connections before deciding whether the relation is a function. If it is, compare outputs from different inputs for injectivity, and inspect every codomain value for surjectivity. Keep the range distinct from the full codomain while explaining your choice.";
+                case 8:
+                    switch (q?.graph?.type)
+                    {
+                        case GraphChallengeType.Degree:
+                            return "Mark the vertex being asked about and trace each incident edge end once. An undirected loop contributes two ends at that vertex. Separate this local count from the total number of vertices or edges in the graph before selecting a number.";
+                        case GraphChallengeType.VerticesAndEdges:
+                            return "List the distinct vertex labels, then list the connections separately. Count each edge once rather than once at each endpoint, and keep any arrows or loops visible in your record. Compare the quantity requested by the question with the count you made.";
+                        case GraphChallengeType.DirectedPath:
+                            return "Identify the required start and destination. Trace a candidate route one edge at a time in the direction of every arrow, and check that the next vertex is actually adjacent. Review any restriction on repeated vertices before recording the route.";
+                        case GraphChallengeType.Cycle:
+                            return "Start at the required vertex and trace adjacent edges back to that same vertex. Check the stated cycle restriction before revisiting any other vertex. Record the closure separately from the route's intermediate vertices.";
+                        default:
+                            return "Identify the required start and destination, then trace adjacent vertices one step at a time. Check the question's restriction on repeats and any displayed edge directions. Plan the complete route before walking it, then keep to the marked connections while recording.";
+                    }
+                default:
+                    switch (q?.tree?.type)
+                    {
+                        case TreeChallengeType.Depth:
+                            return "Find the root, then trace the parent chain to the requested node. Count the edges along that chain, starting with depth zero at the root. Keep the number of visited nodes separate from the number of edges you crossed.";
+                        case TreeChallengeType.Height:
+                            return "Trace the downward paths from the root to the leaves and count their edges. Compare those lengths and use the longest one for height. A short branch does not determine the height of the whole rooted tree.";
+                        case TreeChallengeType.Spanning:
+                            return "Keep every original vertex and use only edges that exist in the displayed graph. Connect components without closing a cycle. After connecting them, check both connectivity and the edge count expected for a tree on that many vertices.";
+                        default:
+                            return "Locate the root and read each parent-child relationship in that direction. Check that each non-root node has one parent, all required nodes remain connected, and no cycle is formed. Use the structural definition requested by the question when identifying a node.";
+                    }
+            }
         }
         public static string Reference(int topic)
         {

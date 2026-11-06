@@ -57,6 +57,7 @@ namespace LogicLegends.OpenArchive.Topics
             if(!session.Ready||!session.CanAct(session.LocalActor)||Time.timeScale<=0)return;
             if(ArchiveRewardView.HandlesHand(session)){ArchiveRewardView.HandleHand(session);return;}
             if(ArchiveCoopActivityView.HandlesHand(session))return;
+            if(openStation==null&&session.fieldEvents!=null&&session.fieldEvents.HandleHand())return;
             focus?.Interact();
         }
         void Update()
@@ -99,6 +100,7 @@ namespace LogicLegends.OpenArchive.Topics
             if(focus!=null&&focus.station.topic==7&&mapping!=null&&mapping.IsObjectiveVisible)hint.text="";
             if(focus!=null&&focus.station.topic==8&&graph!=null&&graph.IsObjectiveVisible)hint.text="";
             if(focus!=null&&focus.station.topic==9&&tree!=null&&tree.IsObjectiveVisible)hint.text="";
+            if(openStation==null&&session.fieldEvents!=null&&session.fieldEvents.FocusedBeacon>=0){focus=null;hint.text=session.fieldEvents.FocusNotice;}
             if(displayedTeamRevision!=session.State.revision)
             {
                 displayedTeamRevision=session.State.revision;

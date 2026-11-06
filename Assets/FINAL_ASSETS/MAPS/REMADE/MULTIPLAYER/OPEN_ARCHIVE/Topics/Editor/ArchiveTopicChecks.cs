@@ -74,7 +74,9 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                     if(q.graph.type==GraphChallengeType.Degree)s.selection=q.graph.Degree(q.graph.degreeVertex);
                     else
                     {
-                        var route=new List<string>{q.graph.start};if(!FindRoute(q.graph,route))throw new InvalidOperationException("No accepted route in the original graph.");
+                        // Reuse the graph's complete solver: hard variants also
+                        // require named visits and a minimum cycle length.
+                        var route=GraphAnswerValidator.FindSolution(q.graph);if(route==null)throw new InvalidOperationException("No accepted route in the original graph.");
                         s.route=route.Select(v=>Array.IndexOf(q.nodeIds,v)).ToList();s.routeAtVertex=true;
                     }break;
                 case ArchiveActivity.Tree:
@@ -96,21 +98,6 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                     }break;
             }
             return s;
-        }
-        static bool FindRoute(GraphChallengeData q,List<string> route)
-        {
-            if(route.Count>q.vertices.Count+1)return false;
-            string at=route.Last();
-            if(q.type==GraphChallengeType.Cycle&&route.Count>=4&&at==q.start)return true;
-            if(q.type!=GraphChallengeType.Cycle&&route.Count>=2&&at==q.destination)return true;
-            foreach(var vertex in q.vertices)
-            {
-                if(!q.Connected(at,vertex.id))continue;
-                bool closing=q.type==GraphChallengeType.Cycle&&vertex.id==q.start&&route.Count>=3;
-                if(!closing&&route.Contains(vertex.id))continue;
-                route.Add(vertex.id);if(FindRoute(q,route))return true;route.RemoveAt(route.Count-1);
-            }
-            return false;
         }
         static void MakeIncorrect(ArchiveQuestion q,ArchiveStationState s)
         {

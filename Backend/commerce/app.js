@@ -4,6 +4,7 @@ const { catalog, fail, signature, buy, present, mutate } = require('./wallet');
 const trials = require('./trials');
 const { lifecycle, CHECKOUT_LIFETIME_MS, terminal } = require('./order-lifecycle');
 const { attachChatCleanup } = require('./chat-retention');
+const multiplayer = require('./multiplayer');
 
 function createApp(env = process.env, integrations = {}) {
   // Let a new hosting service obtain its HTTPS URL before private credentials
@@ -107,6 +108,25 @@ function createApp(env = process.env, integrations = {}) {
     if (++bucket.count > 90) throw fail('Please wait before trying again.', 429);
     buckets.set(uid, bucket);
     const userRef = users.child(uid);
+    if (req.path.startsWith('/multiplayer/')) {
+      if (req.method !== 'POST' || req.path !== '/multiplayer/complete') throw fail('Unknown multiplayer endpoint.', 404);
+      const user = await (integrations.getUser || (id => auth.getUser(id)))(uid);
+      if (!user || user.disabled) throw fail('Please sign in again.', 401);
+      // The authenticated UID chooses the wallet. Request-body identities and
+      // totals cannot redirect the grant or choose a coin/gem amount.
+      // A concurrent legacy coin-child transaction can leave only that child in
+      // the SDK cache. get() alone does not retain a complete parent view for a
+      // transaction. Keep this account's full snapshot while the grant commits,
+      // so replacing the account cannot erase gems, receipts or owned items.
+      const retainSnapshot = () => {};
+      userRef.on('value', retainSnapshot);
+      try {
+        await userRef.once('value');
+        const result = await mutate(userRef, account => account == null ? account : multiplayer.finishMatch(account, req.body || {}));
+        if (!result.committed) throw fail('Could not save this multiplayer reward. Please retry.', 409);
+        return res.json(multiplayer.presentMatch(result.snapshot.val(), req.body?.matchId));
+      } finally { userRef.off('value', retainSnapshot); }
+    }
     if (req.path.startsWith('/trials/')) {
       // Email comes from Firebase's account record, never request fields or profile text.
       const user = await (integrations.getUser || (id => auth.getUser(id)))(uid);

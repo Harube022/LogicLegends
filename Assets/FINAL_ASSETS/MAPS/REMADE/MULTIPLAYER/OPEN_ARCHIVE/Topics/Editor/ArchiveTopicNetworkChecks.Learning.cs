@@ -78,6 +78,16 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             var staleHint = HintCommand(a);
             yield return LearningPacket(a, HintCommand(a));
             Check(session.HintLevel(1, a.Actor) == 2 && session.HintLevel(1, host) == 0 && a.state.learningHints.Any(x => x.actor == a.Actor && x.level == 2), "Personal hint levels checkpoint for the requesting authenticated player");
+            string reasoning = session.LearningHintText(1, a.Actor, 2);
+            Check(reasoning.StartsWith("REASON IT THROUGH\n", StringComparison.Ordinal) &&
+                a.state.learningHints.Single(x => x.actor == a.Actor && x.topic == 1).diagnosis == reasoning,
+                "The requesting guest receives the same personal reasoning scaffold without a correctness receipt");
+            var hintWork = session.State.stations[1]; var savedPlacements = hintWork.placements;
+            var hintQuestion = session.Question(1); hintWork.placements = hintQuestion.expected.ToArray();
+            Check(session.LearningHintText(1, a.Actor, 2) == reasoning, "A correct physical draft never turns the personal hint into an answer checker");
+            hintWork.placements[0] = 1 - hintWork.placements[0];
+            Check(session.LearningHintText(1, a.Actor, 2) == reasoning, "Changing a draft to an incorrect row keeps the same reasoning scaffold");
+            hintWork.placements = savedPlacements;
             revision = session.State.revision; Packet(a, staleHint); yield return .2f;
             // Hints intentionally do not revise physical puzzle work, so sequence provides the stale-message gate.
             Check(session.State.revision == revision, "Delayed lower-sequence hint request is rejected");
@@ -97,6 +107,13 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             yield return Move(a, t2, Vector3.zero); yield return Send(a, 1, ArchiveAction.Submit);
             Check(state.feedback.Contains(q.slots[0]) && session.State.mistakes.Count == mistakes + 1 && session.State.mistakes.Last().actor == a.Actor,
                 "Real wrong-answer submission identifies the incorrect truth-table row and retains mistake attribution");
+            Check(!state.feedback.Contains("should be TRUE") && !state.feedback.Contains("should be FALSE"),
+                "Post-attempt truth-table feedback identifies the row without disclosing its required truth value");
+            var personalReview=session.State.mistakes.Last(m=>m.actor==a.Actor&&m.reason=="answer");
+            Check(personalReview.reviewVersion==1&&personalReview.subphase==0&&personalReview.resetSerial==state.testResetSerial&&
+                !string.IsNullOrEmpty(personalReview.reviewFeedback)&&personalReview.reviewFeedback.Length<=ArchiveTopicSession.LearningReviewFeedbackLimit&&
+                a.state.mistakes.Any(m=>m.actor==a.Actor&&m.sequence==personalReview.sequence&&m.reviewFeedback==personalReview.reviewFeedback),
+                "The authoritative personal mistake context reaches its authenticated guest with the correct problem phase");
             h.Request(KhezuCommand.Sleep); deadline = state.timerDeadline; string work = JsonUtility.ToJson(state); mistakes = session.State.mistakes.Count;
 
             Status = "Rajang capture, authenticated answers and handoff";
@@ -120,6 +137,8 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Spawn(b, Position(t2, new Vector3(3, 0, 0))); yield return Wait(() => session.ActorPlayer(b.Actor) != null, "Learning late avatar ready");
             Check(SameMonsterBankCheckpoint(b.state) && session.State.monsterChallengeDrawIndex == firstDraw + 1,
                 "Late join preserves the bank question, shuffled answer order and cursor without drawing again");
+            Check(b.state.mistakes.Any(m=>m.actor==a.Actor&&m.sequence==personalReview.sequence&&m.reviewFeedback==personalReview.reviewFeedback),
+                "A late join receives the existing bounded review context without inventing another mistake");
             revision = session.State.revision; int hearts = h.health.ActorHearts(a.Actor);
             Packet(b, BarrierCommand(b, ArchiveAction.BarrierAnswer, 0), true);
             a.client.OpRaiseEvent(KhezuCaptureEncounterController.DevelopmentOutcomeEvent, new object[] { KhezuCaptureEncounterController.DevelopmentOutcomeChannel, h.CaptureSerial, true }, new RaiseEventOptions { Receivers = ReceiverGroup.MasterClient }, SendOptions.SendReliable);
@@ -151,6 +170,9 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 JsonUtility.ToJson(session.State.barrier) == bankCheckpoint && session.State.monsterChallengeDrawIndex == firstDraw + 1 &&
                 SameMonsterBankCheckpoint(a.state) && SameMonsterBankCheckpoint(b.state),
                 "Authority handoff preserves the complete bank checkpoint, shuffled options, draw cursor, hints and exact original barrier deadline");
+            Check(session.State.mistakes.Any(m=>m.actor==a.Actor&&m.sequence==personalReview.sequence&&m.reviewFeedback==personalReview.reviewFeedback)&&
+                ArchiveLearningRecap.Build(session.catalog,session.State,a.Actor,session.ActorName(a.Actor)).reviews.Length==1,
+                "Host handoff preserves the original personal review and its immutable question context");
             var problem = session.BarrierProblem(); int correct = Enumerable.Range(0, problem.options.Length).First(i => problem.Validate(i, out _));
             var accepted = BarrierCommand(a, ArchiveAction.BarrierAnswer, correct); yield return LearningPacket(a, accepted);
             Check(session.State.barrier.outcome == 1 && h.ResolvedOutcome == 1 && h.health.ActorHearts(a.Actor) == hearts,

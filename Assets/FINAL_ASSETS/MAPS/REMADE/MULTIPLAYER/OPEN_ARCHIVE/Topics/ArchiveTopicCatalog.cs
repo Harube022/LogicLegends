@@ -29,9 +29,18 @@ namespace LogicLegends.OpenArchive.Topics
     }
 
     public enum ArchiveActivity { Choice, Truth, Premises, Sort, Order, Method, Induction, Sets, Mapping, Graph, Tree }
-    public enum ArchiveAction { Start, Pick, Place, Select, Submit, Connect, Remove, Undo, RetryRoute, BeginChoice, ReturnItem, ClearSelection, AdminCompleteTopic, AdminResetTopic, RequestHint, BarrierHint, BarrierAnswer, SetT1Input, ConfirmT1Input, BonusInteract, ClaimChest, UseSurvivalItem, EquipSurvivalItem, GiveSurvivalItem }
+    public enum ArchiveAction { Start, Pick, Place, Select, Submit, Connect, Remove, Undo, RetryRoute, BeginChoice, ReturnItem, ClearSelection, AdminCompleteTopic, AdminResetTopic, RequestHint, BarrierHint, BarrierAnswer, SetT1Input, ConfirmT1Input, BonusInteract, ClaimChest, UseSurvivalItem, EquipSurvivalItem, GiveSurvivalItem, TeamPing, ActivateBeacon }
     [Serializable] public sealed class ArchiveCarry { public int actor, item; }
-    [Serializable] public sealed class ArchiveMistake { public int actor, topic, round, revision, sequence; public double time; public string reason; }
+    [Serializable] public sealed class ArchiveMistake
+    {
+        public int actor, topic, round, revision, sequence;
+        public double time;
+        public string reason;
+        // Context of the accepted mistake; prose is bounded to three recent
+        // personal problems, while existing mistake totals keep their history.
+        public int reviewVersion, subphase, resetSerial;
+        public string reviewFeedback;
+    }
     [Serializable] public sealed class ArchiveActor
     {
         public int actor, mistakes, lastSequence, mappingInput = -1, mappingRound = -1, treeFirst=-1, treeSecond=-1, treeRound=-1;
@@ -75,11 +84,14 @@ namespace LogicLegends.OpenArchive.Topics
         public int pacingVersion, pacingPlayers;
         public bool learningPace;
         public string matchId;
+        public ArchiveMatchRewardState rewards;
+        public ArchiveFieldEventState fieldEvents;
         public List<ArchiveQualityCredit> quality = new List<ArchiveQualityCredit>();
         public List<ArchiveSolvedMilestone> solved = new List<ArchiveSolvedMilestone>();
         public List<ArchiveCrystalState> crystals = new List<ArchiveCrystalState>();
         public ArchiveWorldTimeState worldTime = new ArchiveWorldTimeState();
         public ArchiveMatchTimeState matchTime;
+        public List<ArchiveTeamPing> teamPings = new List<ArchiveTeamPing>();
         public ArchiveSurvivalState survival = new ArchiveSurvivalState();
         public ArchiveT1CoopState coop = new ArchiveT1CoopState();
         public List<ArchiveT1CoopState> topicRelays = new List<ArchiveT1CoopState>();

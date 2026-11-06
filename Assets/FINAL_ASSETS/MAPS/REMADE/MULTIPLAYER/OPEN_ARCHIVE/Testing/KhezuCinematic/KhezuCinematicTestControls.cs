@@ -15,7 +15,7 @@ namespace LogicLegends.Tests.Khezu
         public Text status;
         public Button previewButton;
         public Toggle reducedMotion;
-        public void Preview() { if (KhezuLegacyTestPermission.CanUse && cinematic != null) cinematic.PreviewLocal(); }
+        public void Preview() { if (KhezuLegacyTestPermission.CanUse && cinematic != null) { KhezuLegacyTestPermission.MarkActionUsed(); cinematic.PreviewLocal(); } }
         public void SetReducedMotion(bool value) { cinematic.reducedMotion = value; }
         public void ShowHandoff(int actor, int serial) { if (KhezuLegacyTestPermission.CanUse && handoffPanel != null) handoffPanel.SetActive(true); }
         public void HideHandoff() { if (handoffPanel != null) handoffPanel.SetActive(false); }
@@ -23,6 +23,7 @@ namespace LogicLegends.Tests.Khezu
         {
             // Test control only. This is not a challenge success/failure or damage decision.
             if (!KhezuLegacyTestPermission.CanUse || hunting == null) return;
+            KhezuLegacyTestPermission.MarkActionUsed();
             hunting.Request(KhezuCommand.ResetHunt); HideHandoff();
         }
         void Update()

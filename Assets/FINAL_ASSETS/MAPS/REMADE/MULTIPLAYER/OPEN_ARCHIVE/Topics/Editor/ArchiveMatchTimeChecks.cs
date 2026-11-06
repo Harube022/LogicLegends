@@ -20,10 +20,11 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         }
         const BindingFlags Private=BindingFlags.Instance|BindingFlags.NonPublic;
         static ArchiveTopicSession session;
+        static ArchiveMatchCinematic cinematic;
         static Report report;
         static IEnumerator flow;
         static double next;
-        static bool wasEnabled,wasHunting,wasDefeatSuppressed,wasThreatSuppressed;
+        static bool wasEnabled,wasHunting,wasDefeatSuppressed,wasThreatSuppressed,wasCinematic;
         static float originalTimeScale;
         static Vector3 originalPosition;
         public static string Status{get;private set;}="Idle";
@@ -36,6 +37,8 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             if(session==null||!session.Ready||Player.LocalInstance==null||session.hunting?.health==null)throw new InvalidOperationException("Saved MultiplayerGameplay, player and health must be ready.");
             report=new Report();wasEnabled=session.enabled;wasHunting=session.hunting.enabled;wasDefeatSuppressed=session.suppressDefeatForVerification;
             wasThreatSuppressed=session.worldProgression!=null&&session.worldProgression.suppressThreatsForVerification;
+            cinematic=session.GetComponent<ArchiveMatchCinematic>();wasCinematic=cinematic!=null&&cinematic.enabled;
+            if(cinematic!=null)cinematic.enabled=false;
             originalPosition=Player.LocalInstance.transform.position;originalTimeScale=Time.timeScale;
             session.RequestAdminTest(ArchiveAdminTestAction.RemoveTeammate);
             session.hunting.Request(Hunting.KhezuCommand.Sleep);session.hunting.enabled=false;session.enabled=false;session.suppressDefeatForVerification=true;
@@ -81,7 +84,10 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             session.Initialize(20261030);var time=session.State.matchTime;
             Check(time!=null&&time.startedAt<0&&time.awardedTopics.Count==0,"New existing team checkpoint owns an unstarted clock and empty award ledger");
             time.phase=ArchiveMatchTimePhase.WaitingForPlayers;time.readinessDeadline=ArchiveTopicSession.Clock+15;time.countdownStartedAt=-1;
-            ClockTick();Check(time.phase==ArchiveMatchTimePhase.Countdown&&time.startedAt<0&&!session.MatchTimeAllowsGameplay,"Ready player starts one five-second countdown before gameplay");
+            ClockTick();Check(time.phase==ArchiveMatchTimePhase.WaitingForPlayers&&time.startedAt<0&&!session.MatchTimeAllowsGameplay,
+                "Ready player waits for the bounded guardian prelude before the team countdown");
+            time.createdAt=ArchiveTopicSession.Clock-ArchiveTopicSession.MatchGuardianIntroSeconds-.01;
+            ClockTick();Check(time.phase==ArchiveMatchTimePhase.Countdown&&time.startedAt<0&&!session.MatchTimeAllowsGameplay,"Ready player starts one unchanged five-second countdown after guardian preparation");
             double countdown=time.countdownStartedAt;ClockTick();Check(time.countdownStartedAt==countdown,"Repeated readiness ticks never restart the countdown");
             time.countdownStartedAt=ArchiveTopicSession.Clock-5.25;countdown=time.countdownStartedAt;ClockTick();
             Check(time.phase==ArchiveMatchTimePhase.Active&&Close(time.startedAt,countdown+5)&&Close(time.deadline,time.startedAt+2400)&&session.MatchTimeAllowsGameplay,"Late countdown update anchors the 40-minute deadline to its original start");
@@ -173,6 +179,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 session.Initialize(20261030);Move(originalPosition);session.enabled=wasEnabled;session.hunting.enabled=wasHunting;
                 session.suppressDefeatForVerification=wasDefeatSuppressed;
                 if(session.worldProgression!=null)session.worldProgression.suppressThreatsForVerification=wasThreatSuppressed;
+                if(cinematic!=null)cinematic.enabled=wasCinematic;
             }
             report.passed=passed&&report.errors.Count==0;Status=report.passed?"Passed":"Failed";
             Directory.CreateDirectory("Temp/ArchiveMatchTime");File.WriteAllText("Temp/ArchiveMatchTime/Play.json",JsonUtility.ToJson(report,true));

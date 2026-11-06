@@ -141,10 +141,11 @@ namespace LogicLegends.OpenArchive.Topics
                         if(lightInventory==null||lightInventory.items[(int)ArchiveSurvivalItem.Flashlight]<=0){commandRejection="A flashlight is required before using a battery.";break;}
                         SettleBattery(lightInventory);
                         if(lightInventory.batterySeconds>=FlashlightCapacity-1){commandRejection="The flashlight battery is already full.";break;}
-                        lightInventory.batterySeconds=Mathf.Min(FlashlightCapacity,lightInventory.batterySeconds+BatteryRefill);inventory.items[command.a]--;used=true;break;
+                        lightInventory.batterySeconds=Mathf.Min(FlashlightCapacity,lightInventory.batterySeconds+BatteryRefill);inventory.items[command.a]--;used=true;
+                        if(teammate)RecordRewardSupport(actor,command.b,"battery");break;
                     case ArchiveSurvivalItem.Medkit:
                         if(hunting!=null&&hunting.health!=null&&hunting.health.RestoreAuthoritativeActorHeart(teammate?command.b:actor))
-                        {inventory.items[command.a]--;used=true;PublishSurvivalHealth();}
+                        {inventory.items[command.a]--;used=true;PublishSurvivalHealth();if(teammate)RecordRewardSupport(actor,command.b,"medkit");}
                         else commandRejection="A medkit restores one missing heart. It cannot revive a downed player.";
                         break;
                     case ArchiveSurvivalItem.RevivalKit:
@@ -162,6 +163,8 @@ namespace LogicLegends.OpenArchive.Topics
                         commandRejection="Darts are loaded automatically. Use the tranquilizer gun to fire.";break;
                 }
                 if(!used)return false;
+                if(item!=ArchiveSurvivalItem.Flashlight||inventory.flashlightOn)UseRewardGift(actor,command.a);
+                if(item==ArchiveSurvivalItem.Tranquilizer)UseRewardGift(actor,(int)ArchiveSurvivalItem.TranquilizerAmmo);
                 inventory.nextUseAt=Clock+.45;inventory.batteryUpdatedAt=Clock;
             }
             if(record==null){record=new ArchiveActor{actor=actor,displayName=ActorName(actor)};State.actors.Add(record);}

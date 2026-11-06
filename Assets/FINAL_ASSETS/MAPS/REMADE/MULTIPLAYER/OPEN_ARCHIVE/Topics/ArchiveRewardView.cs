@@ -104,10 +104,11 @@ namespace LogicLegends.OpenArchive.Topics
             bool reading=ArchiveTopicUI.Current!=null&&ArchiveTopicUI.Current.ReadingStation!=null;
             claimPanel.gameObject.SetActive(canUse&&!reading&&focusedTopic>=0);
             if(focusedTopic>=0)claimText.text="T"+(focusedTopic+1)+(session.Chest(focusedTopic).orphaned?" TEAM SALVAGE":" REWARD RESERVED FOR YOU")+"\nOpen chest · Hand / E";
-            defeatPanel.gameObject.SetActive(session.TeamDefeated);
-            if(session.TeamDefeated)defeatText.text=session.State.survival.defeatReason==ArchiveTopicSession.MatchTimeoutReason?
+            defeatPanel.gameObject.SetActive(session.TeamDefeated&&(ArchiveExitUI.Current==null||!ArchiveExitUI.Current.isActiveAndEnabled));
+            if(session.TeamDefeated){defeatText.text=session.State.survival.defeatReason==ArchiveTopicSession.MatchTimeoutReason?
                 "TIME'S UP — THE ARCHIVE HAS SEALED\nReturning to the party in "+Mathf.CeilToInt(session.DefeatRemaining)+"...":
                 "THE TEAM HAS FALLEN\nNo teammate remains to rescue you. Returning to the party in "+Mathf.CeilToInt(session.DefeatRemaining)+"...";
+                defeatText.text+="\n"+session.MatchRewardSummary;}
             RefreshHotbar(canUse,reading);
             RefreshLights();
         }
@@ -272,7 +273,7 @@ namespace LogicLegends.OpenArchive.Topics
             crosshair=Rect("Tranquilizer_Aim",root,Vector2.one*.5f,Vector2.one*.5f);crosshair.sizeDelta=new Vector2(28,28);
             Stroke(crosshair,"Aim_Top",new Vector2(.46f,.7f),new Vector2(.54f,1),Cream);Stroke(crosshair,"Aim_Bottom",new Vector2(.46f,0),new Vector2(.54f,.3f),Cream);
             Stroke(crosshair,"Aim_Left",new Vector2(0,.46f),new Vector2(.3f,.54f),Cream);Stroke(crosshair,"Aim_Right",new Vector2(.7f,.46f),new Vector2(1,.54f),Cream);crosshair.gameObject.SetActive(false);
-            defeatPanel=Rect("Team_Defeat_Return",root,new Vector2(.5f,.7f),new Vector2(.5f,.7f));defeatPanel.sizeDelta=new Vector2(780,150);
+            defeatPanel=Rect("Team_Defeat_Return",root,new Vector2(.5f,.7f),new Vector2(.5f,.7f));defeatPanel.sizeDelta=new Vector2(780,230);
             var defeatBg=defeatPanel.gameObject.AddComponent<Image>();defeatBg.color=new Color(.12f,.025f,.025f,.97f);defeatBg.raycastTarget=false;
             defeatText=Text("Defeat_Countdown",defeatPanel,27);defeatText.alignment=TextAlignmentOptions.Center;defeatPanel.gameObject.SetActive(false);
             claimPanel.gameObject.SetActive(false);Place();
@@ -282,7 +283,7 @@ namespace LogicLegends.OpenArchive.Topics
             if(root==null)return;Canvas.ForceUpdateCanvases();screen=new Vector2(Screen.width,Screen.height);safe=Screen.safeArea;float scale=Mathf.Max(.01f,canvas.scaleFactor);
             PlaceHotbar();
             claimPanel.sizeDelta=new Vector2(Mathf.Min(510,safe.width/scale*.5f),90);
-            if(defeatPanel!=null)defeatPanel.sizeDelta=new Vector2(Mathf.Min(780,safe.width/scale*.85f),150);
+            if(defeatPanel!=null)defeatPanel.sizeDelta=new Vector2(Mathf.Min(780,safe.width/scale*.85f),230);
             if(RectTransformUtility.ScreenPointToLocalPointInRectangle(root,new Vector2(safe.center.x,safe.yMin+safe.height*.33f),null,out var c))claimPanel.anchoredPosition=c;
         }
         static RectTransform Rect(string name,Transform parent,Vector2 min,Vector2 max)
