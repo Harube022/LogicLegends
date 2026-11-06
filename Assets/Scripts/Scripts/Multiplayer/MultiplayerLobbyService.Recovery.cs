@@ -102,7 +102,7 @@ public sealed partial class MultiplayerLobbyService
         SampleConnectionDiagnostics();
         if (!recovering)
         {
-            if (onlineSession && InLobby && MultiplayerSceneRoutes.IsGameplay(SceneManager.GetActiveScene()) &&
+            if (onlineSession && InLobby && !RetainingPartyLobby && MultiplayerSceneRoutes.IsGameplay(SceneManager.GetActiveScene()) &&
                 PhotonNetwork.IsMasterClient && Time.unscaledTime >= nextAvatarCheckpoint)
             {
                 nextAvatarCheckpoint = Time.unscaledTime + 1;
@@ -150,6 +150,7 @@ public sealed partial class MultiplayerLobbyService
             !MultiplayerMonsterRotation.TryRead(room.CustomProperties, out _) ||
             !Equals(room.CustomProperties[LobbyRules.SceneKey], TargetScene))
         { RecoveryFailed("Could not confirm your original player slot. Please join a new match."); return; }
+        if(RestoreRetainedPartyAfterRecovery())return;
         if (RoomState == LobbyRules.Waiting && SceneManager.GetActiveScene().name == "Main Menu")
         {
             recovering = restoring = false; Busy = false; deadline = 0; onlineSession = true; committed = false;

@@ -38,6 +38,9 @@ namespace LogicLegends.OpenArchive.Hunting
         public int rescueActor;
         public bool rescueAtNest;
         public bool rescuePickedUp;
+        public int personalityPhase, personalitySerial, personalityTarget;
+        public double personalityStartedAt, personalityCooldownUntil;
+        public Vector3 personalityAimPoint;
     }
 
     [DefaultExecutionOrder(50), DisallowMultipleComponent]
@@ -143,6 +146,7 @@ namespace LogicLegends.OpenArchive.Hunting
         void OnDestroy()
         {
             DisposeCloseCounterPresentation();
+            DisposeHuntingPersonalityPresentation();
             if (driver != null) { driver.MistakeRequested -= RequestMistake; driver.SleepRequested -= RequestSleep; }
             if (active == this) active = null;
             sceneMonsters.Remove(this);
@@ -232,12 +236,14 @@ namespace LogicLegends.OpenArchive.Hunting
             Target target;
             if (!targets.TryGetValue(TargetPlayerId, out target) || target.transform == null || !target.transform.gameObject.activeInHierarchy || EscapedArchivePlayer(TargetPlayerId))
             { ResetCloseCounter(false); StopNavigation(); TargetPlayerId = 0; BeginHunt(); return; }
-            if (UpdateCloseCounter(target)) return;
+            if (UpdateBeaconDiversion()) return;
+            if (UpdateCloseCounter(target)) { CancelHuntingPersonality(); return; }
+            UpdateHuntingPersonality(target);
             float gap = TargetSurfaceGap(target);
             float catchUp = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(closePressureDistance, Mathf.Max(closePressureDistance + 1, catchUpDistance), gap));
             float closeMultiplier = Mathf.Clamp(closeChaseSpeedMultiplier, 1, Mathf.Max(1, chaseSpeedMultiplier));
-            agent.speed = normalPlayerRunSpeed * Mathf.Lerp(closeMultiplier, chaseSpeedMultiplier, catchUp);
-            float pursuitTurn = Mathf.Lerp(Mathf.Max(turnSpeed, closeTurnSpeed), turnSpeed, catchUp);
+            agent.speed = PersonalityPursuitSpeed(normalPlayerRunSpeed * Mathf.Lerp(closeMultiplier, chaseSpeedMultiplier, catchUp));
+            float pursuitTurn = PersonalityPursuitTurn(Mathf.Lerp(Mathf.Max(turnSpeed, closeTurnSpeed), turnSpeed, catchUp));
             agent.angularSpeed = pursuitTurn; agent.acceleration = acceleration;
             // A live pursuit must not brake to a stop at the target's last sampled position.
             agent.autoBraking = false;
@@ -272,6 +278,7 @@ namespace LogicLegends.OpenArchive.Hunting
         void LateUpdate()
         {
             UpdateCloseCounterPresentation();
+            UpdateHuntingPersonalityPresentation();
             if (IsTranquilized) { HoldTranquilizedRoot(); return; }
             if (!Initialized || IsAuthority || replica == null || MultiplayerLobbyService.IsGameplayRecovering) return;
             float alpha = 1 - Mathf.Exp(-18 * Time.deltaTime);
@@ -361,6 +368,10 @@ namespace LogicLegends.OpenArchive.Hunting
             }
             if (waterPursuit != null) waterPursuit.Reset();
             landApproach.Reset();
+            // Route pressure may alter a reachable dry approach only after the existing
+            // target path succeeds. Shoreline, ledge and obstacle fallbacks keep their routes.
+            NavMeshPath personalityPath;
+            if (TryHuntingPersonalityRoute(target, out personalityPath)) path = personalityPath;
             State = KhezuHuntState.Hunting; Status = "Hunting " + TargetName;
             agent.isStopped = false;
             if (!agent.SetPath(path)) { agent.isStopped = true; State = KhezuHuntState.NavigationBlocked; Status = "Navigation could not accept the complete route"; }
@@ -403,6 +414,13 @@ namespace LogicLegends.OpenArchive.Hunting
         }
         void StopNavigation()
         {
+            var session=Topics.ArchiveTopicSession.Current;
+            if(IsTranquilized||EntranceHeld||CarryingRescueActor||
+                State!=KhezuHuntState.Hunting&&State!=KhezuHuntState.NavigationBlocked||
+                session!=null&&(session.TeamWon||session.TeamDefeated||session.NightEntranceActive))
+                session?.CancelFieldDiversion(this);
+            CancelBeaconDiversion();
+            CancelHuntingPersonality();
             if (waterPursuit != null) waterPursuit.Reset();
             landApproach.Reset();
             if (agent == null || !agent.enabled) return;
@@ -450,6 +468,7 @@ namespace LogicLegends.OpenArchive.Hunting
                 rescueActor = RescueActor, rescueAtNest = RescueAtNest, rescuePickedUp = RescuePickedUp };
             FillBarrierSnapshot(snapshot);
             FillCloseCounterSnapshot(snapshot);
+            FillHuntingPersonalitySnapshot(snapshot);
             return snapshot;
         }
         public void SetEncounterPhase(int value)
@@ -469,6 +488,7 @@ namespace LogicLegends.OpenArchive.Hunting
             HuntSerial = s.huntSerial; CaptureSerial = s.captureSerial; pending = s.pending; fullyAwake = s.awake;
             CaptureStartedAt = s.captureStartedAt; EncounterPhase = s.encounterPhase;
             RestoreRescueCarry(s.rescueActor,s.rescueAtNest,s.rescuePickedUp);
+            RestoreHuntingPersonalitySnapshot(s);
             rotation.Restore(s.hunted); excluded.Clear(); foreach (int id in s.excluded) excluded.Add(id);
             driver.ApplyReplicaCounters(s.mistakes, s.stage);
             replica = s;

@@ -1,0 +1,358 @@
+{
+  "verifiedOn": "2026-11-02 Asia/Manila",
+  "passed": true,
+  "protocol": "LL-private-lobby-21",
+  "totalChecks": 147,
+  "fixes": [
+    "Shared defeat hides an earlier YOU ESCAPED waiting card and portal notices.",
+    "A return requested during SDK recovery remains queued until same-actor rejoin.",
+    "Async profile lookup cannot spawn into a finished match, different room, or different return epoch.",
+    "Finished-match cache cleanup precedes Waiting; retained Start cleans delayed avatar/RPC cache after all new-epoch acknowledgements.",
+    "Both confirmed Start transitions revalidate the ready epoch.",
+    "Team ping positions resolve the canonical host receipt; health-first revival invalidates obsolete rescue guidance."
+  ],
+  "verification": {
+    "compilationPassed": true,
+    "finalConsoleErrors": 0,
+    "finalConsoleWarnings": 0,
+    "expectedSdkTimeouts": 1,
+    "androidDevicesAttached": 0,
+    "editorRestored": {
+      "scene": "Assets/Scenes/MultiplayerGameplay.unity",
+      "sceneDirty": false,
+      "playMode": "stopped",
+      "burstCompilation": true,
+      "sdkLossSimulation": false
+    }
+  },
+  "suites": {
+    "terminalUiAndQueue": {
+      "source": "Temp/ArchiveTeamCoordination/Hardening.json",
+      "checkCount": 10,
+      "result": {
+        "passed": true,
+        "scope": "Fresh saved MultiplayerGameplay offline Editor Play. The real exit UI update and return-request/tick code use explicit terminal/recovery fixtures. This synchronous check does not claim an actual transport loss, remote rendering, or physical Android verification.",
+        "checks": [
+          "PASS An escaped survivor sees the real waiting card while the team is unfinished",
+          "PASS An early escaped survivor cannot abandon remaining teammates through the shared-victory return action",
+          "PASS Shared timeout hides an escaped survivor's waiting card so it cannot cover the defeat message",
+          "PASS An unescaped survivor also loses portal notices and victory UI after team defeat",
+          "PASS Defeat takes precedence even if a stale victory flag accompanies the terminal snapshot",
+          "PASS A genuine team victory still displays its proper result",
+          "PASS The team victory retains an available return-to-party button",
+          "PASS The recovery fixture is outside the Photon room and explicitly marked as recovering",
+          "PASS A terminal return requested during recovery queues this match instead of leaving the party",
+          "PASS Repeated disconnected recovery ticks preserve the queued terminal return until transport restoration"
+        ],
+        "errors": []
+      }
+    },
+    "teamCoordination": {
+      "source": "Temp/ArchiveTeamCoordination/Native.json",
+      "checkCount": 31,
+      "result": {
+        "passed": true,
+        "checks": [
+          "PASS Existing offline practice teammate is available for real roster/rescue checks",
+          "PASS Roster uses existing health with one local actor and one teammate",
+          "PASS Impossible medkit, revival and unopened-portal requests are unavailable",
+          "PASS Actual host validator accepts a help signal at the authenticated actor position",
+          "PASS Help anchor is calculated from the real player capsule",
+          "PASS A cloned receipt cannot replace the host-authenticated marker coordinates",
+          "PASS A cloned receipt cannot change the host-authenticated ping kind or target",
+          "PASS Replaying an accepted ping cannot publish another receipt",
+          "PASS A second immediate signal is rejected by the shared four-second cooldown",
+          "PASS Signals never edit academic progress, mistakes, hearts or the shared deadline",
+          "PASS Old match commands cannot place team signals",
+          "PASS Undefined signal values are rejected without state mutation",
+          "PASS An unregistered actor cannot spoof a team signal",
+          "PASS Expired signals disappear and cannot retain an objective marker",
+          "PASS An injured actor can request a medkit with one bounded receipt",
+          "PASS A resolved medkit request no longer redirects teammates",
+          "PASS Downed-at-nest status is derived from the existing rescue state",
+          "PASS A nonexistent revival target cannot be invented by the client",
+          "PASS Revival ping follows the actual downed teammate anchor",
+          "PASS Successful revival immediately invalidates its rescue marker",
+          "PASS A held Revival Kit guides the player to an eligible downed teammate",
+          "PASS A second valid downed fixture creates a rescue receipt for health-first restoration",
+          "PASS Health restoration invalidates a rescue marker before its downed-state cleanup arrives",
+          "PASS A pending downed record cannot make an already-living teammate eligible for a new revival signal",
+          "PASS Default rescue guidance also ignores health-restored teammates awaiting downed cleanup",
+          "PASS The reserved active topic supplies the default team objective",
+          "PASS The existing checkpoint retains ping ownership, cooldown and original timestamp",
+          "PASS The opened final portal replaces the normal topic objective",
+          "PASS Portal guidance becomes available only after completion",
+          "PASS Captured status is shown and movement objectives hide for a captive",
+          "PASS Terminal outcomes close new signals and objective guidance"
+        ],
+        "errors": [],
+        "scope": "Saved MultiplayerGameplay offline Play; real command validator, checkpoint serialization, roster, contextual objectives and receipt bounds. Clock/health/downed states use explicit Admin fixtures. No physical Android claim."
+      }
+    },
+    "photonPartyAndRematch": {
+      "source": "Temp/ArchiveTeamCoordination/Photon.json",
+      "checkCount": 35,
+      "result": {
+        "passed": true,
+        "acceptedRemoteCommands": 3,
+        "scope": "Live private Photon room with one rendered Editor and two independent Realtime peers. Verifies guest ping ownership/cooldown/stale commands/forged snapshots, late join, host handoff, medkit and revive context, read-only academic state, and a genuine retained-party second Start. Explicit Admin health/downed/terminal fixtures are labeled. Multiple rendered phones and physical Android are unverified.",
+        "checks": [
+          {
+            "name": "Independent clients share an invisible private room",
+            "passed": true
+          },
+          {
+            "name": "Native player retains local control ownership",
+            "passed": true
+          },
+          {
+            "name": "Remote replica cannot consume host input",
+            "passed": true
+          },
+          {
+            "name": "Guest help signal uses its real owned avatar, feet and nearby topic",
+            "passed": true
+          },
+          {
+            "name": "Guest receives the same ping owner and party roster derives two actual actors",
+            "passed": true
+          },
+          {
+            "name": "Replaying a signal command cannot duplicate its receipt",
+            "passed": true
+          },
+          {
+            "name": "A remote sender cannot bypass the four-second cooldown",
+            "passed": true
+          },
+          {
+            "name": "Stale match commands cannot manufacture a fresh signal",
+            "passed": true
+          },
+          {
+            "name": "Guest-authored snapshots cannot spoof marker positions or another player's identity",
+            "passed": true
+          },
+          {
+            "name": "Signals do not grant academic credit, add mistakes, consume hearts or alter the shared deadline",
+            "passed": true
+          },
+          {
+            "name": "Injured remote teammate can request a medkit at their real current position",
+            "passed": true
+          },
+          {
+            "name": "Roster updates to three members with authoritative remote hearts",
+            "passed": true
+          },
+          {
+            "name": "Host handoff preserves original ping timestamps instead of refreshing their lifetime",
+            "passed": true
+          },
+          {
+            "name": "Revival request names the actual downed teammate and uses the existing nest state",
+            "passed": true
+          },
+          {
+            "name": "Revived teammate immediately invalidates their obsolete rescue marker",
+            "passed": true
+          },
+          {
+            "name": "A guest cannot return an unfinished match to the party",
+            "passed": true
+          },
+          {
+            "name": "A terminal match blocks a delayed profile coroutine from spawning another avatar",
+            "passed": true
+          },
+          {
+            "name": "Return preserves the Photon room, invite code and original actor identities",
+            "passed": true
+          },
+          {
+            "name": "Independent peers stay in the same reopened waiting party",
+            "passed": true
+          },
+          {
+            "name": "Retained Main Menu has one active audio listener, including preview cameras",
+            "passed": true
+          },
+          {
+            "name": "HOW TO PLAY remains accessible without overlapping ready, start or leave controls",
+            "passed": true
+          },
+          {
+            "name": "Lobby host handoff reopens the same party without a second return epoch",
+            "passed": true
+          },
+          {
+            "name": "Finished topic, timer, inventory and capture checkpoint is cleared before the next match",
+            "passed": true
+          },
+          {
+            "name": "Old avatar recovery anchors cannot be reused by the next match",
+            "passed": true
+          },
+          {
+            "name": "Retained party selects the opposite starting guardian once without starting automatically",
+            "passed": true
+          },
+          {
+            "name": "Replayed return requests do not reset the party or alternate the guardian twice",
+            "passed": true
+          },
+          {
+            "name": "The retained waiting lobby cannot spawn gameplay avatars",
+            "passed": true
+          },
+          {
+            "name": "Stale ready flags cannot bypass arriving at the new party lobby",
+            "passed": true
+          },
+          {
+            "name": "Confirmed rematch clears a late old avatar and creates exactly one owned player",
+            "passed": true
+          },
+          {
+            "name": "A new peer does not replay the delayed finished-match avatar from the room cache",
+            "passed": true
+          },
+          {
+            "name": "Fresh scene actually activates the opposite guardian rig for the rematch",
+            "passed": true
+          },
+          {
+            "name": "Confirmed Start preserves the party while creating fresh topics, mistakes, awards and match identity",
+            "passed": true
+          },
+          {
+            "name": "Second match starts with full health, empty inventories and no old downed players",
+            "passed": true
+          },
+          {
+            "name": "An old terminal request cannot return or reset the new active match",
+            "passed": true
+          },
+          {
+            "name": "Explicit Leave exits only its actor and does not force the remaining party to leave",
+            "passed": true
+          }
+        ],
+        "errors": []
+      }
+    },
+    "transportLossReturn": {
+      "source": "Temp/MultiplayerRecovery/checks.json",
+      "checkCount": 9,
+      "result": {
+        "passed": true,
+        "scope": "Rendered PUN client plus independent live Realtime peer. Explicit terminal fixture; 100% SDK loss while requesting return to the same party. No physical Android/carrier testing.",
+        "checks": [
+          "PASS Trusted terminal timeout fixture is published through the existing state owner",
+          "PASS Real SDK loss leaves the terminal match outside the room with recovery owning input",
+          "PASS Return during recovery queues the same terminal match instead of leaving the party",
+          "PASS Multiple disconnected gameplay frames preserve the pending terminal return",
+          "PASS Recovery preserves the original room and both actor identities",
+          "PASS Completed return keeps the same invite room and original party members",
+          "PASS Recovered return advances one epoch and requires fresh readiness before another match",
+          "PASS Recovered terminal state cannot leak into the next match",
+          "PASS Successful return removes the recovery overlay"
+        ],
+        "errors": [],
+        "transportTimeouts": [
+          "Connection lost. OnStatusChanged to TimeoutDisconnect. Client state was: Joined. SCS v0 UDP SocketErrorCode: 0 WinSock"
+        ]
+      }
+    },
+    "lobbyBriefing": {
+      "source": "Temp/ArchiveTeamCoordination/Briefing.json",
+      "checkCount": 16,
+      "result": {
+        "passed": true,
+        "scope": "Native Main Menu lobby Play Mode. Reviews production briefing pages, navigation, visible scrollbar, local seen preference and unchanged match/session state. Physical Android layout is unverified.",
+        "checks": [
+          "PASS Four concise orientation pages are available",
+          "PASS All pages have distinct readable instructions",
+          "PASS Briefing explains existing shared timer, one-time topic bonuses and one active topic",
+          "PASS Briefing explains contributor crystals and teammate item support",
+          "PASS Night phase explains its independent awakening rule",
+          "PASS Capture, rescue and the all-survivors escape rule are covered",
+          "PASS Existing lobby offers a HOW TO PLAY action",
+          "PASS Review opens at the first page without starting gameplay",
+          "PASS Instructions are vertically scrollable with a permanent visible scrollbar",
+          "PASS Next shows the correct authored page",
+          "PASS Back preserves the page navigation sequence",
+          "PASS Skip closes immediately and remembers the local acknowledgement",
+          "PASS A previously acknowledged briefing can still be reviewed",
+          "PASS Got it closes the last page without a mandatory task",
+          "PASS Review does not alter time scale or room membership",
+          "PASS Review never edits a gameplay checkpoint or match timer"
+        ],
+        "errors": []
+      }
+    },
+    "sharedClock": {
+      "source": "Temp/ArchiveMatchTime/Play.json",
+      "checkCount": 46,
+      "result": {
+        "passed": true,
+        "scope": "Fresh offline MultiplayerGameplay Editor Play: production clock transitions, actual final T1 validator, ten-topic award receipt fixtures, real Admin no-farming, command/portal expiry ordering, checkpoint receive/master-restore callbacks, timescale-zero passage, and unchanged hearts. Clock timestamps are shortened in the authoritative state to exercise long deadlines. Live Photon, rendered remote clients, physical Android, and a naturally played 40-minute match are not claimed.",
+        "checks": [
+          "PASS Policy is 40 minutes, 2 minutes per unique topic, and 2 minutes for escape",
+          "PASS Overall ceiling is 60 minutes of academic play plus at most two final escape minutes",
+          "PASS New existing team checkpoint owns an unstarted clock and empty award ledger",
+          "PASS Ready player starts one five-second countdown before gameplay",
+          "PASS Repeated readiness ticks never restart the countdown",
+          "PASS Late countdown update anchors the 40-minute deadline to its original start",
+          "PASS Readiness fallback uses its stored deadline and cannot postpone the match indefinitely",
+          "PASS Actual accepted final T1 submission grants exactly 120 seconds",
+          "PASS Replaying a final academic receipt cannot grant its topic twice",
+          "PASS Existing Admin reset remains usable for a fixture",
+          "PASS Admin reset and completion neither clear nor refill the one-time award ledger",
+          "PASS Incorrect, unattributed and out-of-range final receipts never award time",
+          "PASS A different actor cannot claim another final solver's award",
+          "PASS A stale final receipt from before this match cannot award time",
+          "PASS Unique academic final receipt awards T2",
+          "PASS Unique academic final receipt awards T3",
+          "PASS Unique academic final receipt awards T4",
+          "PASS Unique academic final receipt awards T5",
+          "PASS Unique academic final receipt awards T6",
+          "PASS Unique academic final receipt awards T7",
+          "PASS Unique academic final receipt awards T8",
+          "PASS Unique academic final receipt awards T9",
+          "PASS Unique academic final receipt awards T10",
+          "PASS Ten unique topics cap normal play at 60 minutes with solver attribution",
+          "PASS Additional receipts cannot exceed the ten-topic cap",
+          "PASS Tenth completion switches to exactly two final escape minutes without refilling normal time",
+          "PASS Repeated ticks and award attempts cannot restart or extend escape",
+          "PASS JSON checkpoint preserves deadlines and unique award receipts; normal expected=3615.6500070011339 actual=3615.6500070011339 escape expected=136.65000700113379 actual=136.65000700113379",
+          "PASS Existing snapshot receive restores the saved clock without a local refill; end expected=136.65000700113379 actual=136.65000700113379 start expected=16.650007001133787 actual=16.650007001133787 bonuses=10",
+          "PASS Existing master-restore callback retains original deadlines; normal expected=3615.6500070011339 actual=3615.6500070011339 escape expected=136.65000700113379 actual=136.65000700113379",
+          "PASS A valid production start exposes its fixed 62-minute absolute end",
+          "PASS Final escape remaining time respects the absolute 62-minute ceiling even for a late completion",
+          "PASS Local zero-timescale pause still consumes unscaled match time",
+          "PASS Item grants and supplies never refill the shared match timer",
+          "PASS Exact deadline expiry becomes one timeout defeat instead of victory",
+          "PASS Match timeout deducts no hearts and invents no academic mistakes",
+          "PASS Expired state is monotonic and cannot restart gameplay",
+          "PASS A final academic receipt at the deadline cannot rescue an expired normal clock",
+          "PASS Tenth completion at expiry cannot create a fresh escape window",
+          "PASS A held rune completing at the shared deadline cannot grade an answer or award time",
+          "PASS A valid Book command at the deadline expires before it can start work",
+          "PASS Saved portal exists for the physical aperture race",
+          "PASS Deadline probe is physically inside the formed portal",
+          "PASS Portal entry at expiry cannot beat the timeout or publish an escape receipt",
+          "PASS Final living survivor may win through the real aperture before expiry",
+          "PASS A completed victory cannot turn into a later timeout defeat"
+        ],
+        "errors": []
+      }
+    }
+  },
+  "notVerified": [
+    "Physical Android controls, rendering and performance.",
+    "Multiple rendered phones on separate mobile-data connections.",
+    "A naturally played full-length match; authoritative deadlines use explicit shortened timestamp fixtures."
+  ],
+  "notes": "This is a targeted regression pass for the teamwork, terminal-state and retained-party changes. Passing these checks is not a guarantee that the entire game has no bugs."
+}

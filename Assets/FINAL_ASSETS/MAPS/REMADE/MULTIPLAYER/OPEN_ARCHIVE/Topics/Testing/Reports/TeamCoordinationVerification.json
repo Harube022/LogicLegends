@@ -1,0 +1,255 @@
+{
+  "verifiedOn": "2026-10-31 Asia/Manila",
+  "passed": true,
+  "protocol": "LL-private-lobby-21",
+  "savedScenes": [
+    "Assets/Scenes/MultiplayerGameplay.unity",
+    "Assets/Scenes/Main Menu.unity"
+  ],
+  "features": [
+    "Collapsed/expandable four-player TEAM HUD, existing authoritative hearts and derived teammate status.",
+    "Host-validated Help Here, Need Medkit, Revive Teammate and Go to Portal signals, four-second cooldown, twelve-second lifetime, bounded one-per-actor checkpoint receipts.",
+    "Read-only direction arrow, distance and pooled ring/beacon for authenticated pings, active topic, available rescue, or final portal.",
+    "Skippable first-visit lobby briefing with four scrollable pages, visible scrollbar and HOW TO PLAY review button.",
+    "PLAY AGAIN returns the finished online match to the same room/party; new ready epoch, fresh checkpoint, cleared cached avatars and opposite starting guardian.",
+    "Host-handoff safe retained lobby; explicit Leave still leaves independently.",
+    "Disabled redundant preview-camera listeners in Main Menu; one listener remains active."
+  ],
+  "native": {
+    "passed": true,
+    "checks": [
+      "PASS Existing offline practice teammate is available for real roster/rescue checks",
+      "PASS Roster uses existing health with one local actor and one teammate",
+      "PASS Impossible medkit, revival and unopened-portal requests are unavailable",
+      "PASS Actual host validator accepts a help signal at the authenticated actor position",
+      "PASS Help anchor is calculated from the real player capsule",
+      "PASS Replaying an accepted ping cannot publish another receipt",
+      "PASS A second immediate signal is rejected by the shared four-second cooldown",
+      "PASS Signals never edit academic progress, mistakes, hearts or the shared deadline",
+      "PASS Old match commands cannot place team signals",
+      "PASS Undefined signal values are rejected without state mutation",
+      "PASS An unregistered actor cannot spoof a team signal",
+      "PASS Expired signals disappear and cannot retain an objective marker",
+      "PASS An injured actor can request a medkit with one bounded receipt",
+      "PASS A resolved medkit request no longer redirects teammates",
+      "PASS Downed-at-nest status is derived from the existing rescue state",
+      "PASS A nonexistent revival target cannot be invented by the client",
+      "PASS Revival ping follows the actual downed teammate anchor",
+      "PASS Successful revival immediately invalidates its rescue marker",
+      "PASS The reserved active topic supplies the default team objective",
+      "PASS The existing checkpoint retains ping ownership, cooldown and original timestamp",
+      "PASS The opened final portal replaces the normal topic objective",
+      "PASS Portal guidance becomes available only after completion",
+      "PASS Captured status is shown and movement objectives hide for a captive",
+      "PASS Terminal outcomes close new signals and objective guidance"
+    ],
+    "errors": [],
+    "scope": "Saved MultiplayerGameplay offline Play; real command validator, checkpoint serialization, roster, contextual objectives and receipt bounds. Clock/health/downed states use explicit Admin fixtures. No physical Android claim."
+  },
+  "photon": {
+    "passed": true,
+    "acceptedRemoteCommands": 3,
+    "scope": "Live private Photon room with one rendered Editor and two independent Realtime peers. Verifies guest ping ownership/cooldown/stale commands/forged snapshots, late join, host handoff, medkit and revive context, read-only academic state, and a genuine retained-party second Start. Explicit Admin health/downed/terminal fixtures are labeled. Multiple rendered phones and physical Android are unverified.",
+    "checks": [
+      {
+        "name": "Independent clients share an invisible private room",
+        "passed": true
+      },
+      {
+        "name": "Native player retains local control ownership",
+        "passed": true
+      },
+      {
+        "name": "Remote replica cannot consume host input",
+        "passed": true
+      },
+      {
+        "name": "Guest help signal uses its real owned avatar, feet and nearby topic",
+        "passed": true
+      },
+      {
+        "name": "Guest receives the same ping owner and party roster derives two actual actors",
+        "passed": true
+      },
+      {
+        "name": "Replaying a signal command cannot duplicate its receipt",
+        "passed": true
+      },
+      {
+        "name": "A remote sender cannot bypass the four-second cooldown",
+        "passed": true
+      },
+      {
+        "name": "Stale match commands cannot manufacture a fresh signal",
+        "passed": true
+      },
+      {
+        "name": "Guest-authored snapshots cannot spoof marker positions or another player's identity",
+        "passed": true
+      },
+      {
+        "name": "Signals do not grant academic credit, add mistakes, consume hearts or alter the shared deadline",
+        "passed": true
+      },
+      {
+        "name": "Injured remote teammate can request a medkit at their real current position",
+        "passed": true
+      },
+      {
+        "name": "Roster updates to three members with authoritative remote hearts",
+        "passed": true
+      },
+      {
+        "name": "Host handoff preserves original ping timestamps instead of refreshing their lifetime",
+        "passed": true
+      },
+      {
+        "name": "Revival request names the actual downed teammate and uses the existing nest state",
+        "passed": true
+      },
+      {
+        "name": "Revived teammate immediately invalidates their obsolete rescue marker",
+        "passed": true
+      },
+      {
+        "name": "A guest cannot return an unfinished match to the party",
+        "passed": true
+      },
+      {
+        "name": "Return preserves the Photon room, invite code and original actor identities",
+        "passed": true
+      },
+      {
+        "name": "Independent peers stay in the same reopened waiting party",
+        "passed": true
+      },
+      {
+        "name": "Retained Main Menu has one active audio listener, including preview cameras",
+        "passed": true
+      },
+      {
+        "name": "HOW TO PLAY remains accessible without overlapping ready, start or leave controls",
+        "passed": true
+      },
+      {
+        "name": "Lobby host handoff reopens the same party without a second return epoch",
+        "passed": true
+      },
+      {
+        "name": "Finished topic, timer, inventory and capture checkpoint is cleared before the next match",
+        "passed": true
+      },
+      {
+        "name": "Old avatar recovery anchors cannot be reused by the next match",
+        "passed": true
+      },
+      {
+        "name": "Retained party selects the opposite starting guardian once without starting automatically",
+        "passed": true
+      },
+      {
+        "name": "Replayed return requests do not reset the party or alternate the guardian twice",
+        "passed": true
+      },
+      {
+        "name": "Stale ready flags cannot bypass arriving at the new party lobby",
+        "passed": true
+      },
+      {
+        "name": "Fresh scene actually activates the opposite guardian rig for the rematch",
+        "passed": true
+      },
+      {
+        "name": "Confirmed Start preserves the party while creating fresh topics, mistakes, awards and match identity",
+        "passed": true
+      },
+      {
+        "name": "Second match starts with full health, empty inventories and no old downed players",
+        "passed": true
+      },
+      {
+        "name": "An old terminal request cannot return or reset the new active match",
+        "passed": true
+      },
+      {
+        "name": "Explicit Leave exits only its actor and does not force the remaining party to leave",
+        "passed": true
+      }
+    ],
+    "errors": []
+  },
+  "briefing": {
+    "passed": true,
+    "scope": "Native Main Menu lobby Play Mode. Reviews production briefing pages, navigation, visible scrollbar, local seen preference and unchanged match/session state. Physical Android layout is unverified.",
+    "checks": [
+      "PASS Four concise orientation pages are available",
+      "PASS All pages have distinct readable instructions",
+      "PASS Briefing explains existing shared timer, one-time topic bonuses and one active topic",
+      "PASS Briefing explains contributor crystals and teammate item support",
+      "PASS Night phase explains its independent awakening rule",
+      "PASS Capture, rescue and the all-survivors escape rule are covered",
+      "PASS Existing lobby offers a HOW TO PLAY action",
+      "PASS Review opens at the first page without starting gameplay",
+      "PASS Instructions are vertically scrollable with a permanent visible scrollbar",
+      "PASS Next shows the correct authored page",
+      "PASS Back preserves the page navigation sequence",
+      "PASS Skip closes immediately and remembers the local acknowledgement",
+      "PASS A previously acknowledged briefing can still be reviewed",
+      "PASS Got it closes the last page without a mandatory task",
+      "PASS Review does not alter time scale or room membership",
+      "PASS Review never edits a gameplay checkpoint or match timer"
+    ],
+    "errors": []
+  },
+  "hud": {
+    "panelVisible": true,
+    "rows": 2,
+    "compactTwoRows": true,
+    "objectiveVisible": true,
+    "markerRenderers": 2,
+    "objective": "T6 · Read the Book",
+    "buttons": [
+      {
+        "name": "Ping_HelpHere",
+        "enabled": true
+      },
+      {
+        "name": "Ping_NeedMedkit",
+        "enabled": false
+      },
+      {
+        "name": "Ping_ReviveTeammate",
+        "enabled": false
+      },
+      {
+        "name": "Ping_GoToPortal",
+        "enabled": false
+      }
+    ],
+    "newMarkerColliders": 0
+  },
+  "modalVisibility": {
+    "guideVisible": true,
+    "dockHidden": true,
+    "objectiveHidden": true,
+    "markerHidden": true,
+    "clockUnchanged": 2405.0
+  },
+  "compilation": {
+    "succeeded": true,
+    "errors": 0
+  },
+  "runtime": {
+    "warnings": 1,
+    "errors": 0,
+    "warning": "Existing PlayerEquipmentLoader test fallback: no active Firebase session, default test equipment applied."
+  },
+  "boundaries": [
+    "Photon checks use one rendered Unity Editor and two independent Realtime peers, not multiple rendered phones.",
+    "Long-lived states such as injured/downed actors and the finished match use explicit Admin fixtures; actual guest ping packets, scene return, fresh Start and host handoff use the production transport.",
+    "No Android APK was built, installed, or physically device-tested. Touch/DPI/notch behavior and real carrier switching remain device acceptance work.",
+    "No leaderboard, numeric rewards, persistent match history or expanded learning debrief was added.",
+    "All participants need the updated build because the multiplayer protocol changed."
+  ],
+  "previewDirectory": "C:/Users/jhayf/.codex/visualizations/2026/10/16/01a1436d-771e-7190-abf8-1ab636024fb9/team-coordination-2026-10-31"
+}

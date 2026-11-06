@@ -36,15 +36,8 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             {
                 var station = session.stations[i];
                 var marker = new GameObject("T" + (station.topic + 1) + "_Path_Waymark").transform; marker.SetParent(root, false);
-                marker.position = topicPlacement.BesideTopic(station);
-                marker.rotation = station.transform.rotation; marker.localScale = Vector3.one * 1.2f;
-                // Sample close to the authored ground so distant bridge caps and overhead
-                // architecture cannot lift an offroad sign above the grass.
-                var position = marker.position; position.y = station.transform.position.y + .025f;
-                var floors = Physics.RaycastAll(position + Vector3.up * 2, Vector3.down, 8, ~(1 << 7), QueryTriggerInteraction.Ignore)
-                    .Where(h => h.normal.y > .75f).OrderBy(h => h.distance).ToArray();
-                if (floors.Length > 0) position.y = floors[0].point.y + .025f;
-                marker.position = position;
+                PlaceTopicSign(station,marker,topicPlacement.BesideTopic(station));
+                marker.localScale = Vector3.one * 1.2f;
                 MeshPart(marker, "Stone_Post", postMesh, stone);
                 MeshPart(marker, "Brass_Frame", frameMesh, trim);
                 var tint = ArchiveCrystalPillar.Palette[Mathf.Clamp(station.topic, 0, 9)];
@@ -158,18 +151,41 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             var stone=AssetDatabase.LoadAssetAtPath<Material>(ArchiveTopicSetup.Folder+"/Art/Materials/Archive_Topic_Stone.mat");
             var trim=AssetDatabase.LoadAssetAtPath<Material>(ArchiveTopicSetup.Folder+"/Art/Materials/Archive_Topic_BrassInlay.mat");
             var glow=AssetDatabase.LoadAssetAtPath<Material>(Folder+"/Archive_Environment_Rune.mat");
-            var placement=new ArchiveWayfindingPlacement(GameObject.Find("OpenArchive/Environment").transform);
-            foreach(var station in session.stations)
-            {
-                var marker=root.Find("T"+(station.topic+1)+"_Path_Waymark");
-                if(marker!=null)
-                {
-                    marker.position=placement.BesideTopic(station);
-                    marker.Find("Topic_Glyph_And_Guide").GetComponent<MeshFilter>().sharedMesh=TopicGuideMesh(station,marker);
-                }
-            }
+            RefreshTopicSigns();
             BuildRouteChoices(root,SignPostMesh(),AssetDatabase.LoadAssetAtPath<Mesh>(Folder+"/Waymark_Brass_Frame.asset"),stone,trim,glow,session.stations[0].font);
             AssetDatabase.SaveAssets();
+        }
+        [MenuItem("Logic Legends/Open Archive/Refresh Topic Sign Corners")]
+        public static void RefreshTopicSigns()
+        {
+            if(Application.isPlaying)throw new InvalidOperationException("Refresh signs in stopped Edit Mode.");
+            var session=UnityEngine.Object.FindFirstObjectByType<ArchiveTopicSession>();
+            var root=GameObject.Find(ArchiveEnvironmentPolishSetup.RootName+"/Archive_Wayfinding_And_Nest");
+            if(session==null||root==null)throw new InvalidOperationException("Open the saved Open Archive scene first.");
+            var placement=new ArchiveWayfindingPlacement(GameObject.Find("OpenArchive/Environment").transform);
+            // Resolve all ten positions before changing the scene, so a blocked
+            // shoulder cannot leave a partially moved set of signs.
+            var positions=session.stations.Select(s=>placement.BesideTopic(s)).ToArray();
+            var markers=session.stations.Select(s=>root.transform.Find("T"+(s.topic+1)+"_Path_Waymark")).ToArray();
+            if(markers.Any(m=>m==null))throw new InvalidOperationException("An existing topic waymark is missing.");
+            var guides=markers.Select(m=>m.Find("Topic_Glyph_And_Guide")?.GetComponent<MeshFilter>()).ToArray();
+            if(guides.Any(g=>g==null))throw new InvalidOperationException("An existing topic guide mesh is missing.");
+            Undo.RecordObjects(markers,"Move topic signs to pathway corners");
+            Undo.RecordObjects(guides,"Update topic sign arrows");
+            Undo.RegisterCompleteObjectUndo(guides.Select(g=>g.sharedMesh).Where(m=>m!=null).Distinct().ToArray(),"Update topic sign arrows");
+            for(int i=0;i<markers.Length;i++)
+            {
+                var marker=markers[i];var station=session.stations[i];
+                PlaceTopicSign(station,marker,positions[i]);
+                guides[i].sharedMesh=TopicGuideMesh(station,marker);
+            }
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(session.gameObject.scene);
+            AssetDatabase.SaveAssets();
+        }
+        static void PlaceTopicSign(ArchiveTopicStation station,Transform marker,Vector3 position)
+        {
+            var towardTopic=station.transform.position-position;towardTopic.y=0;
+            marker.SetPositionAndRotation(position,Quaternion.LookRotation(towardTopic,Vector3.up));
         }
         static Mesh SignPostMesh()
         {

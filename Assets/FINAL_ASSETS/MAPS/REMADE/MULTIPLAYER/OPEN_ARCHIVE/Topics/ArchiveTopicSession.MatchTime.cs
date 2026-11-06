@@ -25,7 +25,7 @@ namespace LogicLegends.OpenArchive.Topics
     public sealed partial class ArchiveTopicSession
     {
         public const float MatchBaseSeconds = 40 * 60, MatchTopicBonusSeconds = 2 * 60, MatchEscapeSeconds = 2 * 60;
-        public const float MatchReadinessGraceSeconds = 15, MatchCountdownSeconds = 5;
+        public const float MatchReadinessGraceSeconds = 15, MatchGuardianIntroSeconds = 3, MatchCountdownSeconds = 5;
         public const float MatchMaximumPlaySeconds = MatchBaseSeconds + 10 * MatchTopicBonusSeconds + MatchEscapeSeconds;
         public const string MatchTimeoutReason = "timeout";
 
@@ -108,7 +108,9 @@ namespace LogicLegends.OpenArchive.Topics
                     time.readinessTimedOut = true; time.countdownStartedAt = time.readinessDeadline;
                     time.phase = ArchiveMatchTimePhase.Countdown; changed = true;
                 }
-                else if (MatchPlayersReady())
+                // The existing preparation window also owns the guardian reveal.
+                // The five-second team countdown and gameplay deadline follow it.
+                else if (now >= time.createdAt + MatchGuardianIntroSeconds && MatchPlayersReady())
                 {
                     time.countdownStartedAt = now; time.phase = ArchiveMatchTimePhase.Countdown; changed = true;
                 }

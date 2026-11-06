@@ -23,8 +23,51 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
     private GameInput blockedInput;
     private bool wasBlocked, ownsBlock;
     private bool choosingJoin;
+    private Button lastReview;
     public bool IsOpen => overlay != null && overlay.activeSelf;
     public TMP_InputField InviteInput => inviteInput;
+    public MultiplayerMatchBriefing Briefing { get; private set; }
+    public Button LastReviewButton => lastReview;
+    void EnsureBriefing()
+    {
+        if (Briefing == null) Briefing = GetComponent<MultiplayerMatchBriefing>() ?? gameObject.AddComponent<MultiplayerMatchBriefing>();
+        Briefing.Initialize(this, overlay);
+        EnsureLastReviewEntry();
+    }
+
+    void EnsureLastReviewEntry()
+    {
+        if (lastReview != null || overlay == null) return;
+        var inside = overlay.transform.Find("SafeArea/WoodFrame/Interior");
+        if (inside == null) return;
+        lastReview = MultiplayerUIArt.Action("Review_Last_Match", inside, "REVIEW LAST MATCH", .22f, .075f, .22f, .075f);
+        var rect = (RectTransform)lastReview.transform; rect.sizeDelta = new Vector2(280, 64);
+        lastReview.GetComponent<Image>().pixelsPerUnitMultiplier = 4.5f;
+        var label = lastReview.GetComponentInChildren<TMP_Text>(); label.fontSizeMin = 18; label.fontSizeMax = 23;
+        lastReview.onClick.AddListener(() =>
+        {
+            if (CanReviewLastMatch) LogicLegends.OpenArchive.Topics.ArchiveLearningRecapUI.OpenLastReview();
+        });
+        lastReview.gameObject.SetActive(false);
+    }
+    bool CanReviewLastMatch => IsOpen && service != null && !service.Busy && !service.Starting &&
+        LogicLegends.OpenArchive.Topics.ArchiveLearningRecapUI.HasReview &&
+        (leaveConfirmation == null || !leaveConfirmation.activeInHierarchy) && !(Briefing != null && Briefing.Visible);
+    void RefreshLastReviewEntry()
+    {
+        if (lastReview == null) return;
+        lastReview.gameObject.SetActive(CanReviewLastMatch);
+        LayoutLastReviewEntry(waitingPanel != null && waitingPanel.activeSelf);
+    }
+    void LayoutLastReviewEntry(bool inRoom)
+    {
+        if (lastReview == null) return;
+        var rect = (RectTransform)lastReview.transform;
+        // The waiting-room action row is full. Use the empty strip beneath
+        // the roster, to the left of the connection/status message.
+        rect.anchorMin = rect.anchorMax = inRoom ? new Vector2(.18f, .19f) : new Vector2(.22f, .075f);
+        rect.anchoredPosition = Vector2.zero;
+    }
 
     public void BindSocialEntry(Button button)
     {
@@ -51,6 +94,7 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         status.rectTransform.anchorMax = inRoom ? new Vector2(1,.225f) : new Vector2(.96f,.20f);
         status.fontSizeMin = inRoom ? 20 : 22;
         status.fontSizeMax = inRoom ? 22 : 24;
+        LayoutLastReviewEntry(inRoom);
         if (socialEntry == null) return;
         var rect = (RectTransform)socialEntry.transform;
         rect.anchorMin = rect.anchorMax = inRoom ? new Vector2(.49f,.082f) : Vector2.one;
@@ -73,6 +117,7 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         back.onClick.AddListener(Back);
         cancelJoin.onClick.AddListener(ShowChoices);
         overlay.SetActive(false);
+        EnsureBriefing();
     }
     private void OnDestroy()
     {
@@ -81,6 +126,7 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
     }
     public void Open()
     {
+        EnsureBriefing();
         if (service != null) service.Changed -= Refresh;
         service = MultiplayerLobbyService.EnsureExists();
         service.Changed += Refresh;
@@ -97,6 +143,7 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
     }
     private void Update()
     {
+        RefreshLastReviewEntry();
         if (!IsOpen || GameInput.Instance == null || ownsBlock) return;
         blockedInput = GameInput.Instance; wasBlocked = blockedInput.GameplayInputBlocked;
         blockedInput.SetGameplayInputBlocked(true); ownsBlock = true;

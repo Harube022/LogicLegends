@@ -11,7 +11,7 @@ namespace LogicLegends.OpenArchive.Topics
         VisitTopic,StartTopic,CompleteTopic,ResetTopic,CompleteAllTopics,ResetMatch,SpawnChest,GrantItem,GrantAllItems,ClearInventory,
         SetHearts,DamageHeart,ReviveAtNest,DownAtNest,SpawnTeammate,RemoveTeammate,TeleportToNest,AwakenMonster,SleepMonster,StartHunt,
         PreviewJumpscare,PreviewBarrier,ReleaseCapture,PreviewNight,ReplayEntrance,ReturnDaylight,OpenPortal,RecallTeammate,BarrierSuccess,BarrierFail,
-        StartMatchClock,MatchClockOneMinute,ExpireMatchClock
+        StartMatchClock,MatchClockOneMinute,ExpireMatchClock,PreviewFieldEvent,VisitFieldSite,VisitBeacon,RechargeBeacons,ClearFieldEffects
     }
     public sealed partial class ArchiveTopicSession
     {
@@ -20,10 +20,31 @@ namespace LogicLegends.OpenArchive.Topics
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if(!CanUseTopicAdmin)return false;
+            if(!Enum.IsDefined(typeof(ArchiveAdminTestAction),action))return false;
+            // Persist exclusion before a fixture can trigger a terminal commit.
+            MarkRewardsAdminUsed();
             bool ok=false;NormalizeSurvival();
             var monster=target==1&&worldProgression!=null?worldProgression.secondary:hunting;
             switch(action)
             {
+                case ArchiveAdminTestAction.PreviewFieldEvent:
+                    if(fieldEvents==null||fieldEvents.hazards.Length==0)break;
+                    var site=fieldEvents.hazards.Where(v=>v!=null).OrderBy(v=>(v.transform.position-Player.LocalInstance.transform.position).sqrMagnitude).FirstOrDefault();
+                    if(site==null)break;NormalizeFieldEvents();var field=State.fieldEvents;
+                    field.serial++;field.site=site.id;field.kind=Mathf.Clamp(target,0,2);field.warnedAt=Clock;
+                    field.activeAt=Clock+ArchiveFieldRules.WarningSeconds;field.endsAt=field.activeAt+ArchiveFieldRules.ActiveSeconds;
+                    field.nextAllowedAt=Clock+fieldEvents.disturbanceCooldown;ok=true;break;
+                case ArchiveAdminTestAction.VisitFieldSite:
+                    if(fieldEvents!=null){var zone=fieldEvents.hazards.Where(v=>v!=null).OrderBy(v=>(v.transform.position-Player.LocalInstance.transform.position).sqrMagnitude).FirstOrDefault();
+                        if(zone!=null)ok=AdminMove(LocalActor,zone.transform.position+zone.transform.right*(zone.halfWidth+2));}break;
+                case ArchiveAdminTestAction.VisitBeacon:
+                    if(fieldEvents!=null){var beacon=fieldEvents.Beacon(target);if(beacon!=null)ok=AdminMove(LocalActor,beacon.transform.position+beacon.transform.right*2);}break;
+                case ArchiveAdminTestAction.RechargeBeacons:case ArchiveAdminTestAction.ClearFieldEffects:
+                    if(fieldEvents==null)break;NormalizeFieldEvents();
+                    foreach(var guardian in KhezuHuntingController.ActiveMonsters)guardian.CancelBeaconDiversion();
+                    State.fieldEvents.activeBeacon=State.fieldEvents.site=-1;
+                    if(action==ArchiveAdminTestAction.RechargeBeacons){State.fieldEvents.globalBeaconCooldownUntil=0;foreach(var beacon in State.fieldEvents.beacons)beacon.cooldownUntil=0;}
+                    ok=true;break;
                 case ArchiveAdminTestAction.StartMatchClock:
                     if(TeamWon||TeamDefeated)break;
                     var clock=State.matchTime;
@@ -96,7 +117,7 @@ namespace LogicLegends.OpenArchive.Topics
                     if(monster!=null)ok=monster.ResolveBarrierOutcome(monster.CaughtPlayerId,monster.CaptureSerial,action==ArchiveAdminTestAction.BarrierSuccess,.9f);break;
             }
             AdminTestNotice=ok?"TEST: "+action+" applied. Practice fixture; no academic credit.":"Cannot apply "+action+" now. Check target, active capture/intro, hearts or topic lock. Test teammate is offline only.";
-            if(ok)Commit();return ok;
+            if(ok){MarkRewardsAdminUsed();Commit();}return ok;
 #else
             return false;
 #endif

@@ -20,6 +20,7 @@ namespace LogicLegends.OpenArchive.Topics
         string barrierProblemKey;
         void NormalizeLearning()
         {
+            NormalizeLearningReviews();
             if (State.barrier == null) State.barrier = new ArchiveBarrierChallengeState();
             if (State.learningHints == null) State.learningHints = new System.Collections.Generic.List<ArchiveLearningHint>();
             // Completed questions need no diagnostic prose in every mobile room snapshot.
@@ -197,9 +198,9 @@ namespace LogicLegends.OpenArchive.Topics
                 hint = new ArchiveLearningHint { actor = actor, topic = s.topic, round = s.round, subphase = s.subphase, resetSerial = s.testResetSerial };
                 State.learningHints.Add(hint);
             }
-            // Diagnosis describes the work at request time. Moving a block cannot turn an open
-            // hint panel into a live answer oracle without making a deliberate new hint request.
-            if(hint.level==1)hint.diagnosis="AT THE TIME YOU REQUESTED THIS HINT\n"+ArchiveLearningFeedback.Hint(s.topic,Question(s.topic),s,2);
+            // Keep one bounded, personal reasoning prompt for the existing question identity.
+            // Moving a block never turns the guide into a correctness check.
+            if(hint.level==1)hint.diagnosis=ArchiveLearningFeedback.Hint(s.topic,Question(s.topic),s,2);
             RememberLearningSequence(actor, command); hint.level++;
             State.actors.First(a=>a.actor==actor).hintsUsed++;
             Commit(); return true;

@@ -31,7 +31,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     public bool WaitingForReconnect => InLobby && PhotonNetwork.PlayerList.Any(p => p.IsInactive);
     // Reserved teammates have not left the party. Starting without their lobby avatar
     // would strand recovery in a scene that never received their original spawn.
-    public bool CanStart => InLobby && PhotonNetwork.IsMasterClient && !Starting && !leaving && LobbyRules.CanStart(PhotonNetwork.PlayerList);
+    public bool CanStart => InLobby && PhotonNetwork.IsMasterClient && !Starting && !leaving && PartyReadyEpochConfirmed && LobbyRules.CanStart(PhotonNetwork.PlayerList);
     public string Region => PhotonNetwork.CloudRegion ?? PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion;
     public string TargetScene { get; set; } = MultiplayerSceneRoutes.GameplayPath;
 
@@ -69,7 +69,8 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     }
     private void SceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "Main Menu" && InLobby) LeaveLobby();
+        if (scene.name == "Main Menu" && InLobby && !RetainingPartyLobby) LeaveLobby();
+        else if(scene.name=="Main Menu"&&RetainingPartyLobby)TickRetainedPartyReturn();
         // Solo selection uses SceneManager directly. An idle Master Server connection
         // must not later interrupt that solo stage when it disconnects.
         else if (scene.name != "Main Menu" && !PhotonNetwork.InRoom && pending == Request.None && PhotonNetwork.IsConnected)
@@ -77,6 +78,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     }
     private void Update()
     {
+        TickRetainedPartyReturn();
         TickConnectionRecovery();
         if (IsRecovering) return;
         if (Busy && !Starting && deadline > 0 && Time.realtimeSinceStartup > deadline)
@@ -227,7 +229,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     public void ToggleReady()
     {
         if (!InLobby || Starting || leaving) return;
-        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey] = !LobbyRules.IsReady(PhotonNetwork.LocalPlayer) });
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey] = !LobbyRules.IsReady(PhotonNetwork.LocalPlayer),[ReadyEpochKey]=PartyReturnEpoch });
     }
     public void StartGame()
     {
@@ -250,12 +252,16 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
         while (InLobby && PhotonNetwork.IsMasterClient && RoomState != LobbyRules.Locking && Time.realtimeSinceStartup < timeout) yield return null;
         yield return new WaitForSecondsRealtime(0.5f);
         if (!InLobby || !PhotonNetwork.IsMasterClient) { startRoutine = null; Busy = false; yield break; }
-        if (RoomState != LobbyRules.Locking || !LobbyRules.CanStart(PhotonNetwork.PlayerList)) { AbortStart(); yield break; }
+        if (RoomState != LobbyRules.Locking || !PartyReadyEpochConfirmed || !LobbyRules.CanStart(PhotonNetwork.PlayerList)) { AbortStart(); yield break; }
+        // A new-epoch ready acknowledgement is sent after that actor leaves the
+        // finished scene. Clear any late old Instantiate/RPC events only after
+        // all those acknowledgements arrive, before loading fresh avatars.
+        if (PartyReturnEpoch > 0) PhotonNetwork.DestroyAll();
         PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { [LobbyRules.StateKey] = LobbyRules.Loading },
             new Hashtable { [LobbyRules.StateKey] = LobbyRules.Locking });
         while (InLobby && PhotonNetwork.IsMasterClient && RoomState != LobbyRules.Loading && Time.realtimeSinceStartup < timeout) yield return null;
         if (!InLobby || !PhotonNetwork.IsMasterClient) { startRoutine = null; Busy = false; yield break; }
-        if (RoomState != LobbyRules.Loading || !LobbyRules.CanStart(PhotonNetwork.PlayerList)) { AbortStart(); yield break; }
+        if (RoomState != LobbyRules.Loading || !PartyReadyEpochConfirmed || !LobbyRules.CanStart(PhotonNetwork.PlayerList)) { AbortStart(); yield break; }
         committed = true; startRoutine = null; Busy = false;
         if (MultiplayerMonsterRotation.TryRead(PhotonNetwork.CurrentRoom.CustomProperties, out var matchMonster))
             MultiplayerMonsterRotation.RecordStartedMatch(matchMonster);
@@ -281,12 +287,14 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     bool reopenLobbyAfterMatch;
     public void ReturnToLobbyAfterMatch()
     {
+        if(TryRequestRetainedPartyReturn())return;
         reopenLobbyAfterMatch=true;
         LeaveLobby();
     }
     public void LeaveLobby()
     {
         if (leaving) return;
+        ResetPartyReturnPresentation();
         EndRecoveryPresentation(); onlineSession = false; recovering = false; recoveryTerminalNotice = null;
         leaving = true; pending = Request.None; requestVersion++;
         if (startRoutine != null) { StopCoroutine(startRoutine); startRoutine = null; }
@@ -358,12 +366,13 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     }
     public override void OnMasterClientSwitched(NetPlayer player)
     {
+        TickRetainedPartyReturn();
         AddSystem(LobbyRules.DisplayName(player) + " is now the host.");
         if (PhotonNetwork.IsMasterClient && Starting && !committed && SceneManager.GetActiveScene().name == "Main Menu") AbortStart();
         Changed?.Invoke();
     }
     public override void OnPlayerPropertiesUpdate(NetPlayer player, Hashtable changes) { Changed?.Invoke(); }
-    public override void OnRoomPropertiesUpdate(Hashtable changes) { Changed?.Invoke(); }
+    public override void OnRoomPropertiesUpdate(Hashtable changes) { TickRetainedPartyReturn();Changed?.Invoke(); }
     public bool SendChat(string value)
     {
         LastChatWasCensored = false;
@@ -379,6 +388,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     }
     public void OnEvent(EventData data)
     {
+        if(HandlePartyReturnEvent(data))return;
         if (!InLobby || data.Code != LobbyRules.ChatEvent || !(data.CustomData is string text)) return;
         var sender = PhotonNetwork.CurrentRoom.GetPlayer(data.Sender);
         if (sender == null || text.Length > LobbyRules.ChatLimit) return;

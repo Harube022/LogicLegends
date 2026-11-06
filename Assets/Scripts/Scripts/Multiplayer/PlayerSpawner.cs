@@ -32,7 +32,10 @@ public class PlayerSpawner : MonoBehaviour
         while (!PhotonNetwork.InRoom && Time.realtimeSinceStartup < until) yield return null;
         if (DeferToRecovery()) yield break;
         if (!PhotonNetwork.InRoom) { Status = "Open this stage through Play > Multiplayer."; Debug.LogWarning(Status, this); yield break; }
+        if (DeferToMatchLifecycle()) yield break;
         if (Player.LocalInstance != null) { SpawnedPlayer = Player.LocalInstance.gameObject; yield break; }
+        var spawnRoom = PhotonNetwork.CurrentRoom;
+        int spawnEpoch = MultiplayerLobbyService.Instance.PartyReturnEpoch;
 
         string prefabName = malePrefabName;
         // Never access Firebase before dependency initialization or wait indefinitely for a profile.
@@ -46,7 +49,8 @@ public class PlayerSpawner : MonoBehaviour
                 FirebaseAuth.DefaultInstance.CurrentUser?.UserId == uid &&
                 (task.Result.Value?.ToString() ?? "").ToLowerInvariant().Contains("female")) prefabName = femalePrefabName;
         }
-        if (DeferToRecovery() || !PhotonNetwork.InRoom || Player.LocalInstance != null) yield break;
+        if (DeferToRecovery() || !PhotonNetwork.InRoom || Player.LocalInstance != null || DeferToMatchLifecycle()) yield break;
+        if (!ReferenceEquals(spawnRoom, PhotonNetwork.CurrentRoom) || MultiplayerLobbyService.Instance.PartyReturnEpoch != spawnEpoch) yield break;
         var prefab = Resources.Load<GameObject>(prefabName);
         if (prefab == null || prefab.GetComponent<PhotonView>() == null)
         {
@@ -73,6 +77,13 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (!MultiplayerLobbyService.IsGameplayRecovering) return false;
         Status = "Restoring your original player...";
+        return true;
+    }
+
+    private bool DeferToMatchLifecycle()
+    {
+        if (MultiplayerLobbyService.EnsureExists().MaySpawnGameplayAvatar) return false;
+        Status = "Waiting for an active multiplayer match.";
         return true;
     }
 

@@ -46,6 +46,7 @@ namespace LogicLegends.OpenArchive.Topics
                 Vector3.Distance(rescuerBody.transform.position, fallen.anchor) > RescueUseDistance ||
                 !hunting.health.RestoreAuthoritativeActorHeart(target, true)) return false;
             fallen.phase = 3; fallen.revivedAt = Clock;
+            RecordRewardSupport(rescuer,target,"revive");
             ReleaseRescueBody(target);
             foreach (var monster in KhezuHuntingController.ActiveMonsters) monster.PublishRescueHealth();
             return true;

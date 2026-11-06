@@ -27,10 +27,10 @@ namespace LogicLegends.Tests.Khezu.Editor
                     EditorGUILayout.LabelField("Hunt state", hunt.State.ToString());
                     EditorGUILayout.LabelField("Target", hunt.TargetName + " / " + hunt.TargetPlayerId);
                     EditorGUILayout.LabelField("HuntedPlayerIds", string.Join(", ", hunt.HuntedPlayerIds));
-                    if (GUILayout.Button("Force Four Shared Mistakes")) hunt.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.ForceFourMistakes);
-                    if (GUILayout.Button("Start / Resume Hunting")) hunt.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.StartHunting);
-                    if (GUILayout.Button("Reset Current Hunt")) hunt.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.ResetHunt);
-                    if (GUILayout.Button("Reset Full Hunting Rotation")) hunt.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.ResetRotation);
+                    if (GUILayout.Button("Force Four Shared Mistakes")) { KhezuLegacyTestPermission.MarkActionUsed(); hunt.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.ForceFourMistakes); }
+                    if (GUILayout.Button("Start / Resume Hunting")) { KhezuLegacyTestPermission.MarkActionUsed(); hunt.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.StartHunting); }
+                    if (GUILayout.Button("Reset Current Hunt")) { KhezuLegacyTestPermission.MarkActionUsed(); hunt.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.ResetHunt); }
+                    if (GUILayout.Button("Reset Full Hunting Rotation")) { KhezuLegacyTestPermission.MarkActionUsed(); hunt.Request(LogicLegends.OpenArchive.Hunting.KhezuCommand.ResetRotation); }
                 }
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Preview existing animations", EditorStyles.boldLabel);
