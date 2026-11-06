@@ -127,6 +127,13 @@ public class TeleportManager : MonoBehaviourPun
     }
 
     // ---> NEW: Call this from your "Next Stage" UI Button <---
+    public IEnumerator RevealAfterLoading(SharedLoadingScreen screen, Action prepareContent)
+    {
+        EnsureCoveredTransition();
+        if (prelimTransition != null) yield return prelimTransition.RevealAfterLoading(screen, prepareContent);
+        else { prepareContent?.Invoke(); screen?.HideImmediate(); }
+    }
+
     public void LoadSceneWithFade(string sceneName)
     {
         if (UsesCoveredTransitions && prelimTransition != null)

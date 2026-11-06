@@ -25,6 +25,8 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private GameObject cinematicPanel;
     [Tooltip("Drag the Video Player component here")]
     [SerializeField] private VideoPlayer introVideoPlayer;
+    [Tooltip("Menu music to pause during the intro, without muting the video's audio.")]
+    [SerializeField] private AudioSource mainMenuMusic;
     [Tooltip("Drag your Skip Button GameObject here")]
     [SerializeField] private GameObject skipButton;
     [Tooltip("The exact name of the tutorial scene")]
@@ -58,12 +60,17 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private TMP_Text authenticationMessage;
     private bool signingIn;
     private bool playIntroAfterUsername;
+    private bool resumeMenuMusicAfterIntro;
+    private bool finishingIntro;
+    private bool accountLoading;
+    private bool connectionErrorVisible;
+    private bool accountReveal;
+    private System.Action accountRetry;
     private int sessionVersion;
     private string observedUserId;
     private volatile bool authStateChanged;
 
     [Header("Feedback Timing")]
-    [SerializeField] private float loginProgressDelay = 0.2f;
     [SerializeField] private float loginFeedbackDuration = 1f;
     [SerializeField] private float logoutFeedbackDuration = 1.5f;
     private Coroutine feedbackTimer;
@@ -76,6 +83,12 @@ public class AuthManager : MonoBehaviour
 
     private void Update()
     {
+        if (accountLoading && Application.internetReachability == NetworkReachability.NotReachable)
+        {
+            ShowConnectionError();
+            return;
+        }
+        if (connectionErrorVisible) return;
         if (!authStateChanged || signingIn || auth == null) return;
         authStateChanged = false;
         string currentId = auth.CurrentUser?.UserId;
@@ -86,8 +99,7 @@ public class AuthManager : MonoBehaviour
         if (currentId != null) CheckLoginState();
         else
         {
-            ShowLoginScreen();
-            Feedback("Session ended. Please log in again.");
+            CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Session ended. Please log in again."); });
         }
     }
 
@@ -120,20 +132,68 @@ public class AuthManager : MonoBehaviour
         ClearFeedback();
     }
 
-    private IEnumerator DelayedSignInFeedback(int version, string message)
-    {
-        yield return new WaitForSecondsRealtime(Mathf.Max(0f, loginProgressDelay));
-        if (this != null && signingIn && version == sessionVersion)
-            Feedback(message);
-    }
-
-
     private void ClearFeedback() { Feedback(""); }
 
     public void ShowInitializationError(string message)
     {
-        ShowLoginScreen();
-        Feedback(message);
+        accountRetry = RetryInitialization;
+        ShowConnectionError();
+    }
+
+    private void Start()
+    {
+        if (!FirebaseManager.IsReady && !connectionErrorVisible) BeginAccountLoading(RetryInitialization);
+    }
+
+    private MainMenuLoadingScreen LoadingScreen => FindFirstObjectByType<MainMenuLoadingScreen>();
+
+    private int BeginAccountLoading(System.Action retry)
+    {
+        accountRetry = retry;
+        accountLoading = true;
+        connectionErrorVisible = false;
+        ClearFeedback();
+        LoadingScreen?.ShowAccountLoading();
+        return ++sessionVersion;
+    }
+
+    private void CompleteAccountLoading(System.Action prepareContent)
+    {
+        accountLoading = false;
+        connectionErrorVisible = false;
+        accountRetry = null;
+        ClearFeedback();
+        StartCoroutine(RevealAccountContent(prepareContent));
+    }
+
+    private IEnumerator RevealAccountContent(System.Action prepareContent)
+    {
+        accountReveal = true;
+        var loading = LoadingScreen;
+        try
+        {
+            if (loading != null) yield return loading.RevealLoadedContent(prepareContent);
+            else prepareContent();
+        }
+        finally { accountReveal = false; }
+    }
+
+    private void ShowConnectionError()
+    {
+        accountLoading = false;
+        connectionErrorVisible = true;
+        signingIn = false;
+        sessionVersion++; // Ignore late replies from the failed attempt.
+        ClearFeedback();
+        var retry = accountRetry ?? (System.Action)CheckLoginState;
+        LoadingScreen?.ShowConnectionError(() => { signingIn = false; connectionErrorVisible = false; retry(); });
+    }
+
+    private void RetryInitialization()
+    {
+        if (FirebaseManager.IsReady) { CheckLoginState(); return; }
+        BeginAccountLoading(RetryInitialization);
+        FindFirstObjectByType<FirebaseManager>()?.RetryInitialization();
     }
 
     private static AuthError ErrorCode(System.AggregateException exception)
@@ -159,6 +219,7 @@ public class AuthManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        ResumeMenuMusicAfterIntro();
         if (auth != null) auth.StateChanged -= OnAuthStateChanged;
         sessionVersion++;
         CancelInvoke();
@@ -187,12 +248,18 @@ public class AuthManager : MonoBehaviour
         if (cinematicPanel != null) cinematicPanel.SetActive(false);
         if (introVideoPlayer != null) introVideoPlayer.Stop();
         if (skipButton != null) skipButton.SetActive(false);
-        Feedback("Connecting...");
+        ClearFeedback();
     }
 
     public void CheckLoginState()
     {
-        if (!FirebaseManager.IsReady) return;
+        if (!FirebaseManager.IsReady || connectionErrorVisible) return;
+        if (Application.internetReachability == NetworkReachability.NotReachable)
+        {
+            accountRetry = CheckLoginState;
+            ShowConnectionError();
+            return;
+        }
         auth = FirebaseAuth.DefaultInstance;
         auth.StateChanged -= OnAuthStateChanged;
         auth.StateChanged += OnAuthStateChanged;
@@ -208,11 +275,9 @@ public class AuthManager : MonoBehaviour
         if (auth.CurrentUser != null)
         {
             var savedUser = auth.CurrentUser;
-            int version = sessionVersion;
+            int version = BeginAccountLoading(CheckLoginState);
             string savedId = savedUser.UserId;
             // Firebase persists credentials. A temporary network failure must not erase them.
-            Feedback("Welcome back! Loading profile...");
-            CheckFirstTimeSetup();
             Debug.Log("Found saved session. Verifying with server...");
             savedUser.ReloadAsync().ContinueWithOnMainThread(task =>
             {
@@ -226,10 +291,9 @@ public class AuthManager : MonoBehaviour
                         sessionVersion++;
                         observedUserId = null;
                         auth.SignOut();
-                        ShowLoginScreen();
-                        Feedback("Session expired. Please log in again.");
+                        CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Session expired. Please log in again."); });
                     }
-                    else Feedback("Still signed in. Check the connection if the profile does not load.");
+                    else ShowConnectionError();
                 }
                 else
                 {
@@ -238,17 +302,16 @@ public class AuthManager : MonoBehaviour
                         sessionVersion++;
                         observedUserId = null;
                         auth.SignOut();
-                        ShowLoginScreen();
-                        Feedback("Please verify the email address before logging in.");
+                        CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Please verify the email address before logging in."); });
                     }
+                    else CheckFirstTimeSetup();
                 }
             });
         }
         else
         {
             Debug.Log("No user found. Please log in.");
-            ShowLoginScreen(); 
-            Feedback("");
+            CompleteAccountLoading(ShowLoginScreen);
         }
     }
 
@@ -259,11 +322,9 @@ public class AuthManager : MonoBehaviour
         if (this == null || auth == null || auth.CurrentUser == null) return;
         string userId = auth.CurrentUser.UserId;
         observedUserId = userId;
-        int version = sessionVersion;
+        int version = BeginAccountLoading(CheckFirstTimeSetup);
         playIntroAfterUsername = false;
-        ShowModeSelection();
-        if (usernameSetup != null) usernameSetup.ShowLoading();
-        Feedback("Checking player profile...");
+        if (usernameSetup != null) usernameSetup.Hide();
         DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
 
         Debug.Log("Checking if player has chosen a base character...");
@@ -272,9 +333,7 @@ public class AuthManager : MonoBehaviour
             if (!IsCurrentSession(version, userId)) return;
             if (task.IsFaulted || task.IsCanceled)
             {
-                ClearFeedback();
-                if (usernameSetup != null) usernameSetup.ShowLoadError();
-                else Feedback("Signed in. Couldn't load the profile; check the connection.", loginFeedbackDuration);
+                ShowConnectionError();
                 return;
             }
 
@@ -286,22 +345,18 @@ public class AuthManager : MonoBehaviour
                     if (!IsCurrentSession(version, userId)) return;
                     if (nameTask.IsFaulted || nameTask.IsCanceled)
                     {
-                        ClearFeedback();
-                        if (usernameSetup != null) usernameSetup.ShowLoadError();
-                        else Feedback("Couldn't load the player name. Check the connection.", loginFeedbackDuration);
+                        ShowConnectionError();
                         return;
                     }
                     if (PlayerUsername.TryNormalize(nameTask.Result.Value?.ToString(), out string storedUsername))
                     {
                         PlayerUsername.SetVerified(userId, storedUsername);
                         if (usernameSetup != null) usernameSetup.Hide();
-                        ShowModeSelection();
-                        Feedback("Logged in successfully.", loginFeedbackDuration);
+                        CompleteAccountLoading(ShowModeSelection);
                     }
                     else if (usernameSetup != null)
                     {
-                        ClearFeedback();
-                        usernameSetup.ShowPrompt();
+                        CompleteAccountLoading(() => ShowUsernamePrompt());
                     }
                     else Debug.LogError("Username prompt is missing from the Main Menu scene.");
                 });
@@ -309,8 +364,7 @@ public class AuthManager : MonoBehaviour
             else
             {
                 if (usernameSetup != null) usernameSetup.Hide();
-                ShowCharacterSelectScreen();
-                Feedback("Logged in successfully.", loginFeedbackDuration);
+                CompleteAccountLoading(ShowCharacterSelectScreen);
             }
         });
     }
@@ -321,7 +375,7 @@ public class AuthManager : MonoBehaviour
         if (auth == null || auth.CurrentUser == null) return;
         if (characterID != "Male_Character" && characterID != "Female_Character") return;
         string userId = auth.CurrentUser.UserId;
-        int version = sessionVersion;
+        int version = BeginAccountLoading(() => SelectBaseCharacter(characterID));
         DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
 
         // Save their choice to Firebase
@@ -329,13 +383,13 @@ public class AuthManager : MonoBehaviour
         {
             if (!IsCurrentSession(version, userId)) return;
             if (task.IsFaulted || task.IsCanceled)
-                Feedback("Couldn't save the character. Check the connection and try again.");
+                ShowConnectionError();
             else
             {
                 Debug.Log($"Successfully saved {characterID} as base character!");
                 LogicGardenProgress.ResetForNewGame();
                 playIntroAfterUsername = true;
-                if (usernameSetup != null) usernameSetup.ShowPrompt();
+                if (usernameSetup != null) CompleteAccountLoading(() => ShowUsernamePrompt());
                 else Debug.LogError("Username prompt is missing from the Main Menu scene.");
             }
         });
@@ -343,17 +397,24 @@ public class AuthManager : MonoBehaviour
 
     public void RetryUsernameSetup() => CheckFirstTimeSetup();
 
+    private void ShowUsernamePrompt(string error = null)
+    {
+        if (characterSelectMenu != null) characterSelectMenu.SetActive(false);
+        ClearFeedback();
+        usernameSetup.ShowPrompt(error);
+    }
+
     public void SubmitUsername(string value)
     {
         if (auth == null || auth.CurrentUser == null || usernameSetup == null) return;
         var validation = PlayerUsername.Validate(value, out string username);
         if (validation != PlayerUsername.ValidationResult.Valid)
         {
-            usernameSetup.ShowPrompt(PlayerUsername.Feedback(validation));
+            ShowUsernamePrompt(PlayerUsername.Feedback(validation));
             return;
         }
         string userId = auth.CurrentUser.UserId;
-        int version = sessionVersion;
+        int version = BeginAccountLoading(() => SubmitUsername(value));
         usernameSetup.ShowSaving();
         FirebaseDatabase.DefaultInstance.RootReference.Child("users").Child(userId).Child("username")
             .SetValueAsync(username).ContinueWithOnMainThread(task =>
@@ -361,14 +422,17 @@ public class AuthManager : MonoBehaviour
                 if (!IsCurrentSession(version, userId)) return;
                 if (task.IsFaulted || task.IsCanceled)
                 {
-                    usernameSetup.ShowPrompt("Couldn't save the name. Check the connection and retry.");
+                    ShowConnectionError();
                     return;
                 }
-                usernameSetup.Hide();
-                PlayerUsername.SetVerified(userId, username);
-                if (playIntroAfterUsername) PlayIntroCutscene();
-                else ShowModeSelection();
-                playIntroAfterUsername = false;
+                CompleteAccountLoading(() =>
+                {
+                    usernameSetup.Hide();
+                    PlayerUsername.SetVerified(userId, username);
+                    if (playIntroAfterUsername) PlayIntroCutscene();
+                    else ShowModeSelection();
+                    playIntroAfterUsername = false;
+                });
             });
     }
 
@@ -390,6 +454,7 @@ public class AuthManager : MonoBehaviour
         // 3. Play the video and listen for the end
         if (introVideoPlayer != null)
         {
+            PauseMenuMusicForIntro();
             introVideoPlayer.loopPointReached -= OnCutsceneFinished;
             introVideoPlayer.errorReceived -= OnCutsceneError;
             // Subscribe to the event that fires when the video finishes
@@ -399,7 +464,7 @@ public class AuthManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("No Video Player assigned! Skipping straight to tutorial.");
+            Debug.LogWarning("No Video Player assigned! Returning to the main menu.");
             FinishCutsceneAndShowMainMenu();
         }
     }
@@ -423,6 +488,13 @@ public class AuthManager : MonoBehaviour
 
     private void FinishCutsceneAndShowMainMenu()
     {
+        if (finishingIntro) return;
+        finishingIntro = true;
+        StartCoroutine(RevealMainMenuAfterIntro());
+    }
+
+    private IEnumerator RevealMainMenuAfterIntro()
+    {
         ClearFeedback();
         // Clean up video player events and stop playback
         if (introVideoPlayer != null)
@@ -436,8 +508,27 @@ public class AuthManager : MonoBehaviour
         if (cinematicPanel != null) cinematicPanel.SetActive(false);
         if (skipButton != null) skipButton.SetActive(false);
 
-        // Load the Main Menu UI
-        ShowModeSelection();
+        // Revalidate the signed-in session before revealing the menu. A slow request
+        // keeps the loading screen visible; a failed request exposes Retry / Cancel.
+        if (FirebaseManager.IsReady) CheckLoginState();
+        else RetryInitialization();
+        while (accountLoading || connectionErrorVisible || accountReveal) yield return null;
+        ResumeMenuMusicAfterIntro();
+        finishingIntro = false;
+    }
+
+    private void PauseMenuMusicForIntro()
+    {
+        if (mainMenuMusic == null || !mainMenuMusic.isPlaying) return;
+        mainMenuMusic.Pause();
+        resumeMenuMusicAfterIntro = true;
+    }
+
+    private void ResumeMenuMusicAfterIntro()
+    {
+        if (!resumeMenuMusicAfterIntro) return;
+        resumeMenuMusicAfterIntro = false;
+        if (mainMenuMusic != null) mainMenuMusic.UnPause();
     }
 
     // private void OnCutsceneFinished(VideoPlayer vp)
@@ -471,9 +562,7 @@ public class AuthManager : MonoBehaviour
             return;
         }
         signingIn = true;
-        int version = ++sessionVersion;
-        ClearFeedback();
-        StartCoroutine(DelayedSignInFeedback(version, "Opening Google sign-in..."));
+        int version = BeginAccountLoading(OnClickGoogleSignIn);
         StartCoroutine(BeginGoogleSignIn(version));
     }
 
@@ -506,8 +595,7 @@ public class AuthManager : MonoBehaviour
             signingIn = false;
             Debug.LogError("Google sign-in could not start.");
             Debug.LogException(exception);
-            ShowLoginScreen();
-            Feedback("Couldn't open Google sign-in. Please try again.", loginFeedbackDuration);
+            CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Couldn't open Google sign-in. Please try again.", loginFeedbackDuration); });
         }
     }
 
@@ -517,16 +605,14 @@ public class AuthManager : MonoBehaviour
         {
             signingIn = false;
             Debug.LogError("Google Sign-In failed or was canceled.");
-            ShowLoginScreen();
-            Feedback("Google sign-in was canceled or failed. Please try again.", loginFeedbackDuration);
+            CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Google sign-in was canceled or failed. Please try again.", loginFeedbackDuration); });
             return;
         }
 
         if (task.Result == null || string.IsNullOrEmpty(task.Result.IdToken))
         {
             signingIn = false;
-            ShowLoginScreen();
-            Feedback("Google did not return a sign-in token. Please try again.", loginFeedbackDuration);
+            CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Google did not return a sign-in token. Please try again.", loginFeedbackDuration); });
             return;
         }
 
@@ -541,13 +627,11 @@ public class AuthManager : MonoBehaviour
             if (authTask.IsCanceled || authTask.IsFaulted)
             {
                 Debug.LogError("Firebase failed to authenticate Google credential.");
-                ShowLoginScreen();
-                Feedback("Couldn't log in with Google. Check the connection and try again.", loginFeedbackDuration);
+                ShowConnectionError();
                 return;
             }
 
             Debug.Log("Google Login Success! Waiting for Database Security Sync...");
-            Feedback("Logged in successfully.", loginFeedbackDuration);
             CheckFirstTimeSetup();
         });
     }
@@ -569,10 +653,13 @@ public class AuthManager : MonoBehaviour
             Feedback("Enter an email address and password.", loginFeedbackDuration);
             return;
         }
+        SignInWithEmail(email, password);
+    }
+
+    private void SignInWithEmail(string email, string password)
+    {
         signingIn = true;
-        int version = ++sessionVersion;
-        ClearFeedback();
-        StartCoroutine(DelayedSignInFeedback(version, "Logging in..."));
+        int version = BeginAccountLoading(() => SignInWithEmail(email, password));
         auth.SignInWithEmailAndPasswordAsync(email, password).ContinueWithOnMainThread(task =>
         {
             if (this == null || version != sessionVersion) return;
@@ -580,16 +667,16 @@ public class AuthManager : MonoBehaviour
             if (task.IsCanceled || task.IsFaulted)
             {
                 var error = ErrorCode(task.Exception);
+                string message;
                 if (error == AuthError.InvalidEmail || error == AuthError.WrongPassword ||
                     error == AuthError.UserNotFound || error == AuthError.InvalidCredential)
-                    Feedback("Incorrect email or password. Please try again.", loginFeedbackDuration);
-                else if (error == AuthError.Failure)
-                    Feedback("Couldn't log in. Check the email address and password and try again.", loginFeedbackDuration);
+                    message = "Incorrect email or password. Please try again.";
                 else if (error == AuthError.TooManyRequests)
-                    Feedback("Too many attempts. Please wait and try again.", loginFeedbackDuration);
+                    message = "Too many attempts. Please wait and try again.";
                 else if (error == AuthError.UserDisabled)
-                    Feedback("This account is disabled.", loginFeedbackDuration);
-                else Feedback("Couldn't log in. Check the connection and try again.", loginFeedbackDuration);
+                    message = "This account is disabled.";
+                else { ShowConnectionError(); return; }
+                CompleteAccountLoading(() => { ShowLoginScreen(); Feedback(message, loginFeedbackDuration); });
                 return;
             }
 
@@ -597,10 +684,9 @@ public class AuthManager : MonoBehaviour
             {
                 Debug.LogWarning("Access Denied: Please verify your email address first!");
                 auth.SignOut();
-                Feedback("Please verify the email address before logging in.", loginFeedbackDuration);
+                CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Please verify the email address before logging in.", loginFeedbackDuration); });
                 return;
             }
-            Feedback("Logged in successfully.", loginFeedbackDuration);
             CheckFirstTimeSetup();
         });
     }
@@ -659,6 +745,8 @@ public class AuthManager : MonoBehaviour
 
     public void OnClickLogout()
     {
+        accountLoading = false;
+        accountRetry = null;
         sessionVersion++;
         observedUserId = null;
         signingIn = false;

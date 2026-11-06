@@ -2,6 +2,7 @@
   "rules": {
     ".read": false,
     ".write": false,
+    "commerceOrders": { ".indexOn": ["expiryCheckAt"] },
     "social": {
       "requests": {
         "$recipient": {
@@ -23,10 +24,11 @@
       "messages": {
         "$first": {
           "$second": {
+            ".indexOn": ["sentAt"],
             ".read": "auth != null && (auth.uid === $first || auth.uid === $second) && root.child('social/friends').child($first).child($second).val() === true && root.child('social/friends').child($second).child($first).val() === true",
             "$message": {
               ".write": "auth != null && !data.exists() && (auth.uid === $first || auth.uid === $second) && root.child('social/friends').child($first).child($second).val() === true && root.child('social/friends').child($second).child($first).val() === true",
-              ".validate": "newData.hasChildren(['sender', 'text', 'inviteCode', 'sentAt']) && newData.child('sender').val() === auth.uid && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 200 && newData.child('inviteCode').isString() && (newData.child('inviteCode').val().length === 0 || newData.child('inviteCode').val().length === 6) && newData.child('sentAt').isNumber()"
+              ".validate": "newData.hasChildren(['sender', 'text', 'inviteCode', 'sentAt']) && newData.child('sender').val() === auth.uid && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 200 && newData.child('inviteCode').isString() && (newData.child('inviteCode').val().length === 0 || newData.child('inviteCode').val().length === 6) && newData.child('sentAt').isNumber() && newData.child('sentAt').val() === now"
             }
           }
         }

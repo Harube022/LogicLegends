@@ -10,16 +10,21 @@ test('HTTP checkout, signed fulfillment, wallet, purchase and equip work togethe
     const uid = 'automated-commerce-' + Date.now();
     const secret = 'fixture-signing-secret';
     const sessions = new Map();
+    let payImmediately = true;
     const env = { STORAGE_MODE: 'emulator', PAYMENT_MODE: 'test', FIREBASE_DATABASE_EMULATOR_HOST: '127.0.0.1:9000',
       FIREBASE_PROJECT_ID: 'logic-legends-ac66c', PUBLIC_BASE_URL: 'https://fixture.example',
       PAYMONGO_SECRET_KEY: 'sk_test_fixture', PAYMONGO_WEBHOOK_SECRET: secret };
     const app = createApp(env, {
       verifyIdToken: async token => { if (!token) throw Error(); return { uid: token === 'fixture' ? uid : uid + '-other' }; },
       paymongo: async (path, body) => {
+        if (path.endsWith('/expire')) {
+          const session = sessions.get(path.split('/').at(-2));
+          session.attributes.status = 'expired'; return session;
+        }
         if (!body) return sessions.get(path.split('/').pop());
         const id = 'cs_' + sessions.size;
         const session = { id, attributes: { ...body, livemode: false, checkout_url: 'https://checkout.paymongo.com/' + id,
-          payments: [{ id: 'pay_' + id, attributes: { amount: 100, currency: 'PHP', livemode: false, status: 'paid' } }] } };
+          status: 'active', payments: payImmediately ? [{ id: 'pay_' + id, attributes: { amount: 100, currency: 'PHP', livemode: false, status: 'paid' } }] : [] } };
         sessions.set(id, session); return session;
       }
     });
@@ -62,6 +67,22 @@ test('HTTP checkout, signed fulfillment, wallet, purchase and equip work togethe
       assert.equal((await request('/purchase', { itemId: 'Elite_Skin' })).status, 409);
       assert.equal((await request('/equip', { itemId: 'Elite_Skin' })).status, 409);
       assert.equal((await (await request('/equip', { itemId: 'Common_Skin' })).json()).equippedClothes, 'Common_Skin');
+      const packs = (await (await request('/wallet')).json()).packs;
+      assert.equal(packs.length, 6);
+      payImmediately = false; env.CHECKOUT_ENABLED = 'true';
+      for (const pack of packs) {
+        const input = { productId: pack.id, requestId: crypto.randomBytes(16).toString('hex'), amount: 1, gems: 99999 };
+        const checkout = await (await request('/checkout', input)).json(); orders.push(checkout.orderId);
+        assert.equal(checkout.amount, pack.amount); assert.equal(checkout.gems, pack.gems); assert.equal(checkout.currency, 'PHP');
+        assert.equal((await request('/orders/' + checkout.orderId + '/cancel', {}, 'someone-else')).status, 404);
+        const cancelled = await (await request('/orders/' + checkout.orderId + '/cancel', {})).json();
+        assert.equal(cancelled.status, 'expired'); assert.equal(cancelled.expiryReason, 'player_cancelled');
+        const repeated = await (await request('/checkout', input)).json(); assert.equal(repeated.status, 'expired');
+        assert.equal((await request('/checkout', { ...input, productId: pack.id === 'gems_5' ? 'gems_25' : 'gems_5' })).status, 409);
+        const stored = (await getDatabase(getApp('commerce-data')).ref('commerceOrders/' + checkout.orderId).get()).val();
+        assert.equal(stored.status, 'expired'); assert.equal(stored.gems, pack.gems);
+      }
+      assert.equal((await (await request('/wallet')).json()).gems, 0, 'cancelled packs never add gems');
     } finally {
       await new Promise(resolve => server.close(resolve));
       const db = getDatabase(getApp('commerce-data'));

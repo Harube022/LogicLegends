@@ -12,6 +12,17 @@ function startServer(env = process.env) {
   const server = app.listen(port, host, () => console.log(setup
     ? `Commerce setup service listening on ${host}:${server.address().port}; payments disabled`
     : `Commerce listening on ${host}:${server.address().port}; storage=${env.STORAGE_MODE}, payments=${env.PAYMENT_MODE}`));
+  if (app.locals.chatCleanup) {
+    server.once('listening', () => app.locals.chatCleanup.start());
+    server.once('close', () => app.locals.chatCleanup.stop());
+  }
+  // A sleeping Free instance runs this on wake; order reads/cancels also enforce
+  // the deadline. Never hold startup/health checks on Firebase availability.
+  if (app.locals.sweepExpiredOrders) {
+    const sweep = () => app.locals.sweepExpiredOrders().catch(error => console.error('Checkout sweep failed:', error.code || error.name));
+    const timer = setInterval(sweep, 60000);
+    timer.unref(); server.once('close', () => clearInterval(timer));
+  }
   server.on('error', error => {
     console.error(`Commerce listener failed: ${error.code || 'UNKNOWN'}`);
     process.exitCode = 1;

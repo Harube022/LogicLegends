@@ -1,7 +1,9 @@
 const express = require('express');
 const crypto = require('node:crypto');
-const { catalog, fail, signature, validatePayment, grant, buy, present, mutate } = require('./wallet');
+const { catalog, fail, signature, buy, present, mutate } = require('./wallet');
 const trials = require('./trials');
+const { lifecycle, CHECKOUT_LIFETIME_MS, terminal } = require('./order-lifecycle');
+const { attachChatCleanup } = require('./chat-retention');
 
 function createApp(env = process.env, integrations = {}) {
   // Let a new hosting service obtain its HTTPS URL before private credentials
@@ -11,7 +13,9 @@ function createApp(env = process.env, integrations = {}) {
     const setup = express();
     setup.disable('x-powered-by');
     setup.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
-    setup.get('/health', (req, res) => res.json({ mode: 'setup', paymentsEnabled: false }));
+    const cleanup = attachChatCleanup(setup, env, integrations.chatCleanup);
+    setup.get('/health', (req, res) => res.json({ mode: 'setup', paymentsEnabled: false,
+      ...(cleanup ? { chatCleanup: cleanup.status } : {}) }));
     setup.use((req, res) => res.status(503).json({ code: 'SHOP_SETUP', error: 'Purchases are not available yet.' }));
     return setup;
   }
@@ -47,6 +51,7 @@ function createApp(env = process.env, integrations = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+  const cleanup = attachChatCleanup(app, env, integrations.chatCleanup);
   const asyncRoute = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
 
   function configuration() {
@@ -64,27 +69,16 @@ function createApp(env = process.env, integrations = {}) {
       headers: { Authorization: 'Basic ' + Buffer.from(key + ':').toString('base64'), 'Content-Type': 'application/json' },
       ...(body ? { body: JSON.stringify({ data: { attributes: body } }) } : {})
     });
-    if (!response.ok) throw fail('Payment provider is unavailable. Please retry.', 502);
+    if (!response.ok) throw Object.assign(fail('Payment provider is unavailable. Please retry.', 502), { providerStatus: response.status });
     const result = (await response.json()).data;
     if (result?.attributes?.livemode !== live) throw fail('Payment mode mismatch.', 502);
     return result;
   }
-  async function reconcile(order) {
-    if (!order?.sessionId || order.status === 'paid') return;
-    const session = await paymongo('v1/checkout_sessions/' + encodeURIComponent(order.sessionId));
-    const payment = validatePayment(session, order, live);
-    if (!payment) {
-      if (session.attributes.status === 'expired') await orders.child(order.id).update({ status: 'expired' });
-      return;
-    }
-    // Grant marker and gems are in ONE account transaction. Replaying after a
-    // crash between this commit and the order update never credits twice.
-    const ref = users.child(order.uid);
-    const result = await mutate(ref, account => grant(account, order, payment));
-    if (!result.snapshot.child('paymentGrants/' + order.id).exists()) throw fail('Account is not ready. Please retry.', 409);
-    await orders.child(order.id).update({ status: 'paid', paymentId: payment.id });
-  }
-  app.get('/health', (req, res) => res.json({ sandbox, live, paymentsEnabled: paymentsEnabled(), mode: sandbox ? 'sandbox' : 'live' }));
+  const { reconcile, presentOrder, sweep } = lifecycle({ orders, users, paymongo, live, now: integrations.now });
+  app.locals.sweepExpiredOrders = sweep;
+  const wallet = account => ({ ...present(account, sandbox, live), paymentsEnabled: paymentsEnabled(), packs: catalog.packs });
+  app.get('/health', (req, res) => res.json({ sandbox, live, paymentsEnabled: paymentsEnabled(), mode: sandbox ? 'sandbox' : 'live',
+    ...(cleanup ? { chatCleanup: cleanup.status } : {}) }));
   app.get(['/success', '/cancel'], (req, res) => res.type('html').send('<!doctype html><meta name="viewport" content="width=device-width"><title>Logic Legends</title><h1>Return to Logic Legends</h1><p>Your game will verify the payment and refresh your gems.</p>'));
   app.post('/webhook', express.raw({ type: 'application/json', limit: '256kb' }), asyncRoute(async (req, res) => {
     if (!Buffer.isBuffer(req.body) || !signature(req.body, req.get('Paymongo-Signature'), env.PAYMONGO_WEBHOOK_SECRET, live)) throw fail('Invalid signature.', 401);
@@ -143,9 +137,9 @@ function createApp(env = process.env, integrations = {}) {
       }
       const account = (await userRef.get()).val();
       if (!account?.base_character) throw fail('Choose your character first.', 409);
-      return res.json({ ...present(account, sandbox, live), paymentsEnabled: paymentsEnabled() });
+      return res.json(wallet(account));
     }
-    if (req.method === 'GET' && req.path === '/wallet') return res.json({ ...present((await userRef.get()).val(), sandbox, live), paymentsEnabled: paymentsEnabled() });
+    if (req.method === 'GET' && req.path === '/wallet') return res.json(wallet((await userRef.get()).val()));
     if (req.method === 'POST' && req.path === '/equip') {
       const itemId = req.body?.itemId;
       if (typeof itemId !== 'string' || !/^[A-Za-z0-9_]+$/.test(itemId)) throw fail('Invalid outfit.');
@@ -177,11 +171,12 @@ function createApp(env = process.env, integrations = {}) {
       const ref = orders.child(id);
       const lock = await ref.transaction(old => old ? undefined : {
         id, uid, productId: pack.id, gems: pack.gems, amount: pack.amount, currency: pack.currency,
-        live, status: 'creating', createdAt: Date.now()
+        live, status: 'creating', createdAt: Date.now(), expiresAt: Date.now() + CHECKOUT_LIFETIME_MS
       });
       if (!lock.committed) {
         const old = lock.snapshot.val();
-        if (old?.checkoutUrl) return res.json({ orderId: id, checkoutUrl: old.checkoutUrl, sandbox, live });
+        if (old?.productId !== pack.id) throw fail('This request belongs to another gem pack.', 409);
+        if (old?.checkoutUrl) return res.json(presentOrder(await reconcile(old)));
         throw fail('Checkout is still being created. Retry to check the same order.', 409);
       }
       try {
@@ -192,8 +187,8 @@ function createApp(env = process.env, integrations = {}) {
         });
         const url = new URL(session.attributes.checkout_url);
         if (url.protocol !== 'https:' || url.hostname !== 'checkout.paymongo.com') throw fail('Invalid payment URL.', 502);
-        await ref.update({ sessionId: session.id, checkoutUrl: url.href, status: 'pending' });
-        return res.json({ orderId: id, checkoutUrl: url.href, sandbox, live });
+        await ref.update({ sessionId: session.id, checkoutUrl: url.href, status: 'pending', expiryCheckAt: Date.now() + CHECKOUT_LIFETIME_MS });
+        return res.json(presentOrder((await ref.get()).val()));
       } catch (error) {
         // Keep the request reserved after an uncertain timeout. A new automatic
         // session could charge twice. Resolve the provider request before retry.
@@ -201,13 +196,14 @@ function createApp(env = process.env, integrations = {}) {
         throw error;
       }
     }
-    if (req.method === 'GET' && req.path.startsWith('/orders/')) {
-      const id = req.path.slice(8);
+    if ((req.method === 'GET' && /^\/orders\/[a-f0-9]{64}$/.test(req.path)) ||
+        (req.method === 'POST' && /^\/orders\/[a-f0-9]{64}\/cancel$/.test(req.path))) {
+      const id = req.path.split('/')[2];
       if (!/^[a-f0-9]{64}$/.test(id)) throw fail('Invalid order ID.');
       const order = (await orders.child(id).get()).val();
       if (!order || order.uid !== uid) throw fail('Order not found.', 404);
-      await reconcile(order);
-      return res.json({ orderId: id, status: (await orders.child(id + '/status').get()).val(), sandbox, live });
+      if (!order.sessionId && !terminal(order)) throw fail('Checkout needs review. Please contact support.', 409);
+      return res.json(presentOrder(await reconcile(order, req.method === 'POST')));
     }
     throw fail('Unknown endpoint.', 404);
   }));
