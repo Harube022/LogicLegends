@@ -30,8 +30,10 @@ namespace LogicLegends.Inference
         readonly List<Behaviour> cameraInputs = new List<Behaviour>();
         Action collect, cancel;
         Canvas practiceSkipCanvas;
+        string rewardEvent;
+        InferenceCrystal rewardCrystal;
 
-        public bool Open(Action onCollect, bool practice = false, Button sharedSkip = null, Action onCancel = null)
+        public bool Open(Action onCollect, bool practice = false, Button sharedSkip = null, Action onCancel = null, InferenceCrystal crystal = null)
         {
             if (IsOpen || onCollect == null || Player.LocalInstance == null || GameInput.Instance == null) return false;
             if (!practice && (StageJourneyUI.Instance == null || StageJourneyUI.Instance.InferenceEnded)) return false;
@@ -40,6 +42,8 @@ namespace LogicLegends.Inference
             // Practice gets its own deck, so it cannot consume or reveal the real pickup sequence.
             Current = practice ? new InferencePickupQuestions.Deck(Guid.NewGuid().GetHashCode()).Next() : deck.Next();
             IsPractice = practice; Answered = false; collect = onCollect; cancel = onCancel;
+            rewardCrystal = crystal;
+            rewardEvent = crystal != null ? InferenceCrystalInteraction.QuizEvent(crystal) : null;
             player = Player.LocalInstance; input = GameInput.Instance;
             previousControl = player.enabled; previousBlocked = input.GameplayInputBlocked;
             previousCursorLock = Cursor.lockState; previousCursorVisible = Cursor.visible;
@@ -90,6 +94,11 @@ namespace LogicLegends.Inference
             if (!IsOpen || Answered || choice < 0 || choice >= 4) return;
             Answered = true; // Latch before sound, penalty or any other callback.
             bool correct = choice == Current.CorrectChoice;
+            if (!IsPractice && rewardEvent != null)
+            {
+                TrialRewards.RecordQuizAnswer(3, rewardEvent, "roi-" + Current.Question.Id, Current.ChoiceOrder[choice], correct);
+                rewardCrystal?.MarkPickupQuizCompleted();
+            }
             foreach (var button in AnswerButtons) button.interactable = false;
             FeedbackLabel.text = (correct ? "Correct!" : "Incorrect.") + "\n" + Current.Question.Explanation +
                 (IsPractice ? "\nPractice only: no time is deducted and no gameplay crystal is awarded."
@@ -113,7 +122,7 @@ namespace LogicLegends.Inference
         public void Close()
         {
             if (!IsOpen) return;
-            IsOpen = false; collect = null; cancel = null;
+            IsOpen = false; collect = null; cancel = null; rewardCrystal = null; rewardEvent = null;
             if (root != null) root.gameObject.SetActive(false);
             // Reuse these components until the tutorial destroys its shared button.
             // Deferred Destroy followed by a same-frame reopen can otherwise add a

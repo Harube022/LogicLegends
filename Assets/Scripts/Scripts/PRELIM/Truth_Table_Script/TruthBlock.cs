@@ -1,21 +1,22 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class TruthBlock : MonoBehaviour
+public partial class TruthBlock : MonoBehaviour
 {
     static readonly List<TruthBlock> activeBlocks = new List<TruthBlock>();
     public static IReadOnlyList<TruthBlock> ActiveBlocks => activeBlocks;
     HandThoughtBubble pickupBubble;
-    public bool UsesHandBubble => TruthTableDoorInteraction.Active != null && TruthTableDoorInteraction.Active.UsesHandBubbles &&
-        (spawnOwner != null && spawnOwner.transform.IsChildOf(TruthTableDoorInteraction.Active.transform.root) ||
-         transform.IsChildOf(TruthTableDoorInteraction.Active.transform.root));
-    public bool CanCollectNow => !UsesHandBubble || TruthTableDoorInteraction.Active.IsBlockAvailable(this);
+    public bool BelongsTo(TruthTableDoorInteraction owner)=>owner!=null&&spawnOwner!=null&&
+        spawnOwner.gameObject.scene==owner.gameObject.scene&&spawnOwner.transform.root==owner.transform.root;
+    public bool UsesHandBubble => TruthTableDoorInteraction.Active != null && TruthTableDoorInteraction.Active.UsesHandBubbles && BelongsTo(TruthTableDoorInteraction.Active);
+    public bool CanCollectNow => !IsRecovering && (!UsesHandBubble || TruthTableDoorInteraction.Active.IsBlockAvailable(this));
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetBlocks() { activeBlocks.Clear(); }
     void OnEnable() { if(!activeBlocks.Contains(this))activeBlocks.Add(this); }
-    void OnDisable() { activeBlocks.Remove(this);if(pickupBubble!=null)pickupBubble.gameObject.SetActive(false); }
+    void OnDisable() { CancelWaterRecovery(); activeBlocks.Remove(this);if(pickupBubble!=null)pickupBubble.gameObject.SetActive(false); }
     void LateUpdate()
     {
+        UpdateWaterRecovery(Time.deltaTime);
         if(!UsesHandBubble){if(pickupBubble!=null)pickupBubble.gameObject.SetActive(false);return;}
         bool available=CanCollectNow;
         if(pickupBubble==null&&available)
@@ -66,6 +67,8 @@ public class TruthBlock : MonoBehaviour
 
     public void MarkCollectedFromSpawn()
     {
+        // A genuine new pickup/drop must not inherit the previous recovery cooldown.
+        nextRecovery = 0;
         if (!isAtSpawnPoint) return;
         lastCollectedSpawnPoint = currentSpawnPoint;
         isAtSpawnPoint = false;
@@ -123,6 +126,7 @@ public class TruthBlock : MonoBehaviour
 
     private void RestoreInWorld(Vector3 position, Quaternion rotation)
     {
+        CancelWaterRecovery();
         Collider col = GetComponent<Collider>();
         if (col != null) col.enabled = false;
         if (rb != null)
@@ -164,16 +168,6 @@ public class TruthBlock : MonoBehaviour
     public void CollectBlock()
     {
         if (!CanCollectNow || InventoryManager.Instance == null) return;
-        // Pass 'this' so the inventory slot can remember this specific block object
-        int slotIndex = InventoryManager.Instance.TryPickupBlock(value, this);
-
-        // -1 means the pickup failed (inventory was full)
-        if (slotIndex != -1)
-        {
-            Debug.Log("Block data logged into inventory! Model remains visible in world until slot is tapped.");
-            
-            // Auto-select the slot the item was placed into
-            InventoryManager.Instance.SetSelectedSlotDirectly(slotIndex);
-        }
+        InventoryManager.Instance.TryPickupBlock(value, this);
     }
 }

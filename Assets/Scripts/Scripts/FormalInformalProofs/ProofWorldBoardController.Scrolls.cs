@@ -11,6 +11,17 @@ public sealed partial class ProofWorldBoardController
     {
         get { foreach (var slot in statementSlots) yield return slot; foreach (var slot in ruleSlots) yield return slot; }
     }
+    public IEnumerable<ProofWorldPedestal> SourceStations
+    {
+        get { foreach (var source in statementTablets) yield return source; foreach (var source in ruleTablets) yield return source; }
+    }
+    public bool CanRemoveFromSlot(ProofWorldPedestal slot)
+    {
+        if(challenge==null || feedback!=0 || HasCarriedScroll || slot==null || !slot.gameObject.activeInHierarchy)return false;
+        int index=IndexOf(statementSlots,slot);
+        if(index>=0)return assignedSteps[index]>=0;
+        index=IndexOf(ruleSlots,slot);return index>=0 && assignedRules[index]>=0;
+    }
     public void BindScrollInteraction(Action<ProofWorldPedestal> read, Action changed)
     { readRequested = read; carryChanged = changed; }
 

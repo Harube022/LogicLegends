@@ -17,6 +17,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
     private static int[] sessionQuestionIndices;
     private static bool[] sessionAnswered;
+    private static TruthTableDoorInteraction sessionOwner;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetSession()
@@ -24,6 +25,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         sessionQuestionIndices = null;
         sessionAnswered = null;
         Active = null;
+        sessionOwner = null;
     }
 
     public static void ClearSessionForRestart() { ResetSession(); }
@@ -164,6 +166,9 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
     private void AssignQuestions()
     {
+        // Disabling/re-enabling this component keeps its live state. A newly
+        // loaded scene always owns a fresh door deal, including menu re-entry.
+        if(sessionOwner!=this){sessionQuestionIndices=null;sessionAnswered=null;sessionOwner=this;}
         if (sessionQuestionIndices == null || sessionQuestionIndices.Length != doors.Length ||
             sessionAnswered == null || sessionAnswered.Length != doors.Length)
         {
@@ -261,6 +266,13 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
     private void OnEnable()
     {
         Active = this;
+        if(hinges!=null&&answered!=null)
+            for(int i=0;i<doors.Length;i++)
+            {
+                doorOpened[i]=answered[i];
+                if(hinges[i]!=null)hinges[i].localRotation=closedRotations[i]*(answered[i]?Quaternion.Euler(0,openAngle,0):Quaternion.identity);
+                foreach(var c in doors[i].GetComponents<Collider>())c.enabled=!answered[i];
+            }
         if (interactionPrompt != null) interactionPrompt.SetActive(false);
         if (blankPanel != null) blankPanel.SetActive(false);
         if (promptButton != null) { promptButton.onClick.RemoveAllListeners(); promptButton.interactable = false; }
@@ -353,7 +365,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
 
     private void FindInput()
     {
-        GameInput found = FindFirstObjectByType<GameInput>();
+        GameInput found = GameInput.Instance!=null?GameInput.Instance:FindFirstObjectByType<GameInput>();
         if (found == gameInput) return;
         if (gameInput != null) gameInput.OnInteractAction -= OnInteract;
         gameInput = found;
@@ -518,6 +530,10 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         int index = currentDoorIndex;
         answered[index] = true;
         bool correct = choiceIndex == assignedQuestions[index].correctChoice;
+        var puzzle = FindFirstObjectByType<DynamicLogicPuzzle>();
+        int column = puzzle != null ? puzzle.RewardColumnNumber : 1;
+        string eventKey = "tt-c" + stageClock.CurrentChallengeNumber + "-col" + column + "-house" + index;
+        TrialRewards.RecordQuizAnswer(2, eventKey, "tt-" + questionBank.questions.IndexOf(assignedQuestions[index]), choiceIndex, correct);
         feedbackText.text = correct ? "Correct" : "Incorrect";
         correctAnswerText.text = correct ? "" : "Correct answer: " + assignedQuestions[index].choices[assignedQuestions[index].correctChoice];
         correctAnswerText.gameObject.SetActive(!correct);
@@ -667,6 +683,7 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
     {
         if (Active == this) Active = null;
         HideDoorBubbles();
+        StopAllCoroutines();feedbackCloseRoutine=null;tutorialDoorRoutine=null;focusedDoor=null;
         StopMusic();
         if (feedbackSource != null) feedbackSource.Stop();
         BookStatuePresentation.SetRequired(bookStatue, false);
@@ -684,6 +701,12 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
             answerButtons[2].onClick.RemoveListener(Answer2);
             answerButtons[3].onClick.RemoveListener(Answer3);
         }
+    }
+
+    private void OnDestroy()
+    {
+        if(sessionOwner==this){sessionOwner=null;sessionQuestionIndices=null;sessionAnswered=null;}
+        if(Active==this)Active=null;
     }
 
 }

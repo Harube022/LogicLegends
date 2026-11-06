@@ -13,10 +13,20 @@ public static class CommerceClient
         public string character, equippedClothes, equippedPet;
         public string[] inventory;
         public bool sandbox, live, paymentsEnabled;
+        public SoloEconomy.Config economy;
+        public SoloEconomy.CosmeticPrice[] catalog;
     }
     [Serializable] public sealed class Checkout { public string orderId, checkoutUrl, status; public bool sandbox, live; }
+    [Serializable] public sealed class EconomyCapabilities
+    {
+        public int version;
+        public string[] capabilities;
+        public SoloEconomy.Config economy;
+        public SoloEconomy.CosmeticPrice[] catalog;
+        public bool sandbox, live;
+    }
     [Serializable] private sealed class AccountRequest { public string character; }
-    [Serializable] private sealed class PurchaseRequest { public string itemId; }
+    [Serializable] private sealed class PurchaseRequest { public string itemId, currency; public int expectedPrice, economyVersion; }
     [Serializable] private sealed class CheckoutRequest { public string productId = "gems_5"; public string requestId; }
     [Serializable] private sealed class ErrorReply { public string error, code; }
     public sealed class ShopSetupException : InvalidOperationException
@@ -141,7 +151,13 @@ public static class CommerceClient
     public static void NotifyChanged() { Changed?.Invoke(); }
     public static Task<Account> LoadAccount(string character) => Send<Account>("/account", JsonUtility.ToJson(new AccountRequest { character = character }));
     public static Task<Account> Wallet() => Send<Account>("/wallet");
-    public static Task<Account> BuyItem(string itemId) => Send<Account>("/purchase", JsonUtility.ToJson(new PurchaseRequest { itemId = itemId }));
+    public static Task<Account> BuyItem(string itemId, ShopItem.Currency currency, int price)
+    {
+        if (!SoloEconomyConnection.Enabled) throw new InvalidOperationException("Purchases are not available yet.");
+        return Send<Account>("/purchase", JsonUtility.ToJson(new PurchaseRequest { itemId = itemId, currency = currency.ToString().ToLowerInvariant(), expectedPrice = price, economyVersion = SoloEconomy.Current.version }));
+    }
+    public static Task<EconomyCapabilities> CheckEconomyConnection() => Send<EconomyCapabilities>("/economy");
+    public static Task<Account> BuyItem(string itemId) => BuyItem(itemId, ShopItem.Currency.Gems, SoloEconomy.Price(itemId)?.gems ?? -1);
     public static Task<Account> EquipItem(string itemId) => Send<Account>("/equip", JsonUtility.ToJson(new PurchaseRequest { itemId = itemId }));
     // Firebase tasks can wait indefinitely while offline. Bound the UI wait,
     // without treating a timeout as proof that a write failed.
@@ -163,7 +179,7 @@ public static class CommerceClient
             throw new InvalidOperationException("Test purchases are unavailable in release builds.");
         string uid = UserId;
         if (uid == null) throw new InvalidOperationException("Please sign in to use the shop.");
-        bool read = path == "/account" || path == "/wallet" || path.StartsWith("/orders/", StringComparison.Ordinal);
+        bool read = path == "/account" || path == "/wallet" || path == "/economy" || path.StartsWith("/orders/", StringComparison.Ordinal);
         if (read && !await EnsureReady()) throw new InvalidOperationException("Couldn't connect to the shop. Please retry.");
         if (UserId != uid) throw new InvalidOperationException("Account changed. Please reopen the shop.");
         string token;
@@ -195,8 +211,8 @@ public static class CommerceClient
             }
             var result = JsonUtility.FromJson<T>(reply.body);
             if (result == null) throw new InvalidOperationException("Couldn't read the shop response. Please retry.");
-            bool sandbox = result is Account account ? account.sandbox : ((Checkout)(object)result).sandbox;
-            bool live = result is Account wallet ? wallet.live : ((Checkout)(object)result).live;
+            bool sandbox = result is Account account ? account.sandbox : result is EconomyCapabilities connection ? connection.sandbox : ((Checkout)(object)result).sandbox;
+            bool live = result is Account wallet ? wallet.live : result is EconomyCapabilities service ? service.live : ((Checkout)(object)result).live;
             if (sandbox != settings.sandbox || live == settings.sandbox)
                 throw new InvalidOperationException("Shop environment mismatch. Check the connection settings.");
             return result;

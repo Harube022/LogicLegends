@@ -18,14 +18,15 @@ test('database transactions prevent duplicate top-ups and overspending under con
       ]);
       assert.equal((await ref.child('gems').get()).val(), 5);
       assert.equal((await ref.child('coins').get()).val(), 520);
-      await ref.transaction(a => a ? grant(a, { id: 'two', gems: 5 }, { id: 'pay_two' }) : a);
-      const results = await Promise.allSettled(['Common_Skin', 'Elite_Skin'].map(id => mutate(ref, a => a ? buy(a, id) : a)));
+      await ref.transaction(a => a ? grant(a, { id: 'two', gems: 85 }, { id: 'pay_two' }) : a);
+      // Both outfits are individually affordable (30 / 75), but not together.
+      const results = await Promise.allSettled(['Common_Skin', 'Rare_Skin'].map(id => mutate(ref, a => a ? buy(a, id) : a)));
       const value = (await ref.get()).val();
-      assert.equal(value.gems, 0);
+      assert.ok([60, 15].includes(value.gems));
       assert.equal(value.coins, 520);
       assert.equal(Object.keys(value.inventory).length, 1);
       assert.equal(results.filter(r => r.status === 'fulfilled').length, 1);
       await mutate(ref, a => a ? buy(a, Object.keys(value.inventory)[0]) : a);
-      assert.equal((await ref.child('gems').get()).val(), 0);
+      assert.equal((await ref.child('gems').get()).val(), value.gems);
     } finally { await ref.remove(); await deleteApp(app); }
   });

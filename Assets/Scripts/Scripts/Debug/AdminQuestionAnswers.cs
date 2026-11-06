@@ -38,6 +38,7 @@ public static class AdminQuestionAnswers
     }
     public static string Mark(bool selected, bool current) => current ? " [CURRENT / SELECTED]" : selected ? " [SELECTED THIS PLAYTHROUGH]" : "";
     public static string Values<T>(IEnumerable<T> values) => "{" + string.Join(", ", values) + "}";
+    public static string Current(string task, string answer) => "Question: " + task.Trim() + "\n\nAnswer: " + answer.Trim();
     public static string Choice(string prompt, string[] choices, int correct)
     {
         var text = new StringBuilder(prompt + "\n");
@@ -149,6 +150,14 @@ public partial class TruthTableDoorInteraction
 
 public sealed partial class ProofsLibraryStageController
 {
+    static string AdminCurrentAnswer(ProofChallengeData q)
+    {
+        if(q.kind==ProofChallengeKind.SortScrolls)
+            return string.Join("\n",q.scrolls.Select((scroll,i)=>"Scroll "+(char)('A'+i)+" → "+(scroll.isFormal?"Formal Proof":"Informal Proof")));
+        if(q.kind==ProofChallengeKind.MissingRule)return q.expectedRule;
+        return string.Join("\n",q.acceptableOrders.First().stepIds.Select((id,i)=>(i+1)+". "+q.steps[id].statement+
+            (q.kind==ProofChallengeKind.Formalize?" — "+q.steps[id].justification:"")));
+    }
     static string AdminSolution(ProofChallengeData q)
     {
         var text = new StringBuilder(q.title + "\n" + q.context + "\n" + q.instructions + "\n\nEXPECTED SOLUTION\n");
@@ -167,7 +176,9 @@ public sealed partial class ProofsLibraryStageController
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
         if (!AdminAuthorization.IsAuthorized) return;
-        pages.Add(new AdminAnswerPage("Current question — Proofs Library", activeChallenge == null ? "Waiting for book activation. Two distinct questions per challenge are selected for this run." : "Challenge " + ChallengeNumber + " — Question " + QuestionNumber + " of " + QuestionsPerChallenge + "\n" + AdminSolution(activeChallenge)));
+        pages.Add(new AdminAnswerPage("Current question — Proofs Library", activeChallenge == null ?
+            AdminQuestionAnswers.Current("Waiting for book activation.","—") :
+            AdminQuestionAnswers.Current(activeChallenge.instructions,AdminCurrentAnswer(activeChallenge))));
         for (int c = 0; c < catalog.variantSets.Length; c++)
         {
             var text = new StringBuilder("Two distinct questions are selected per challenge for this run. SELECTED marks both; CURRENT marks the active question.\n\n");
@@ -182,6 +193,14 @@ public sealed partial class ProofsLibraryStageController
 public sealed partial class DirectIndirectProofStageController
 {
     readonly int[] adminSelectedVariants = { -1, -1, -1, -1, -1 };
+    static string AdminMethod(TrialProofMethod method) => method==TrialProofMethod.Direct?"Direct Proof":
+        method==TrialProofMethod.Contrapositive?"Indirect Proof (Contrapositive)":"Indirect Proof (Contradiction)";
+    static string AdminCurrentAnswer(TrialProofChallenge q)
+    {
+        if(q.kind==TrialProofKind.IdentifyMethod)return AdminMethod(q.correctMethod);
+        string order=string.Join("\n",q.acceptedOrders.First().tabletIds.Select((id,i)=>(i+1)+". "+q.tablets[id].statement));
+        return q.kind==TrialProofKind.ChooseAndArrange?AdminMethod(q.correctMethod)+"\n"+order:order;
+    }
     static string AdminSolution(TrialProofChallenge q)
     {
         var text = new StringBuilder(q.title + "\n" + q.problem + "\n\nEXPECTED SOLUTION\n");
@@ -196,7 +215,9 @@ public sealed partial class DirectIndirectProofStageController
     public void AppendAdminAnswers(List<AdminAnswerPage> pages)
     {
         if (!AdminAuthorization.IsAuthorized) return;
-          pages.Add(new AdminAnswerPage("Current question — Direct & Indirect", activeChallenge == null ? "Waiting for book activation. Two distinct questions are preselected per challenge." : "Challenge " + ChallengeNumber + ", question " + QuestionNumber + " of 2\n" + AdminSolution(activeChallenge)));
+          pages.Add(new AdminAnswerPage("Current question — Direct & Indirect", activeChallenge == null ?
+              AdminQuestionAnswers.Current("Waiting for book activation.","—") :
+              AdminQuestionAnswers.Current(activeChallenge.problem,AdminCurrentAnswer(activeChallenge))));
         for (int c = 0; c < catalog.variantSets.Length; c++)
         {
               var text = new StringBuilder("Two distinct questions are preselected for this challenge.\n\n");

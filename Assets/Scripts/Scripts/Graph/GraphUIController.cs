@@ -366,6 +366,7 @@ namespace LogicLegends.Graph
             if (success) resultCard.Primary.onClick.AddListener(stage.PlayNextStage);
             else resultCard.Primary.onClick.AddListener(stage.RestartStage);
             if (success) result.GetComponent<StageResultLayout>().Complete(9, stage.PlayNextStage);
+            else result.GetComponent<StageResultLayout>().Fail(9, stage.RestartStage);
             stage.timer.Pause();
             GameInput.Instance?.SetGameplayInputBlocked(true); stage.LocalPlayer?.ToggleControl(false);
             foreach (var camera in FindObjectsByType<CameraTargetController>(FindObjectsSortMode.None)) PauseResultCamera(camera);

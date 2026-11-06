@@ -12,8 +12,11 @@ public static class TrialRewards
     {
         public string id, serverId, status;
         public bool beginNew, completed, adminUsed, serverAdminUsed;
-        public int acknowledgedRetries, reward;
+        public int acknowledgedRetries, reward, serverRetries, acknowledgedQuizzes;
+        public int economyVersion, baseReward, maxRetries, retryReductionPercent, quizReward, quizBonusLimit;
         public List<string> retryIds = new List<string>();
+        public List<TrialBackendClient.QuizAnswer> quizAnswers = new List<TrialBackendClient.QuizAnswer>();
+        public List<TrialBackendClient.QuizAnswer> serverQuizAnswers = new List<TrialBackendClient.QuizAnswer>();
         [NonSerialized] public Task saving;
         [NonSerialized] public float nextSync;
         [NonSerialized] public bool retryNavigationPending;
@@ -33,7 +36,7 @@ public static class TrialRewards
     public static int RewardForRetries(int retries)
     {
         if (retries < 0) throw new ArgumentOutOfRangeException(nameof(retries));
-        return (int)Math.Floor(1000d * Math.Pow(.75d, retries));
+        return SoloEconomy.BaseAfterRetries(1, retries);
     }
     public static int CurrentTrial
     {
@@ -56,14 +59,20 @@ public static class TrialRewards
     static string Key(string uid, int trial) => "TrialRewardOutbox.v1." + uid + "." + trial;
     static Outbox Store(int trial)
     {
-        string uid = TrialBackendClient.UserId;
-        if (uid == null || trial < 1 || trial > TrialCatalog.Count) return null;
+        string uid = TrialBackendClient.UserId ?? "guest";
+        if (trial < 1 || trial > TrialCatalog.Count) return null;
         string key = Key(uid, trial);
         if (stores.TryGetValue(key, out var store)) return store;
         try { store = JsonUtility.FromJson<Outbox>(PlayerPrefs.GetString(key, "")); } catch (Exception) { }
         if (store == null || store.uid != uid || store.trial != trial || store.runs == null)
             store = new Outbox { uid = uid, trial = trial };
         stores[key] = store;
+        foreach (var run in store.runs)
+        {
+            if (run.quizAnswers == null) run.quizAnswers = new List<TrialBackendClient.QuizAnswer>();
+            if (run.serverQuizAnswers == null) run.serverQuizAnswers = new List<TrialBackendClient.QuizAnswer>();
+            if (run.maxRetries == 0) { SetPolicy(run, trial); run.serverRetries = run.acknowledgedRetries; }
+        }
         if (!store.runs.Any(r => r.id == store.current)) AddRun(store, false);
         return store;
     }
@@ -71,7 +80,14 @@ public static class TrialRewards
     static Run AddRun(Outbox store, bool fresh)
     {
         var run = new Run { id = Guid.NewGuid().ToString("N"), beginNew = fresh };
+        SetPolicy(run, store.trial);
         store.runs.Add(run); store.current = run.id; Save(store); return run;
+    }
+    static void SetPolicy(Run run, int trial)
+    {
+        var policy = SoloEconomy.Trial(trial);
+        run.baseReward = policy.baseReward; run.quizReward = policy.quizReward; run.quizBonusLimit = policy.quizBonusLimit;
+        run.maxRetries = SoloEconomy.Current.maxRetries; run.retryReductionPercent = SoloEconomy.Current.retryReductionPercent;
     }
     static void Save(Outbox store)
     {
@@ -84,17 +100,70 @@ public static class TrialRewards
         AddRun(store, true);
     }
     public static void RecordRetry(int trial = 0, bool inPlace = false)
+    { TryRecordRetry(trial, inPlace); }
+    public static bool TryRecordRetry(int trial = 0, bool inPlace = false)
     {
         if (trial == 0) trial = CurrentTrial;
-        var store = Store(trial); if (store == null) return;
+        if (TrialBackendClient.UserId != null && !OwnsGameplay(trial)) return false;
+        var store = Store(trial); if (store == null) return false;
         var run = Current(store);
-        if (run.completed) { AddRun(store, true); return; } // Explicit replay after a win is a new attempt.
-        if (!inPlace && run.retryNavigationPending) return;
-        if (inPlace && run.lastInPlaceRetryFrame == Time.frameCount) return;
+        if (run.completed) return false;
+        if (!inPlace && run.retryNavigationPending) return false;
+        if (inPlace && run.lastInPlaceRetryFrame == Time.frameCount) return false;
+        if (!CanRetry(trial)) return false;
         if (inPlace) run.lastInPlaceRetryFrame = Time.frameCount;
         run.retryNavigationPending = !inPlace;
         run.retryIds.Add(Guid.NewGuid().ToString("N")); Save(store);
         _ = Sync(store, run);
+        return true;
+    }
+    public static int RetryCount(int trial) { var run = Current(Store(trial)); return run == null ? 0 : Math.Min(run.maxRetries, run.serverRetries + Math.Max(0, run.retryIds.Count - run.acknowledgedRetries)); }
+    public static bool CanRetry(int trial) { var run = Current(Store(trial)); return !changedAccounts.Contains(trial) && run != null && !run.completed && RetryCount(trial) < run.maxRetries; }
+    public static int NextRetryReductionPercent(int trial) { var run = Current(Store(trial)); return run == null ? 0 : Math.Min(run.maxRetries, RetryCount(trial)+1) * run.retryReductionPercent; }
+    public static string AttemptId(int trial) => Current(Store(trial))?.id;
+    public static bool HasQuizAnswer(int trial, string eventKey)
+    { var run = Current(Store(trial)); return run != null && (run.quizAnswers.Any(q => q.eventKey == eventKey) || run.serverQuizAnswers.Any(q => q.eventKey == eventKey)); }
+    public static void RecordQuizAnswer(int trial, string eventKey, string questionId, int choice, bool correct, bool practice = false)
+    {
+        if (practice || (trial != 2 && trial != 3) || !OwnsGameplay(trial)) return;
+        var store = Store(trial); var run = Current(store);
+        if (run == null || run.completed || run.status == "completed" || run.adminUsed || HasQuizAnswer(trial, eventKey)) return;
+        run.quizAnswers.Add(new TrialBackendClient.QuizAnswer { eventKey = eventKey, questionId = questionId, choice = choice, correct = correct });
+        Save(store); _ = Sync(store, run);
+    }
+    static int PendingBonus(Run run)
+    {
+        if (run == null || run.adminUsed) return 0;
+        var checkedKeys = new HashSet<string>(run.serverQuizAnswers.Select(q => q.eventKey));
+        int confirmed = run.serverQuizAnswers.Sum(q => q.bonus);
+        int local = run.quizAnswers.Where(q => !checkedKeys.Contains(q.eventKey) && q.correct).Count() * run.quizReward;
+        return Math.Min(run.quizBonusLimit, confirmed + local);
+    }
+    public static string Breakdown(int trial, bool completed)
+    {
+        if (changedAccounts.Contains(trial)) return "Account changed. Start Over to earn this trial's reward.";
+        var run = Current(Store(trial)); if (run == null) return "";
+        int retries = RetryCount(trial), reduction = run.baseReward - (int)((long)run.baseReward * Math.Max(0, 100 - Math.Min(retries, run.maxRetries) * run.retryReductionPercent) / 100);
+        int bonus = PendingBonus(run), payout = run.adminUsed ? 0 : run.baseReward - reduction + bonus;
+        string text = "Retries: " + retries + "/" + run.maxRetries + "   •   Base: " + run.baseReward.ToString("N0") + " Coins\n" +
+            "Reduction: " + (reduction > 0 ? "−" : "") + reduction.ToString("N0") + " (" + Math.Min(retries, run.maxRetries) * run.retryReductionPercent + "%)";
+        if (run.quizBonusLimit > 0) text += "   •   Quiz bonus: +" + bonus + "/" + run.quizBonusLimit;
+        text += "\n" + (completed ? "Final payout: " : "On completion: ") + (run.status == "completed" ? run.reward : payout).ToString("N0") + " Coins";
+        if (run.adminUsed) text += " • Admin-assisted: no reward";
+        else if (completed) text += TrialBackendClient.UserId == null ? " • Sign in required" : run.status == "completed" ? " • Saved" : " • Save pending";
+        return text;
+    }
+    // Display the receipt when available; otherwise display the same pending amount used by Breakdown.
+    // This read-only accessor never completes an attempt or writes the wallet.
+    public static int CompletionCoins(int trial)
+    {
+        if (changedAccounts.Contains(trial)) return 0;
+        var run = Current(Store(trial));
+        if (run == null || run.adminUsed) return 0;
+        if (run.status == "completed") return run.reward;
+        int retries = RetryCount(trial);
+        int adjustedBase = (int)((long)run.baseReward * Math.Max(0, 100 - Math.Min(retries, run.maxRetries) * run.retryReductionPercent) / 100);
+        return adjustedBase + PendingBonus(run);
     }
     public static void SceneLoaded()
     {
@@ -132,7 +201,7 @@ public static class TrialRewards
         if(changedAccounts.Contains(trial))return "Account changed — restart this trial to earn coins.";
         var store = Store(trial); var run = Current(store);
         if (run == null) return "Sign in to save your coin reward.";
-        if (run.status == "completed") return run.serverAdminUsed ? "Coins earned: 0 — Admin-assisted attempt" : "Coins earned: +" + run.reward.ToString("N0");
+        if (run.status == "completed") return Breakdown(trial, true);
         if (run.adminUsed) return "Coins earned: 0 — Admin-assisted attempt";
         return "Coin reward pending — reconnect to save.";
     }
@@ -156,7 +225,7 @@ public static class TrialRewards
                         _ = Sync(store, run);
     }
     static bool NeedsSync(Run run) => run.serverId == null || run.acknowledgedRetries < run.retryIds.Count ||
-        run.adminUsed && !run.serverAdminUsed || run.completed && run.status != "completed";
+        run.adminUsed && !run.serverAdminUsed || run.acknowledgedQuizzes < run.quizAnswers.Count || run.completed && run.status != "completed";
     static Task Sync(Outbox store, Run run)
     {
         if (run.saving != null && !run.saving.IsCompleted) return run.saving;
@@ -167,6 +236,13 @@ public static class TrialRewards
         run.nextSync = Time.realtimeSinceStartup + 15;
         try
         {
+            if (!SoloEconomyConnection.Enabled)
+            {
+                // Keep earned rewards in the durable outbox until the programmer connects v2.
+                // Existing Admin exclusion still works with the current service.
+                if (run.adminUsed) await SaveLegacyAdminExclusion(store, run);
+                return;
+            }
             // Finish an older pending receipt before a new run replaces its server pointer.
             foreach (var previous in store.runs.TakeWhile(r => r != run))
                 if (previous.completed && previous.status != "completed")
@@ -176,10 +252,11 @@ public static class TrialRewards
                 }
             if (TrialBackendClient.UserId != store.uid) return;
             var request = new TrialBackendClient.Request { trial = store.trial, attemptId = run.serverId ?? run.id, newAttempt = run.beginNew };
-            if (run.serverId == null)
+            if (run.serverId == null || run.economyVersion < 2)
             {
                 var response = await TrialBackendClient.SendAttempt("start", request);
                 if (TrialBackendClient.UserId != store.uid) return;
+                if (response.economyVersion < 2) throw new InvalidOperationException("Updated reward service required.");
                 run.serverId = request.attemptId = response.attemptId;
                 Apply(run, response); Save(store);
             }
@@ -197,6 +274,14 @@ public static class TrialRewards
                 if (TrialBackendClient.UserId != store.uid) return;
                 Apply(run, response); Save(store);
             }
+            while (run.acknowledgedQuizzes < run.quizAnswers.Count && run.status != "completed")
+            {
+                var answer = run.quizAnswers[run.acknowledgedQuizzes];
+                request.eventKey = answer.eventKey; request.questionId = answer.questionId; request.choice = answer.choice;
+                var response = await TrialBackendClient.SendAttempt("quiz-answer", request);
+                if (TrialBackendClient.UserId != store.uid) return;
+                Apply(run, response); run.acknowledgedQuizzes++; Save(store);
+            }
             if (run.completed && run.status != "completed")
             {
                 if (run.adminUsed && !run.serverAdminUsed) return;
@@ -209,7 +294,42 @@ public static class TrialRewards
     }
     static void Apply(Run run, TrialBackendClient.Attempt response)
     {
+        run.economyVersion = response.economyVersion;
         run.status = response.status; run.reward = response.reward;
+        if (response.status == "completed") run.completed = true;
+        run.serverRetries = response.retries;
+        if (response.maxRetries > 0)
+        {
+            run.baseReward = response.baseReward; run.maxRetries = response.maxRetries;
+            run.retryReductionPercent = response.retryReductionPercent; run.quizReward = response.quizReward; run.quizBonusLimit = response.quizBonusLimit;
+        }
+        if (response.quizAnswers != null) run.serverQuizAnswers = response.quizAnswers.ToList();
         run.serverAdminUsed = response.adminUsed;
+        if (response.adminUsed) run.adminUsed = true;
+    }
+    static async Task SaveLegacyAdminExclusion(Outbox store, Run run)
+    {
+        if (TrialBackendClient.UserId != store.uid) return;
+        if (store.runs.TakeWhile(r => r != run).Any(r => r.completed && r.status != "completed" && !r.adminUsed)) return;
+        var request = new TrialBackendClient.Request { economyVersion = 1, trial = store.trial, attemptId = run.serverId ?? run.id, newAttempt = run.beginNew };
+        if (run.serverId == null)
+        {
+            var started = await TrialBackendClient.SendAttempt("start", request);
+            if (TrialBackendClient.UserId != store.uid) return;
+            run.serverId = request.attemptId = started.attemptId;
+        }
+        if (!run.serverAdminUsed)
+        {
+            var excluded = await TrialBackendClient.SendAttempt("admin-used", request);
+            if (TrialBackendClient.UserId != store.uid) return;
+            run.serverAdminUsed = excluded.adminUsed;
+        }
+        if (run.completed && run.serverAdminUsed)
+        {
+            run.status = "completed"; run.reward = 0;
+            run.serverRetries = RetryCount(store.trial); run.acknowledgedRetries = run.retryIds.Count;
+            run.acknowledgedQuizzes = run.quizAnswers.Count;
+        }
+        Save(store);
     }
 }

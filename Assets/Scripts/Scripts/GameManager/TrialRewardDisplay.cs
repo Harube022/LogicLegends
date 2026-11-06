@@ -6,18 +6,45 @@ public sealed class TrialRewardDisplay : MonoBehaviour
 {
     int trial;
     TMP_Text label;
-    public static void Attach(StageResultLayout view, int trial)
+    bool completed;
+    RectTransform coinRow;
+    public static void Attach(StageResultLayout view, int trial, bool completed = true)
     {
         var display = view.GetComponent<TrialRewardDisplay>();
         if (display == null) display = view.gameObject.AddComponent<TrialRewardDisplay>();
-        display.trial = trial;
+        display.trial = trial; display.completed = completed;
         if (display.label == null) display.label = StageUITheme.Text("TrialCoinReward", view.Card, "", 30, true);
-        StageUITheme.Stretch(display.label.rectTransform, new Vector2(.08f,.285f), new Vector2(.92f,.345f));
-        display.label.font = StageUITheme.HeadingFont; display.label.color = StageUITheme.ReadingInk;
-        display.label.enableAutoSizing = true; display.label.fontSizeMin = 20; display.label.fontSizeMax = 30;
-        TrialRewards.Complete(trial); display.Refresh();
+        if (completed)
+        {
+            if (display.coinRow == null)
+            {
+                display.coinRow = StageUITheme.Rect("Completion Coin Reward", view.Card);
+                var icon = StageUITheme.Rect("Coin Icon", display.coinRow);
+                var image = icon.gameObject.AddComponent<UnityEngine.UI.Image>();
+                image.sprite = TrialRewardArt.Coin; image.preserveAspect = true; image.raycastTarget = false;
+                icon.anchorMin = icon.anchorMax = icon.pivot = new Vector2(0, .5f);
+                icon.sizeDelta = new Vector2(64, 64); icon.anchoredPosition = Vector2.zero;
+            }
+            display.coinRow.gameObject.SetActive(true);
+            display.coinRow.anchorMin = display.coinRow.anchorMax = display.coinRow.pivot = new Vector2(.5f, .395f);
+            display.coinRow.sizeDelta = new Vector2(300, 84); display.coinRow.anchoredPosition = Vector2.zero;
+            display.label.transform.SetParent(display.coinRow, false);
+            StageUITheme.Stretch(display.label.rectTransform, Vector2.zero, Vector2.one);
+            display.label.rectTransform.offsetMin = new Vector2(86, 0);
+        }
+        else
+        {
+            if (display.coinRow != null) display.coinRow.gameObject.SetActive(false);
+            display.label.transform.SetParent(view.Card, false);
+            StageUITheme.Stretch(display.label.rectTransform, new Vector2(.08f,.30f), new Vector2(.92f,.49f));
+        }
+        display.label.font = StageUITheme.ReadingFont; display.label.color = StageUITheme.ReadingInk;
+        display.label.enableAutoSizing = true; display.label.fontSizeMin = 24; display.label.fontSizeMax = completed ? 44 : 28;
+        display.label.alignment = completed ? TextAlignmentOptions.MidlineLeft : TextAlignmentOptions.Center;
+        display.label.textWrappingMode = TextWrappingModes.Normal; display.label.raycastTarget = false;
+        if (completed) TrialRewards.Complete(trial); display.Refresh();
     }
     void OnEnable() { TrialRewards.Changed += Refresh; Refresh(); }
     void OnDisable() { TrialRewards.Changed -= Refresh; }
-    void Refresh() { if (label != null) label.text = TrialRewards.Status(trial); }
+    void Refresh() { if (label != null) label.text = completed ? TrialRewards.CompletionCoins(trial).ToString("N0") : TrialRewards.Breakdown(trial, false); }
 }

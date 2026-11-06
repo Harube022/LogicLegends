@@ -2,6 +2,8 @@ const express = require('express');
 const crypto = require('node:crypto');
 const { catalog, fail, signature, validatePayment, grant, buy, present, mutate } = require('./wallet');
 const trials = require('./trials');
+const legacyTrials = require('./legacy-trials');
+const legacyCatalog = require('./legacy-catalog.json');
 
 function createApp(env = process.env, integrations = {}) {
   // Let a new hosting service obtain its HTTPS URL before private credentials
@@ -22,6 +24,24 @@ function createApp(env = process.env, integrations = {}) {
   const { getDatabase } = require('firebase-admin/database');
   const sandbox = env.STORAGE_MODE === 'emulator';
   const live = env.PAYMENT_MODE === 'live';
+  // A merge/auto-deploy must not activate a new live economy by itself.
+  const economyEnabled = env.SOLO_ECONOMY_V2_ENABLED === 'true';
+  function accountReply(account) {
+    const reply = present(account, sandbox, live);
+    if (!economyEnabled) { delete reply.economy; delete reply.catalog; }
+    return reply;
+  }
+  function legacyBuy(account, itemId) {
+    const item = legacyCatalog.find(i => i.id === itemId);
+    if (!item) throw fail('This item is unavailable.');
+    if (!account || account.base_character !== item.character) throw fail('This outfit does not match your character.',409);
+    account.inventory ||= {};
+    if (account.inventory[itemId] === true) return account;
+    const current = require('./wallet').balance(account[item.currency]);
+    if (current < item.price) throw fail('Not enough gems. Top up and try again.',409);
+    account[item.currency] = current - item.price; account.inventory[itemId] = true;
+    return account;
+  }
   // Pausing new checkouts must not stop fulfillment of already-paid orders.
   // Live checkout requires a separate, explicit switch after wallet readiness.
   const paymentsEnabled = () => sandbox ? env.CHECKOUT_ENABLED !== 'false' : env.CHECKOUT_ENABLED === 'true';
@@ -113,14 +133,23 @@ function createApp(env = process.env, integrations = {}) {
     if (++bucket.count > 90) throw fail('Please wait before trying again.', 429);
     buckets.set(uid, bucket);
     const userRef = users.child(uid);
+    if (req.method === 'GET' && req.path === '/economy') {
+      if (!economyEnabled) throw fail('Solo economy v2 is not connected yet.',503);
+      const economy = require('./economy');
+      return res.json({ version: economy.config.version, sandbox, live,
+        capabilities: ['original-base-retries', 'pending-quiz-bonuses', 'dual-currency-cosmetics'],
+        economy: economy.config, catalog: catalog.items.map(item => ({ id:item.id,rarity:item.rarity,...economy.pricesFor(item) })) });
+    }
     if (req.path.startsWith('/trials/')) {
       // Email comes from Firebase's account record, never request fields or profile text.
       const user = await (integrations.getUser || (id => auth.getUser(id)))(uid);
       const admin = !user.disabled && trials.isAdminEmail(user.email);
       if (req.method === 'GET' && req.path === '/trials/access')
         return res.json({ admin, uid });
-      const operations = { '/trials/start': trials.startAttempt, '/trials/retry': trials.retryAttempt,
-        '/trials/admin-used': trials.markAdmin, '/trials/complete': trials.finishAttempt };
+      if (!economyEnabled && (req.body?.economyVersion >= 2 || req.path === '/trials/quiz-answer')) throw fail('Solo economy v2 is not connected yet.',503);
+      const service = economyEnabled ? trials : legacyTrials;
+      const operations = { '/trials/start': service.startAttempt, '/trials/retry': service.retryAttempt,
+        '/trials/admin-used': service.markAdmin, '/trials/quiz-answer': economyEnabled ? trials.answerQuiz : null, '/trials/complete': service.finishAttempt };
       const operation = operations[req.path];
       if (req.method !== 'POST' || !operation) throw fail('Unknown trial endpoint.', 404);
       if (user.disabled) throw fail('Please sign in again.', 401);
@@ -130,7 +159,7 @@ function createApp(env = process.env, integrations = {}) {
       const result = await mutate(userRef, account => account == null ? account : operation(account, req.body || {}));
       if (!result.committed) throw fail('Could not save this trial attempt. Please retry.', 409);
       const id = req.path === '/trials/start' && req.body.newAttempt !== true ? null : req.body.attemptId;
-      return res.json(trials.presentAttempt(result.snapshot.val(), req.body.trial, id));
+      return res.json(service.presentAttempt(result.snapshot.val(), req.body.trial, id));
     }
     // Only the local sandbox may bootstrap an empty test wallet from the
     // character selected by the already authenticated client. No coins or gems
@@ -143,9 +172,9 @@ function createApp(env = process.env, integrations = {}) {
       }
       const account = (await userRef.get()).val();
       if (!account?.base_character) throw fail('Choose your character first.', 409);
-      return res.json({ ...present(account, sandbox, live), paymentsEnabled: paymentsEnabled() });
+      return res.json({ ...accountReply(account), paymentsEnabled: paymentsEnabled() });
     }
-    if (req.method === 'GET' && req.path === '/wallet') return res.json({ ...present((await userRef.get()).val(), sandbox, live), paymentsEnabled: paymentsEnabled() });
+    if (req.method === 'GET' && req.path === '/wallet') return res.json({ ...accountReply((await userRef.get()).val()), paymentsEnabled: paymentsEnabled() });
     if (req.method === 'POST' && req.path === '/equip') {
       const itemId = req.body?.itemId;
       if (typeof itemId !== 'string' || !/^[A-Za-z0-9_]+$/.test(itemId)) throw fail('Invalid outfit.');
@@ -158,14 +187,23 @@ function createApp(env = process.env, integrations = {}) {
         account.equipped.clothes = itemId;
         return account;
       });
-      return res.json(present(result.snapshot.val(), sandbox, live));
+      return res.json(accountReply(result.snapshot.val()));
     }
     if (req.method === 'POST' && req.path === '/purchase') {
       const itemId = req.body?.itemId;
       if (typeof itemId !== 'string' || !catalog.items.some(i => i.id === itemId)) throw fail('Unknown item.');
-      const result = await mutate(userRef, account => account ? buy(account, itemId) : account);
+      if (!economyEnabled) {
+        if (req.body.economyVersion >= 2 || req.body.currency) throw fail('Solo economy v2 is not connected yet.',503);
+        const legacy = await mutate(userRef, account => account ? legacyBuy(account,itemId) : account);
+        if (legacy.snapshot.child('inventory/'+itemId).val() !== true) throw fail('Could not confirm your purchase.',409);
+        return res.json({ ...accountReply(legacy.snapshot.val()), itemId });
+      }
+      const item = catalog.items.find(i => i.id === itemId), economy = require('./economy');
+      if (!['coins','gems'].includes(req.body.currency) || req.body.economyVersion !== economy.config.version ||
+          req.body.expectedPrice !== economy.pricesFor(item)[req.body.currency]) throw fail('Shop prices changed. Reopen the shop to confirm the current price.', 409);
+      const result = await mutate(userRef, account => account ? buy(account, itemId, req.body.currency || 'gems') : account);
       if (result.snapshot.child('inventory/' + itemId).val() !== true) throw fail('Could not confirm your purchase.', 409);
-      return res.json({ ...present(result.snapshot.val(), sandbox, live), itemId });
+      return res.json({ ...accountReply(result.snapshot.val()), itemId });
     }
     if (req.method === 'POST' && req.path === '/checkout') {
       if (!paymentsEnabled()) throw fail('Top-ups are currently unavailable. Please try again later.', 503);

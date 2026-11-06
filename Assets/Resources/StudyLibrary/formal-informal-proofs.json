@@ -1,84 +1,48 @@
 {
-  "pages": [
+  "blocks": [
     {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 1",
-      "text": "MIDTERMS — IT 105 DISCRETE STRUCTURES 1\nWeek 6 — Formal Proofs vs. Informal Proofs\nThe uploaded Midterm PPT covers Formal Proofs and Informal Proofs. Below is the full extraction of its educational content, preserving the PPT's terminology and explanations."
+      "heading": "Proofs",
+      "text": "A <b>proof</b> is a valid argument establishing a statement from accepted assumptions, definitions, and previously justified results. Both formal and informal proofs must use correct reasoning."
     },
     {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 2",
-      "text": "1. FORMAL PROOFS VS INFORMAL PROOFS\nThe PPT introduces a comparison between:\n\tFormal Proofs\n\tInformal Proofs"
+      "heading": "Formal proofs",
+      "text": "A <b>formal proof</b> is a finite sequence of explicit statements in a specified formal system. Each step is an assumption or follows from earlier statements by an allowed rule. Symbolic language makes the reasoning precise."
     },
     {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 3",
-      "text": "2. FORMAL PROOFS\nWhat is Formal Proofs?\nThe PPT defines a proof as:\nA proof is a precise, formal, and valid argument which establishes the truth of a statement.\nA formal proof or derivation is a finite sequence of sentences called well-formed formulas in the case of a formal language.\nThe PPT also states:\nUnderstanding how correct programs work is equivalent to proving theorems by induction."
+      "heading": "Structure and justification",
+      "text": "A formal proof uses a systematic, step-by-step structure. It states its <b>assumptions</b> and <b>axioms</b>, then justifies each deduction with a rule, definition, axiom, or theorem. No unsupported step is allowed."
     },
     {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 4",
-      "text": "3. CHARACTERISTICS OF FORMAL PROOFS\nThe PPT presents five characteristics of formal proofs."
+      "heading": "Precision and verification",
+      "text": "Formal notation reduces ambiguity. A reader or a proof-checking program can verify each step against the rules. This makes the logical dependencies explicit. Formal proofs can also support reasoning about program correctness."
     },
     {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 5",
-      "text": "3.1 Rigorous Structure\nFormal proofs adhere to strict rules of logic and mathematical syntax.\nThey are often presented in a:\n\tSystematic\n\tStep-by-step\nmanner, following established proof techniques.\nKey idea\nFormal proofs follow established logical and mathematical rules rather than relying only on an explanation or intuition."
+      "heading": "Informal proofs",
+      "text": "An <b>informal proof</b> presents valid reasoning mainly through explanatory prose. It may combine words, equations, diagrams, and previously known results. Informal means less formally encoded—not incorrect or unsupported."
     },
     {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 6",
-      "text": "3.2 Symbolic Language\nFormal proofs frequently employ:\n\tSymbolic notation\n\tLogical symbols\n\tMathematical symbols\nto express ideas precisely.\nThey rely on the language of logic and mathematical symbols to convey the reasoning.\nKey idea\nFormal proofs use symbolic and mathematical notation to make the reasoning precise."
+      "heading": "Understanding and flexibility",
+      "text": "Informal proofs emphasize the ideas behind an argument. Natural language, examples, diagrams, and analogies can clarify why a result holds. A valid informal proof still needs to cover all cases required by its claim."
     },
     {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 7",
-      "text": "3.3 Assumptions and Axioms\nFormal proofs explicitly state the:\n\tAssumptions\n\tAxioms\nused in the proof.\nEvery step in the proof is justified by previously established:\n\tRules\n\tDefinitions\n\tAxioms\n\tTheorems\nKey idea\nEach step must have a logical basis."
+      "heading": "Clarity matters",
+      "text": "Natural language can be interpreted in different ways, so define important terms and explain key deductions. An example illustrates a universal claim but does not, by itself, prove that claim for every case."
     },
     {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 8",
-      "text": "3.4 No Ambiguity\nFormal proofs leave no room for ambiguity.\nEach step must be logically derived from the previous steps, and there should be no gaps in the reasoning.\nKey idea\nThe reasoning must be explicit and complete."
+      "heading": "Comparing proof styles",
+      "text": "<b>Language:</b> formal proofs use specified formulas; informal proofs use prose with mathematical notation.\n\n<b>Structure:</b> formal proofs justify every permitted step explicitly; informal proofs organize those steps into an explanatory argument."
     },
     {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 9",
-      "text": "3.5 Verification\nFormal proofs can be mechanically verified by computers or by humans.\nThey provide a high level of confidence in the validity of the argument.\nKey idea\nA formal proof can be checked systematically to verify whether its reasoning is valid."
+      "heading": "Checking either style",
+      "text": "For either proof style, check the assumptions, logical deductions, and conclusion. Formal verification checks explicit rules. Reading an informal proof also requires understanding how its explanations justify the conclusion."
     },
     {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 10",
-      "text": "4. INFORMAL PROOFS\nWhat is Informal Proofs?\nThe PPT states:\nAn informal proofs are arguments that depend on their matter as well as their logical form.\nIt further explains:\nThe steps of the proofs are not expressed in any formal language as e.g. propositional logic"
+      "heading": "Worked formal example",
+      "text": "Claim: If n is an even integer, n² is even.\n\n1. Assume n = 2k for an integer k.\n2. n² = (2k)² = 4k².\n3. n² = 2(2k²).\n4. Since 2k² is an integer, n² is even.\n\nEach step uses an assumption, algebra, or the definition of even."
     },
     {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 11",
-      "text": "5. CHARACTERISTICS OF INFORMAL PROOFS\nThe PPT presents five characteristics of informal proofs."
-    },
-    {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 12",
-      "text": "5.1 Natural Language\nInformal proofs are typically presented in everyday language, without strict adherence to:\n\tSymbolic notation\n\tFormal logic\nThey aim to explain the reasoning in a way that is accessible to a wide audience.\nKey idea\nInformal proofs primarily use ordinary language to communicate the reasoning."
-    },
-    {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 13",
-      "text": "5.2 Less Structured\nInformal proofs may lack the strict structure of formal proofs.\nThey often rely on:\n\tNarrative explanations\n\tExamples\n\tIntuitive reasoning\nto convey the argument's validity.\nKey idea\nInformal proofs do not necessarily follow a rigid step-by-step formal structure."
-    },
-    {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 14",
-      "text": "5.3 Emphasis on Understanding\nInformal proofs focus on conveying the underlying ideas and concepts behind the argument.\nThey may prioritize:\n\tIntuition\n\tInsight\nover rigorous formalism.\nKey idea\nThe goal is to help the reader understand why the argument works."
-    },
-    {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 15",
-      "text": "5.4 Flexibility\nInformal proofs allow for more flexibility in presentation style.\nThey may include:\n\tDiagrams\n\tExamples\n\tAnalogies\n\tOther illustrative techniques\nto aid in understanding.\nKey idea\nThe proof can use different ways of explaining an idea as long as the reasoning is communicated."
-    },
-    {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 16",
-      "text": "5.5 Subjectivity\nInformal proofs may be subject to:\n\tInterpretation\n\tThe reader's understanding\n\tThe reader's judgment\nThey may not provide the same level of certainty as formal proofs but can still convey convincing arguments.\nKey idea\nBecause informal proofs rely more on natural language and interpretation, the reader's understanding can affect how the argument is perceived."
-    },
-    {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 17",
-      "text": "6. FORMAL VS. INFORMAL PROOFS — COMPLETE COMPARISON\nAspect\tFormal Proofs\tInformal Proofs\nLanguage\tSymbolic notation, logical symbols, mathematical symbols\tNatural/everyday language\nStructure\tRigorous and systematic\tLess structured\nReasoning\tEvery step is logically derived and justified\tMay rely on narrative explanations and intuitive reasoning\nAssumptions/Axioms\tExplicitly stated\tNot necessarily expressed formally\nAmbiguity\tNo room for ambiguity\tMay be subject to interpretation\nUnderstanding\tEmphasizes rigorous formalism\tEmphasizes underlying ideas, intuition, and insight\nPresentation\tStrict proof techniques\tFlexible presentation"
-    },
-    {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 18",
-      "text": "Examples/Illustrations\tPrimarily formal logical/mathematical notation\tCan use diagrams, examples, analogies, etc.\nVerification\tCan be mechanically verified by computers or humans\tRelies more on reader's understanding and judgment\nCertainty\tProvides a high level of confidence in validity\tMay not provide the same level of certainty but can still convey convincing arguments\nThis comparison is assembled directly from the characteristics presented across the two sections of the PPT."
-    },
-    {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 19",
-      "text": "7. COMPLETE MIDTERM LESSON STRUCTURE\nFORMAL PROOFS\nDefinition\nA proof is a precise, formal, and valid argument that establishes the truth of a statement.\nA formal proof or derivation is a finite sequence of sentences called well-formed formulas in a formal language.\nFive characteristics\n\tRigorous Structure\n\tSymbolic Language\n\tAssumptions and Axioms\n\tNo Ambiguity\n\tVerification"
-    },
-    {
-      "source": "User-provided exact content — Formal and Informal Proofs — page 20",
-      "text": "INFORMAL PROOFS\nDefinition\nInformal proofs are arguments that depend on their matter as well as their logical form.\nTheir steps are not expressed in a formal language such as propositional logic.\nFive characteristics\n\tNatural Language\n\tLess Structured\n\tEmphasis on Understanding\n\tFlexibility\n\tSubjectivity"
+      "heading": "The same proof informally",
+      "text": "An even integer has a factor of 2. Squaring it gives n² = 4k² = 2(2k²), which still has a factor of 2. Therefore its square is even.\n\nThis shorter prose proof is valid because it applies to every even integer."
     }
   ]
 }

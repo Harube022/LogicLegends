@@ -34,7 +34,7 @@ public sealed class TruthTableTutorial : MonoBehaviour
         ("Answer the house quizzes",
             "At a closed house door, tap the hand button and choose one of four quiz answers. These quizzes check your understanding of logic; they are separate from the board's rows. Either answer opens that door. An incorrect answer costs 10 seconds and shows the correct answer before the quiz closes. Correct answers give no extra time."),
         ("Collect element blocks",
-            "Once a house door is open, enter and look for True/False element blocks. Their interaction bubbles appear only while that house is open and the blocks can be collected. Approach a block and tap the hand button. The existing inventory groups True and False blocks; tap a stack to select the type you need."),
+            "Use the hand to collect from an open house. Store up to four blocks. Tap True or False in inventory to equip that stack. Tap its selected slot again to hide it. More equipped blocks slow you down; hiding them restores normal speed."),
         ("Fill and submit a column",
             "Read the highlighted row's P/Q values. Face and line up with the required Truth Table column, then use the hand button while holding the selected element block to drop it into the highlighted slot. Fill all four rows in order, then tap Submit Column. Submit checks the entire column, not just the last block."),
         ("Correct mistakes",
@@ -44,7 +44,7 @@ public sealed class TruthTableTutorial : MonoBehaviour
         ("Time and retries",
             "Each challenge starts with 18:00. Time pauses during Help, tutorial practice, door quizzes, and while you stand in the marked board area. Penalties still apply while paused: −10 seconds for an incorrect door quiz and −20 for an incorrect column. Red time deductions appear beside the timer and fade out. At 00:00, Restart begins again at Easy."),
         ("Move and read",
-            "Use the joystick to move, the jump button to jump, and the hand button for nearby interactions. Hold a movement direction for 3 seconds to run at 1.5 times walking speed. Tap the minimap to inspect the whole stage; Close restores the compact view. The challenge and timer wait for the book between challenges.")
+            "Use the joystick, jump button and hand button. Empty-handed, move continuously for 3 seconds to run. Carrying blocks prevents running and applies their weight penalty. Tap the minimap to enlarge it. Challenges wait for the book.")
     };
 
     private int pageIndex;

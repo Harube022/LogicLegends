@@ -206,3 +206,30 @@ Portrait touch controls are fitted within this stage's safe area to leave those
 action rows clear. Their original layouts are restored in landscape and on exit;
 tutorial highlights continue to follow the actual controls. The interaction prompt
 shares the action buttons' safe-area parent.
+
+## World-scroll readability
+
+`ProofScrollTypography` applies the existing Liberation Sans reading font to all
+visible scroll pedestals and placed-scroll labels in Formal vs. Informal Proofs.
+Titles use size 3; body text uses size 2.6 without shrinking long passages. The
+parchment height grows with the measured title and body, retaining balanced
+margins and a clear gap. Short labels are centered. Sparse mathematical lines
+remain left aligned; only dense prose is justified.
+
+The scoped `Resources/ProofScrollText/NeonReading` material uses the unlit mobile
+SDF shader: mint lettering, a dark outline, and a restrained soft underlay halo.
+It needs no bloom or extra lights. Its separate parchment material improves
+contrast without changing the main board or other trials. The shared pedestal
+prefab remains unchanged because Direct&Indirect also uses it. Runtime copies
+and practice scrolls receive the presentation through OnEnable/SetContent.
+Text content, full reading panels, source mappings, and colliders are unchanged.
+
+To rebuild only these materials, run `ProofScrollReadabilitySetup.Apply()` in
+Edit Mode. `FormalScrollReadabilityChecks.Catalog()` verifies all 200 bank text
+cases, placeholders, and practice examples for fit and symbol coverage. Then
+`StageHelpGameplayRecorder.CheckFormalScrollText()` checks all five challenges,
+runtime clones, reading, collection, return, and slot removal in an isolated
+offline Play Mode session. It captures the normal gameplay camera at 1280x720
+and 2960x1440, matching the build's landscape orientations. Full logs and captures
+are in `Library/FormalScrollReadability`. These are Editor checks; physical
+Android device readability has not been tested.

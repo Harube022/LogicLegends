@@ -99,7 +99,7 @@ public sealed class SetssssBoardView : MonoBehaviour
         if (playerZoom != null) playerZoom.enabled = false;
         if (gameplayControls != null) gameplayControls.SetActive(false);
         if (viewBoardButton != null) viewBoardButton.gameObject.SetActive(false);
-        if (backButton != null) backButton.gameObject.SetActive(true);
+        if (backButton != null) { backButton.interactable = true; backButton.gameObject.SetActive(true); }
 
         var priority = boardCamera.Priority;
         priority.Value = playerCamera.Priority.Value + 100;
@@ -136,4 +136,5 @@ public sealed class SetssssBoardView : MonoBehaviour
         if (viewBoardButton != null) viewBoardButton.onClick.RemoveListener(ViewBoard);
         if (backButton != null) backButton.onClick.RemoveListener(Back);
     }
+    private void OnDisable() { Back(); }
 }

@@ -1,0 +1,42 @@
+Character playback-speed correction — 2026-11-06
+
+Cause
+- Previously reassigned walks allowed up to 4x playback.
+- Several clips contain two complete gait cycles, not one.
+- Actual player prefabs use walk speed 13 and run speed 19.5; the Player class
+  default of 8 is not the live calibration reference.
+- Dividing instantaneous speed by a damped playback rate exaggerated strides
+  during acceleration. Stride fitting now uses a stable calibration instead.
+
+Changes
+- Per-skin cycle counts, actual foot travel, reachable stride and playback caps.
+- Global Animator speed 1; Idle 1x; CarryIdle held pose; Jump and Stun retain
+  their existing physics flight / fall-hold-recovery deadlines.
+- Proportional, smoothed playback under movement and carrying penalties.
+- Two-bone stride fitting after Generic retargeting and before carry arm support.
+  No bone scaling, capsule/root movement, physics or gameplay-speed changes.
+- All original and recently shared clip assignments remain intact.
+
+Passed in the Editor
+- 24 full gait cases, 81 phases each: reachable feet, bounded silhouette,
+  unchanged bone offsets, root transform and outfit proportions.
+- All 12 skins: actual GameInput walk/run activation, turning, stopping,
+  jump/landing, carrying/release, original item size and pause/resume.
+- 48 carrying-weight cases: 95/88/80/75 percent movement levels, proportional
+  cadence, preserved running suppression and correct animation-clock advance.
+- Actual PRELIM hammer pass on all 12 skins: immediate impact animation,
+  duplicate-safe one-shot reaction, grounded mesh/capsule, unchanged displacement
+  and five-second lock/recovery.
+- 48 inherited player/resource/main-menu visuals: cadence values, bone references,
+  original donor mappings, uniform scales and disabled root motion.
+- 156 animation clips retained; 300 source animation/FBX/importer hashes unchanged.
+
+Logs: Assets/Characters_NEW/LATEST_SKINS/Integration/PlaybackChecks.txt
+      Assets/Characters_NEW/LATEST_SKINS/Integration/ImpactChecks.txt
+Local renders: Library/AnimationPlaybackPreviews/
+Reproduce: LatestSkinPlaybackSetup.Apply(); LatestSkinPlaybackChecks.Static();
+           LatestSkinPlayChecks.BeginPlayback(); LatestSkinPlayChecks.BeginImpact();
+Run each Play Mode fixture separately, with saved scenes and outside Play Mode.
+
+Limitations: Editor simulation only. No physical Android or live multiplayer peer
+test. No account, wallet, ownership or saved progress changes. No commits/pushes.

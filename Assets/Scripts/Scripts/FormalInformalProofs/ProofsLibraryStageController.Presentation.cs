@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 public sealed partial class ProofsLibraryStageController
 {
+    [SerializeField, Tooltip("Separate chamber roof visuals hidden during overhead challenge introductions. Colliders remain enabled.")]
+    private Renderer[] tutorialCeilingRenderers = System.Array.Empty<Renderer>();
+    public Renderer[] TutorialCeilingRenderers => tutorialCeilingRenderers;
 #if UNITY_EDITOR
     public static bool SuppressProgressionForValidation { get; set; }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

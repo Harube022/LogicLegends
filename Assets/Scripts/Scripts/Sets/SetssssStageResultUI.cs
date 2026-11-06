@@ -8,6 +8,25 @@ public sealed class SetssssStageResultUI : MonoBehaviour
 {
     private static SetssssStageResultUI current;
     private bool navigating;
+    public static void ShowFailure(UnityEngine.Events.UnityAction retry)
+    {
+        if (current != null) return;
+        var root = new GameObject("Sets Game Over", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+        current = root.AddComponent<SetssssStageResultUI>();
+        root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+        root.GetComponent<Canvas>().sortingOrder = 950;
+        var scaler = root.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920,1080); scaler.matchWidthOrHeight = .5f;
+        var result = StageResultCard.Build(root.transform, current.ReturnToMenu);
+        result.Stage.text = TrialCatalog.Get(7).Title; result.Heading.text = "TIME IS UP";
+        result.Summary.text = "Try Again repeats this challenge.\nStart Over begins a fresh run.";
+        result.Root.gameObject.SetActive(true);
+        result.Root.GetComponent<StageResultLayout>().Fail(7, () => {
+            retry?.Invoke();
+            var old = current; current = null;
+            if (old != null) Destroy(old.gameObject);
+        });
+    }
 
     public static void Show()
     {

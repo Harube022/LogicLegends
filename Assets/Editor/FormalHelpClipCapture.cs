@@ -97,9 +97,9 @@ public static class FormalHelpClipCapture
             Position(Ground(sourceAt+new Vector3(2,0,-4),5),source.position);
             SetCamera(source.position+new Vector3(8,6,-8),source.position+Vector3.up*2.3f,57);
             Start(2);yield return FadeIn();yield return Walk(sourceAt,5);Face(source.position);yield return Frames(6);
-            Require(ui.InteractionButton.gameObject.activeInHierarchy&&ButtonText(ui.InteractionButton)=="Interact","real scroll interaction control available");
-            yield return ZoomButton(ui.InteractionButton,1.5f);Snapshot("03_Interact");yield return Tap((RectTransform)ui.InteractionButton.transform);
-            ui.InteractionButton.transform.localScale=Vector3.one;veil.SetHoles();
+            Require(ui.HandButton.gameObject.activeInHierarchy&&stage.HasNearbyInteraction,"real scroll interaction control available");
+            yield return ZoomButton(ui.HandButton,1.5f);Snapshot("03_Interact");yield return Tap((RectTransform)ui.HandButton.transform);
+            ui.HandButton.transform.localScale=Vector3.one;veil.SetHoles();
             Require(stage.HasReaderOpen&&stage.ReadingScroll==0&&stage.ReaderBody.text==sameQuestion.scrolls[0].content,"real centered reader uses exact scroll data");
             yield return ShowReader(0);Snapshot("03_ReadScroll");
             Require(ButtonText(stage.CollectButton)=="Get This Scroll","actual collection label");
@@ -114,8 +114,8 @@ public static class FormalHelpClipCapture
             Start(3);yield return FadeIn();yield return PlaceCarried(0);
             var second=stage.ScrollTargets[1].transform;
             yield return Walk(second.position+Vector3.left*2.2f,6);Face(second.position);yield return Frames(6);
-            Require(ui.InteractionButton.gameObject.activeInHierarchy,"second scroll's actual interaction is available");
-            veil.SetHoles(ScreenRect((RectTransform)ui.InteractionButton.transform,14));yield return Tap((RectTransform)ui.InteractionButton.transform);veil.SetHoles();
+            Require(ui.HandButton.gameObject.activeInHierarchy,"second scroll's actual interaction is available");
+            veil.SetHoles(ScreenRect((RectTransform)ui.HandButton.transform,14));yield return Tap((RectTransform)ui.HandButton.transform);veil.SetHoles();
             Require(stage.HasReaderOpen&&stage.ReaderBody.text==sameQuestion.scrolls[1].content,"same question's second proof is read");
             yield return ShowReader(1);
             yield return Focus(ScreenRect((RectTransform)stage.CollectButton.transform,22),1.5f);
@@ -178,12 +178,12 @@ public static class FormalHelpClipCapture
     {
         var altar=stage.AltarTargets[sameQuestion.scrolls[index].isFormal?0:1];
         yield return Walk(altar.position+new Vector3(0,0,-2.6f),5.5f);Face(altar.position);yield return Frames(5);
-        Require(stage.CarriedScroll==index&&ui.InteractionButton.gameObject.activeInHierarchy&&ButtonText(ui.InteractionButton)=="Place Scroll","actual nearby Place Scroll control");
-        yield return Focus(ScreenRect((RectTransform)ui.InteractionButton.transform,16),1.5f);
-        veil.SetHoles(ScreenRect((RectTransform)ui.InteractionButton.transform,14));yield return Frames(26);Snapshot("04_Place"+index);
-        yield return Tap((RectTransform)ui.InteractionButton.transform);veil.SetHoles();
+        Require(stage.CarriedScroll==index&&ui.HandButton.gameObject.activeInHierarchy&&stage.HasNearbyPlacement,"nearby placement through the actual hand button");
+        yield return Focus(ScreenRect((RectTransform)ui.HandButton.transform,16),1.5f);
+        veil.SetHoles(ScreenRect((RectTransform)ui.HandButton.transform,14));yield return Frames(26);Snapshot("04_Place"+index);
+        yield return Tap((RectTransform)ui.HandButton.transform);veil.SetHoles();
         Require(stage.CarriedScroll==-1&&stage.Placement(index)==(sameQuestion.scrolls[index].isFormal?0:1)&&stage.CorrectCount==0,"Place Scroll places, never validates");
-        yield return Overview();yield return Frames(18);Log("Placed "+sameQuestion.scrolls[index].id+" on "+altar.name+" using Place Scroll.");
+        yield return Overview();yield return Frames(18);Log("Placed "+sameQuestion.scrolls[index].id+" on "+altar.name+" using the hand button.");
     }
     static void Start(int index)
     {

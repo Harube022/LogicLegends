@@ -29,7 +29,7 @@ public class DynamicDoorTrigger : MonoBehaviour
     [SerializeField] private Animator hammerAnimator;
     [SerializeField] private float knockbackDelay = 0.4f;
     [Tooltip("Total wrong-door recovery time, including hammer wind-up and knockback.")]
-    [SerializeField, Min(0.1f)] private float stunDuration = 5f;
+    [SerializeField, Range(0.1f, 30f)] private float stunDuration = 5f;
     [SerializeField] private float knockbackDistance = 3f;
 
     private bool isProcessingTrap = false;
@@ -38,8 +38,6 @@ public class DynamicDoorTrigger : MonoBehaviour
     private Player trappedController;
     private CharacterController trappedCharacterController;
     private GameInput trappedInput;
-    private bool playerControlBeforeTrap;
-    private bool inputBlockedBeforeTrap;
     private bool stunAnimationActive;
 
     public int DoorIndex => doorIndex;
@@ -97,10 +95,9 @@ public class DynamicDoorTrigger : MonoBehaviour
         trappedController = player.GetComponent<Player>();
         trappedCharacterController = player.GetComponent<CharacterController>();
         trappedInput = GameInput.Instance != null ? GameInput.Instance : FindFirstObjectByType<GameInput>();
-        playerControlBeforeTrap = trappedController != null && trappedController.enabled;
-        inputBlockedBeforeTrap = trappedInput != null && trappedInput.GameplayInputBlocked;
-        trappedInput?.SetGameplayInputBlocked(true);
-        trappedController?.ToggleControl(false);
+        trappedInput?.AcquireGameplayActionBlock(this);
+        trappedController?.OffRun();
+        trappedController?.ResetMotionAfterTeleport();
 
         if (timerManager != null) 
         {
@@ -124,13 +121,14 @@ public class DynamicDoorTrigger : MonoBehaviour
             hammerAnimator.SetTrigger("Swing");
         }
 
-        if (trappedCharacterController != null) trappedCharacterController.enabled = false;
+        // Keep the capsule on the floor and respect walls during knockback.
 
         float windupElapsed = 0f;
         while (windupElapsed < knockbackDelay)
         {
             if (ShouldAbortTrap()) { FinishTrap(false); yield break; }
             windupElapsed += Time.deltaTime;
+            HoldOnGround();
             yield return null;
         }
 
@@ -139,6 +137,14 @@ public class DynamicDoorTrigger : MonoBehaviour
         knockbackDirection.Normalize();
 
         float knockbackDuration = 0.25f; 
+        // Impact starts both the reaction and displacement. Include knockback in
+        // animation time without extending the existing control-lock deadline.
+        float remainingStunTime = Mathf.Max(0.1f, Mathf.Clamp(stunDuration,.1f,30f) - knockbackDelay - knockbackDuration);
+        foreach (var skin in trappedPlayer.GetComponentsInChildren<PlayerAnimator>())
+            remainingStunTime = Mathf.Max(remainingStunTime, skin.MinimumStunDuration);
+        stunAnimationActive = true;
+        foreach (var skin in trappedPlayer.GetComponentsInChildren<PlayerAnimator>(true))
+            skin.BeginStun(knockbackDuration + remainingStunTime);
         float elapsed = 0f;
         Vector3 startPosition = player.transform.position;
         Vector3 targetPosition = startPosition + (knockbackDirection * knockbackDistance);
@@ -147,7 +153,10 @@ public class DynamicDoorTrigger : MonoBehaviour
         {
             if (ShouldAbortTrap()) { FinishTrap(false); yield break; }
             elapsed += Time.deltaTime;
-            player.transform.position = Vector3.Lerp(startPosition, targetPosition, elapsed / knockbackDuration);
+            Vector3 desired = Vector3.Lerp(startPosition, targetPosition, elapsed / knockbackDuration);
+            if (trappedCharacterController != null && trappedCharacterController.enabled)
+                trappedCharacterController.Move(desired - player.transform.position + Vector3.down * .2f);
+            else player.transform.position = desired;
             yield return null; 
         }
 
@@ -159,17 +168,22 @@ public class DynamicDoorTrigger : MonoBehaviour
             quizManager.PlayKnockbackVoiceSound();
         }
 
-        SetStunAnimation(true);
-        float remainingStunTime = Mathf.Max(0.1f, stunDuration - knockbackDelay - knockbackDuration);
         float stunElapsed = 0f;
         while (stunElapsed < remainingStunTime)
         {
             if (ShouldAbortTrap()) { FinishTrap(false); yield break; }
             stunElapsed += Time.deltaTime;
+            HoldOnGround();
             yield return null;
         }
 
         FinishTrap(!ShouldAbortTrap());
+    }
+
+    private void HoldOnGround()
+    {
+        if (trappedCharacterController != null && trappedCharacterController.enabled && Time.deltaTime > 0)
+            trappedCharacterController.Move(Vector3.down * (8f * Time.deltaTime));
     }
 
     private bool ShouldAbortTrap()
@@ -197,11 +211,9 @@ public class DynamicDoorTrigger : MonoBehaviour
             tutorial.CloseTutorial();
         bool mayRestoreControls = (timerManager == null || timerManager.RemainingTime > 0f) &&
                                   (tutorial == null || !tutorial.IsOpen);
-        if (mayRestoreControls)
-        {
-            if (trappedInput != null) trappedInput.SetGameplayInputBlocked(inputBlockedBeforeTrap);
-            if (trappedController != null) trappedController.ToggleControl(playerControlBeforeTrap);
-        }
+        // Release only this trap's actions. Menus/tutorials retain their own
+        // input and camera locks, even if they were opened during the stun.
+        trappedInput?.ReleaseGameplayActionBlock(this);
 
         if (completedNormally && mayRestoreControls)
         {

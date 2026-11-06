@@ -1,0 +1,39 @@
+Same clips, rates and movement data; compare native animation, previous stride solver and corrected solver.
+Female_Common Walk: knee frame delta L 12.7 -> 5.5, R 9.7 -> 5.6; sole residual L 0.0059 -> 0.0059, R 0.0055 -> 0.0060
+Female_Common Run: knee frame delta L 89.4 -> 4.8, R 8.9 -> 4.4; sole residual L 0.0374 -> 0.0067, R 0.0041 -> 0.0033
+Female_Elite Walk: knee frame delta L 9.7 -> 5.7, R 23.0 -> 5.2; sole residual L 0.0059 -> 0.0065, R 0.0049 -> 0.0049
+Female_Elite Run: knee frame delta L 14.3 -> 7.9, R 13.4 -> 7.6; sole residual L 0.0055 -> 0.0033, R 0.0060 -> 0.0044
+Female_Epic Walk: knee frame delta L 22.1 -> 10.2, R 20.3 -> 10.6; sole residual L 0.0198 -> 0.0264, R 0.0220 -> 0.0220
+Female_Epic Run: knee frame delta L 11.6 -> 5.5, R 11.4 -> 6.8; sole residual L 0.0033 -> 0.0033, R 0.0043 -> 0.0055
+Female_Rare Walk: knee frame delta L 46.8 -> 10.4, R 19.0 -> 11.1; sole residual L 0.0184 -> 0.0191, R 0.0223 -> 0.0224
+Female_Rare Run: knee frame delta L 50.2 -> 6.8, R 32.4 -> 7.6; sole residual L 0.0152 -> 0.0056, R 0.0063 -> 0.0062
+Female_Special Walk: knee frame delta L 30.8 -> 5.7, R 52.9 -> 5.7; sole residual L 0.0069 -> 0.0054, R 0.0171 -> 0.0074
+Female_Special Run: knee frame delta L 118.1 -> 3.4, R 88.8 -> 4.3; sole residual L 0.0331 -> 0.0025, R 0.0216 -> 0.0046
+Female_Uniform Walk: knee frame delta L 13.1 -> 5.9, R 18.2 -> 4.8; sole residual L 0.0053 -> 0.0072, R 0.0046 -> 0.0046
+Female_Uniform Run: knee frame delta L 178.9 -> 3.5, R 82.3 -> 4.3; sole residual L 0.0326 -> 0.0027, R 0.0210 -> 0.0051
+Male_Common Walk: knee frame delta L 54.5 -> 11.3, R 83.2 -> 12.5; sole residual L 0.0254 -> 0.0212, R 0.0458 -> 0.0198
+Male_Common Run: knee frame delta L 84.2 -> 10.5, R 132.5 -> 11.8; sole residual L 0.0462 -> 0.0167, R 0.0961 -> 0.0223
+Male_Elite Walk: knee frame delta L 38.9 -> 10.4, R 51.9 -> 10.5; sole residual L 0.0180 -> 0.0225, R 0.0306 -> 0.0195
+Male_Elite Run: knee frame delta L 79.6 -> 10.9, R 136.7 -> 10.0; sole residual L 0.0497 -> 0.0176, R 0.0889 -> 0.0212
+Male_Epic Walk: knee frame delta L 16.9 -> 6.4, R 13.5 -> 5.8; sole residual L 0.0078 -> 0.0078, R 0.0058 -> 0.0058
+Male_Epic Run: knee frame delta L 13.3 -> 5.6, R 71.3 -> 5.5; sole residual L 0.0086 -> 0.0086, R 0.0217 -> 0.0055
+Male_Rare Walk: knee frame delta L 22.3 -> 15.2, R 23.4 -> 11.9; sole residual L 0.0287 -> 0.0375, R 0.0246 -> 0.0246
+Male_Rare Run: knee frame delta L 2.8 -> 2.8, R 4.1 -> 4.1; sole residual L 0.0050 -> 0.0050, R 0.0070 -> 0.0070
+Male_Special Walk: knee frame delta L 155.5 -> 10.3, R 20.2 -> 9.8; sole residual L 0.0591 -> 0.0177, R 0.0191 -> 0.0239
+Male_Special Run: knee frame delta L 11.7 -> 5.3, R 13.5 -> 6.5; sole residual L 0.0116 -> 0.0114, R 0.0090 -> 0.0094
+Male_Uniform Walk: knee frame delta L 82.7 -> 11.6, R 56.1 -> 10.9; sole residual L 0.0414 -> 0.0177, R 0.0205 -> 0.0248
+Male_Uniform Run: knee frame delta L 104.1 -> 10.0, R 175.1 -> 9.8; sole residual L 0.0592 -> 0.0168, R 0.0636 -> 0.0226
+Offline integrated skins: actual GameInput, equipment IDs, CharacterController, Animator layers, pickup/drop and hammer stun.
+PLAY PASS Male_Uniform: rendered frames walk=801, run=106, turns=74, blends=51, carry=550; both knee poles stable (minimum dot=1.0000); sole minimum L=-0.0013, R=-0.0010.
+PLAY PASS Male_Elite: rendered frames walk=803, run=107, turns=72, blends=51, carry=550; both knee poles stable (minimum dot=1.0000); sole minimum L=-0.0015, R=-0.0003.
+PLAY PASS Male_Common: rendered frames walk=805, run=104, turns=72, blends=51, carry=548; both knee poles stable (minimum dot=1.0000); sole minimum L=0.0000, R=0.0000.
+PLAY PASS Male_Rare: rendered frames walk=801, run=102, turns=72, blends=51, carry=546; both knee poles stable (minimum dot=1.0000); sole minimum L=-0.0020, R=-0.0014.
+PLAY PASS Male_Special: rendered frames walk=803, run=105, turns=74, blends=49, carry=546; both knee poles stable (minimum dot=1.0000); sole minimum L=-0.0014, R=-0.0020.
+PLAY PASS Male_Epic: rendered frames walk=805, run=104, turns=71, blends=51, carry=550; both knee poles stable (minimum dot=1.0000); sole minimum L=-0.0011, R=-0.0007.
+PLAY PASS Female_Uniform: rendered frames walk=806, run=105, turns=73, blends=51, carry=550; both knee poles stable (minimum dot=1.0000); sole minimum L=0.0000, R=0.0000.
+PLAY PASS Female_Common: rendered frames walk=804, run=104, turns=71, blends=51, carry=549; both knee poles stable (minimum dot=1.0000); sole minimum L=-0.0023, R=-0.0014.
+PLAY PASS Female_Rare: rendered frames walk=803, run=105, turns=70, blends=50, carry=549; both knee poles stable (minimum dot=1.0000); sole minimum L=-0.0031, R=-0.0019.
+PLAY PASS Female_Elite: rendered frames walk=809, run=104, turns=73, blends=49, carry=550; both knee poles stable (minimum dot=1.0000); sole minimum L=0.0000, R=0.0000.
+PLAY PASS Female_Special: rendered frames walk=805, run=105, turns=72, blends=51, carry=550; both knee poles stable (minimum dot=1.0000); sole minimum L=-0.0004, R=-0.0001.
+PLAY PASS Female_Epic: rendered frames walk=806, run=105, turns=74, blends=51, carry=549; both knee poles stable (minimum dot=1.0000); sole minimum L=-0.0005, R=-0.0005.
+ALL 12 INTEGRATED SKINS PASSED

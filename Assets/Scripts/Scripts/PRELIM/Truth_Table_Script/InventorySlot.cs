@@ -14,6 +14,8 @@ public class InventorySlot
 
     public bool TryAdd(bool value, TruthBlock blockInstance)
     {
+        if(blockInstance==null)return false;
+        if(physicalBlocks.Contains(blockInstance))return true;
         if (isEmpty)
         {
             blockValue = value;
@@ -36,6 +38,10 @@ public class InventorySlot
 
         return false; 
     }
+
+    public void Synchronize(){physicalBlocks.RemoveAll(b=>b==null);count=physicalBlocks.Count;isEmpty=count==0;}
+    public bool Remove(TruthBlock block){bool removed=physicalBlocks.Remove(block);Synchronize();return removed;}
+    public void Clear(){physicalBlocks.Clear();count=0;isEmpty=true;}
 
     public TruthBlock Consume()
     {

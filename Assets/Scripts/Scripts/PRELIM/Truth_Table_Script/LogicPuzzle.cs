@@ -266,6 +266,7 @@ public class LogicPuzzle : MonoBehaviour
 
     private void LockBlock(TruthBlock block, Transform snapPoint)
     {
+        block.GetComponent<GrabbableObject>()?.ReleaseForPlacement();
         block.transform.position = snapPoint.position;
         block.transform.rotation = snapPoint.rotation;
 

@@ -27,6 +27,8 @@ public class StudyShelfZone : MonoBehaviour
     private GameObject previewRoot;
     private Collider activePlayerCollider;
     private GameInput gameInput;
+    private BoxCollider detection;
+    private HandThoughtBubble bubble;
     private Material shelfOutlineMaterial;
     private Material shelfGlowMaterial;
     private readonly List<GameObject> shelfHighlightObjects = new List<GameObject>();
@@ -49,6 +51,7 @@ public class StudyShelfZone : MonoBehaviour
     private void Awake()
     {
         BoxCollider trigger = GetComponent<BoxCollider>();
+        detection = trigger;
         trigger.isTrigger = true;
         Rigidbody body = GetComponent<Rigidbody>();
         body.isKinematic = true;
@@ -62,6 +65,7 @@ public class StudyShelfZone : MonoBehaviour
         // duplicating or manually reauthoring the serialized shelf data.
         books = StudyLibraryCatalog.GetShelf(shelfTitle);
         BuildWorldUI();
+        bubble = HandThoughtBubble.Create(transform, shelfTitle + " Shelf Thought Bubble", yellowMarker: true);
         BuildShelfHighlight();
         SetFocused(false);
         gameInput = FindFirstObjectByType<GameInput>();
@@ -80,10 +84,17 @@ public class StudyShelfZone : MonoBehaviour
     private void Update()
     {
         UpdateShelfHighlight();
-        if(activePlayerCollider!=null&&DialogueManager.Instance!=null)
+        // CharacterController teleports can omit trigger exits. Never retain a
+        // shelf interaction merely because its old enter event is still cached.
+        if (activePlayerCollider != null && !PlayerWithinRange) activePlayerCollider = null;
+        bool available = !LogicLibraryTutorialController.InteractionsBlocked &&
+            (controller == null || !controller.IsInReadingView) && (gameInput == null || !gameInput.GameplayInputBlocked);
+        if (bubble != null)
         {
-            DialogueManager.Instance.SetInteractLabel("Read");
-            if(LogicLibraryTutorialController.InteractionsBlocked)DialogueManager.Instance.ToggleInteractButton(false);
+            // Keep the prompt below the period sign and in front of the shelf.
+            Vector3 anchor = new Vector3(transform.position.x, labelWorldPosition.y - 4, transform.position.z);
+            bubble.Show(available, PlayerWithinRange, anchor);
+            if (available && PlayerWithinRange) bubble.KeepInView();
         }
     }
 
@@ -94,24 +105,25 @@ public class StudyShelfZone : MonoBehaviour
         if (Player.LocalInstance != null && player != Player.LocalInstance) return;
 
         activePlayerCollider = other;
-        if (DialogueManager.Instance != null){DialogueManager.Instance.SetInteractLabel("Read");DialogueManager.Instance.ToggleInteractButton(!LogicLibraryTutorialController.InteractionsBlocked);}
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (other != activePlayerCollider) return;
         activePlayerCollider = null;
-        if (DialogueManager.Instance != null) DialogueManager.Instance.ToggleInteractButton(false);
-        if (controller != null) controller.ExitShelf(this);
+        // Reading is an explicit Back-controlled view, not a movement gesture.
+        // Forced trigger exits must not close a book or change its current spread.
     }
 
     private void HandleInteractAction(object sender, System.EventArgs eventArgs)
     {
         if(LogicLibraryTutorialController.InteractionsBlocked||(gameInput!=null&&gameInput.GameplayInputBlocked))return;
-        if (activePlayerCollider == null || controller == null || controller.IsViewing(this)) return;
+        if (!PlayerWithinRange || controller == null || controller.IsViewing(this)) return;
         controller.EnterShelf(this);
-        if (DialogueManager.Instance != null) DialogueManager.Instance.ToggleInteractButton(false);
     }
+
+    private bool PlayerWithinRange => activePlayerCollider != null && activePlayerCollider.enabled &&
+        activePlayerCollider.gameObject.activeInHierarchy && detection != null && detection.bounds.Intersects(activePlayerCollider.bounds);
 
     public void SetFocused(bool focused)
     {
@@ -246,58 +258,55 @@ public class StudyShelfZone : MonoBehaviour
         labelText.color = new Color(0.82f, 1f, 0.91f);
         StudyLibraryController.Stretch(labelText.rectTransform, Vector2.zero, Vector2.one, new Vector2(60f, 30f), new Vector2(-60f, -30f));
 
-        previewRoot = new GameObject(shelfTitle + " Book Previews");
+        // Stable screen-space cards remain readable during the shelf camera blend.
+        previewRoot = new GameObject(shelfTitle + " Book Previews", typeof(RectTransform), typeof(Canvas),
+            typeof(UnityEngine.UI.CanvasScaler), typeof(UnityEngine.UI.GraphicRaycaster));
         previewRoot.transform.SetParent(transform, false);
-
-        int count = Mathf.Min(books == null ? 0 : books.Length, cardWorldPositions == null ? 0 : cardWorldPositions.Length);
-        for (int i = 0; i < count; i++)
+        var canvas = previewRoot.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 150;
+        var scaler = previewRoot.GetComponent<UnityEngine.UI.CanvasScaler>();
+        scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1600, 900); scaler.matchWidthOrHeight = .5f;
+        var safe = StageUITheme.Rect("Shelf Topic Safe Area", previewRoot.transform);
+        StageUITheme.Stretch(safe, Vector2.zero, Vector2.one); safe.gameObject.AddComponent<Crystal.SafeArea>();
+        var heading = StageUITheme.Text("Shelf Heading", safe, shelfTitle, 42, true);
+        heading.fontStyle = FontStyles.Bold; heading.color = new Color(1, .89f, .62f);
+        StageUITheme.Stretch(heading.rectTransform, new Vector2(.08f,.78f), new Vector2(.92f,.89f));
+        var row = StageUITheme.Rect("Topic Cards", safe);
+        StageUITheme.Stretch(row, new Vector2(.055f,.26f), new Vector2(.945f,.76f));
+        var group = row.gameObject.AddComponent<UnityEngine.UI.HorizontalLayoutGroup>();
+        group.spacing = 24; group.childControlWidth = group.childControlHeight = true;
+        group.childForceExpandWidth = group.childForceExpandHeight = true;
+        for (int i = 0; i < (books == null ? 0 : books.Length); i++)
         {
             int bookIndex = i;
             StudyBookDefinition book = books[i];
-            GameObject card = CreateWorldCanvas("Book " + (i + 1) + " Preview", cardWorldPositions[i], new Vector2(420f, 250f), 0.0013f);
-            card.transform.SetParent(previewRoot.transform, true);
-            Image cardImage = card.AddComponent<Image>();
-            cardImage.color = new Color(0.04f, 0.12f, 0.16f, 0.97f);
-            cardImage.raycastTarget = true;
-            Button button = card.AddComponent<Button>();
-            button.interactable = true;
+            var card = StageUITheme.Rect("Book " + (i + 1) + " Preview", row);
+            var cardImage = card.gameObject.AddComponent<UnityEngine.UI.Image>();
+            StageUITheme.CompactSurface(cardImage);
+            card.Find("CalmContentInset").gameObject.AddComponent<UnityEngine.UI.LayoutElement>().ignoreLayout = true;
+            var button = card.gameObject.AddComponent<UnityEngine.UI.Button>();
             button.targetGraphic = cardImage;
-            ColorBlock colors = button.colors;
-            colors.highlightedColor = new Color(0.1f, 0.36f, 0.33f, 1f);
-            colors.pressedColor = new Color(0.05f, 0.62f, 0.45f, 1f);
+            var colors = button.colors;
+            colors.highlightedColor = new Color(.82f,1,.92f); colors.pressedColor = new Color(.6f,.85f,.76f);
             button.colors = colors;
             button.onClick.AddListener(() => controller.OpenBook(this, books[bookIndex]));
-
-            Outline cardOutline = card.AddComponent<Outline>();
-            cardOutline.effectColor = new Color(0.22f, 0.86f, 0.66f, 0.9f);
-            cardOutline.effectDistance = new Vector2(3f, -3f);
-
-            TMP_Text title = StudyLibraryController.CreateText("Title", card.transform, 44f, FontStyles.Bold, TextAlignmentOptions.Center);
-            title.text = StudyLibraryController.StandardizeTerminology(book.title);
-            title.color = new Color(0.82f, 1f, 0.91f);
-            title.enableAutoSizing = true;
-            title.fontSizeMin = 20f;
-            title.fontSizeMax = 44f;
-            title.rectTransform.anchorMin = new Vector2(0.05f, 0.43f);
-            title.rectTransform.anchorMax = new Vector2(0.95f, 0.94f);
-            title.rectTransform.offsetMin = title.rectTransform.offsetMax = Vector2.zero;
-
-            TMP_Text preview = StudyLibraryController.CreateText("Preview", card.transform, 29f, FontStyles.Normal, TextAlignmentOptions.Center);
-            preview.text = StudyLibraryController.StandardizeTerminology(book.preview);
-            preview.color = new Color(0.87f, 0.92f, 0.92f);
-            preview.rectTransform.anchorMin = new Vector2(0.06f, 0.24f);
-            preview.rectTransform.anchorMax = new Vector2(0.94f, 0.43f);
-            preview.rectTransform.offsetMin = preview.rectTransform.offsetMax = Vector2.zero;
-
-            TMP_Text read = StudyLibraryController.CreateText("Read", card.transform, 33f, FontStyles.Bold, TextAlignmentOptions.Center);
-            read.text = "READ";
-            read.color = new Color(1f, .87f, .55f);
-            read.rectTransform.anchorMin = new Vector2(.26f, .03f);
-            read.rectTransform.anchorMax = new Vector2(.74f, .23f);
-            read.rectTransform.offsetMin = read.rectTransform.offsetMax = Vector2.zero;
+            var column = card.gameObject.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();
+            column.padding = new RectOffset(26,26,24,24); column.spacing = 18;
+            column.childControlWidth = column.childControlHeight = true;
+            column.childForceExpandWidth = true; column.childForceExpandHeight = false;
+            var title = StageUITheme.Text("Title", card, StudyLibraryController.StandardizeTerminology(book.title), 36, true);
+            title.fontStyle = FontStyles.Bold; title.color = new Color(.88f,1,.95f);
+            title.gameObject.AddComponent<UnityEngine.UI.LayoutElement>().preferredHeight = 112;
+            var preview = StageUITheme.Text("Preview", card, StudyLibraryController.StandardizeTerminology(book.preview), 28, true);
+            preview.color = new Color(.94f,.95f,.92f);
+            var descriptionSize = preview.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();
+            descriptionSize.preferredHeight = 116; descriptionSize.flexibleHeight = 1;
+            var action = StageUITheme.Text("Read", card, "Open book", 32, true);
+            action.fontStyle = FontStyles.Bold; action.color = new Color(1,.88f,.55f);
+            action.gameObject.AddComponent<UnityEngine.UI.LayoutElement>().preferredHeight = 60;
         }
     }
-
     private GameObject CreateWorldCanvas(string objectName, Vector3 position, Vector2 size, float scale)
     {
         GameObject canvasObject = new GameObject(objectName, typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(StudyShelfGraphicRaycaster));

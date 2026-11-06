@@ -105,6 +105,8 @@ public sealed class ProofsChallengeIntroductions : MonoBehaviour
         foreach (var behaviour in FindObjectsByType<CinemachinePinchZoom>(FindObjectsSortMode.None)) Pause(behaviour);
         foreach (var behaviour in FindObjectsByType<ThirdPersonCameraController>(FindObjectsSortMode.None)) Pause(behaviour);
         foreach (var renderer in player.GetComponentsInChildren<Renderer>(true)) HideRenderer(renderer);
+        foreach (var renderer in stage.TutorialCeilingRenderers)
+            if (renderer != null) HideRenderer(renderer);
         // Hide visual roof pieces only. Never disable a combined room mesh, floor collider, or gameplay object.
         foreach (var renderer in stage.BookTarget.root.GetComponentsInChildren<Renderer>(true))
         {

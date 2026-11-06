@@ -119,7 +119,9 @@ namespace LogicLegends.Trees
             gameplayControls.SetActive(!resultVisible&&!stage.BoardOpen&&!stage.LessonOpen&&!Practicing);
             back.gameObject.SetActive(!Practicing);back.interactable=stage.BoardOpen&&!stage.Moving;
             focusHelp.gameObject.SetActive(!Practicing);next.gameObject.SetActive(Practicing&&Intro.CanNext);next.interactable=Practicing&&Intro.AllowsControl(next.name);
-            help.interactable=stage.Ready&&!stage.Moving;
+            // Match SetLesson's camera guard: a bright Help button must accept taps.
+            bool helpReady=stage.Ready&&!stage.Moving&&(stage.boardFocus==null||!stage.boardFocus.Transitioning);
+            help.interactable=focusHelp.interactable=helpReady;
         }
         void LateUpdate()
         {
@@ -166,7 +168,8 @@ namespace LogicLegends.Trees
         {
             resultVisible=true;helpRoot.gameObject.SetActive(false);Refresh();var view=StageResultCard.Build(host,stage.Return);view.Stage.text=TrialCatalog.ForScene("Trees").Title;view.Heading.text=success?"TRIAL COMPLETE":"TIME IS UP";
             view.Summary.text="Time Played: "+StageJourneyUI.FormatTime(stage.timer.ActiveSeconds)+"\nCorrect: "+stage.Correct+" of 10\nMistakes: "+stage.Mistakes;
-            view.Primary.GetComponentInChildren<TMP_Text>().text="PLAY AGAIN";view.Primary.onClick.AddListener(stage.Restart);view.Extra.gameObject.SetActive(false);if(success)view.Root.GetComponent<StageResultLayout>().Complete(10);
+            view.Root.gameObject.SetActive(true);
+            view.Primary.GetComponentInChildren<TMP_Text>().text="PLAY AGAIN";view.Primary.onClick.AddListener(stage.Restart);view.Extra.gameObject.SetActive(false);if(success)view.Root.GetComponent<StageResultLayout>().Complete(10);else view.Root.GetComponent<StageResultLayout>().Fail(10,stage.Restart);
         }
         RectTransform Panel(string name,Transform parent,Sprite sprite){var rt=StageUITheme.Rect(name,parent);var image=rt.gameObject.AddComponent<Image>();image.sprite=sprite;image.type=Image.Type.Sliced;image.pixelsPerUnitMultiplier=4.5f;image.raycastTarget=false;return rt;}
         static void Readable(TMP_Text text,bool bold=false){text.font=StageUITheme.ReadingFont;text.fontSharedMaterial=StageUITheme.ReadingFont.material;text.fontStyle=bold?FontStyles.Bold:FontStyles.Normal;}

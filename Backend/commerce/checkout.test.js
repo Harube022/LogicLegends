@@ -10,7 +10,7 @@ test('HTTP checkout, signed fulfillment, wallet, purchase and equip work togethe
     const uid = 'automated-commerce-' + Date.now();
     const secret = 'fixture-signing-secret';
     const sessions = new Map();
-    const env = { STORAGE_MODE: 'emulator', PAYMENT_MODE: 'test', FIREBASE_DATABASE_EMULATOR_HOST: '127.0.0.1:9000',
+    const env = { SOLO_ECONOMY_V2_ENABLED: 'true', STORAGE_MODE: 'emulator', PAYMENT_MODE: 'test', FIREBASE_DATABASE_EMULATOR_HOST: '127.0.0.1:9000',
       FIREBASE_PROJECT_ID: 'logic-legends-ac66c', PUBLIC_BASE_URL: 'https://fixture.example',
       PAYMONGO_SECRET_KEY: 'sk_test_fixture', PAYMONGO_WEBHOOK_SECRET: secret };
     const app = createApp(env, {
@@ -37,7 +37,7 @@ test('HTTP checkout, signed fulfillment, wallet, purchase and equip work togethe
       assert.equal((await (await request('/wallet')).json()).paymentsEnabled, false);
       assert.equal((await request('/checkout', { productId: 'gems_5', requestId: crypto.randomBytes(16).toString('hex') })).status, 503);
       assert.equal(sessions.size, 0);
-      for (let n = 0; n < 2; n++) {
+      for (let n = 0; n < 6; n++) {
         env.CHECKOUT_ENABLED = 'true';
         const input = { productId: 'gems_5', requestId: crypto.randomBytes(16).toString('hex'), amount: 1, gems: 9999 };
         const checkout = await (await request('/checkout', input)).json(); orders.push(checkout.orderId);
@@ -54,14 +54,14 @@ test('HTTP checkout, signed fulfillment, wallet, purchase and equip work togethe
         for (let retry = 0; retry < 2; retry++) assert.equal((await fetch(base + '/webhook', { method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Paymongo-Signature': `t=${t},te=${sig},li=` }, body })).status, 200);
       }
-      assert.equal((await (await request('/wallet')).json()).gems, 10);
-      assert.equal((await request('/purchase', { itemId: 'Common_Costume' })).status, 409);
-      const owned = await (await request('/purchase', { itemId: 'Common_Skin', price: 0 })).json();
+      assert.equal((await (await request('/wallet')).json()).gems, 30);
+      assert.equal((await request('/purchase', { itemId: 'Common_Costume',currency:'gems',expectedPrice:30,economyVersion:2 })).status, 409);
+      const owned = await (await request('/purchase', { itemId: 'Common_Skin', price: 0,currency:'gems',expectedPrice:30,economyVersion:2 })).json();
       assert.equal(owned.gems, 0); assert.deepEqual(owned.inventory, ['Common_Skin']);
-      assert.equal((await (await request('/purchase', { itemId: 'Common_Skin' })).json()).gems, 0);
-      assert.equal((await request('/purchase', { itemId: 'Elite_Skin' })).status, 409);
+      assert.equal((await (await request('/purchase', { itemId: 'Common_Skin',currency:'gems',expectedPrice:30,economyVersion:2 })).json()).gems, 0);
+      assert.equal((await request('/purchase', { itemId: 'Elite_Skin',currency:'gems',expectedPrice:150,economyVersion:2 })).status, 409);
       assert.equal((await request('/equip', { itemId: 'Elite_Skin' })).status, 409);
-      assert.equal((await (await request('/equip', { itemId: 'Common_Skin' })).json()).equippedClothes, 'Common_Skin');
+      assert.equal((await (await request('/equip', { itemId: 'Common_Skin',currency:'gems',expectedPrice:30,economyVersion:2 })).json()).equippedClothes, 'Common_Skin');
     } finally {
       await new Promise(resolve => server.close(resolve));
       const db = getDatabase(getApp('commerce-data'));

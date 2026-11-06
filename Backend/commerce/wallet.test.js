@@ -6,7 +6,7 @@ const order = { id: 'order1', uid: 'player1', sessionId: 'cs_1', amount: 100, cu
 const session = () => ({ id: 'cs_1', attributes: { livemode: false, reference_number: 'order1',
   line_items: [{ amount: 100, currency: 'PHP', quantity: 1 }],
   payments: [{ id: 'pay_1', attributes: { amount: 100, currency: 'PHP', status: 'paid', livemode: false } }] } });
-test('two verified top-ups can buy an outfit without duplicate credits or spending', () => {
+test('verified top-ups can buy an outfit without duplicate credits or spending', () => {
   let account = { base_character: 'Male_Character', gems: 0 };
   const payment = validatePayment(session(), order, false);
   assert.ok(payment);
@@ -14,7 +14,7 @@ test('two verified top-ups can buy an outfit without duplicate credits or spendi
   grant(account, order, payment);
   assert.equal(account.gems, 5);
   assert.throws(() => buy(account, 'Common_Skin'), /Not enough/);
-  grant(account, { ...order, id: 'order2' }, { id: 'pay_2' });
+  for (let n = 2; n <= 6; n++) grant(account, { ...order, id: 'order' + n }, { id: 'pay_' + n });
   buy(account, 'Common_Skin');
   buy(account, 'Common_Skin');
   assert.equal(account.gems, 0);
@@ -26,7 +26,7 @@ test('price and eligibility come from server catalog', () => {
   assert.throws(() => buy(account, 'unknown'), /unavailable/);
   assert.throws(() => buy(account, 'Common_Costume'), /character/);
   buy(account, 'Rare_Skin');
-  assert.equal(account.gems, 90);
+  assert.equal(account.gems, 25);
 });
 test('invalid balances and overflow cannot be granted or spent', () => {
   for (const value of [-1, '100', 1.5, 2147483648]) {

@@ -17,8 +17,19 @@ The shop refreshes its wallet every eight seconds while open, after purchase not
 ## Current prices
 
 - `gems_5`: **5 gems for PHP 1.00** (`100` centavos), QR Ph enabled by default.
-- The ten active male/female clothing items: **10 gems each**.
-- Server prices are in `catalog.json`. Unity sends product/item IDs; client amounts and price overrides are ignored. Update both catalog and scene labels if prices change.
+- All ten existing male/female outfits support **Coins or Gems**. Ownership IDs and existing balances are unchanged.
+- `economy.json` is the canonical reward/pricing policy. `catalog.json` maps existing item IDs to rarity and character. Run `python Tools/sync_solo_economy.py` from the repository root after tuning it; the Unity fallback is `Assets/Resources/SoloEconomy.json`.
+- The authenticated wallet response supplies authoritative prices. Purchases send item ID, chosen currency and the displayed price/version. The server calculates the actual price and rejects stale quotes; amounts supplied by a client cannot override it.
+
+| Rarity | Coins | Gems | Full 1,000-Coin completions | One retry, no bonus (750) | One retry + typical Truth Table bonus (850) | One retry + typical Inference bonus (840) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Common | 3,000 | 30 | 3 | 4 | 4 | 4 |
+| Rare | 12,000 | 75 | 12 | 16 | 15 | 15 |
+| Elite | 28,000 | 150 | 28 | 38 | 33 | 34 |
+| Special | 50,000 | 250 | 50 | 67 | 59 | 60 |
+| Epic | 80,000 | 400 | 80 | 107 | 95 | 96 |
+
+These are ceiling(price / payout) estimates from a zero Coin balance, not measured player telemetry. “Typical” models one checkpoint retry, ten correct eligible house quizzes (+100), or three correct eligible crystal quizzes (+90). Failed-run time is additional. Trials normally share 6–18-minute clocks, with different pause/reset rules; no reliable average completion-duration data exists. The former catalog charged 10 Gems for every rarity and offered no Coin purchase path. The initial Editor audit was signed out. A later read-only check of the cached signed-in wallet confirmed 0 Coins, 0 Gems and no owned cosmetics; no identity was exported and no balance or ownership was changed. This single wallet is a starting-balance check, not population telemetry. Common is an early goal; higher tiers require sustained successful play. Tune after collecting actual completion/retry data.
 
 ## Local test
 
@@ -110,19 +121,27 @@ The suite checks webhook signatures and modes, exact payment amounts, ID-based s
 ## Trial completion coins and authenticated Admin
 
 The same service now provides `/trials/access`, `/trials/start`, `/trials/retry`,
-`/trials/admin-used`, and `/trials/complete`. They use the existing Firebase ID token,
+`/trials/admin-used`, `/trials/quiz-answer`, and `/trials/complete`. They use the existing Firebase ID token,
 account UID, service credentials, and `users/<uid>/coins` balance. There is no second
 wallet. Deploy the updated **Backend/commerce** service together with the new Unity
 build. The existing `CommerceSettings` URL stays the same; no extra public service,
 payment configuration, or gem migration is required. This repository change does
 not redeploy the live host.
 
-The base trial reward is 1,000 coins. The server computes
-`floor(1000 * 0.75^retryCount)` after the entire trial: 1,000, 750, 562, 421, 316,
-and so on. Individual questions/challenges do not call this reward path. Explicit
-checkpoint retry, start-over, and Game Over restart actions add an idempotent retry
-operation. Help, reading, ordinary answer corrections, and tutorial replay/skip do
-not add retries. A deliberate new trial selection/replay starts a new attempt.
+Each trial has a configurable base reward (currently 1,000 Coins). A run allows **two Try Again operations maximum**. Reductions use the original base: `floor(base * (100 - 25 * retries) / 100)`, giving **1,000 / 750 / 500**. Retry still invokes that stage’s existing checkpoint/reset flow: Propositional Logic retains its checkpoint and retry time limits; Sets repeats the timed-out challenge; stages that previously reloaded the run still do so. Ordinary answer corrections and Retry Route are not Game Over retries.
+
+The first Game Over offers Start Over, Try Again (25% reward reduction), and Main Menu. The second offers Try Again at 50% total reduction. The third replaces Try Again with Study in Logic Garden Library. Study uses the existing Garden entrance and does not mark dialogue, objectives, or library unlocks complete. **Start Over** abandons the attempt and clears its progress, retries and pending bonuses. It does not alter any saved balance or inventory. Help, reading and tutorial replay/skip never count as retries.
+
+Completion pays only after the whole trial: **adjusted base + pending quiz bonus**. Bonuses are not reduced by retries. They remain pending and non-spendable until completion; a failed or abandoned run pays nothing. Start Over clears them. Existing historical completion receipts are never recalculated or credited again.
+
+The inspected pickup quizzes previously applied time penalties and unlocked collection but did not contain a completion-Coin bonus implementation. Their distinct interactions remain unchanged; the configurable pending rewards are now:
+
+- **Truth Table:** +10 Coins for a correct first answer at a house/column/challenge event; cap **180** per run. A reset house, new quiz draw, rejected placement or replayed column keeps the same event identity, so it cannot farm additional Coins. Existing wrong-answer and column penalties remain unchanged.
+- **Rules of Inference:** +30 Coins for a correct first pickup-quiz answer per tower rule/challenge; cap **150** per run. Either answer permits collection. Answering latches that crystal’s quiz, and its completed event survives dropping, water recovery, retries and outbox reload. The quiz’s 10-second wrong-answer penalty remains separate from altar penalties.
+
+First answers, including wrong answers, lock the event. The server verifies the choice against exported gameplay question data (`quiz-questions.json`), validates event ranges and applies its own amounts/caps. Client-supplied `bonus`, `reward`, or `correct` fields cannot grant Coins. Export updated banks through **Logic Legends > Economy > Sync Policy and Export Quiz Answers** when authoring questions. Practice quizzes send no reward event. Admin-assisted attempts pay zero base and zero bonus.
+
+`/trials/quiz-answer` stores pending event receipts. The completion receipt and existing wallet balance are updated in one Firebase account transaction. Client outboxes retain stable attempt/event IDs through reloads and uncertain responses. Failure/completion cards show retries, original base, reduction, bonus (where applicable), and final/potential payout. No individual challenge payout or separate wallet is introduced.
 
 Each account's attempt ledger is stored below `users/<uid>/trialRuns/<trial>`.
 The completion receipt and coin increment commit in a single account transaction.
@@ -177,3 +196,47 @@ checks using a transport compiled only into the Editor. It checks the durable
 outbox, retries and lost responses, account switches, all Admin mutation entry
 points, and portrait/landscape coin text. Reports are written to
 `Library/TrialAccountChecks.txt`; fake-account preferences are removed afterward.
+
+
+## Economy v2 rollout and verification
+
+Deploy the updated **Backend/commerce** service before distributing the new Unity build, then explicitly set `SOLO_ECONOMY_V2_ENABLED=true` after the programmer has verified it. Existing wallet and inventory data need no migration; old paid receipts stay intact. The client refuses to send a new completion to an older reward service and blocks purchases when authoritative v2 prices are missing. No production deployment or real-money purchase is performed by the test tools.
+
+- `node --test` runs policy, reward, purchase, authorization, and server tests.
+- With the local database emulator bound to `127.0.0.1:9000`, set `RUN_EMULATOR_TESTS=1` to also exercise authenticated HTTP, transaction concurrency, duplicate payouts/bonuses, stale prices, both purchase currencies, and database rules.
+- Unity: **Logic Legends > Economy > Check All Solo Scenes in Play Mode** checks actual failure callbacks, checkpoint destinations, touch raycasts, both retry limits, fresh starts, mobile result layouts, and both real quiz hooks using isolated accounts.
+- Unity: **Logic Legends > Economy > Check Coins and Gems Shop in Play Mode** checks the saved Main Menu preview and explicit purchase confirmation with fake wallets. No signed-in account is required and no real funds/inventory are used.
+- `python Tools/sync_solo_economy.py --check` verifies the canonical policy and Unity display fallback agree. A build also rejects an out-of-sync policy.
+
+
+## Main programmer handoff: connect after the GitHub merge
+
+This work stays local until the team commits it. No branch switch, commit, push, merge, or hosting deployment has been performed. At the read-only check, local `main` and GitHub `main` both pointed to `ed8f02f9a77e4c86204abb6cb1b87a7648e113c0`. Later changes can still introduce conflicts; the PR checks and Unity checks must pass on the actual merged revision.
+
+### One connection, existing wallet
+
+Use the existing **Assets/Resources/CommerceSettings.asset**. Its existing `Backend URL` remains the single endpoint used by accounts, Coins, Gems, inventory, purchases and trial rewards. No second account system, balance, Firebase project, or new secret in the Unity client is needed.
+
+There are two coordinated opt-ins: backend `SOLO_ECONOMY_V2_ENABLED` defaults to **false**, and the Unity **Solo Economy Connected** checkbox (`soloEconomyConnected`) defaults to **off**. The backend compatibility adapter retains the currently deployed reward and 10-Gem purchase contract while its switch is off. This protects the existing live build even if a repository merge triggers hosting auto-deployment; it does not create another wallet. The new linear 1,000/750/500 policy and rarity prices apply only after the programmer activates v2. It is intentionally not enabled in this handoff. While off:
+
+- Normal completion rewards and quiz bonuses stay in the account-scoped local outbox, with their original IDs. They do not call the new reward endpoints. They can sync after connection is enabled.
+- New purchases are blocked before a request is sent. Existing wallet reads, owned outfit previews, and the existing equipment/account systems remain available.
+- Existing Admin authorization and confirmed zero-reward exclusion use the current service. An older unpaid normal completion must be resolved before a new Admin attempt can replace its server pointer.
+- Local Play Mode and Development builds are available. A release build is blocked until the connection switch is enabled, with an HTTPS host and Sandbox disabled.
+
+### Programmer's integration order
+
+1. Review and merge the local code through the team's normal process. Include new C# files **and their `.meta` files**, `Assets/Resources/SoloEconomy.json` and its `.meta`, backend files, and the two Python check/sync tools. This checkout also contains earlier scene/material/tutorial work: review those changes separately rather than overwriting or blindly accepting Unity YAML. The economy integration itself requires no new scene-object wiring and does not replace scene GUIDs.
+2. Let **Solo economy merge checks** run on the PR. Its workflow has read-only repository permissions, no deployment step, no account credentials, and no commit/push commands. It checks source conflict markers, the economy mirror, quiz IDs, Unity metadata, and credential-free backend tests. Firebase-emulator integration tests and Unity Play Mode checks still run locally.
+3. Deploy the **Backend/commerce** directory to the existing service using its existing private Firebase/hosting configuration. Leave `SOLO_ECONOMY_V2_ENABLED=false` for the initial deployment; this keeps the old live contract active. Set it to `true` and restart the service when the new client release is ready for connection. Preserve the same production Firebase database and all existing `users` data. No wallet/inventory reset or database migration is required. Coordinate the backend and client release: older clients cannot submit the new dual-currency price-confirmation contract; stale purchases are rejected rather than charged a changed price.
+4. In Unity, sign in with a test account. Check `CommerceSettings` → `Backend URL` against the deployed service. For production use HTTPS and disable Sandbox; for a local Editor emulator use the existing sandbox configuration.
+5. Run **Logic Legends > Economy > Test Backend Connection (Read Only)**. It calls authenticated `GET /economy` and checks version 2, all ten trial policies, the cosmetic catalog and the required capabilities. It creates no attempt, changes no balance/inventory, and does not enable the checkbox automatically.
+6. After the backend opt-in is on and the read-only check succeeds, enable **Solo Economy Connected** in Unity. Pending outbox operations retain their IDs and sync safely. Run the ten-scene and shop Play Mode checks, build a Development APK, and verify the production-like test account before making a release build.
+
+The new read-only endpoint returns `version`, `capabilities`, `economy`, `catalog`, `sandbox` and `live`. It never returns quiz answers. All writes continue to require the existing authenticated Firebase ID token. Backend configuration and quiz data must match the Unity build; the build precheck rejects stale mirrors/exports.
+
+For local merge verification, run `python Tools/check_solo_economy_merge.py` and the backend tests. Never commit Library, Temp, emulator data, credentials, or generated recordings. The workflow does not create commits or publish a service.
+
+The compatibility snapshots are `legacy-trials.js` and `legacy-catalog.json`. They are deliberately fixed to the pre-merge live contract; tune new rewards and prices only in `economy.json`. The rollout test verifies that leaving the server switch off preserves old purchases/rewards and rejects all new v2 writes.
+
+Workflow action references: [checkout](https://github.com/actions/checkout) and [setup-node](https://github.com/actions/setup-node).

@@ -53,15 +53,17 @@ public sealed class CharacterInspectView : MonoBehaviour, IBeginDragHandler, IDr
     private void FitCharacter()
     {
         if (!fitCamera || previewCamera == null || character == null || outfit == null) return;
-        bool found = false;
         var bounds = new Bounds();
-        foreach (var renderer in outfit.GetComponentsInChildren<Renderer>())
+        bool found = outfit.GetComponentInChildren<IntegratedSkinProfile>() != null && IntegratedSkinProfile.TryVisualBounds(outfit, out bounds);
+        foreach (var renderer in found ? new Renderer[0] : outfit.GetComponentsInChildren<Renderer>())
         {
             if (!renderer.enabled || !renderer.gameObject.activeInHierarchy) continue;
             if (!found) { bounds = renderer.bounds; found = true; }
             else bounds.Encapsulate(renderer.bounds);
         }
         if (!found || bounds.size.y <= .01f) return;
+        float fitPadding = outfit.GetComponentInChildren<IntegratedSkinProfile>() != null
+            ? Mathf.Max(1.06f, framingPadding) : framingPadding;
         var target = new Vector3(character.position.x,bounds.center.y,character.position.z);
         float aspect = Mathf.Max(.1f,previewCamera.aspect);
         float fit = 0f;
@@ -92,14 +94,14 @@ public sealed class CharacterInspectView : MonoBehaviour, IBeginDragHandler, IDr
                         if (previewCamera.orthographic)
                         {
                             orthographicSize = Mathf.Max(orthographicSize,
-                                Mathf.Abs(cameraSpace.y)*framingPadding,
-                                Mathf.Abs(cameraSpace.x)*framingPadding/aspect);
+                                Mathf.Abs(cameraSpace.y)*fitPadding,
+                                Mathf.Abs(cameraSpace.x)*fitPadding/aspect);
                         }
                         else
                         {
                             fit = Mathf.Max(fit,
-                                Mathf.Abs(cameraSpace.y)*framingPadding/tangentY-cameraSpace.z,
-                                Mathf.Abs(cameraSpace.x)*framingPadding/tangentX-cameraSpace.z,
+                                Mathf.Abs(cameraSpace.y)*fitPadding/tangentY-cameraSpace.z,
+                                Mathf.Abs(cameraSpace.x)*fitPadding/tangentX-cameraSpace.z,
                                 previewCamera.nearClipPlane+.1f-cameraSpace.z);
                         }
                     }

@@ -1,0 +1,44 @@
+TRUTH TABLE INVENTORY AND CONCISE ADMIN ANSWERS — 2026-11-06
+
+Implemented
+- Tapping the selected inventory slot hides/unequips its truth-value stack.
+  Tapping again equips the same stored identities. Switching slots displays the
+  selected value only, matching the earlier inventory behavior.
+- Pickup still equips explicitly and remains idempotent. UI-only toggling uses
+  ToggleSelectedSlot so duplicate pickup/equip calls cannot accidentally hide it.
+- CarriedCount retains the total stored identities for capacity/counts. New
+  EquippedCount drives visible stack, .95/.88/.80/.75 movement penalties and run
+  suppression. Unequipped items stay inactive/kinematic with colliders disabled;
+  no equipped stack means normal movement and no Carry pose. Four stored maximum.
+- Placement, drop and return use the same original block objects and existing
+  physics-safe release and board locking APIs. Item world sizes are unchanged.
+- Formal/Informal, Direct/Indirect and Induction current Admin cards contain only
+  Question and Answer. Classification uses scroll-to-altar mappings. Ordering
+  uses one accepted sequence with the actual statement text. Formalization pairs
+  each statement with its required rule. Induction lists only required formula
+  placements, ordered within each station. IDs, distractors, repeated source text
+  and explanations are omitted from the current card.
+- Answers use activeChallenge or Challenge, so they follow the actual randomized
+  question without a new draw. Existing bank pages, badges, scrolling, Back and
+  authorization gates remain intact. No Admin action or authorization changes.
+- Help and character handoff updated for the restored toggle.
+
+Verification
+Answers: InventoryAndAdminPresentationChecks.Answers() in Edit Mode.
+Inventory: LatestSkinPlayChecks.BeginInventory() in an isolated Play Mode fixture
+with real mobile inventory callbacks, Input System touch events, UI raycasts,
+PlayerCarryRig, physics-safe GrabbableObject state, and DynamicLogicPuzzle.LockBlock.
+All three sets of 50 question-bank variants checked; displayed solutions pass
+actual validators where applicable (or the same sort flags used by validation).
+No question selection, trial progression, rewards, account or save code ran.
+Physical Android hardware and a live account session were not tested.
+The original saved scene was restored. No scene layout or animation was changed.
+No commit, push, merge, branch switch or backend write was performed.
+
+Offline inventory: touch slot toggles, identity/count/scale, weight, placement, return and reset. No account scripts or rewards.
+PASS True value: sizes 1–4; 3 touch hide/reequip cycles each; counts/identities/scale/physics/weight; board placement/return/drop/reset.
+PASS False value: sizes 1–4; 3 touch hide/reequip cycles each; counts/identities/scale/physics/weight; board placement/return/drop/reset.
+PASS mixed value selection; no saves, quizzes, rewards or progression invoked. Editor simulated touch only.
+INVENTORY TOGGLE CHECKS PASSED
+
+PASS 50 Formal / 50 Direct-Indirect / 50 Induction questions: concise solutions match actual validation, no reroll or progress changes.

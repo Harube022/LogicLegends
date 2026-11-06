@@ -1,44 +1,48 @@
 {
-  "pages": [
+  "blocks": [
     {
-      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 3",
-      "text": "WHAT IS TRUTH TABLE?\nA truth table is a table used in logic to show the truth values of logical expressions. It lists all possible combinations of truth values for the variables in the expression and the resulting truth value of the expression itself."
+      "heading": "Truth tables",
+      "text": "A <b>truth table</b> lists every combination of truth values for a logical expression and calculates its result. For n propositional variables, there are 2ⁿ rows. For p and q, use TT, TF, FT, and FF."
     },
     {
-      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 4",
-      "text": "Negation\nIt reverses the truth value of a proposition.\nExamples:\np: “It is raining.”\n~p: “It is not raining.”\np: “I will not study.”\n~p: “I will study.”\np | ~p\nT | F\nF | T"
+      "heading": "Negation",
+      "text": "<b>Negation</b> reverses a proposition.\n\n<mspace=0.72em>p   ¬p\nT   F\nF   T</mspace>\n\np: It is raining.\n¬p: It is not raining."
     },
     {
-      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 5",
-      "text": "Conjunction (AND)\np | q | p ^ q\nT | T | T\nT | F | F\nF | T | F\nF | F | F\nIt is TRUE only when BOTH statements are true.\np: I will have salad for lunch.\nq: I will have rice for dinner.\nTherefore:\np ∧ q = I will have salad for lunch and rice for dinner."
+      "heading": "Conjunction",
+      "text": "<b>Conjunction</b> is true only when both parts are true.\n\n<mspace=0.72em>p   q   p ∧ q\nT   T     T\nT   F     F\nF   T     F\nF   F     F</mspace>\n\n“I will have salad for lunch and rice for dinner” joins two propositions with AND."
     },
     {
-      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 6",
-      "text": "Disjunction/ Inclusive OR\nIt is FALSE only when BOTH statements are false\np | q | p ∨ q\nTrue | True | TRUE\nTrue | False | TRUE\nFalse | True | TRUE\nFalse | False | FALSE\np: I will go to school.\nq: I will stay home.\nTherefore:  p v q = I will go to school or I will stay at home.\nNote: This operation is also called inclusive or, because it includes the possibility that both p and q are true."
+      "heading": "Inclusive OR",
+      "text": "<b>Disjunction</b> includes the case where both parts are true.\n\n<mspace=0.72em>p   q   p ∨ q\nT   T     T\nT   F     T\nF   T     T\nF   F     F</mspace>\n\n“I will go to school or stay home” is an inclusive OR unless “but not both” is specified."
     },
     {
-      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 7",
-      "text": "Exclusive OR\nIt is True if exactly one is true.\np | q | p ⊕ q\nTrue | True | FALSE\nTrue | False | TRUE\nFalse | True | TRUE\nFalse | False | FALSE\np: Switch A is ON.\nq: Switch B is OFF.\nThis means: The alarm will not sound if:\nBoth Switch A and Switch B is ON.\n  OR\nBoth Switch A and Switch B is OFF."
+      "heading": "Exclusive OR",
+      "text": "<b>Exclusive OR</b> requires exactly one true part.\n\n<mspace=0.72em>p   q   p ⊕ q\nT   T     F\nT   F     T\nF   T     T\nF   F     F</mspace>\n\nIf p and q say switches A and B are ON, an XOR alarm sounds when exactly one switch is ON."
     },
     {
-      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 8",
-      "text": "Conditional (Implication)\nIt is FALSE only when p is TRUE and q is FALSE\np: The car is Rolls-Royce.\nq: Sarah will buy it.\nTherefore:\np ⇒ q = If the car is Rolls-Royce, then Sarah will buy it. 🡺 TRUE\np ⇒ ~ q = If the car is Rolls-Royce, then Sarah will NOT buy it. 🡺 FALSE\np | q | p ⇒ q\nTrue | True | TRUE\nTrue | False | FALSE\nFalse | True | TRUE\nFalse | False | TRUE"
+      "heading": "Conditional",
+      "text": "<b>Implication</b> is false only when a true hypothesis leads to a false conclusion.\n\n<mspace=0.72em>p   q   p → q\nT   T     T\nT   F     F\nF   T     T\nF   F     T</mspace>"
     },
     {
-      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 9",
-      "text": "Bi-Conditional (If and only if)\nIt is TRUE when both values  are the same.\np: Today is Monday.\nq: Tomorrow is Tuesday.\np | q | p ↔ q\nTrue | True | TRUE\nTrue | False | FALSE\nFalse | True | FASLE\nFalse | False | TRUE\np ↔ q = Today is Monday if and\nonly if tomorrow is Tuesday. 🡺TRUE\n~ p ↔ ~ q = Today is not Monday,\nso tomorrow is not Tuesday. 🡺 TRUE"
+      "heading": "Conditional example",
+      "text": "Let p mean “The car is a Rolls-Royce” and q mean “Sarah will buy it.” Then p → q means “If the car is a Rolls-Royce, Sarah will buy it.”\n\nIts truth value depends on p and q; the wording alone does not make it true."
     },
     {
-      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 10",
-      "text": "Example:\np: The restaurant is open.\nq: I have a reservation.\n~p v q:\nThe restaurant is not open OR I have a reservation."
+      "heading": "Biconditional",
+      "text": "A <b>biconditional</b> is true for matching truth values.\n\n<mspace=0.72em>p   q   p ↔ q\nT   T     T\nT   F     F\nF   T     F\nF   F     T</mspace>\n\np ↔ q means “p if and only if q.”"
     },
     {
-      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 11",
-      "text": "Truth table:\n~p v q\np | q | ~p\nTrue | True | False\nTrue | False | False\nFalse | True | True\nFalse | False | True\n~p | q | ~p v q\nFalse | True | True\nFalse | False | False\nTrue | True | True\nTrue | False | True"
+      "heading": "Reading a compound expression",
+      "text": "Let p mean “The restaurant is open” and q mean “I have a reservation.”\n\n¬p ∨ q means “The restaurant is not open, or I have a reservation.” Calculate ¬p first, then apply OR."
     },
     {
-      "source": "IT 105_Discrete Structures 1_2nd Sem_Prelim_Week 2.pptx — slide 12",
-      "text": "Example: Truth table:\n(p ⇒ q) ⇒ (~q)\np | q | ~q | p => q | (p ⇒ q) ⇒ (~q)\nT | T | F | T | F\nT | F | T | F | T\nF | T | F | T | F\nF | F | T | T | T"
+      "heading": "Worked truth table: ¬p ∨ q",
+      "text": "<mspace=0.72em>p  q  ¬p  ¬p ∨ q\nT  T   F     T\nT  F   F     F\nF  T   T     T\nF  F   T     T</mspace>\n\nThe final column matches p → q. Thus p → q and ¬p ∨ q are logically equivalent."
+    },
+    {
+      "heading": "Worked truth table: (p → q) → ¬q",
+      "text": "<mspace=0.72em>p  q  p → q  ¬q  result\nT  T    T     F     F\nT  F    F     T     T\nF  T    T     F     F\nF  F    T     T     T</mspace>\n\nCompute the inner conditional and ¬q before evaluating the outer conditional."
     }
   ]
 }

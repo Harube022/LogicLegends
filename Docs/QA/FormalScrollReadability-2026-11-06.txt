@@ -1,0 +1,43 @@
+Formal vs. Informal Proofs — world-scroll text readability
+2026-11-06
+
+Implemented
+- Scoped ProofScrollTypography to this trial, including OnEnable/SetContent
+  for runtime scroll copies and tutorial examples. Direct&Indirect's shared
+  pedestal prefab and font assets remain unchanged.
+- Liberation Sans SDF reading font; heading size 3 and body size 2.6.
+- Centered titles and short labels; balanced margins and measured paper height.
+  Dense prose may justify; sparse text and formulas retain natural word spacing.
+- Unlit mobile SDF material with mint lettering, dark outline and a soft halo.
+  Separate darker parchment improves contrast. No bloom or extra lights.
+- Placed-scroll labels receive the same font/material treatment.
+- Original strings, answer data, reading content, interactions and colliders kept.
+
+Verification
+PASS: All 200 actual bank text cases, plus placeholders/practice examples:
+      complete strings retained, symbols available, no overflow or title/body
+      overlap, and glyph bounds inside the parchment margins.
+PASS: All five challenges configured through the real activation path.
+PASS: Dynamically instantiated source scroll styling and text preserved.
+PASS: Reader content, collection/return, placement and filled-slot removal.
+PASS: Normal gameplay-camera captures at 1280x720 and 2960x1440, FOV 60.
+      Player remains visible; no board camera, zoom or replacement camera.
+PASS: Shared prefab unchanged; no added interaction/collision components.
+PASS: No Unity console errors at the end of verification.
+
+Limitations
+- Play Mode and simulated landscape phone views only; no physical Android test.
+- Full text/paper fit is checked independently of normal scene occlusion by
+  the avatar and other world objects. World previews retain their existing
+  excerpt behavior; the reader retains complete proofs.
+
+Reproduce
+1. In Edit Mode: ProofScrollReadabilitySetup.Apply() rebuilds scoped materials.
+2. FormalScrollReadabilityChecks.Catalog() checks the complete text bank.
+3. StageHelpGameplayRecorder.CheckFormalScrollText() runs isolated offline checks.
+   Existing progression/account writes are suppressed by the shared fixture;
+   original scene, Game view, safe-area settings and preferences are restored.
+   The check does not publish or overwrite Help recordings.
+
+Detailed local log and captures: Library/FormalScrollReadability/
+No commits or pushes performed.

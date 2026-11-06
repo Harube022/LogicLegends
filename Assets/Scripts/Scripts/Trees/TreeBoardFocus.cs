@@ -82,6 +82,7 @@ namespace LogicLegends.Trees
             MobileLookInput.ResetDelta();
             GuardSwitch();
         }
+        void OnDisable() { Exit(); }
         void OnDestroy()
         {
             if (IsOpen)

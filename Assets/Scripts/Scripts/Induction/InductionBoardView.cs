@@ -22,6 +22,7 @@ namespace LogicLegends.Induction
         Quaternion previousRotation;
         float previousFieldOfView;
         Coroutine transition;
+        bool returning;
         readonly List<Behaviour> suspended = new List<Behaviour>();
         public void Initialize(InductionStageManager owner) { stage = owner; }
         public bool NearAltars
@@ -46,7 +47,7 @@ namespace LogicLegends.Induction
         {
             if(stage!=null&&stage.onboarding!=null&&stage.onboarding.IsActive){stage.onboarding.HandlePracticeAction("board");return;}
             if (!Available || Camera.main == null || !stage.BeginModal()) return;
-            viewCamera = Camera.main; Viewing = true;
+            viewCamera = Camera.main; Viewing = true; returning = false;
             previousPosition = viewCamera.transform.position; previousRotation = viewCamera.transform.rotation;
             previousFieldOfView = viewCamera.fieldOfView;
             var brain = viewCamera.GetComponent<CinemachineBrain>();
@@ -68,7 +69,8 @@ namespace LogicLegends.Induction
         public void Back()
         {
             if(stage!=null&&stage.onboarding!=null&&stage.onboarding.IsActive){stage.onboarding.HandlePracticeAction("back");return;}
-            if (!Viewing) return;
+            if (!Viewing || returning) return;
+            returning = true;
             if (transition != null) StopCoroutine(transition);
             transition = StartCoroutine(Blend(previousPosition,previousRotation,previousFieldOfView,true));
         }
@@ -79,6 +81,7 @@ namespace LogicLegends.Induction
             float startFov = viewCamera.fieldOfView;
             for (float elapsed=0;elapsed<transitionSeconds;elapsed+=Time.unscaledDeltaTime)
             {
+                if (viewCamera == null) { stage.CloseReading(); yield break; }
                 float t = Mathf.SmoothStep(0,1,elapsed/transitionSeconds);
                 viewCamera.transform.SetPositionAndRotation(Vector3.Lerp(start,position,t),Quaternion.Slerp(startRotation,rotation,t));
                 viewCamera.fieldOfView = Mathf.Lerp(startFov,fieldOfView,t); yield return null;
@@ -91,9 +94,9 @@ namespace LogicLegends.Induction
         {
             if (!Viewing) return;
             if (transition != null) StopCoroutine(transition);
-            transition = null; Transitioning = false; Viewing = false;
+            transition = null; Transitioning = false; Viewing = false; returning = false;
             if (viewCamera != null) {viewCamera.transform.SetPositionAndRotation(previousPosition,previousRotation);viewCamera.fieldOfView=previousFieldOfView;}
-            foreach(var behaviour in suspended) if(behaviour!=null) behaviour.enabled=true;
+            foreach(var behaviour in suspended) if(behaviour!=null) { behaviour.enabled=true; if(behaviour is CinemachineBrain brain)brain.ResetState(); }
             suspended.Clear(); stage.ui?.ShowBoardView(false);
         }
         void OnDisable() { if (Viewing && stage != null) stage.CloseReading(); }

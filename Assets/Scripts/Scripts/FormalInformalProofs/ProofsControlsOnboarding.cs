@@ -23,6 +23,8 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
     public Button NoButton { get; private set; }
     public GameObject PracticeObject => null;
     public bool PracticeCarried { get; private set; }
+    public ProofWorldPedestal PracticeSource => practiceStand;
+    public bool PracticeSourceAvailable => IsActive && Readable && CurrentStep == ProofsTutorialStep.ReadScroll && !PracticeCarried;
     public int PracticePlacement { get; private set; } = -1;
     public const string PracticePassage = "PRACTICE ONLY\nThree equal ribbons total 12 cm.\nEach is 12 ÷ 3 = 4 cm.\nThis prose gives a valid informal proof.";
     public float joystickDeadZone = .3f, movementDistance = 1.5f, intentionalMovementSeconds = .7f;
@@ -68,13 +70,12 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
         cursorLock = Cursor.lockState; cursorVisible = Cursor.visible;
         visible.Clear(); texts.Clear(); clickable.Clear();
         foreach (var obj in new[] { joystick.gameObject, jump.gameObject, hand.gameObject, ui.Hud.gameObject, ui.ViewButton.gameObject,
-            ui.InteractionButton.gameObject, ui.BackButton.gameObject, stage.PromptText.gameObject, stage.ReaderPanel, stage.TakeBackPanel, help.HelpButton.gameObject }) Remember(obj);
+            ui.BackButton.gameObject, stage.PromptText.gameObject, stage.ReaderPanel, stage.TakeBackPanel, help.HelpButton.gameObject }) Remember(obj);
         if (settings != null) { Remember(settings.gameObject); settingsEnabled = settings.interactable; settings.interactable = false; }
         foreach (var admin in controls.GetComponentsInChildren<Button>(true).Where(b => b.name == "AdminButton")) { Remember(admin.gameObject); admin.gameObject.SetActive(false); }
         foreach (var text in stage.ReaderPanel.GetComponentsInChildren<TMP_Text>(true)) texts[text] = text.text;
         foreach (var text in stage.TakeBackPanel.GetComponentsInChildren<TMP_Text>(true)) texts[text] = text.text;
         texts[stage.BoardInstructions] = stage.BoardInstructions.text;
-        texts[ui.InteractionButton.GetComponentInChildren<TMP_Text>()] = ui.InteractionButton.GetComponentInChildren<TMP_Text>().text;
         foreach (var button in stage.ReaderPanel.GetComponentsInChildren<Button>(true).Concat(stage.TakeBackPanel.GetComponentsInChildren<Button>(true)))
         { Remember(button.gameObject); clickable[button] = button.interactable; }
         foreach (var b in FindObjectsByType<Behaviour>(FindObjectsSortMode.None))
@@ -163,7 +164,7 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
                 CreatePracticeScroll(); Focus(practiceStand.transform, ScrollForward());
                 ShowStep(ProofsTutorialStep.Scroll, "A scroll contains a proof or reasoning passage.\nRead its full content. This scroll is practice only.", null, true, practiceStand.transform); break;
             case ProofsTutorialStep.Scroll:
-                ShowStep(ProofsTutorialStep.ReadScroll, "Use the hand or Interact button to open the practice scroll's existing reading panel.", hand, false, practiceStand.transform); break;
+                ShowStep(ProofsTutorialStep.ReadScroll, "Tap the hand button to read the practice scroll.", hand, false, practiceStand.transform); break;
             case ProofsTutorialStep.Board:
                 ShowStep(ProofsTutorialStep.BoardBack, "Tap Back to leave board view and restore the gameplay camera. View Board never starts a challenge or confirms an answer.", (RectTransform)ui.BackButton.transform); break;
         }
@@ -183,7 +184,7 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
         stage.ReaderPanel.SetActive(false); PracticeCarried = true; practiceScroll.SetActive(false);
         ui.RefreshReader();
         practiceStand.SetTabletVisible(false); Focus(stage.AltarTargets[1], Vector3.forward);
-        ShowStep(ProofsTutorialStep.Place, "Place the practice scroll at the Informal altar.\nUse Place Scroll or the hand. Placement does not submit.", hand, false, stage.AltarTargets[1]);
+        ShowStep(ProofsTutorialStep.Place, "Tap the hand button at the Informal altar to place the practice scroll. Placement does not submit.", hand, false, stage.AltarTargets[1]);
     }
     public void ClosePracticeReader()
     {
@@ -250,7 +251,7 @@ public sealed partial class ProofsControlsOnboarding : MonoBehaviour
         ui.BoardView.RestoreImmediately(false); ResetPractice(); RestoreCamera();
         CurrentStep = ProofsTutorialStep.Confirm; player.ToggleControl(false); input.SetGameplayInputBlocked(true);
         foreach (var rect in new[] { instructions, highlight, worldRect, joystick, hand, jump }) rect.gameObject.SetActive(false);
-        ui.InteractionButton.gameObject.SetActive(false); ui.ViewButton.gameObject.SetActive(false); ui.BackButton.gameObject.SetActive(false);
+        ui.ViewButton.gameObject.SetActive(false); ui.BackButton.gameObject.SetActive(false);
         skip.Show(false); confirmation.SetActive(true); confirmation.transform.SetAsLastSibling(); mobile.ResetJoystick();
     }
     public void ConfirmNo() { if (IsActive && CurrentStep == ProofsTutorialStep.Confirm) BeginMovement(); }

@@ -12,13 +12,22 @@ public static class TrialBackendClient
     [Serializable] public sealed class Attempt
     {
         public string attemptId, status;
-        public int trial, retries, reward, coins;
+        public int economyVersion, trial, retries, reward, coins, baseReward, reduction, pendingBonus, quizBonus, maxRetries, retryReductionPercent, quizReward, quizBonusLimit;
+        public QuizAnswer[] quizAnswers;
         public bool adminUsed;
+    }
+    [Serializable] public sealed class QuizAnswer
+    {
+        public string eventKey, questionId;
+        public int choice, bonus;
+        public bool correct;
     }
     [Serializable] public sealed class Request
     {
+        public int economyVersion = 2;
         public int trial;
-        public string attemptId, operationId;
+        public string attemptId, operationId, eventKey, questionId;
+        public int choice;
         public bool newAttempt;
     }
     [Serializable] sealed class Error { public string error; }

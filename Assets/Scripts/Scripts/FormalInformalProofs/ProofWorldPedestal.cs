@@ -36,6 +36,13 @@ public sealed class ProofWorldPedestal : MonoBehaviour
     {
         if (heading != null) heading.text = title;
         if (detail != null) detail.text = description;
+        RefreshTextPresentation();
+    }
+    void OnEnable(){RefreshTextPresentation();}
+    public void RefreshTextPresentation(bool force=false)
+    {
+        if(force||gameObject.scene.name=="Formal vs. Informal Proofs")
+            ProofScrollTypography.Pedestal(transform,heading,detail);
     }
 
     public void SetState(VisualState state)

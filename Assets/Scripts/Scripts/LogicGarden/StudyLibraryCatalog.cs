@@ -10,7 +10,7 @@ public static class StudyLibraryCatalog
             case "MIDTERMS": return "MIDTERMS covers formal and informal proofs, followed by direct and indirect proofs. Learn how to structure a proof and use deduction, contradiction, and the contrapositive.";
             case "PRE-FINALS": return "PRE-FINALS contains mathematical induction, sets, and functions and relations. Explore induction proofs, set operations and complements, ordered pairs, and mappings.";
             case "FINALS": return "FINALS introduces graphs and trees. Learn about vertices, edges, degree, paths and cycles, then explore tree terminology, tree types, and spanning trees.";
-            default:return "Select Read to explore the lessons on this shelf.";
+            default:return "Tap the hand button near a shelf. Choose a topic to read.";
         }
     }
     public static StudyBookDefinition[] GetShelf(string period)
@@ -53,7 +53,9 @@ public static class StudyLibraryCatalog
             Debug.LogError("Missing study lesson: " + id);
             return book;
         }
-        book.lessonPages = JsonUtility.FromJson<StudyLesson>(data.text).pages;
+        var lesson = JsonUtility.FromJson<StudyLesson>(data.text);
+        book.lessonPages = lesson.pages;
+        book.lessonBlocks = lesson.blocks;
         return book;
     }
 }

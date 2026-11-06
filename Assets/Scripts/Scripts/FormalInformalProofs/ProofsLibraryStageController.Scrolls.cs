@@ -21,12 +21,36 @@ public sealed partial class ProofsLibraryStageController
         {
             if (player == null) player = Player.LocalInstance;
             if (player == null) return;
-            visual.SetParent(player.transform, false);
-            visual.localPosition = new Vector3(.43f, 1.12f, .22f);
-            visual.localRotation = Quaternion.Euler(0, 0, 28);
-            visual.localScale = Vector3.one * .55f; visual.gameObject.SetActive(true);
+            AttachCarriedScroll(visual);
         }
         else { visual.gameObject.SetActive(false); visual.SetParent(transform, false); }
+    }
+    private void AttachCarriedScroll(Transform visual)
+    {
+        // The imported scroll is only half a world unit long. Size its mesh, not
+        // its FBX transform, and compensate for any parent scale at the socket.
+        visual.GetComponent<CarriedObjectAlignment>()?.StopFollowing();
+        visual.SetParent(player.GetHoldPoint(), false);
+        visual.localPosition = Vector3.zero; visual.localRotation = Quaternion.identity;
+        visual.localScale = Vector3.one;
+        bool found = false; Bounds bounds = new Bounds();
+        foreach (var filter in visual.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if (filter.sharedMesh == null || filter.transform.GetComponentInParent<TMPro.TMP_Text>() != null ||
+                filter.transform.parent != null && filter.transform.parent.name == "__CarryPresentation") continue;
+            Bounds b = filter.sharedMesh.bounds;
+            for (int x = -1; x <= 1; x += 2) for (int y = -1; y <= 1; y += 2) for (int z = -1; z <= 1; z += 2)
+            {
+                var p = visual.InverseTransformPoint(filter.transform.TransformPoint(b.center + Vector3.Scale(b.extents, new Vector3(x,y,z))));
+                if (!found) { bounds = new Bounds(p, Vector3.zero); found = true; } else bounds.Encapsulate(p);
+            }
+        }
+        float size = found ? Mathf.Max(bounds.size.x, Mathf.Max(bounds.size.y, bounds.size.z)) : 1f;
+        float multiplier = 1.4f / Mathf.Max(.001f, size);
+        var parentScale = visual.parent.lossyScale;
+        visual.localScale = new Vector3(multiplier / Mathf.Abs(parentScale.x), multiplier / Mathf.Abs(parentScale.y), multiplier / Mathf.Abs(parentScale.z));
+        visual.gameObject.SetActive(true);
+        CarriedObjectAlignment.Follow(visual, player.GetHoldPoint(), true);
     }
     public void ReturnScroll()
     {

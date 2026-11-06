@@ -12,6 +12,7 @@ public partial class DynamicLogicPuzzle : MonoBehaviour
     private bool isPlayerNear = false;
 
     public bool PuzzleCompleted { get; private set; }
+    public int RewardColumnNumber => challengePhase != null ? challengePhase.ColumnNumber : 1;
     public bool CanDebugClearChallenge => houseDoors != null && houseDoors.IsStageRunning &&
         challengePhase != null && !PuzzleCompleted;
 
@@ -340,6 +341,7 @@ public partial class DynamicLogicPuzzle : MonoBehaviour
     public void SpawnHardBlocksComplex(ComplexLogicExpression expr) => blockSpawner.SpawnBlocksForHardModeColumnComplex(expr);
     public void LockBlock(TruthBlock block, Transform snapPoint)
     {
+        block.GetComponent<GrabbableObject>()?.ReleaseForPlacement();
         block.MarkPlacedInColumn();
         block.transform.position = snapPoint.position;
         block.transform.rotation = snapPoint.rotation;

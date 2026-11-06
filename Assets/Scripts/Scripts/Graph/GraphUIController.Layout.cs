@@ -13,7 +13,7 @@ namespace LogicLegends.Graph
             var scaler=host.GetComponentInParent<CanvasScaler>();
             if(scaler!=null){scaler.referenceResolution=new Vector2(1920,1080);scaler.matchWidthOrHeight=1;}
             jumpControl=host.Find("Gameplay_Interface/JumpButton") as RectTransform;
-            if(jumpControl!=null)Place(jumpControl,new Vector2(1,0),new Vector2(-60,80),new Vector2(200,200),new Vector2(1,0));
+            // Retain the shared PRELIM anchors, scale and position from the scene.
             mapFrame=TutorialTarget("Graph minimap");clockFrame=TutorialTarget("Clock");
             objectiveFrame=TutorialTarget("Objective");routeFrame=TutorialTarget("Recorded route");feedbackFrame=TutorialTarget("Feedback");
             titleLabel=clockFrame.Find("Clock title").GetComponent<TMP_Text>();
@@ -56,7 +56,6 @@ namespace LogicLegends.Graph
             }
             else {objective.fontSizeMin=23;objective.fontSizeMax=25;Stack(objectiveFrame,objective,width,ref y);}
             Stack(feedbackFrame,feedback,width,ref y);
-            if(jumpControl!=null)jumpControl.localScale=Vector3.one;
             var mapTitle=mapFrame.Find("Map title").GetComponent<TMP_Text>();
             mapTitle.fontSizeMin=21;mapTitle.fontSizeMax=23;mapTitle.rectTransform.sizeDelta=new Vector2(width-32,28);
             // Beside the countdown, independent of wrapped feedback below the HUD.

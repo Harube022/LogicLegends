@@ -27,7 +27,7 @@ public class GameOverManager : MonoBehaviourPun
         if (StageJourneyUI.Instance != null && UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "RulesOfInference")
             StageJourneyUI.Instance.ShowFailure(3, "You ran out of hearts.\nRestart the stage to build a new argument.", () =>
             {
-                TrialRewards.RecordRetry(3);
+                if (!TrialRewards.TryRecordRetry(3)) return;
                 Time.timeScale = 1;
                 GameInput.Instance?.SetGameplayInputBlocked(false);
                 StageSelectionState.Select(3);

@@ -1,299 +1,170 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
+/// <summary>Truth-value selection and the four physical blocks carried in this scene.</summary>
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance { get; private set; }
-
-    [Header("Inventory Configuration")]
+    public const int CarryLimit = 4;
     [SerializeField] private InventorySlot[] slots = new InventorySlot[2];
-    private int selectedSlotIndex = -1; 
-
+    [Header("Carry weight: one, two, three, four blocks")]
+    [SerializeField] private float[] carryingSpeedMultipliers = { .95f, .88f, .8f, .75f };
+    [SerializeField, Min(0)] private float stackGap = .025f;
+    [SerializeField, Min(.02f)] private float stackCompactionSeconds = .14f;
     [Header("Mobile UI References")]
     [SerializeField] private MobileInventoryUI uiController;
-
-    // NEW: Direct reference to the UI Canvas object
-    [Tooltip("Drag the InventoryBar from Canvas 1 -> SafeArea -> Gameplay_Interface here")]
     [SerializeField] private GameObject inventoryBarUI;
 
-    private void Awake()
-    {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+    readonly List<TruthBlock> carried = new List<TruthBlock>();
+    int selectedSlotIndex = -1;
+    Player carrier;
+    TruthTableCarryStack stack;
+    bool clearing;
+    public int CarriedCount => carried.Count;
+    public int EquippedCount => HasBlockSelected() ? slots[selectedSlotIndex].count : 0;
+    public bool HasStoredBlocks => CarriedCount > 0;
+    public IReadOnlyList<TruthBlock> CarriedBlocks => carried;
+    public bool Contains(TruthBlock block) => block != null && carried.Contains(block);
+    public bool IsEquipped(TruthBlock block) => HasBlockSelected() && slots[selectedSlotIndex].physicalBlocks.Contains(block);
+    public float StackGap => stackGap;
+    public float CompactionSeconds => stackCompactionSeconds;
+    public float CarrySpeedMultiplier => EquippedCount == 0 ? 1 : carryingSpeedMultipliers[Mathf.Clamp(EquippedCount-1,0,3)];
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatic() { Instance = null; }
+    void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+        ValidateConfiguration();
+        if (slots == null || slots.Length != 2) slots = new InventorySlot[2];
+        for (int i=0;i<slots.Length;i++) { if(slots[i]==null)slots[i]=new InventorySlot(); slots[i].Clear(); }
         SetInventoryVisibility(false);
-
         UpdateUI();
     }
-
-    public int TryPickupBlock(bool isTrueBlock, TruthBlock blockInstance)
+    void OnValidate() { ValidateConfiguration(); }
+    void ValidateConfiguration()
     {
-        // Prevent duplicate counting if re-grabbing the same block
-        for (int i = 0; i < slots.Length; i++)
-        {
-            if (!slots[i].isEmpty && slots[i].physicalBlocks.Contains(blockInstance))
-            {
-                blockInstance.MarkCollectedFromSpawn();
-                return i; 
-            }
-        }
-
-        // 1. Try to stack into an existing slot matching the value
-        for (int i = 0; i < slots.Length; i++)
-        {
-            if (!slots[i].isEmpty && slots[i].blockValue == isTrueBlock)
-            {
-                if (slots[i].TryAdd(isTrueBlock, blockInstance))
-                {
-                    blockInstance.MarkCollectedFromSpawn();
-                    SetSelectedSlotDirectly(i); 
-                    return i;
-                }
-            }
-        }
-
-        // 2. Try to find an empty slot
-        for (int i = 0; i < slots.Length; i++)
-        {
-            if (slots[i].isEmpty)
-            {
-                if (slots[i].TryAdd(isTrueBlock, blockInstance))
-                {
-                    blockInstance.MarkCollectedFromSpawn();
-                    SetSelectedSlotDirectly(i); 
-                    return i;
-                }
-            }
-        }
-
-        return -1; // Inventory full
+        if(carryingSpeedMultipliers==null||carryingSpeedMultipliers.Length!=4)
+            carryingSpeedMultipliers=new[]{.95f,.88f,.8f,.75f};
+        float previous=1f;
+        for(int i=0;i<4;i++)
+        { carryingSpeedMultipliers[i]=Mathf.Clamp(carryingSpeedMultipliers[i],.05f+(3-i)*.01f,previous-.01f); previous=carryingSpeedMultipliers[i]; }
     }
-
-    // A rejected column gives back the same physical blocks. Keep the current
-    // selection unchanged so the player can choose a stack for the retry.
-    public bool TryStoreReturnedBlock(TruthBlock blockInstance)
+    void LateUpdate()
     {
-        if (blockInstance == null) return false;
-        for (int i = 0; i < slots.Length; i++)
-            if (slots[i].physicalBlocks.Contains(blockInstance)) return true;
-        for (int i = 0; i < slots.Length; i++)
-            if (!slots[i].isEmpty && slots[i].blockValue == blockInstance.value &&
-                slots[i].TryAdd(blockInstance.value, blockInstance))
-            { UpdateBlockVisibility(); UpdateUI(); return true; }
-        for (int i = 0; i < slots.Length; i++)
-            if (slots[i].isEmpty && slots[i].TryAdd(blockInstance.value, blockInstance))
-            { UpdateBlockVisibility(); UpdateUI(); return true; }
-        return false;
+        if (clearing || Instance != this) return;
+        bool removed=carried.RemoveAll(b=>b==null)>0;
+        if(carrier!=Player.LocalInstance || stack==null) RefreshCarry();
+        else if(removed) RefreshCarry();
     }
-
-    public bool TryRemoveBlock(TruthBlock blockInstance)
+    public int TryPickupBlock(bool value,TruthBlock block)
     {
-        for (int i = 0; i < slots.Length; i++)
-        {
-            if (slots[i].physicalBlocks.Contains(blockInstance))
-            {
-                slots[i].physicalBlocks.Remove(blockInstance);
-                slots[i].count = slots[i].physicalBlocks.Count;
-                
-                if (slots[i].count <= 0)
-                {
-                    slots[i].isEmpty = true;
-                    if (selectedSlotIndex == i) selectedSlotIndex = -1;
-                }
-
-                UpdateBlockVisibility();
-                UpdateUI();
-                return true;
-            }
-        }
-        return false;
+        if(block==null || block.value!=value || clearing)return -1;
+        int existing=SlotOf(block);
+        if(existing>=0) { selectedSlotIndex=existing; RefreshCarry(); return existing; }
+        if(carried.Count>=CarryLimit)return -1;
+        int index=-1;
+        for(int i=0;i<slots.Length;i++)if(!slots[i].isEmpty&&slots[i].blockValue==value){index=i;break;}
+        if(index<0)for(int i=0;i<slots.Length;i++)if(slots[i].isEmpty){index=i;break;}
+        if(index<0||!slots[index].TryAdd(value,block))return -1;
+        carried.Add(block);
+        block.MarkCollectedFromSpawn();
+        selectedSlotIndex=index;
+        RefreshCarry();
+        return index;
     }
-
-    private void UpdateBlockVisibility()
+    public bool TryStoreReturnedBlock(TruthBlock block) => block!=null && TryPickupBlock(block.value,block)>=0;
+    int SlotOf(TruthBlock block)
     {
-        for (int i = 0; i < slots.Length; i++)
-        {
-            bool isCurrentSlotSelected = (i == selectedSlotIndex);
-
-            // If the slot is completely empty, make sure any loose lingering references are cleaned up and hidden
-            if (slots[i].isEmpty)
-            {
-                foreach (TruthBlock block in slots[i].physicalBlocks)
-                {
-                    if (block == null) continue;
-                    
-                    if (block.TryGetComponent(out MeshRenderer renderer)) renderer.enabled = false;
-                    block.gameObject.SetActive(false);
-                    block.transform.SetParent(null);
-                }
-                continue; 
-            }
-
-            // If the slot is NOT empty, handle normal showing/hiding states
-            foreach (TruthBlock block in slots[i].physicalBlocks)
-            {
-                if (block == null) continue;
-
-                if (isCurrentSlotSelected)
-                {
-                    // 1. SHOW SELECTED BLOCK IN HAND
-                    block.gameObject.SetActive(true);
-                    if (block.TryGetComponent(out MeshRenderer renderer)) renderer.enabled = true;
-
-                    if (block.TryGetComponent(out GrabbableObject grabbable))
-                    {
-                        Transform playerHoldPoint = Player.LocalInstance != null ? Player.LocalInstance.HoldPoint : null;
-                        grabbable.ConfigureInventoryState(true, playerHoldPoint, true);
-                    }
-
-                    if (Player.LocalInstance != null)
-                    {
-                        block.transform.SetParent(Player.LocalInstance.HoldPoint);
-                        block.transform.localPosition = Vector3.zero;
-                        block.transform.localRotation = Quaternion.identity;
-                    }
-                }
-                else
-                {
-                    // 2. HIDE UNSELECTED SLOT BLOCKS
-                    if (block.TryGetComponent(out MeshRenderer renderer)) renderer.enabled = false;
-
-                    if (block.TryGetComponent(out GrabbableObject grabbable))
-                    {
-                        grabbable.ConfigureInventoryState(false, null, true);
-                    }
-
-                    block.transform.SetParent(null);
-                    block.gameObject.SetActive(false); // Fully deactivate object so it disappears
-                }
-            }
-        }
+        for(int i=0;i<slots.Length;i++)if(slots[i].physicalBlocks.Contains(block))return i;
+        return -1;
     }
-
-    public void DropSelectedBlock()
+    public bool TryRemoveBlock(TruthBlock block)
     {
-        if (selectedSlotIndex == -1 || slots[selectedSlotIndex].isEmpty)
+        if(block==null)return false;
+        bool removed=carried.Remove(block);
+        foreach(var slot in slots)removed|=slot.Remove(block);
+        if(!removed)return false;
+        stack?.Release(block);
+        if(!clearing)RefreshCarry();
+        return true;
+    }
+    void RefreshCarry()
+    {
+        carried.RemoveAll(b=>b==null);
+        foreach(var slot in slots)slot.Synchronize();
+        if(selectedSlotIndex<0 || selectedSlotIndex>=slots.Length || slots[selectedSlotIndex].isEmpty)
+            selectedSlotIndex=-1;
+        var next=Player.LocalInstance;
+        if(carrier!=next)
         {
-            Debug.LogWarning("Cannot drop: No slot selected or slot is empty.");
-            return;
+            if(carrier!=null){carrier.RemoveMovementSpeedModifier(this);carrier.SetRunningSuppressed(this,false);}
+            if(stack!=null)stack.Clear();
+            carrier=next;stack=null;
         }
-
-        InventorySlot activeSlot = slots[selectedSlotIndex];
-        TruthBlock blockToDrop = activeSlot.Consume();
-
-        if (blockToDrop != null)
+        if(carrier!=null)
         {
-            GameObject blockObj = blockToDrop.gameObject;
-
-            // ---> ADD THIS CRITICAL LINE TO UNTETHER IT FROM THE HAND <---
-            blockObj.transform.SetParent(null); 
-
-            if (Player.LocalInstance != null)
-            {
-                Vector3 dropPosition = Player.LocalInstance.transform.position + (Player.LocalInstance.transform.forward * 1.5f) + (Vector3.up * 1f);
-                blockObj.transform.position = dropPosition;
-                blockObj.transform.rotation = Quaternion.identity;
-
-                Player.LocalInstance.SetHeldObjectSilently(null);
-            }
-
-            // Reactivate components
-            if (blockObj.TryGetComponent(out MeshRenderer renderer)) renderer.enabled = true;
-            if (blockObj.TryGetComponent(out Collider col)) col.enabled = true;
-            
-            if (blockObj.TryGetComponent(out Rigidbody rb))
-            {
-                rb.isKinematic = false;
-                rb.useGravity = true;
-                if (Player.LocalInstance != null)
-                {
-                    rb.AddForce(Player.LocalInstance.transform.forward * 2f, ForceMode.VelocityChange);
-                }
-            }
-
-            if (blockObj.TryGetComponent(out GrabbableObject grabbable))
-            {
-                grabbable.ConfigureInventoryState(false, null, false);
-            }
+            if(stack==null){stack=carrier.GetComponent<TruthTableCarryStack>();if(stack==null)stack=carrier.gameObject.AddComponent<TruthTableCarryStack>();}
+            stack.Synchronize(this,carried);
+            carrier.SetMovementSpeedModifier(this,CarrySpeedMultiplier);
+            carrier.SetRunningSuppressed(this,EquippedCount>0);
+            var selected=HasBlockSelected()?slots[selectedSlotIndex].physicalBlocks[slots[selectedSlotIndex].count-1]:null;
+            carrier.SetHeldObjectSilently(selected!=null?selected.GetComponent<GrabbableObject>():null);
         }
-
-        if (activeSlot.isEmpty)
-        {
-            selectedSlotIndex = -1;
-        }
-
-        UpdateBlockVisibility();
         UpdateUI();
     }
-
+    // Pickup/placement callers equip explicitly; repeated calls must not toggle.
     public void SetSelectedSlotDirectly(int index)
     {
-        // ---> NEW TOGGLE LOGIC <---
-        // If the slot clicked is already selected, unselect it (set to -1) to hide the block
-        if (selectedSlotIndex == index)
-        {
-            selectedSlotIndex = -1;
-        }
-        else
-        {
-            // Otherwise, select the new slot normally
-            selectedSlotIndex = index;
-        }
-        
-        // CRITICAL: Force the player's held object to match the new slot
-        if (Player.LocalInstance != null)
-        {
-            if (selectedSlotIndex != -1 && !slots[selectedSlotIndex].isEmpty)
-            {
-                // Set the player's hand to the first block in the stack
-                GrabbableObject obj = slots[selectedSlotIndex].physicalBlocks[0].GetComponent<GrabbableObject>();
-                Player.LocalInstance.SetHeldObjectSilently(obj);
-            }
-            else
-            {
-                // Nothing selected, clear the hand
-                Player.LocalInstance.SetHeldObjectSilently(null);
-            }
-        }
-
-        UpdateBlockVisibility(); 
-        UpdateUI();
+        if(index<0||index>=slots.Length||slots[index].isEmpty)return;
+        selectedSlotIndex=index;RefreshCarry();
     }
-
-    public void ClearSelectionSilently()
+    public void ToggleSelectedSlot(int index)
     {
-        selectedSlotIndex = -1;
-        UpdateBlockVisibility();
-        UpdateUI();
+        if(index<0||index>=slots.Length||slots[index].isEmpty)return;
+        selectedSlotIndex=selectedSlotIndex==index?-1:index;
+        RefreshCarry();
     }
-
-    public bool HasBlockSelected() => selectedSlotIndex != -1 && !slots[selectedSlotIndex].isEmpty;
-    public bool GetSelectedBlockValue() => slots[selectedSlotIndex].blockValue;
-
+    public void ClearSelectionSilently() { selectedSlotIndex=-1; RefreshCarry(); }
+    public bool HasBlockSelected()=>selectedSlotIndex>=0&&selectedSlotIndex<slots.Length&&!slots[selectedSlotIndex].isEmpty;
+    public bool GetSelectedBlockValue()=>HasBlockSelected()&&slots[selectedSlotIndex].blockValue;
+    public void DropSelectedBlock()
+    {
+        if(!HasBlockSelected())return;
+        var slot=slots[selectedSlotIndex];
+        var block=slot.physicalBlocks[slot.physicalBlocks.Count-1];
+        TryRemoveBlock(block);
+        var item=block.GetComponent<GrabbableObject>();
+        item.ReleaseForPlacement();
+        block.transform.SetParent(null,true);
+        if(carrier!=null)block.transform.SetPositionAndRotation(carrier.transform.position+carrier.transform.forward*2+Vector3.up,Quaternion.identity);
+        PlayerItemRelease.Protect(block.transform,carrier,true);
+        item.ConfigureInventoryState(false,null,false);
+        var body=block.GetComponent<Rigidbody>();
+        if(body!=null){body.linearVelocity=Vector3.zero;body.angularVelocity=Vector3.zero;body.interpolation=RigidbodyInterpolation.Interpolate;}
+        RefreshCarry();
+    }
+    // Kept for older callers; detach the consumed identity atomically.
     public void ConsumeSelectedBlock()
     {
-        if (selectedSlotIndex != -1)
-        {
-            slots[selectedSlotIndex].Consume();
-            UpdateBlockVisibility();
-            UpdateUI();
-        }
+        if(!HasBlockSelected())return;
+        var slot=slots[selectedSlotIndex];var block=slot.physicalBlocks[slot.count-1];
+        block.GetComponent<GrabbableObject>()?.ReleaseForPlacement();TryRemoveBlock(block);
     }
-
-    private void UpdateUI()
+    public void ResetInventory()
     {
-        if (uiController != null)
-        {
-            uiController.RefreshInventoryDisplay(slots, selectedSlotIndex);
-        }
+        clearing=true;
+        var previous=carried.ToArray();carried.Clear();
+        if(carrier!=null){carrier.RemoveMovementSpeedModifier(this);carrier.SetRunningSuppressed(this,false);carrier.SetHeldObjectSilently(null);}
+        if(stack!=null)stack.Clear();
+        foreach(var slot in slots)slot?.Clear();
+        selectedSlotIndex=-1;
+        foreach(var block in previous)if(block!=null){block.gameObject.SetActive(false);Destroy(block.gameObject);}
+        clearing=false;UpdateUI();
     }
-
-    // NEW METHOD: Toggles the Inventory Bar UI on or off
-    public void SetInventoryVisibility(bool isVisible)
-    {
-        if (inventoryBarUI != null)
-        {
-            inventoryBarUI.SetActive(isVisible);
-        }
-    }
+    void OnDisable() { if(Instance==this)ResetInventory(); }
+    void OnDestroy() { if(Instance==this){ResetInventory();Instance=null;} }
+    void UpdateUI() { if(uiController!=null)uiController.RefreshInventoryDisplay(slots,selectedSlotIndex); }
+    public void SetInventoryVisibility(bool visible) { if(inventoryBarUI!=null)inventoryBarUI.SetActive(visible); }
 }

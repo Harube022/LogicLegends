@@ -54,7 +54,7 @@ public static class ProofsOnboardingPlayChecks
             else PlayerPrefs.DeleteKey(key);
         }
         PlayerPrefs.Save(); SessionState.SetBool("Proofs.PrefsCaptured", false);
-        SessionState.SetBool("Proofs.OnboardingQA", false);
+        SessionState.SetBool("Proofs.OnboardingQA", false);SessionState.SetBool("Proofs.HandOnlyQA", false);
         var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView");
         type.GetProperty("selectedSizeIndex", BindingFlags.Public | Hidden).SetValue(EditorWindow.GetWindow(type), SessionState.GetInt("Proofs.PreviousSize", 6));
         Crystal.SafeArea.Sim = Crystal.SafeArea.SimDevice.None;
@@ -112,7 +112,7 @@ public static class ProofsOnboardingPlayChecks
         Check(ui != null && ui.Help.IsOpen && Time.timeScale == 0, "first-entry Help pauses input and time");
         var stage = ui.Stage; var help = ui.Help; float time = stage.SecondsLeft; string originalBoard = stage.BoardInstructions.text;
         CheckRandomization(stage);
-        CheckArtwork(stage);
+        if(!SessionState.GetBool("Proofs.HandOnlyQA",false))CheckArtwork(stage);
         Check(time == stage.StartingSeconds && !stage.Started && Field<ProofChallengeData>(stage, "activeChallenge") == null, "challenge waits before tutorial");
         var p = Player.LocalInstance;
         if (SessionState.GetBool("Proofs.ScrollsOnly", false))
@@ -120,18 +120,9 @@ public static class ProofsOnboardingPlayChecks
             help.CloseHelp(); stage.FinishOnboarding(); yield return Introduction(stage, false);
             goto RealGameplay;
         }
-        string taught = "";
-        for (int page = 0; page < help.PageCount; page++)
-        {
-            yield return null; yield return new WaitForEndOfFrame();
-            var title = Field<TextMeshProUGUI>(help, "titleText"); var body = Field<TextMeshProUGUI>(help, "bodyText");
-            title.ForceMeshUpdate(); body.ForceMeshUpdate(); taught += title.text + body.text;
-            Check(!title.isTextOverflowing, "Help title fits mobile");
-            if (page == 0) yield return Capture("Help");
-            if (page < help.PageCount - 1) Click(Field<Button>(help, "nextButton"));
-        }
-        Check(taught.Contains("Informal does not mean incorrect") && taught.Contains("confirm") && taught.Contains("10:00") && taught.Contains("10 seconds") && taught.Contains("Challenge 5"), "Help describes actual proof kinds, timer and book confirmation");
-        Click(Field<Button>(help, "beginButton")); yield return null;
+        var sharedGuide = UnityEngine.Object.FindFirstObjectByType<StageHelpPage>(FindObjectsInactive.Include);
+        Check(sharedGuide != null && sharedGuide.BeginButton.gameObject.activeInHierarchy, "shared scrollable Help is available");
+        yield return ProofsHandVerification.Touch(sharedGuide.BeginButton); yield return null;
         var tutorial = ProofsControlsOnboarding.Active; Check(tutorial != null && tutorial.CurrentStep == ProofsTutorialStep.Movement, "Let's Begin starts movement");
         var mobile = MobileInputUI.FindJoystick();
         SetMobile(mobile, new Vector2(.1f, 0)); yield return new WaitForSecondsRealtime(.9f);
@@ -144,7 +135,7 @@ public static class ProofsOnboardingPlayChecks
         yield return Layout(tutorial, "Hand");
         Check(tutorial.PracticeObject == null, "hand practice needs no world object");
         var hand = GameObject.Find("Canvas 1").GetComponentsInChildren<Button>(true).Single(b => b.name == "InteractButton");
-        Click(hand); yield return null;
+        yield return ProofsHandVerification.Touch(hand);
         Check(tutorial.CurrentStep == ProofsTutorialStep.Jump && tutorial.PracticeObject == null, "hand practice advances only to jump");
         yield return Layout(tutorial, "Jump");
         until = Time.unscaledTime + 2;
@@ -155,25 +146,25 @@ public static class ProofsOnboardingPlayChecks
         yield return Layout(tutorial, "Timer"); Next(tutorial); yield return null;
         Check(tutorial.CurrentStep == ProofsTutorialStep.Progress, "progress explained separately");
         yield return Layout(tutorial, "Progress"); Next(tutorial); yield return null;
-        yield return Layout(tutorial, "Book"); Click(hand); yield return null;
+        yield return Layout(tutorial, "Book"); yield return ProofsHandVerification.Touch(hand);
         Check(tutorial.CurrentStep == ProofsTutorialStep.FormalAltar, "practice book interaction leaves real challenge waiting");
         yield return Layout(tutorial, "FormalAltar"); Next(tutorial); yield return null;
         yield return Layout(tutorial, "InformalAltar"); Next(tutorial); yield return null;
         yield return Layout(tutorial, "Scroll"); Next(tutorial); yield return null;
-        yield return Layout(tutorial, "ReadScroll"); Click(hand); yield return null;
+        yield return Layout(tutorial, "ReadScroll"); yield return ProofsHandVerification.Touch(hand);
         Check(tutorial.CurrentStep == ProofsTutorialStep.Reader && stage.ReaderPanel.activeSelf, "hand opens actual reader with practice text");
         yield return Layout(tutorial, "Reader"); Click(stage.ReaderCloseButton); yield return null;
         Check(tutorial.CurrentStep == ProofsTutorialStep.ReadScroll, "Close does not collect practice scroll");
-        yield return new WaitForSecondsRealtime(.75f); Click(ui.InteractionButton); yield return null;
+        yield return new WaitForSecondsRealtime(.75f); yield return ProofsHandVerification.Touch(ui.HandButton);
         yield return Layout(tutorial, "ReaderCollect"); Click(stage.CollectButton); yield return null;
         Check(tutorial.PracticeCarried && stage.CarriedScroll == -1, "Carry Scroll affects only tutorial inventory");
-        yield return Layout(tutorial, "Place"); Click(hand); yield return null;
+        yield return Layout(tutorial, "Place"); yield return ProofsHandVerification.Touch(hand);
         Check(tutorial.PracticePlacement == 1 && Enumerable.Range(0,4).All(i => stage.Placement(i) == -1), "practice placement leaves real altars empty");
-        yield return Layout(tutorial, "TakeBack"); Click(ui.InteractionButton); yield return null;
+        yield return Layout(tutorial, "TakeBack"); yield return ProofsHandVerification.Touch(ui.HandButton);
         yield return Layout(tutorial, "TakeBackPicker"); Click(stage.TakeBackButtons[0]); yield return null;
         Check(tutorial.PracticeCarried && tutorial.PracticePlacement == -1, "existing take-back UI retrieves only practice scroll");
-        yield return Layout(tutorial, "Replace"); Click(hand); yield return null;
-        yield return Layout(tutorial, "ConfirmBook"); Click(hand); yield return null;
+        yield return Layout(tutorial, "Replace"); yield return ProofsHandVerification.Touch(hand);
+        yield return Layout(tutorial, "ConfirmBook"); yield return ProofsHandVerification.Touch(hand);
         Check(tutorial.CurrentStep == ProofsTutorialStep.ViewBoard, "practice confirmation never evaluates real arrangement");
         yield return Layout(tutorial, "ViewBoard"); Click(ui.ViewButton); yield return new WaitForSecondsRealtime(.95f);
         Check(ui.BoardView.Viewing && tutorial.CurrentStep == ProofsTutorialStep.Board && !ui.BackButton.interactable, "View Board blends and requires explanation before Back");
@@ -195,9 +186,9 @@ public static class ProofsOnboardingPlayChecks
         yield return Introduction(stage, false);
         Check(p.enabled && !GameInput.Instance.GameplayInputBlocked, "introduction restores controls and prepares book gate");
         RealGameplay:
-        Click(help.HelpButton); yield return null; Check(help.IsOpen, "Help reopens"); Click(Field<Button>(help,"beginButton")); yield return null;
+        Click(help.HelpButton); yield return null; Check(help.IsOpen, "Help reopens"); Click(UnityEngine.Object.FindFirstObjectByType<StageHelpPage>(FindObjectsInactive.Include).BeginButton); yield return null;
         Check(!help.IsOpen && ProofsControlsOnboarding.Active == null && !stage.Started, "reopened guide resumes without repeating or activating");
-        yield return WalkChamber(stage, p);
+        if (!UnityEditor.SessionState.GetBool("Proofs.HandOnlyQA",false)) yield return WalkChamber(stage, p);
         yield return null; yield return new WaitForEndOfFrame();
         Click(ui.ViewButton); yield return new WaitForSecondsRealtime(.95f); CheckBoardFrame(ui);
         Check(!stage.Started && stage.SecondsLeft == time, "ordinary board view does not start or submit"); Click(ui.BackButton); yield return new WaitForSecondsRealtime(.95f);
@@ -216,7 +207,7 @@ public static class ProofsOnboardingPlayChecks
             {
                 CheckArrows(stage);
                 float beforeReading = stage.SecondsLeft;
-                stage.ReadScroll(0); yield return new WaitForSecondsRealtime(.15f);
+                Approach(stage.ScrollTargets[0].transform); yield return new WaitForSecondsRealtime(.4f); ProofsHandVerification.CheckBubbles(stage,stage.ScrollTargets[0].transform); yield return ProofsHandVerification.Touch(ui.HandButton); yield return new WaitForSecondsRealtime(.15f);
                 Check(stage.ReaderPanel.activeSelf && stage.ReaderBody.text == q.scrolls[0].content, "real reader restored after tutorial");
                 yield return ReaderLayout(stage, "RealReader" + challenge + "Q" + question);
                 Check(stage.SecondsLeft < beforeReading, "scroll reading preserves the active countdown");
@@ -275,13 +266,13 @@ public static class ProofsOnboardingPlayChecks
                     stage.Submit(); Check(Mathf.Abs(beforeTime - stage.SecondsLeft - stage.WrongPenalty) < .001f && before.SequenceEqual(Enumerable.Range(0,4).Select(stage.Placement)), "incorrect submission preserves placements and penalty");
                     yield return new WaitForSecondsRealtime(.85f); stage.RetrieveFromPedestal(1-correct); stage.TakeBackScroll(0); CheckArrows(stage); stage.PlaceOnPedestal(correct); CheckArrows(stage);
                     Click(help.HelpButton); yield return null; float paused = stage.SecondsLeft; yield return new WaitForSecondsRealtime(.25f);
-                    Check(help.IsOpen && stage.Started && stage.SecondsLeft == paused, "Help pauses active challenge without clearing it"); Click(Field<Button>(help,"beginButton")); yield return null;
+                    Check(help.IsOpen && stage.Started && stage.SecondsLeft == paused, "Help pauses active challenge without clearing it"); Click(UnityEngine.Object.FindFirstObjectByType<StageHelpPage>(FindObjectsInactive.Include).BeginButton); yield return null;
                     float readingStart = stage.SecondsLeft; Click(ui.ViewButton); yield return new WaitForSecondsRealtime(.95f);
                     Check(stage.Started && stage.SecondsLeft < readingStart, "board viewing preserves active countdown rules"); Click(ui.BackButton); yield return new WaitForSecondsRealtime(.95f);
                 }
             }
             else yield return Arrange(stage, q);
-            stage.Submit(); yield return new WaitForSecondsRealtime(.95f);
+            stage.Submit(); yield return new WaitForSecondsRealtime(.95f); float resetUntil=Time.unscaledTime+6; while(Field<bool>(stage,"transitioning")&&!stage.Finished&&Time.unscaledTime<resetUntil)yield return null;
             Check(!stage.Started && stage.CorrectCount == (challenge - 1) * 2 + question, "correct answer pauses and progresses " + challenge + "/" + question);
             Check(Enumerable.Range(0, 4).All(i => stage.Placement(i) == -1) && stage.CarriedScroll == -1 && stage.ReadingScroll == -1 && !stage.WorldBoard.IsConfigured, "question reset removes previous answers");
             if (question == 1)
@@ -300,7 +291,7 @@ public static class ProofsOnboardingPlayChecks
     }
     static void CheckArrows(ProofsLibraryStageController stage)
     {
-        var guide = stage.GetComponent<ProofsPedestalIndicators>(); Check(guide != null && guide.Arrows.Length == 2, "one placement arrow per proof altar");
+        ProofsHandVerification.CheckBubbles(stage); var guide = stage.GetComponent<ProofsPedestalIndicators>(); Check(guide != null && guide.Arrows.Length == 2, "one placement arrow per proof altar");
         guide.Refresh();
         for (int i = 0; i < 2; i++)
         {
@@ -327,15 +318,15 @@ public static class ProofsOnboardingPlayChecks
                 bool expected = stage.Started && !stage.Finished && board.HasCarriedScroll && !stage.InputSuppressed && !stage.HasReaderOpen &&
                     slot.gameObject.activeInHierarchy && board.CarryingRule == (group == "ruleSlots") && i < assignments.Length && assignments[i] < 0;
                 Check(guide.SlotArrows.ContainsKey(slot) && guide.SlotArrows[slot].gameObject.activeSelf == expected, "all compatible empty proof slots have neutral arrows");
-                if (expected) Check(Vector3.Dot(guide.SlotArrows[slot].position - slot.transform.position, slot.transform.right) > 0, "slot arrow stays on its right side");
+                if(expected){var center=ProofsWorldInteractionIndicators.VisualBounds(slot.transform).center;var arrow=guide.SlotArrows[slot];Check(Mathf.Abs(arrow.position.x-center.x)<.01f&&Mathf.Abs(arrow.position.z-center.z)<.01f,"slot arrow centered above its actual target");}
             }
         }
     }
     static IEnumerator ReaderLayout(ProofsLibraryStageController stage, string name)
     {
-        var panel = (RectTransform)stage.ReaderPanel.transform; var safe = stage.Presentation.SafeArea;
+        yield return null; stage.Presentation.RefreshReader(); Canvas.ForceUpdateCanvases(); var panel = (RectTransform)stage.ReaderPanel.transform; var safe = stage.Presentation.SafeArea;
         Vector2 center = safe.InverseTransformPoint(panel.TransformPoint(panel.rect.center));
-        Check(Vector2.Distance(center, safe.rect.center) < 1, "scroll panel centered in safe area");
+        Check(Vector2.Distance(center, safe.rect.center) < 1, "scroll panel centered in safe area: center="+center+" safe="+safe.rect.center+" scale="+panel.localScale+" parent="+((RectTransform)panel.parent).rect+" pos="+((RectTransform)panel.parent).anchoredPosition+" anchors="+((RectTransform)panel.parent).anchorMin+"/"+((RectTransform)panel.parent).anchorMax+" panel="+panel.anchoredPosition);
         Check(GameInput.Instance.GameplayInputBlocked && !Player.LocalInstance.enabled && Cursor.visible, "reader blocks gameplay and unlocks cursor");
         Check(stage.CollectButton.GetComponentInChildren<TMP_Text>().text == "Get This Scroll" && stage.ReaderCloseButton.GetComponentInChildren<TMP_Text>().text == "Back", "reader uses requested action labels");
         foreach (var button in new[] { stage.CollectButton, stage.ReaderCloseButton })
@@ -512,8 +503,8 @@ public static class ProofsOnboardingPlayChecks
         {
             string content = Field<TMP_Text>(source, "detail").text;
             Vector3 origin = source.transform.position;
-            Approach(source.transform); yield return null;
-            Click(stage.Presentation.InteractionButton); yield return null;
+            Approach(source.transform); yield return new WaitForSecondsRealtime(.4f); ProofsHandVerification.CheckBubbles(stage,source.transform);
+            yield return ProofsHandVerification.Touch(stage.Presentation.HandButton);
             Check(stage.ReaderPanel.activeSelf && stage.ReaderBody.text == content && stage.ReaderTitle.text == source.Heading && !stage.HasCarriedScroll, "every selectable source opens its exact full reader before collecting: " + source.name + " expected=" + source.Heading + " actual=" + stage.ReaderTitle.text);
             if (source == sourcesToRead[0]) yield return ReaderLayout(stage, "WorldReader" + stage.ChallengeNumber + "Q" + stage.QuestionNumber);
             Click(stage.ReaderCloseButton); yield return null;
@@ -556,9 +547,9 @@ public static class ProofsOnboardingPlayChecks
     }
     static IEnumerator GetWorldScroll(ProofsLibraryStageController stage, ProofWorldPedestal source)
     {
-        Approach(source.transform); yield return null;
+        Approach(source.transform); yield return new WaitForSecondsRealtime(.4f); ProofsHandVerification.CheckBubbles(stage,source.transform);
         var hand = GameObject.Find("Canvas 1").GetComponentsInChildren<Button>(true).Single(b => b.name == "InteractButton");
-        Click(hand); yield return null;
+        yield return ProofsHandVerification.Touch(hand);
         Check(stage.ReaderPanel.activeSelf && !stage.HasCarriedScroll, "hand opens full world reader without collecting");
         Click(stage.CollectButton); yield return null;
         Check(stage.WorldBoard.HasCarriedScroll && stage.HasCarriedScroll && !stage.ReaderPanel.activeSelf, "Get This Scroll acquires exactly the chosen world option");
@@ -582,7 +573,7 @@ public static class ProofsOnboardingPlayChecks
     {
         Approach(slot.transform); yield return null;
         if (stage.QuestionNumber == 1 && slot.Heading.EndsWith("1")) yield return CaptureSlotFace(stage, slot);
-        Click(stage.Presentation.InteractionButton); yield return null;
+        yield return ProofsHandVerification.Touch(stage.Presentation.HandButton);
         Check(!stage.HasCarriedScroll, "hand places world scroll using existing slot assignment"); CheckArrows(stage);
     }
     static IEnumerator RemoveAndReplace(ProofsLibraryStageController stage, ProofWorldPedestal source, ProofWorldPedestal slot)
@@ -620,7 +611,7 @@ public static class ProofsOnboardingPlayChecks
             CheckActionSpacing(stage);
             var arrow = stage.GetComponent<ProofsPedestalIndicators>().SlotArrows[slot];
             Vector3 projected = camera.WorldToViewportPoint(arrow.position);
-            Check(arrow.gameObject.activeSelf && projected.z > 0 && projected.x > 0 && projected.x < 1 && projected.y > 0 && projected.y < 1, "right-side slot arrow visible from its reading face");
+            Check(arrow.gameObject.activeSelf && projected.z > 0 && projected.x > 0 && projected.x < 1 && projected.y > 0 && projected.y < 1, "centered slot arrow visible from its reading face");
             yield return Capture("PlacementView" + stage.ChallengeNumber + (stage.WorldBoard.CarryingRule ? "Rule" : "Step"));
         }
         finally
@@ -633,7 +624,7 @@ public static class ProofsOnboardingPlayChecks
     static void CheckActionSpacing(ProofsLibraryStageController stage)
     {
         var controls = GameObject.Find("Canvas 1").transform.Find("SafeArea/Gameplay_Interface");
-        var buttons = new[] { stage.Presentation.ViewButton, stage.Presentation.InteractionButton, stage.Presentation.ReturnScrollButton }
+        var buttons = new[] { stage.Presentation.ViewButton, stage.Presentation.ReturnScrollButton }
             .Where(b => b.gameObject.activeInHierarchy).ToArray();
         foreach (var button in buttons)
         {

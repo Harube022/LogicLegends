@@ -7,6 +7,10 @@ using Photon.Pun;
 public class TeleportManager : MonoBehaviourPun
 {
     public static TeleportManager Instance { get; private set; }
+#if UNITY_EDITOR
+    // Isolated economy checks inspect navigation without reloading or touching real accounts.
+    public static Action<string> ValidationNavigation;
+#endif
 
     [Header("Fade Settings")]
     [SerializeField] private CanvasGroup fadeCanvasGroup;
@@ -129,6 +133,9 @@ public class TeleportManager : MonoBehaviourPun
     // ---> NEW: Call this from your "Next Stage" UI Button <---
     public void LoadSceneWithFade(string sceneName)
     {
+#if UNITY_EDITOR
+        if (ValidationNavigation != null) { ValidationNavigation(sceneName); return; }
+#endif
         if (UsesCoveredTransitions && prelimTransition != null)
         {
             if (prelimTransition.IsTeleporting || string.IsNullOrEmpty(sceneName)) return;

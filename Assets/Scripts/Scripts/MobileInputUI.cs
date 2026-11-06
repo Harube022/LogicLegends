@@ -10,6 +10,9 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
     private Vector2 inputVector;
     public Vector2 CurrentInput => inputVector;
     private GameInput gameInput;
+    private int pointer;
+    private bool dragging;
+    private bool IsJoystick => joystickBackground != null && joystickHandle != null;
 
     /// <summary>Find the configured joystick, excluding button-only MobileInputUI objects.</summary>
     public static MobileInputUI FindJoystick()
@@ -49,6 +52,9 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (!IsJoystick || !dragging || pointer != eventData.pointerId) return;
+        if (gameInput == null) gameInput = GameInput.Instance;
+        if (gameInput == null || gameInput.GameplayActionsBlocked) { ResetJoystick(); return; }
         Vector2 position;
 
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -59,16 +65,16 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
         );
 
         // convert to -1 to 1 range
-        position.x = position.x / (joystickBackground.sizeDelta.x / 2);
-        position.y = position.y / (joystickBackground.sizeDelta.y / 2);
+        position.x = position.x / Mathf.Max(1, joystickBackground.rect.width / 2);
+        position.y = position.y / Mathf.Max(1, joystickBackground.rect.height / 2);
 
         inputVector = new Vector2(position.x, position.y);
         inputVector = Vector2.ClampMagnitude(inputVector, 1f);
 
         // move handle
         joystickHandle.anchoredPosition = new Vector2(
-            inputVector.x * (joystickBackground.sizeDelta.x / 2),
-            inputVector.y * (joystickBackground.sizeDelta.y / 2)
+            inputVector.x * (joystickBackground.rect.width / 2),
+            inputVector.y * (joystickBackground.rect.height / 2)
         );
 
         gameInput.SetMobileMovement(inputVector);
@@ -76,32 +82,34 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (!IsJoystick || dragging && pointer != eventData.pointerId) return;
+        pointer = eventData.pointerId; dragging = true;
         OnDrag(eventData);
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        inputVector = Vector2.zero;
-        joystickHandle.anchoredPosition = Vector2.zero;
-        gameInput.SetMobileMovement(inputVector);
+        if (dragging && pointer == eventData.pointerId) ResetJoystick();
     }
 
     // ===== BUTTONS =====
 
     public void Jump()
     {
-        Debug.Log("MOBILE JUMP PRESSED");
-        gameInput.MobileJump();
+        if (gameInput == null) gameInput = GameInput.Instance;
+        gameInput?.MobileJump();
     }
 
     public void Interact()
     {
-        gameInput.MobileInteract();
+        if (gameInput == null) gameInput = GameInput.Instance;
+        gameInput?.MobileInteract();
     }
 
     // ---> NEW: Force the joystick to snap back to the center <---
     public void ResetJoystick()
     {
+        dragging = false;
         inputVector = Vector2.zero;
         
         if (joystickHandle != null)
@@ -114,4 +122,7 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
             gameInput.SetMobileMovement(inputVector);
         }
     }
+    private void OnDisable() { if (IsJoystick) ResetJoystick(); }
+    private void OnApplicationFocus(bool focus) { if (!focus && IsJoystick) ResetJoystick(); }
+    private void OnApplicationPause(bool paused) { if (paused && IsJoystick) ResetJoystick(); }
 }

@@ -48,21 +48,23 @@ public sealed class ProofsPedestalIndicators : MonoBehaviour
     public void Refresh()
     {
         if (stage == null || Arrows == null) return;
-        bool carrying = stage.isActiveAndEnabled && stage.Started && !stage.Finished && stage.CarriedScroll >= 0 &&
-            !stage.InputSuppressed && !stage.HasReaderOpen;
+        bool practice=stage.Tutorial!=null&&stage.Tutorial.PracticeCarried;
+        bool carrying = stage.isActiveAndEnabled && !stage.Finished && !stage.HasReaderOpen &&
+            (practice || stage.Started && stage.CarriedScroll >= 0 && !stage.InputSuppressed);
         for (int i = 0; i < Arrows.Length; i++)
         {
             var altar = stage.AltarTargets[i]; var arrow = Arrows[i];
             bool visible = carrying && altar.gameObject.activeInHierarchy && stage.IsPedestalEmpty(i);
             arrow.gameObject.SetActive(visible); if (!visible) continue;
-            float top = altar.position.y + 3;
+            var bounds=ProofsWorldInteractionIndicators.VisualBounds(altar);
+            float top = Mathf.Max(altar.position.y + 3,bounds.max.y);
             foreach (var label in altar.GetComponentsInChildren<TMP_Text>())
             {
                 var corners = new Vector3[4]; label.rectTransform.GetWorldCorners(corners);
                 foreach (var corner in corners) top = Mathf.Max(top, corner.y);
             }
             float bob = Mathf.Sin(Time.time * Mathf.PI * 2 / 2.4f) * .12f;
-            arrow.position = new Vector3(altar.position.x, top + .85f + bob, altar.position.z);
+            arrow.position = new Vector3(bounds.center.x, top + .85f + bob, bounds.center.z);
             if (Camera.main != null) arrow.rotation = Camera.main.transform.rotation;
         }
         RefreshSlotArrows();
@@ -84,13 +86,8 @@ public sealed class ProofsPedestalIndicators : MonoBehaviour
             bool visible = stage.isActiveAndEnabled && stage.Started && !stage.Finished && !stage.InputSuppressed &&
                 !stage.HasReaderOpen && stage.WorldBoard.IsAvailablePlacement(slot);
             arrow.gameObject.SetActive(visible); if (!visible) continue;
-            // Offset beside the parchment, in its local right direction, rather than above its text.
-            Bounds bounds = new Bounds(slot.transform.position + Vector3.up * 1.5f, Vector3.one);
-            var tablet = slot.transform.Find("Reading Tablet");
-            if (tablet != null && tablet.TryGetComponent<Renderer>(out var renderer)) bounds = renderer.bounds;
-            Vector3 right = slot.transform.right;
-            float halfWidth = Mathf.Abs(right.x) * bounds.extents.x + Mathf.Abs(right.y) * bounds.extents.y + Mathf.Abs(right.z) * bounds.extents.z;
-            arrow.position = bounds.center + right * (halfWidth + .55f) + Vector3.up * (.3f + Mathf.Sin(Time.time * Mathf.PI * 2 / 2.4f) * .12f);
+            Bounds bounds = ProofsWorldInteractionIndicators.VisualBounds(slot.transform);
+            arrow.position = new Vector3(bounds.center.x,bounds.max.y+.65f+Mathf.Sin(Time.time*Mathf.PI*2/2.4f)*.12f,bounds.center.z);
             if (Camera.main != null) arrow.rotation = Camera.main.transform.rotation;
         }
     }

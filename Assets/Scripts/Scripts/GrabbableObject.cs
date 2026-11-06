@@ -24,11 +24,15 @@ public class GrabbableObject : MonoBehaviourPun
 
     private Rigidbody rb;
     private Collider col;
+    private RigidbodyInterpolation worldInterpolation;
+    private readonly System.Collections.Generic.Dictionary<Collider,bool> truthColliders=new System.Collections.Generic.Dictionary<Collider,bool>();
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         col = GetComponent<Collider>();
+        if(rb!=null)worldInterpolation=rb.interpolation;
+        if(GetComponent<TruthBlock>()!=null)foreach(var c in GetComponentsInChildren<Collider>(true))truthColliders[c]=c.enabled;
         // Ensure HUD starts hidden
         if (interactionHUD != null)
         {
@@ -89,6 +93,8 @@ public class GrabbableObject : MonoBehaviourPun
     {
         if (TryGetComponent<TruthBlock>(out var element) && !element.CanCollectNow) return;
         if (isStoredInInventory) return; // Ignore grabs if securely stored in inventory UI
+        if(element!=null&&InventoryManager.Instance!=null)
+        {InventoryManager.Instance.TryPickupBlock(element.value,element);return;}
 
         // --- FIX: Ensure current item is handled/stored before grabbing new one ---
         if (Player.LocalInstance != null && Player.LocalInstance.GetHeldObject() != null && Player.LocalInstance.GetHeldObject() != this)
@@ -117,6 +123,7 @@ public class GrabbableObject : MonoBehaviourPun
 
         this.holdPoint = holdPoint;
         isHeld = true;
+        CarriedObjectAlignment.Follow(transform, holdPoint);
 
         ClearPuzzleConnections(); // Run locally for the grabber
 
@@ -148,6 +155,8 @@ public class GrabbableObject : MonoBehaviourPun
         // ---> CRITICAL GHOST THROW FIX <---
         // If the block is stored, ignore any drop requests from your player interaction controller
         if (isStoredInInventory) return;
+        GetComponent<CarriedObjectAlignment>()?.StopFollowing();
+        var carrier = holdPoint != null ? holdPoint.GetComponentInParent<Player>() : Player.LocalInstance;
 
         var inferenceCrystal = GetComponent<LogicLegends.Inference.InferenceCrystal>();
         if (inferenceCrystal != null && isHeld && !inferenceCrystal.PrepareAccessibleDrop())
@@ -159,6 +168,7 @@ public class GrabbableObject : MonoBehaviourPun
         isHeld = false;
         holdPoint = null;
         transform.SetParent(null);
+        PlayerItemRelease.Protect(transform, carrier, true);
 
         // ---> FIXED: Only tell others we dropped it IF we are online <---
         if (PhotonNetwork.InRoom && photonView != null)
@@ -237,9 +247,14 @@ public class GrabbableObject : MonoBehaviourPun
     // Add this helper method inside GrabbableObject.cs
     public void ConfigureInventoryState(bool held, Transform point, bool stored)
     {
+        bool releasing = (isHeld || isStoredInInventory) && !held && !stored;
+        var carrier = holdPoint != null ? holdPoint.GetComponentInParent<Player>() : Player.LocalInstance;
         isHeld = held;
         holdPoint = point;
         isStoredInInventory = stored;
+        if (held) CarriedObjectAlignment.Follow(transform, point);
+        else GetComponent<CarriedObjectAlignment>()?.StopFollowing();
+        if (releasing) PlayerItemRelease.Protect(transform, carrier, false);
 
         // ---> NEW: Immediately disable the HUD to prevent the 1-frame flash when equipping <---
         if ((held || stored) && interactionHUD != null)
@@ -249,15 +264,39 @@ public class GrabbableObject : MonoBehaviourPun
 
         if (rb != null)
         {
+            if(held||stored)
+            {
+                if(!rb.isKinematic){rb.linearVelocity=Vector3.zero;rb.angularVelocity=Vector3.zero;}
+                rb.interpolation=RigidbodyInterpolation.None;
+            }
+            else rb.interpolation=worldInterpolation;
             // Physics should be disabled if the object is held in hand or hidden in inventory
             rb.isKinematic = held || stored;
             rb.useGravity = !(held || stored);
         }
         
-        if (col != null)
+        if(truthColliders.Count>0)
+        {
+            foreach(var entry in truthColliders)if(entry.Key!=null)entry.Key.enabled=!(held||stored)&&entry.Value;
+        }
+        else if (col != null)
         {
             // Disable collisions if held/stored so it doesn't cause physics bugs with the player
             col.enabled = !(held || stored);
         }
+    }
+
+    // Placement is atomic: detach and stop following before moving to a board slot.
+    public void ReleaseForPlacement()
+    {
+        var carrier = holdPoint != null ? holdPoint.GetComponentInParent<Player>() : Player.LocalInstance;
+        GetComponent<CarriedObjectAlignment>()?.StopFollowing();
+        PlayerItemRelease.Protect(transform, carrier, false);
+        isHeld = false; isStoredInInventory = false; holdPoint = null;
+        transform.SetParent(null, true);
+        if (rb != null) { if (!rb.isKinematic) { rb.linearVelocity = Vector3.zero; rb.angularVelocity = Vector3.zero; } rb.isKinematic = true; rb.useGravity = false; }
+        if (col != null) col.enabled = false;
+        foreach(var entry in truthColliders)if(entry.Key!=null)entry.Key.enabled=false;
+        if (carrier != null && carrier.GetHeldObject() == this) carrier.SetHeldObjectSilently(null);
     }
 }

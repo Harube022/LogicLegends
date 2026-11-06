@@ -230,13 +230,21 @@ public static class StageHelpPlayChecks
             var formal = Find<ProofsChallengeIntroductions>();
             var sets = Find<SetssssChallengeIntroductions>();
             var direct = Find<DirectProofsGuide>();
-            if (formal != null && formal.IsOpen || sets != null && sets.IsOpen || direct != null && direct.IsIntroduction)
+            var graph = Find<LogicLegends.Graph.GraphStageManager>();
+            if (formal != null && formal.IsOpen || sets != null && sets.IsOpen || direct != null && direct.IsIntroduction || graph != null && graph.Introductions.IsOpen)
             {
                 var introSkip = UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b => b.gameObject.activeInHierarchy &&
                     b.GetComponentInChildren<TMP_Text>() != null && b.GetComponentInChildren<TMP_Text>().text.IndexOf("Skip Tutorial", StringComparison.OrdinalIgnoreCase) >= 0);
                 yield return Tap(introSkip); yield return null;
             }
             yield return Until(() => !CoachActive(coach) && !GameInput.Instance.GameplayInputBlocked && Player.LocalInstance.enabled, 5, "tutorial and camera cleanup: " + scene);
+        }
+        else
+        {
+            var trees=Find<LogicLegends.Trees.TreeStageManager>();
+            yield return Until(()=>trees.Introductions.IsOpen,5,"Trees initial challenge practice");
+            yield return Tap(trees.ui.host.GetComponentsInChildren<PrelimTutorialSkipControl>().Single().GetComponent<Button>());
+            yield return Until(()=>!trees.Introductions.IsOpen&&!GameInput.Instance.GameplayInputBlocked&&Player.LocalInstance.enabled,6,"Trees initial practice cleanup");
         }
         Check(Math.Abs(Clock(scene)-remaining)<.1f, "Help/practice never starts real countdown: " + scene);
         Log(scene + ": sole Begin exit, first movement tutorial, real Skip/Yes, input and countdown cleanup");
@@ -382,7 +390,7 @@ public static class StageHelpPlayChecks
             case "Functions and Relations": return Find<FunctionsRelationsHelpUI>().HelpButton;
             case "Graph": return Member<Button>(Find<LogicLegends.Graph.GraphUIController>(), "lessonButton");
             case "Trees": return Member<Button>(Find<LogicLegends.Trees.TreeUIController>(),
-                Find<LogicLegends.Trees.TreeStageManager>().BoardOpen ? "focusGuide" : "guide");
+                Find<LogicLegends.Trees.TreeStageManager>().BoardOpen ? "focusHelp" : "help");
             default: throw new InvalidOperationException(scene);
         }
     }

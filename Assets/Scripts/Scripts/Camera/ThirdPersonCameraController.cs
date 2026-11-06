@@ -35,9 +35,13 @@ public class ThirdPersonCameraController : MonoBehaviour
 
     private Vector2 lastMousePosition;
     private bool isDraggingMouse;
+    private Unity.Cinemachine.CinemachineBrain brain;
 
     private void Start()
     {
+        brain = GetComponent<Unity.Cinemachine.CinemachineBrain>();
+        yaw = transform.eulerAngles.y;
+        pitch = Mathf.Clamp(Mathf.DeltaAngle(0, transform.eulerAngles.x), minY, maxY);
         userDistance = defaultDistance;
         currentDistance = defaultDistance;
         targetDistance = defaultDistance;
@@ -47,12 +51,15 @@ public class ThirdPersonCameraController : MonoBehaviour
 
     private void Update()
     {
+        if (!GameplayTouchRouting.CameraInputAllowed || brain != null && brain.enabled)
+        { isDraggingMouse = false; return; }
         HandleRotation();
         HandleZoom(); 
     }
 
     private void LateUpdate()
     {
+        if (!GameplayTouchRouting.CameraInputAllowed || brain != null && brain.enabled) return;
         FollowPlayer();
     }
 
@@ -61,7 +68,7 @@ public class ThirdPersonCameraController : MonoBehaviour
         float zoomDelta = 0f;
 
         // ===== 1. PC SCROLL WHEEL =====
-        if (Mouse.current != null)
+        if (Mouse.current != null && GameplayTouchRouting.IsLookSurface(Mouse.current.position.ReadValue()))
         {
             float scrollY = Mouse.current.scroll.ReadValue().y;
             
@@ -75,20 +82,7 @@ public class ThirdPersonCameraController : MonoBehaviour
         UnityEngine.InputSystem.Controls.TouchControl touch0 = null;
         UnityEngine.InputSystem.Controls.TouchControl touch1 = null;
 
-        if (Touchscreen.current != null)
-        {
-            // NEW: Only grab active touches that are on the RIGHT HALF of the screen
-            foreach (var touch in Touchscreen.current.touches)
-            {
-                if (touch.isInProgress && touch.position.ReadValue().x > Screen.width / 2f)
-                {
-                    if (touch0 == null) touch0 = touch;
-                    else if (touch1 == null) touch1 = touch;
-                }
-            }
-        }
-
-        if (touch0 != null && touch1 != null)
+        if (GameplayTouchRouting.TryPinch(out touch0, out touch1))
         {
             Vector2 touch0Pos = touch0.position.ReadValue();
             Vector2 touch1Pos = touch1.position.ReadValue();
@@ -118,7 +112,7 @@ public class ThirdPersonCameraController : MonoBehaviour
 #if UNITY_EDITOR
         if (Mouse.current != null)
         {
-            if (Mouse.current.leftButton.wasPressedThisFrame)
+            if (Mouse.current.leftButton.wasPressedThisFrame && GameplayTouchRouting.IsLookSurface(Mouse.current.position.ReadValue()))
             {
                 isDraggingMouse = true;
                 lastMousePosition = Mouse.current.position.ReadValue();
@@ -177,6 +171,7 @@ public class ThirdPersonCameraController : MonoBehaviour
 
     public void WarpCamera(Transform targetTransform)
     {
+        if (brain != null && brain.enabled) return;
         currentFollowPosition = targetTransform.position;
         followVelocity = Vector3.zero;
         yaw = targetTransform.eulerAngles.y;

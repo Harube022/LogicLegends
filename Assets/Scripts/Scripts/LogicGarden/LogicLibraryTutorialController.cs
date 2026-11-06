@@ -93,8 +93,8 @@ public sealed class LogicLibraryTutorialController : MonoBehaviour
     {
         if(owner==null)return;
         ReplayButton.interactable=!IsBusy&&!owner.Talking&&!owner.Transitioning&&!owner.Onboarding.IsActive&&!owner.Onboarding.IsPending&&!GameInput.Instance.GameplayInputBlocked&&Time.timeScale>0;
-        ReplayButton.gameObject.SetActive(!IsBusy&&!owner.Talking&&!owner.Onboarding.IsActive&&!owner.Onboarding.IsPending&&!library.IsReading);
-        owner.ReturnButton.gameObject.SetActive(owner.InLibrary&&!IsBusy&&!owner.Talking&&!owner.Transitioning);
+        ReplayButton.gameObject.SetActive(!IsBusy&&!owner.Talking&&!owner.Onboarding.IsActive&&!owner.Onboarding.IsPending&&!library.IsInReadingView);
+        owner.ReturnButton.gameObject.SetActive(owner.InLibrary&&!IsBusy&&!owner.Talking&&!owner.Transitioning&&!library.IsInReadingView);
         card.sizeDelta=new Vector2(Mathf.Min(840,host.rect.width-40),Mathf.Min(Confirming?340:520,host.rect.height-60));
         if(cancelAfterTravel&&!owner.Transitioning&&(TeleportManager.Instance==null||!TeleportManager.Instance.IsTeleporting)){cancelAfterTravel=false;Cancel(false);}
     }

@@ -686,6 +686,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     private IEnumerator WrongSubmission()
     {
+        hintRejectedMapping = HintMappingArrangement;
         mistakeCount++;
         remaining = Mathf.Max(0f, remaining - wrongAnswerPenalty);
         if (audioSource != null && incorrectSound != null) audioSource.PlayOneShot(incorrectSound);
@@ -808,6 +809,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         if (submitButton != null) submitButton.gameObject.SetActive(false);
         if (retryButton != null) retryButton.gameObject.SetActive(true);
         if (menuButton != null) menuButton.gameObject.SetActive(true);
+        StagePresentation.Failed(resultsPanel, 8, RetryStage);
         if (statusText != null) statusText.text = "Time up";
         RefreshTimer();
         onGameOver?.Invoke();
@@ -880,7 +882,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     public void RetryStage()
     {
-        TrialRewards.RecordRetry(8);
+        if (!TrialRewards.TryRecordRetry(8)) return;
         Time.timeScale = 1f;
         if (input != null) input.SetGameplayInputBlocked(false);
         TeleportManager.Navigate(SceneManager.GetActiveScene().name);

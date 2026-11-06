@@ -165,7 +165,7 @@ public sealed class HandThoughtBubble : MonoBehaviour
         float dy=Mathf.Max(0,safe.yMin+16-min.y)+Mathf.Min(0,safe.yMax-16-max.y);
         Rect.position=camera.ScreenToWorldPoint(screen+new Vector3(dx,dy,0));
     }
-    static Sprite Circle()
+    internal static Sprite Circle()
     {
         if(circle!=null)return circle;
         var texture = new Texture2D(96,96,TextureFormat.RGBA32,false); texture.name = "Interaction Bubble Circle";

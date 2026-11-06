@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -19,6 +20,15 @@ public partial class TruthTableDoorInteraction
     readonly Dictionary<GameObject,bool> hiddenQuizControls=new Dictionary<GameObject,bool>();
 
     public bool UsesHandBubbles => isActiveAndEnabled && IsTruthTableActive;
+    // Help blocks input without changing which house blocks the player needs.
+    public bool HasOpenHouseHintBlocks => TruthBlock.ActiveBlocks.Any(block =>
+    {
+        if (block == null || !block.BelongsTo(this) || !block.gameObject.activeInHierarchy || block.IsPlacedInColumn) return false;
+        var item = block.GetComponent<GrabbableObject>();
+        if (item != null && (item.IsHeld || item.isStoredInInventory)) return false;
+        int house = HouseForBlock(block);
+        return doorOpened != null && house >= 0 && house < doorOpened.Length && doorOpened[house];
+    });
     bool CanUseWorld => UsesHandBubbles && IsStageRunning && !panelOpen && !stageClock.IsTutorialOpen &&
         Time.timeScale > 0 && player != null && player.enabled && gameInput != null && !gameInput.GameplayInputBlocked &&
         (TruthTableControlsOnboarding.Active == null || !TruthTableControlsOnboarding.Active.IsActive);
@@ -147,6 +157,7 @@ public partial class TruthTableDoorInteraction
     }
     public int HouseForBlock(TruthBlock block)
     {
+        if(block==null||!block.BelongsTo(this)||houseRoots==null)return -1;
         var at=block.CurrentSpawnPoint!=null?block.CurrentSpawnPoint.position:block.transform.position;
         int result=-1;float distance=float.MaxValue;
         for(int i=0;i<houseRoots.Length;i++)
@@ -158,7 +169,8 @@ public partial class TruthTableDoorInteraction
     }
     public bool IsBlockAvailable(TruthBlock block)
     {
-        if(!CanUseWorld||block==null||!block.UsesHandBubble||!block.gameObject.activeInHierarchy||block.IsPlacedInColumn)return false;
+        if(!CanUseWorld||block==null||!block.BelongsTo(this)||!block.UsesHandBubble||!block.gameObject.activeInHierarchy||block.IsPlacedInColumn)return false;
+        if(InventoryManager.Instance!=null&&InventoryManager.Instance.CarriedCount>=InventoryManager.CarryLimit)return false;
         var item=block.GetComponent<GrabbableObject>();
         if(item!=null&&(item.IsHeld||item.isStoredInInventory))return false;
         int house=HouseForBlock(block);

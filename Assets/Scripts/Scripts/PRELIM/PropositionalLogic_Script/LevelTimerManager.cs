@@ -56,7 +56,7 @@ public class LevelTimerManager : MonoBehaviour
         isTutorialPaused = paused;
     }
     public static int TryAgainCount => tryAgainCount;
-    public bool IsStudyOptionAvailable => tryAgainCount >= 2;
+    public bool IsStudyOptionAvailable => !TrialRewards.CanRetry(1);
 
     private void Start()
     {
@@ -267,7 +267,7 @@ public class LevelTimerManager : MonoBehaviour
 
     public void PrepareStartOverState()
     {
-        TrialRewards.RecordRetry(1);
+        TrialRewards.PrepareNewAttempt(1);
         ResetSession();
         currentTimer = initialLevelDuration;
         savedRemainingTime = initialLevelDuration;
@@ -277,16 +277,16 @@ public class LevelTimerManager : MonoBehaviour
 
     public bool TryPrepareTryAgainState()
     {
-        if (tryAgainCount >= 2) return false;
-
-        tryAgainCount++;
+        int before = TrialRewards.RetryCount(1);
+        if (!TrialRewards.CanRetry(1)) return false;
         PrepareRetryState();
-        return true;
+        tryAgainCount = TrialRewards.RetryCount(1);
+        return tryAgainCount > before;
     }
 
     public void PrepareRetryState()
     {
-        TrialRewards.RecordRetry(1);
+        if (!TrialRewards.TryRecordRetry(1)) return;
         isRespawningFromFail = true;
         float retryDuration = savedTopicIndex < 3
             ? retryLevelDuration

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -65,6 +66,7 @@ namespace LogicLegends.Inference
         bool restorePlayerControl, hudWasActive, previousCursorVisible;
         CursorLockMode previousCursorLock;
         bool roundSolved;
+        Coroutine inputReady;
 
         void OnValidate()
         {
@@ -85,6 +87,9 @@ namespace LogicLegends.Inference
             placeButton.onClick.AddListener(PlaceHeldCrystal);
             validateButton.onClick.AddListener(ValidateBoard);
             exploreButton.onClick.AddListener(CloseBoard);
+            var exitGroup = exploreButton.GetComponent<CanvasGroup>();
+            if (exitGroup == null) exitGroup = exploreButton.gameObject.AddComponent<CanvasGroup>();
+            exitGroup.ignoreParentGroups = true; exitGroup.interactable = true; exitGroup.blocksRaycasts = true;
             nextButton.onClick.AddListener(NextChallenge);
         }
 
@@ -173,7 +178,7 @@ namespace LogicLegends.Inference
             // Wait for the existing Cinemachine blend before accepting board clicks.
             boardInput.interactable = false; boardInput.blocksRaycasts = false;
             var brain = Camera.main == null ? null : Camera.main.GetComponent<Unity.Cinemachine.CinemachineBrain>();
-            Invoke(nameof(EnableBoardInput), brain == null ? 0.1f : brain.DefaultBlend.Time + 0.1f);
+            inputReady = StartCoroutine(EnableBoardAfterTransition(brain == null ? 0.1f : brain.DefaultBlend.Time + 0.1f));
         }
 
         void ShowReadOnlyBoard()
@@ -211,10 +216,16 @@ namespace LogicLegends.Inference
             if (!IsBoardOpen) return;
             boardInput.interactable = true; boardInput.blocksRaycasts = true;
         }
+        IEnumerator EnableBoardAfterTransition(float seconds)
+        {
+            yield return new WaitForSecondsRealtime(seconds);
+            inputReady = null; EnableBoardInput();
+        }
 
         public void CloseBoard()
         {
             CancelInvoke(nameof(EnableBoardInput));
+            if (inputReady != null) { StopCoroutine(inputReady); inputReady = null; }
             if (!IsBoardOpen) return;
             foreach (var field in fields) field.DeactivateInputField();
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
@@ -426,11 +437,13 @@ namespace LogicLegends.Inference
                 {
                     if (!dragPuzzle.CheckPremises())
                     {
+                        hintFailedPremises = HintPremiseValues;
                         WorldStageAudio.PlayAnswerFeedback(false);
                         Feedback("Some blanks are incorrect.", false);
                         return;
                     }
                     WorldStageAudio.PlayAnswerFeedback(true);
+                    hintFailedPremises = null;
                     dragPuzzle.LockPremises(); wordBank.gameObject.SetActive(false);
                     SpawnRuleDiamonds(); Stage = InferencePuzzleStage.FindingDiamond; RefreshStageButtons();
                     Feedback("Premises complete. Collect the Rule Crystal whose label fits this reasoning pattern, then return to the altar.", true);

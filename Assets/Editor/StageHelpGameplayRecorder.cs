@@ -46,6 +46,28 @@ public static class StageHelpGameplayRecorder
     {SessionState.SetBool("Help.TreesPlaylistVerify",true);CheckTreesRevision();}
     public static void CheckTreesRevision()
     {SessionState.SetBool("Help.TreesRevisionVerify",true);Begin("Trees");}
+    public static void CheckTruthGround()
+    {SessionState.SetBool("Help.TruthGroundOnly",true);Begin("TruthTable");}
+    public static void CheckInferenceSurfaces()
+    {SessionState.SetBool("Help.InferenceSurfacesOnly",true);Begin("RulesOfInference");}
+    public static void CheckPrelimLighting()
+    {SessionState.SetBool("Help.PrelimLightingOnly",true);Begin("PRELIM");}
+    public static void CheckHammerCamera()
+    {SessionState.SetBool("Help.HammerCameraOnly",true);Begin("PRELIM");}
+    public static void CheckFormalScrollText()
+    {SessionState.SetBool("Help.FormalScrollTextOnly",true);Begin("Formal vs. Informal Proofs");}
+    public static void CheckSoloEconomy(string onlyScene = "")
+    {SessionState.SetBool("Help.SoloEconomyOnly",true);Begin(onlyScene);}
+    public static void CheckInteractionRepairs(string onlyScene = "", string fromScene = "")
+    {SessionState.SetString("Help.InteractionRepairsFrom",fromScene);SessionState.SetBool("Help.InteractionRepairsOnly",true);Begin(onlyScene);}
+    public static void CheckTruthPlatformStairs()
+    {SessionState.SetBool("Help.TruthPlatformStairsOnly",true);Begin("TruthTable");}
+    public static void CheckTruthCarry(bool stackOnly=false)
+    {TruthTableCarryChecks.PrepareMenuFixture();SessionState.SetBool("Help.TruthCarryStackOnly",stackOnly);SessionState.SetBool("Help.TruthCarryOnly",true);Begin("TruthTable");}
+    public static void CheckSceneReliability(string onlyScene="", string fromScene="")
+    {SessionState.SetString("Help.SceneReliabilityFrom",fromScene);SessionState.SetBool("Help.SceneReliabilityOnly",true);Begin(onlyScene);}
+    public static void CheckContextHints(string onlyScene = "")
+    {SessionState.SetBool("Help.ContextHintsOnly",true);Begin(onlyScene);}
     public static void CheckTruthSunset()
     {SessionState.SetBool("Help.TruthNightOnly",true);Begin("TruthTable");}
     public static void CheckTruthNight()
@@ -66,6 +88,7 @@ public static class StageHelpGameplayRecorder
     {SessionState.SetBool("Help.FunctionsVerify",true);Begin("Functions and Relations");}
     public static void Begin(string onlyScene="")
     {
+        if(EditorApplication.isCompiling||EditorApplication.isUpdating)throw new InvalidOperationException("Wait for Unity compilation/import to finish before starting this fixture.");
         if(EditorApplication.isPlayingOrWillChangePlaymode||SceneManager.GetActiveScene().isDirty)throw new InvalidOperationException("Exit Play Mode and save the scene first.");
         SessionState.SetBool(Flag+".PriorStagePersistence",StageCompleteManager.SuppressPersistenceForValidation);
         SessionState.SetBool(Flag+".PriorGraphPersistence",LogicLegends.Graph.GraphCompletion.SuppressPersistenceForValidation);
@@ -76,7 +99,10 @@ public static class StageHelpGameplayRecorder
         SessionState.SetInt(Flag+".SafeArea",(int)Crystal.SafeArea.Sim);
         SessionState.SetString(Flag+".Only",onlyScene);SessionState.SetBool(Flag,true);
         foreach(string prefix in History)for(int i=0;i<5;i++){string key=prefix+i;SessionState.SetBool(Flag+key,PlayerPrefs.HasKey(key));SessionState.SetInt(Flag+key+".Value",PlayerPrefs.GetInt(key));}
-        EditorSceneManager.OpenScene("Assets/Scenes/"+(string.IsNullOrEmpty(onlyScene)?Scenes[0]:onlyScene)+".unity");EditorApplication.isPlaying=true;
+        string entry=onlyScene;
+        if(string.IsNullOrEmpty(entry)&&SessionState.GetBool("Help.SceneReliabilityOnly",false))entry=SessionState.GetString("Help.SceneReliabilityFrom","");
+        if(string.IsNullOrEmpty(entry)&&SessionState.GetBool("Help.InteractionRepairsOnly",false))entry=SessionState.GetString("Help.InteractionRepairsFrom","");
+        EditorSceneManager.OpenScene("Assets/Scenes/"+(string.IsNullOrEmpty(entry)?Scenes[0]:entry)+".unity");EditorApplication.isPlaying=true;
     }
     [InitializeOnLoadMethod]static void Register()
     {
@@ -86,6 +112,26 @@ public static class StageHelpGameplayRecorder
     static void Restore(PlayModeStateChange state)
     {
         if(state!=PlayModeStateChange.EnteredEditMode||!SessionState.GetBool(Flag,false))return;
+        bool groundOnly=SessionState.GetBool("Help.TruthGroundOnly",false)||SessionState.GetBool("Help.ContextHintsOnly",false)||SessionState.GetBool("Help.InferenceSurfacesOnly",false)||SessionState.GetBool("Help.PrelimLightingOnly",false)||SessionState.GetBool("Help.SoloEconomyOnly",false)||SessionState.GetBool("Help.InteractionRepairsOnly",false)||SessionState.GetBool("Help.TruthPlatformStairsOnly",false)||SessionState.GetBool("Help.SceneReliabilityOnly",false);
+        // Regression checks must never republish old cached video captures.
+        groundOnly |= SessionState.GetBool("Help.GraphRevisionVerify",false)||SessionState.GetBool("Help.TreesRevisionVerify",false);
+        bool truthCarry=SessionState.GetBool("Help.TruthCarryOnly",false);groundOnly|=truthCarry;
+        groundOnly|=SessionState.GetBool("Help.HammerCameraOnly",false);
+        SessionState.SetBool("Help.HammerCameraOnly",false);
+        groundOnly|=SessionState.GetBool("Help.FormalScrollTextOnly",false);
+        SessionState.SetBool("Help.FormalScrollTextOnly",false);
+        SessionState.SetBool("Help.TruthCarryOnly",false);
+        SessionState.SetBool("Help.TruthCarryStackOnly",false);
+        if(truthCarry)TruthTableCarryChecks.CleanupMenuFixture();
+        SessionState.SetBool("Help.SceneReliabilityOnly",false);
+        SessionState.SetString("Help.SceneReliabilityFrom","");
+        SessionState.SetBool("Help.TruthPlatformStairsOnly",false);
+        SessionState.SetBool("Help.InteractionRepairsOnly",false);
+        SessionState.SetString("Help.InteractionRepairsFrom","");
+        SessionState.SetBool("Help.SoloEconomyOnly",false); TeleportManager.ValidationNavigation = null;
+        SessionState.SetBool("Help.PrelimLightingOnly",false);
+        SessionState.SetBool("Help.InferenceSurfacesOnly",false);
+        SessionState.SetBool("Help.ContextHintsOnly",false);
         SessionState.SetBool(Flag,false);SceneManager.sceneLoaded-=Loaded;
         SessionState.SetBool("Help.InductionVerify",false);
         SessionState.SetBool("Help.InductionPresentationVerify",false);
@@ -94,10 +140,12 @@ public static class StageHelpGameplayRecorder
         SessionState.SetBool("Help.FunctionsTutorialVerify",false);
         SessionState.SetBool("Help.FunctionsGardenVerify",false);
         SessionState.SetBool("Help.TreesRevisionVerify",false);
+        SessionState.SetBool("Help.TreesCollisionAndCamerasOnly",false);
         SessionState.SetBool("Help.TreesPlaylistVerify",false);
         SessionState.SetBool("Help.TreesInspectOnly",false);
         SessionState.SetBool("Help.TruthHologramVerify",false);
         SessionState.SetBool("Help.TruthNightOnly",false);
+        SessionState.SetBool("Help.TruthGroundOnly",false);
         SessionState.SetBool("Help.GraphRevisionVerify",false);
         SessionState.SetBool("Help.GraphHighlightsOnly",false);
         SessionState.SetBool("Help.GraphPlaylistOnly",false);
@@ -112,6 +160,14 @@ public static class StageHelpGameplayRecorder
         foreach(string field in new[]{"ValidationTransport","ValidationUid","ValidationEmail"})typeof(TrialBackendClient).GetField(field,flags).SetValue(null,null);
         foreach(string prefix in History)for(int i=0;i<5;i++){string key=prefix+i;if(SessionState.GetBool(Flag+key,false))PlayerPrefs.SetInt(key,SessionState.GetInt(Flag+key+".Value",0));else PlayerPrefs.DeleteKey(key);}
         PlayerPrefs.Save();BookMapMobileChecks.SetSize(SessionState.GetInt(Flag+".Size",6));Crystal.SafeArea.Sim=(Crystal.SafeArea.SimDevice)SessionState.GetInt(Flag+".SafeArea",0);
+        if(groundOnly)
+        {
+            // Visual verification must never publish or overwrite recorded Help clips.
+            SessionState.SetBool(Flag+".ImportPending",false);
+            string original=SessionState.GetString(Flag+".Scene","Assets/Scenes/TruthTable.unity");
+            EditorApplication.delayCall+=()=>{var scene=SceneManager.GetActiveScene();if(!scene.isDirty&&scene.path!=original)EditorSceneManager.OpenScene(original);};
+            File.AppendAllText(Report,"Ground check restored the Editor session without importing recordings.\n");return;
+        }
         SessionState.SetBool(Flag+".ImportPending",true);
     }
     static void ImportPendingClips()
@@ -201,13 +257,16 @@ public static class StageHelpGameplayRecorder
     static void Loaded(Scene scene,LoadSceneMode mode)
     {
         if(!SessionState.GetBool(Flag,false))return;
+        if(SessionState.GetBool("Help.TruthCarryOnly",false)&&scene.path==TruthTableCarryChecks.MenuPath)return;
         foreach(var b in UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include,FindObjectsSortMode.None))
             if((b.GetType().Namespace??"").StartsWith("Photon.Pun.Demo.Cockpit"))b.enabled=false;
         if(Player.LocalInstance==null)
         {
             var avatar=UnityEngine.Object.Instantiate(Resources.Load<GameObject>("Multiplayer_Male"));
             avatar.GetComponent<MultiplayerAvatarSync>().enabled=false;avatar.GetComponent<PlayerEquipmentLoader>().enabled=false;
-            foreach(var skin in avatar.GetComponentsInChildren<PlayerAnimator>(true))skin.gameObject.SetActive(skin.name=="UNIFORM_MALE");
+            var loader=avatar.GetComponent<PlayerEquipmentLoader>();
+            typeof(PlayerEquipmentLoader).GetMethod("ApplyEquipment",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(loader,
+                new object[]{"male_default",Field<PlayerEquipmentLoader.EquippableModel[]>(loader,"clothesModels")});
             avatar.GetComponent<CharacterController>().enabled=true;
             var spawner=Find<LevelSpawner>();var spawn=spawner!=null?Field<Transform>(spawner,"spawnPoint"):null;
             if(spawn==null)spawn=GameObject.Find("Proofs Player Spawn")?.transform??GameObject.Find("Trial Player Spawn")?.transform;
@@ -225,15 +284,17 @@ public static class StageHelpGameplayRecorder
             if(failure!=null){foreach(var item in stack)if(item is IDisposable disposable)disposable.Dispose();if(recorder!=null&&recorder.IsRecording())recorder.StopRecording();File.AppendAllText(Report,"FAIL "+sceneName+": "+failure+"\n");Debug.LogException(failure);EditorApplication.isPlaying=false;yield break;}
             if(next is IEnumerator child)stack.Push(child);else yield return next;
         }
-        File.AppendAllText(Report,"ALL REQUESTED RECORDINGS COMPLETE\n");SceneManager.sceneLoaded-=Loaded;EditorApplication.isPlaying=false;
+        File.AppendAllText(Report,SessionState.GetBool("Help.SceneReliabilityOnly",false)?"ALL SCENE RELIABILITY CHECKS PASSED\n":SessionState.GetBool("Help.InteractionRepairsOnly",false)?"ALL INTERACTION REPAIR CHECKS PASSED\n":SessionState.GetBool("Help.GraphRevisionVerify",false)||SessionState.GetBool("Help.TreesRevisionVerify",false)?"ALL REQUESTED VERIFICATION CHECKS PASSED\n":"ALL REQUESTED RECORDINGS COMPLETE\n");SceneManager.sceneLoaded-=Loaded;EditorApplication.isPlaying=false;
     }
     static IEnumerator Run()
     {
         Application.runInBackground=true;BookMapMobileChecks.SetSize(6);
         string only=SessionState.GetString(Flag+".Only","");
-        foreach(string scene in Scenes.Where(s=>string.IsNullOrEmpty(only)||s==only))
+        foreach(string scene in Scenes.Where(s=>(string.IsNullOrEmpty(only)||s==only)&&(!SessionState.GetBool("Help.SceneReliabilityOnly",false)||
+            Array.IndexOf(Scenes,s)>=Mathf.Max(0,Array.IndexOf(Scenes,SessionState.GetString("Help.SceneReliabilityFrom",""))))&&
+            (!SessionState.GetBool("Help.InteractionRepairsOnly",false)||Array.IndexOf(Scenes,s)>=Mathf.Max(0,Array.IndexOf(Scenes,SessionState.GetString("Help.InteractionRepairsFrom",""))))))
         {
-            if(string.IsNullOrEmpty(only)&&File.Exists(Folder+"/"+StageHelpVideoCatalog.ResourceKey(scene)+".mp4")&&File.Exists(Folder+"/"+StageHelpVideoCatalog.ResourceKey(scene)+".json"))
+            if(!SessionState.GetBool("Help.SceneReliabilityOnly",false)&&!SessionState.GetBool("Help.InteractionRepairsOnly",false)&&!SessionState.GetBool("Help.ContextHintsOnly",false)&&!SessionState.GetBool("Help.SoloEconomyOnly",false)&&string.IsNullOrEmpty(only)&&File.Exists(Folder+"/"+StageHelpVideoCatalog.ResourceKey(scene)+".mp4")&&File.Exists(Folder+"/"+StageHelpVideoCatalog.ResourceKey(scene)+".json"))
             {File.AppendAllText(Report,"KEPT existing actual recording "+scene+"\n");continue;}
             sceneName=scene;Time.timeScale=1;GameInput.Instance?.SetGameplayInputBlocked(false);StageSelectionState.SelectForEditorSpawn(TrialCatalog.ForScene(scene).Number);
             if(SceneManager.GetActiveScene().name!=scene)yield return EditorSceneManager.LoadSceneAsyncInPlayMode("Assets/Scenes/"+scene+".unity", new LoadSceneParameters(LoadSceneMode.Single));
@@ -241,6 +302,16 @@ public static class StageHelpGameplayRecorder
             float by=Time.realtimeSinceStartup+35;while(Player.LocalInstance==null&&Time.realtimeSinceStartup<by)yield return null;
             while(TeleportManager.Instance!=null&&TeleportManager.Instance.IsTransitioning&&Time.realtimeSinceStartup<by)yield return null;
             yield return Prepare(scene);yield return new WaitForSecondsRealtime(.6f);
+            if(SessionState.GetBool("Help.TruthCarryOnly",false)){yield return TruthTableCarryChecks.Run();continue;}
+            if(SessionState.GetBool("Help.HammerCameraOnly",false)){yield return HammerCameraPlayChecks.Run();continue;}
+            if(SessionState.GetBool("Help.FormalScrollTextOnly",false)){yield return FormalScrollReadabilityChecks.Run();continue;}
+            if(SessionState.GetBool("Help.SceneReliabilityOnly",false)) { yield return SceneReliabilityPlayChecks.Run(scene); continue; }
+            if(SessionState.GetBool("Help.TruthPlatformStairsOnly",false)) { yield return TruthTablePlatformStairsChecks.Run(); continue; }
+            if(SessionState.GetBool("Help.InteractionRepairsOnly",false)) { yield return TrialInteractionChecks.Run(scene); continue; }
+            if(SessionState.GetBool("Help.SoloEconomyOnly",false)) { yield return SoloEconomyPlayChecks.Run(scene); continue; }
+            if(SessionState.GetBool("Help.PrelimLightingOnly",false)) { yield return PropositionalChamberLightingChecks.Run(); continue; }
+            if(SessionState.GetBool("Help.InferenceSurfacesOnly",false)) { yield return InferenceSurfaceChecks.Run(); continue; }
+            if(SessionState.GetBool("Help.ContextHintsOnly",false)) { yield return TrialContextHintChecks.Run(scene); continue; }
             if(scene=="Trees"&&SessionState.GetBool("Help.TreesRevisionVerify",false))
             {yield return TreesRevisionPlayChecks.Run();continue;}
             if(scene=="Graph"&&SessionState.GetBool("Help.GraphRevisionVerify",false))
@@ -252,7 +323,8 @@ public static class StageHelpGameplayRecorder
             }
             if(scene=="TruthTable")
             {
-                if(SessionState.GetBool("Help.TruthNightOnly",false))yield return TruthTableNightChecks.Run();
+                if(SessionState.GetBool("Help.TruthGroundOnly",false))yield return TruthTableGroundChecks.Run();
+                else if(SessionState.GetBool("Help.TruthNightOnly",false))yield return TruthTableNightChecks.Run();
                 else if(SessionState.GetBool("Help.TruthHologramVerify",false))yield return TruthTableHologramChecks.Run();
                 else yield return TruthTableHelpClipCapture.Record();
                 continue;

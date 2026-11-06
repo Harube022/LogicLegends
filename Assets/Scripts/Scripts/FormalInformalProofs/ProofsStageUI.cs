@@ -17,7 +17,7 @@ public sealed class ProofsStageUI : MonoBehaviour
     public TMP_Text Progress { get; private set; }
     public Button ViewButton { get; private set; }
     public Button BackButton { get; private set; }
-    public Button InteractionButton { get; private set; }
+    public Button HandButton { get; private set; }
     public Button ReturnScrollButton { get; private set; }
     bool boardInputBlocked, boardPlayerEnabled, boardInputHeld;
     GameObject boardControls;
@@ -66,9 +66,8 @@ public sealed class ProofsStageUI : MonoBehaviour
         ViewButton = StageUITheme.Button("Proofs View Board", SafeArea, "View Board", RequestBoard);
         ViewButton.image.pixelsPerUnitMultiplier = 4.5f;
         Bottom((RectTransform)ViewButton.transform, new Vector2(0, 190), new Vector2(280, 88));
-        InteractionButton = StageUITheme.Button("Proofs Interact", SafeArea, "Interact", Stage.InteractNearby);
-        InteractionButton.image.pixelsPerUnitMultiplier = 4.5f;
-        Bottom((RectTransform)InteractionButton.transform, new Vector2(0, 55), new Vector2(310, 88));
+        HandButton = FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+            .FirstOrDefault(button => button.name == "InteractButton");
         ReturnScrollButton = StageUITheme.Button("Proofs Return Scroll", SafeArea, "Return Scroll", Stage.ReturnScroll);
         ReturnScrollButton.image.pixelsPerUnitMultiplier = 4.5f;
         Bottom((RectTransform)ReturnScrollButton.transform, new Vector2(0, 55), new Vector2(280, 88));
@@ -81,10 +80,9 @@ public sealed class ProofsStageUI : MonoBehaviour
         BoardView.viewSafeArea = SafeArea; BoardView.backButton = BackButton;
         var text = Stage.BoardInstructions;
         text.textWrappingMode = TextWrappingModes.Normal; text.enableAutoSizing = true; text.fontSizeMin = 2.2f; text.fontSizeMax = 3;
-        Stage.PromptText.font = StageUITheme.HeadingFont; Stage.PromptText.fontSize = 30;
-        Stage.PromptText.enableAutoSizing = true; Stage.PromptText.fontSizeMin = 25; Stage.PromptText.fontSizeMax = 30;
-        Stage.PromptText.transform.SetParent(SafeArea, false);
-        Bottom(Stage.PromptText.rectTransform, new Vector2(0, 310), new Vector2(1000, 72));
+        // The board and context-aware hint system supply instructions. Keep the
+        // legacy prompt data for integrations, without its duplicate yellow HUD.
+        Stage.PromptText.gameObject.SetActive(false);
         SkinReader();
         SkinTakeBack();
         Help = gameObject.AddComponent<ProofsHelpUI>(); Help.Initialize(owner, this);
@@ -105,17 +103,9 @@ public sealed class ProofsStageUI : MonoBehaviour
         ViewButton.gameObject.SetActive(ordinary || practice && Stage.Tutorial.WantsViewBoard);
         bool carrying = ordinary && Stage.Started && Stage.HasCarriedScroll;
         ReturnScrollButton.gameObject.SetActive(carrying);
-        bool place = carrying && Stage.HasNearbyPlacement;
-        InteractionButton.gameObject.SetActive(ordinary && (!carrying || place) && Stage.HasNearbyInteraction && !Stage.IsBookTargeted || practice && Stage.Tutorial.WantsInteraction);
-        if (ordinary) InteractionButton.GetComponentInChildren<TMP_Text>().text =
-            place ? "Place Scroll" : Stage.Started && Stage.PromptText.text.Contains("Confirm") ? "Confirm at Book" : "Interact";
         if (!practice)
         {
-            // Use the central gap between touch controls; retain the hand and dedicated placement action.
-            Bottom((RectTransform)ViewButton.transform, new Vector2(0, place ? 300 : 190), new Vector2(280, 88));
-            Bottom((RectTransform)InteractionButton.transform, new Vector2(0, place ? 190 : 55), new Vector2(280, 88));
-            float promptWidth = Screen.width < Screen.height ? SafeArea.rect.width * .55f : Mathf.Min(1000, SafeArea.rect.width - 48);
-            Bottom(Stage.PromptText.rectTransform, new Vector2(0, place ? 430 : 310), new Vector2(promptWidth, 72));
+            Bottom((RectTransform)ViewButton.transform, new Vector2(0, 190), new Vector2(280, 88));
         }
         Hud.gameObject.SetActive(!Help.IsOpen && !Stage.Finished && !Stage.HasReaderOpen && !BoardView.Viewing && Stage.Introductions?.IsOpen != true);
         Progress.text = "Challenge " + Mathf.Clamp(Stage.ChallengeNumber, 1, Stage.ChallengeCount) + " of " + Stage.ChallengeCount +
@@ -239,7 +229,9 @@ public sealed class ProofsStageUI : MonoBehaviour
     public void LayoutReader(bool practice)
     {
         var panel = (RectTransform)Stage.ReaderPanel.transform;
-        panel.anchorMin = panel.anchorMax = panel.pivot = new Vector2(.5f, .5f); panel.anchoredPosition = Vector2.zero;
+        panel.anchorMin = panel.anchorMax = panel.pivot = new Vector2(.5f, .5f);
+        // Modal overlays may cover the full canvas; center the paper inside the actual safe area.
+        panel.position = SafeArea.TransformPoint(SafeArea.rect.center);
         panel.sizeDelta = new Vector2(Mathf.Min(1100, SafeArea.rect.width * .9f), Mathf.Min(850, SafeArea.rect.height * (practice ? .58f : .86f)));
         bool stacked = panel.sizeDelta.x < 660;
         float footer = stacked ? 220 : 116;

@@ -27,9 +27,9 @@ public static class LogicLibraryTourPlayChecks
         for(int i=0;i<4;i++)intro.SubtitleNext.onClick.Invoke();yield return TraverseTour(intro,false);Check(Flags()==snapshot,"library replay preserves every saved milestone");
         var shelf=UnityEngine.Object.FindObjectsByType<StudyShelfZone>(FindObjectsSortMode.None).Single(s=>s.Period=="PRELIM");
         Face(Player.LocalInstance,shelf.transform.position,shelf.transform.position+shelf.FocusCamera.transform.forward*4);yield return new WaitForSecondsRealtime(.3f);
-        var prompt=DialogueManager.Instance.interactButton;var caption=prompt.GetComponentsInChildren<UnityEngine.UI.Text>(true).First().text;
-        Check(caption=="Read","existing bookshelf interaction caption is Read");prompt.GetComponent<Button>().onClick.Invoke();yield return new WaitForSecondsRealtime(1.5f);
-        var library=UnityEngine.Object.FindFirstObjectByType<StudyLibraryController>();Check(library.IsViewing(shelf),"dedicated Read uses the current shelf interaction");
+        Check(!DialogueManager.Instance.interactButton.activeInHierarchy,"dedicated bookshelf Read button is hidden");
+        GameInput.Instance.MobileInteract();yield return new WaitForSecondsRealtime(1.5f);
+        var library=UnityEngine.Object.FindFirstObjectByType<StudyLibraryController>();Check(library.IsViewing(shelf),"hand button opens the current shelf");
         shelf.GetComponentsInChildren<Button>().First().onClick.Invoke();Check(library.IsReading,"selected book opens existing reading UI");library.ExitActiveShelf();
         tour.ReplayButton.onClick.Invoke();tour.GardenOption.onClick.Invoke();yield return WaitFor(()=>intro.Onboarding.IsActive,"Garden Tutorial replay");
         yield return GardenControls(intro);Check(intro.Talking,"garden replay continues to wizard introduction");

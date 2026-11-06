@@ -1,0 +1,33 @@
+LogicGarden shared library reader - 2026-11-03
+
+Scope: shared reading system used by Prelim, Midterms, Pre-finals and Finals.
+No lesson content, page ordering, saved milestones or rewards changed.
+
+Implemented:
+- Reversible 0.6-second unscaled sheet turns; navigation locked during a turn.
+- Reused one bottom-center Back button for shelf preview and book reading.
+- Back cancels turns/enlargement and restores the captured gameplay input and camera-input state.
+- Player movement and camera gestures blocked throughout reading; trigger exits no longer close books.
+- Shelf proximity rechecked against current collider bounds to reject stale teleport trigger state.
+- Native text and diagrams enlarge into a touch-scrollable parchment; original image enlargement retained.
+- Safe-area fitting and enlarged navigation touch targets.
+- Library-local math font fallback; existing shared font left unchanged.
+
+Editor verification (Unity 6000.3.6f1, Android target):
+- All 10 books, 199 source pages: forward/back navigation, source content, counters and book boundaries.
+- Shelf Read selection after teleport with deliberately stale previous-shelf trigger state.
+- Simulated InputSystem touch at 800x480, 1280x720, 1920x1080 and 2960x1440.
+- Touch scroll and tap-to-return for native text; all four native diagrams enlarged intact.
+- Legacy source-image enlargement and tap-to-return.
+- Rapid alternating taps; animation while time scale is zero.
+- Back during a flip, from enlarged content, and before topic selection.
+- Reader disable cleanup; preservation of previously blocked controls; no abandoned page clones.
+- Isolated validation profile; garden and library milestone state preserved.
+- Final Unity Console: no error entries. Test Play Mode exited and QA flag restored.
+
+Limits:
+- No physical Android device test.
+- Two pre-existing source symbols (U+1F87A and U+24DC) have no matching glyph in the available math font. Source lessons were preserved.
+
+Detailed transient test output: Library/LibraryReadingPlayChecks.txt.
+Scene asset retains its pre-task disk bytes. No commits or pushes made.

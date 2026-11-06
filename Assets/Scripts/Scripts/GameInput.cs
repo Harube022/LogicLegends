@@ -17,11 +17,30 @@ public class GameInput : MonoBehaviour
     // Modal gameplay UI can temporarily suppress controls without disabling the
     // shared input component or changing input behavior in other stages.
     public bool GameplayInputBlocked { get; private set; }
+    // Temporary gameplay restrictions (e.g. hammer stun) do not own the camera
+    // or overwrite the modal flag that menus/tutorials snapshot and restore.
+    private readonly HashSet<UnityEngine.Object> gameplayActionOwners=new HashSet<UnityEngine.Object>();
+    public bool HasGameplayActionBlock { get { gameplayActionOwners.RemoveWhere(o=>o==null);return gameplayActionOwners.Count>0; } }
+    public bool GameplayActionsBlocked => GameplayInputBlocked || HasGameplayActionBlock;
+    public void AcquireGameplayActionBlock(UnityEngine.Object owner)
+    {
+        if(owner==null)return;
+        gameplayActionOwners.Add(owner);mobileMovementVector=Vector2.zero;
+        foreach(var joystick in FindObjectsByType<MobileInputUI>(FindObjectsInactive.Include,FindObjectsSortMode.None))joystick.ResetJoystick();
+    }
+    public void ReleaseGameplayActionBlock(UnityEngine.Object owner)
+    {if(!ReferenceEquals(owner,null))gameplayActionOwners.Remove(owner);}
 
     public void SetGameplayInputBlocked(bool blocked)
     {
         GameplayInputBlocked = blocked;
-        if (blocked) mobileMovementVector = Vector2.zero;
+        if (blocked)
+        {
+            mobileMovementVector = Vector2.zero;
+            foreach (var joystick in FindObjectsByType<MobileInputUI>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                joystick.ResetJoystick();
+            MobileLookInput.CancelAll();
+        }
     }
 
     private void Awake()
@@ -44,7 +63,7 @@ public class GameInput : MonoBehaviour
 
     private void Jump_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
-        if (GameplayInputBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
+        if (GameplayActionsBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
         if (DirectProofsGuide.Active != null && !DirectProofsGuide.Active.AllowsJump) return;
         if (ProofsControlsOnboarding.Active != null && !ProofsControlsOnboarding.Active.AllowsJump) return;
         if (FunctionsRelationsControlsOnboarding.Active != null && !FunctionsRelationsControlsOnboarding.Active.AllowsJump) return;
@@ -84,7 +103,7 @@ public class GameInput : MonoBehaviour
 
     private void Interact_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
-        if (GameplayInputBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
+        if (GameplayActionsBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
         if (DirectProofsGuide.Active != null)
         { DirectProofsGuide.Active.TryPracticeInteraction(); return; }
         if (ProofsControlsOnboarding.Active != null)
@@ -133,7 +152,8 @@ public class GameInput : MonoBehaviour
 
     public Vector2 GetMovementVectorNormalized(float deadZone)
     {
-        if (GameplayInputBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return Vector2.zero;
+        if(playerInputActions==null)return Vector2.zero;
+        if (GameplayActionsBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return Vector2.zero;
         if (DirectProofsGuide.Active != null && DirectProofsGuide.Active.TryGetMovementOverride(out Vector2 directMovement)) return directMovement;
         if (ProofsControlsOnboarding.Active != null && ProofsControlsOnboarding.Active.TryGetMovementOverride(out Vector2 proofsMovement)) return proofsMovement;
         if (FunctionsRelationsControlsOnboarding.Active != null &&
@@ -162,16 +182,28 @@ public class GameInput : MonoBehaviour
         return inputVector.sqrMagnitude > deadZoneSquared ? inputVector.normalized : Vector2.zero;
     }
 
+    private void OnDestroy()
+    {
+        if(instance==this)instance=null;
+        if(playerInputActions!=null)
+        {
+            playerInputActions.Player.Interact.performed-=Interact_performed;
+            playerInputActions.Player.Jump.performed-=Jump_performed;
+            playerInputActions.Player.Disable();playerInputActions.Dispose();playerInputActions=null;
+        }
+        gameplayActionOwners.Clear();OnInteractAction=null;OnJumpAction=null;
+    }
+
     // ===== MOBILE =====
 
     public void SetMobileMovement(Vector2 movement)
     {
-        mobileMovementVector = movement;
+        mobileMovementVector = GameplayActionsBlocked ? Vector2.zero : movement;
     }
 
     public void MobileJump()
     {
-        if (GameplayInputBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
+        if (GameplayActionsBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
         if (DirectProofsGuide.Active != null && !DirectProofsGuide.Active.AllowsJump) return;
         if (ProofsControlsOnboarding.Active != null && !ProofsControlsOnboarding.Active.AllowsJump) return;
         if (FunctionsRelationsControlsOnboarding.Active != null && !FunctionsRelationsControlsOnboarding.Active.AllowsJump) return;
@@ -211,7 +243,7 @@ public class GameInput : MonoBehaviour
 
     public void MobileInteract()
     {
-        if (GameplayInputBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
+        if (GameplayActionsBlocked || (Player.LocalInstance!=null && Player.LocalInstance.IsMovementLocked)) return;
         if (DirectProofsGuide.Active != null)
         { DirectProofsGuide.Active.TryPracticeInteraction(); return; }
         if (ProofsControlsOnboarding.Active != null)

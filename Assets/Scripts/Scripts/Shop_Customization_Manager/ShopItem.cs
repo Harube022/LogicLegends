@@ -14,9 +14,12 @@ public class ShopItem : MonoBehaviour
     [SerializeField] private string displayName;
     public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? itemID.Replace('_', ' ') : displayName;
     [SerializeField] private int price;          
-    public int Price => price;          // How many coins it costs
+    public int Price => SoloEconomy.Price(itemID) is SoloEconomy.CosmeticPrice quote ? (CurrencyType == Currency.Coins ? quote.coins : quote.gems) : price;
     [SerializeField] private Currency currencyType;
-    public Currency CurrencyType => currencyType;
+    private Currency selectedCurrency = Currency.Coins;
+    public Currency CurrencyType => SoloEconomy.Price(itemID) != null ? selectedCurrency : currencyType;
+    public void SelectCurrency(Currency currency) { selectedCurrency = currency; }
+    public string Rarity => SoloEconomy.Price(itemID)?.rarity ?? "";
     [SerializeField] private TargetCharacter targetCharacter; // NEW: Tell Unity who can wear this
     public TargetCharacter Target => targetCharacter;
 
@@ -31,6 +34,17 @@ public class ShopItem : MonoBehaviour
     // The ShopManager will call this to set the button's look
     public void UpdateUI(bool isOwned)
     {
+        var label = transform.Find("ItemPrice")?.GetComponent<TMPro.TMP_Text>();
+        var quote = SoloEconomy.Price(itemID);
+        if (label != null && quote != null)
+        {
+            label.text = quote.coins.ToString("N0") + " Coins\n" + quote.gems.ToString("N0") + " Gems";
+            label.alignment = TMPro.TextAlignmentOptions.Center; label.enableAutoSizing = true; label.fontSizeMin = 22; label.fontSizeMax = 24;
+            label.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+            label.rectTransform.anchoredPosition = new Vector2(0,-67); label.rectTransform.sizeDelta = new Vector2(236,56);
+            ((RectTransform)buyButton.transform).anchoredPosition = new Vector2(0,-144);
+            var oldIcon = transform.Find("Coin_Img"); if (oldIcon != null) oldIcon.gameObject.SetActive(false);
+        }
         if (isOwned)
         {
             buttonImage.sprite = purchasedSprite;

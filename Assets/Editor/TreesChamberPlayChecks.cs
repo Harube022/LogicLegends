@@ -46,6 +46,8 @@ public static class TreesChamberPlayChecks
         PrelimTeleportTransition.MovePlayerImmediately(stage.LocalPlayer.gameObject,stage.spawnPoint.position,stage.spawnPoint.rotation);
         stage.LocalPlayer.ToggleControl(true);GameInput.Instance.SetGameplayInputBlocked(false);
         Log("PASS live controller blocked by visible perimeter; player returned safely to book access.");
+        if(UnityEditor.SessionState.GetBool("Help.TreesCollisionAndCamerasOnly",false))
+        { Log("INFO camera/collision audit: separate lamp photometry checks not requested.");yield break; }
         Check(RenderSettings.ambientMode==AmbientMode.Flat&&RenderSettings.ambientLight.maxColorComponent<=.21f,"ambient reduced locally");
         var lamps=UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsSortMode.None).Where(t=>t.name.StartsWith("LAMP")&&t.GetComponent<MeshFilter>()!=null).ToArray();
         Check(lamps.Length==7,"five existing lamps and two added reading chandeliers");

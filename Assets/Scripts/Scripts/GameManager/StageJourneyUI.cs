@@ -393,15 +393,7 @@ public sealed class StageJourneyUI : MonoBehaviour
     {
         if (resultOpen) return;
         ShowResult(stage, "TIME TO TRY AGAIN", summary, stage == 1 ? "START OVER" : "RESTART STAGE", retry);
-        if (stage == 1 && propositionalClock != null)
-        {
-            extraButton.gameObject.SetActive(true);
-            StageUITheme.Stretch((RectTransform)primaryButton.transform, new Vector2(0.12f, 0.23f), new Vector2(0.48f, 0.35f));
-            StageUITheme.Stretch((RectTransform)secondaryButton.transform, new Vector2(0.52f, 0.23f), new Vector2(0.88f, 0.35f));
-            StageUITheme.Stretch((RectTransform)extraButton.transform, new Vector2(0.25f, 0.1f), new Vector2(0.75f, 0.22f));
-            extraButton.GetComponentInChildren<TMP_Text>().text = propositionalClock.IsStudyOptionAvailable ? "STUDY IN LOGIC GARDEN" : "TRY FROM CHECKPOINT";
-            extraButton.onClick.RemoveAllListeners(); extraButton.onClick.AddListener(propositionalClock.OnMiddleActionClicked);
-        }
+        StagePresentation.Failed(modal.gameObject, stage, stage == 1 && propositionalClock != null ? (UnityEngine.Events.UnityAction)propositionalClock.OnMiddleActionClicked : retry);
     }
 
     private void ShowResult(int stage, string title, string summary, string action, UnityEngine.Events.UnityAction callback)
@@ -466,7 +458,7 @@ public sealed class StageJourneyUI : MonoBehaviour
 
     private void RestartInference()
     {
-        TrialRewards.RecordRetry(3);
+        if (!TrialRewards.TryRecordRetry(3)) return;
         if (navigating) return; navigating = true;
         Time.timeScale = 1; GameInput.Instance?.SetGameplayInputBlocked(false);
         StageSelectionState.Select(3);
