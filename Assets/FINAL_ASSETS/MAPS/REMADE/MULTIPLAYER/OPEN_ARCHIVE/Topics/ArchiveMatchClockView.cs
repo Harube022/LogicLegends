@@ -161,6 +161,7 @@ namespace LogicLegends.OpenArchive.Topics
         {phase.color=tint;accent.color=tint;clock.color=tint==Red?new Color(1,.77f,.66f):Cream;}
         bool SuppressHud()
         {
+            if(ArchiveMatchCinematic.Covers(session))return true;
             if(!session.MatchTimeAllowsGameplay&&session.MatchTimePhase==ArchiveMatchTimePhase.Expired)return true;
             if(session.TeamWon||session.TeamDefeated||session.HasEscapedActor(session.LocalActor)||Time.timeScale<=0||MultiplayerLobbyService.IsGameplayRecovering||session.NightEntranceActive)return true;
             if(session.worldProgression!=null&&session.worldProgression.FullscreenVisible)return true;

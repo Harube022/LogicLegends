@@ -1,0 +1,586 @@
+{
+  "passed": true,
+  "date": "2026-11-04",
+  "scene": "Assets/Scenes/MultiplayerGameplay.unity",
+  "unity": "6000.3.6f1",
+  "protocol": "LL-private-lobby-24",
+  "changes": [
+    "T1-T10 level-2 hints now teach a task-specific reasoning process without inspecting correctness of current work.",
+    "Truth-table wrong-answer feedback identifies the row and process without supplying the required TRUE/FALSE tile.",
+    "Contextual local Book/Hand, equip, item-use and teammate-sharing tips highlight the real controls, use existing artwork, and remember first use.",
+    "Tips can be skipped, hidden for the match, switched off or replayed from LEARN / HINTS. They are quiet during readers, transitions, recovery, capture, danger, pause and expanded tools."
+  ],
+  "summary": {
+    "reasoningChecks": 3363,
+    "questionCases": 256,
+    "academicSourceCases": 1024,
+    "normalNativeChecks": 39,
+    "wideNativeChecks": 39,
+    "existingPresentationChecks": 53,
+    "livePhotonChecks": 47,
+    "acceptedRemoteCommands": 7
+  },
+  "evidence": {
+    "reasoning": {
+      "passed": true,
+      "scope": "Pure Editor content checks against all ten existing topic adapters. Valid solutions, empty/null/malformed work and absent answer keys must receive the same level-2 scaffold for the same visible task kind. Existing validators are exercised before/after hint presentation only; no scene, account, room, timer or gameplay state is changed. Native UI/transport and physical Android are separate checks.",
+      "checks": 3363,
+      "questionCases": 256,
+      "truthFeedbackCases": 2,
+      "casesPerTopic": [
+        20,
+        36,
+        40,
+        20,
+        20,
+        20,
+        40,
+        20,
+        20,
+        20
+      ],
+      "errors": []
+    },
+    "academic": {
+      "passed": true,
+      "sourceAnswers": 1024,
+      "barrierChoices": 1040,
+      "feedbackCases": 1024,
+      "errors": []
+    },
+    "nativeLandscape": {
+      "width": 1920,
+      "height": 1080,
+      "result": {
+        "passed": true,
+        "scope": "Fresh saved MultiplayerGameplay offline Editor Play. Actual Book/Hand, inventory equip/use and GIVE controls run against existing validators using explicit Admin supplies/practice teammate. Tutorial preferences are restored. Physical Android and remote rendered UI remain unverified.",
+        "checks": [
+          "PASS Book tip points at the world Book and actual Hand control",
+          "PASS The passive outline is centered on the real Hand button",
+          "PASS The compact tutorial card fits the current native safe area",
+          "PASS Showing a tutorial neither locks movement nor blocks gameplay input",
+          "PASS Viewing the Book cue never starts a topic, changes answers, creates mistakes or resets clocks",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept InteractButton; top hit: Text (Legacy) under InteractButton",
+          "PASS The real Book activation starts the original topic clock and the open reader suppresses the tip",
+          "PASS The learning guide and contextual tip do not cover each other",
+          "PASS Existing Admin Lab supplies create an explicitly excluded practice fixture",
+          "PASS Equip guidance highlights an actual owned item slot",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept Hotbar_Slot_1; top hit: Hotbar_Slot_1 under Collected_Item_Slots",
+          "PASS Use guidance highlights the existing circular item action",
+          "PASS The outline tracks the circular item button across different canvases",
+          "PASS Item guidance remains inside the safe area beside the hotbar",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept Use_Equipped_Item; top hit: Use_Equipped_Item under Archive_Survival_Pack",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept Use_Equipped_Item; top hit: Use_Equipped_Item under Archive_Survival_Pack",
+          "PASS The native use check turns the light back off without spending medicine",
+          "PASS The existing practice teammate is available",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept Hotbar_Slot_3; top hit: Hotbar_Slot_3 under Collected_Item_Slots",
+          "PASS Sharing guidance points to the actual GIVE button",
+          "PASS The existing validator rejects a distant transfer",
+          "PASS A rejected request never acknowledges the sharing lesson",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept Give_One_Item; top hit: Give_One_Item under Nearby_Teammate_Item_Actions",
+          "PASS GIVE transfers one real item without duplication",
+          "PASS All native tutorial actions preserve academic work, hearts, mistakes and the shared deadline",
+          "PASS Each observed mechanic is remembered locally",
+          "PASS Completed controls stop prompting automatically",
+          "PASS Replay resets only local tutorial preferences",
+          "PASS Skip remembers the current mechanic without demanding an action",
+          "PASS Dismiss keeps the remaining tips quiet for this match",
+          "PASS Existing First-visit tips OFF preference suppresses contextual prompts",
+          "PASS Gameplay input blocking suppresses tutorial highlights",
+          "PASS Paused gameplay hides transient tutorial guidance"
+        ],
+        "errors": []
+      }
+    },
+    "nativeWidePhoneAspect": {
+      "width": 2340,
+      "height": 1080,
+      "result": {
+        "passed": true,
+        "scope": "Fresh saved MultiplayerGameplay offline Editor Play. Actual Book/Hand, inventory equip/use and GIVE controls run against existing validators using explicit Admin supplies/practice teammate. Tutorial preferences are restored. Physical Android and remote rendered UI remain unverified.",
+        "checks": [
+          "PASS Book tip points at the world Book and actual Hand control",
+          "PASS The passive outline is centered on the real Hand button",
+          "PASS The compact tutorial card fits the current native safe area",
+          "PASS Showing a tutorial neither locks movement nor blocks gameplay input",
+          "PASS Viewing the Book cue never starts a topic, changes answers, creates mistakes or resets clocks",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept InteractButton; top hit: Text (Legacy) under InteractButton",
+          "PASS The real Book activation starts the original topic clock and the open reader suppresses the tip",
+          "PASS The learning guide and contextual tip do not cover each other",
+          "PASS Existing Admin Lab supplies create an explicitly excluded practice fixture",
+          "PASS Equip guidance highlights an actual owned item slot",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept Hotbar_Slot_1; top hit: Hotbar_Slot_1 under Collected_Item_Slots",
+          "PASS Use guidance highlights the existing circular item action",
+          "PASS The outline tracks the circular item button across different canvases",
+          "PASS Item guidance remains inside the safe area beside the hotbar",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept Use_Equipped_Item; top hit: Use_Equipped_Item under Archive_Survival_Pack",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept Use_Equipped_Item; top hit: Use_Equipped_Item under Archive_Survival_Pack",
+          "PASS The native use check turns the light back off without spending medicine",
+          "PASS The existing practice teammate is available",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept Hotbar_Slot_3; top hit: Hotbar_Slot_3 under Collected_Item_Slots",
+          "PASS Sharing guidance points to the actual GIVE button",
+          "PASS The existing validator rejects a distant transfer",
+          "PASS A rejected request never acknowledges the sharing lesson",
+          "PASS The requested existing gameplay button is visible and enabled",
+          "PASS The tutorial does not cover or intercept Give_One_Item; top hit: Give_One_Item under Nearby_Teammate_Item_Actions",
+          "PASS GIVE transfers one real item without duplication",
+          "PASS All native tutorial actions preserve academic work, hearts, mistakes and the shared deadline",
+          "PASS Each observed mechanic is remembered locally",
+          "PASS Completed controls stop prompting automatically",
+          "PASS Replay resets only local tutorial preferences",
+          "PASS Skip remembers the current mechanic without demanding an action",
+          "PASS Dismiss keeps the remaining tips quiet for this match",
+          "PASS Existing First-visit tips OFF preference suppresses contextual prompts",
+          "PASS Gameplay input blocking suppresses tutorial highlights",
+          "PASS Paused gameplay hides transient tutorial guidance"
+        ],
+        "errors": []
+      }
+    },
+    "existingLearningPresentation": {
+      "passed": true,
+      "scope": "Rendered Windows Editor, current Game View resolution, actual saved monster rigs and UI pointer events. Physical Android touch/audio/performance and two independently rendered multiplayer clients are unverified.",
+      "checks": [
+        {
+          "name": "T1 tutorial reads without starting progress or movement locks",
+          "passed": true
+        },
+        {
+          "name": "T2 tutorial reads without starting progress or movement locks",
+          "passed": true
+        },
+        {
+          "name": "T3 tutorial reads without starting progress or movement locks",
+          "passed": true
+        },
+        {
+          "name": "T4 tutorial reads without starting progress or movement locks",
+          "passed": true
+        },
+        {
+          "name": "T5 tutorial reads without starting progress or movement locks",
+          "passed": true
+        },
+        {
+          "name": "T6 tutorial reads without starting progress or movement locks",
+          "passed": true
+        },
+        {
+          "name": "T7 tutorial reads without starting progress or movement locks",
+          "passed": true
+        },
+        {
+          "name": "T8 tutorial reads without starting progress or movement locks",
+          "passed": true
+        },
+        {
+          "name": "T9 tutorial reads without starting progress or movement locks",
+          "passed": true
+        },
+        {
+          "name": "T10 tutorial reads without starting progress or movement locks",
+          "passed": true
+        },
+        {
+          "name": "Learning_Guide leaves Joystick unobstructed at 1920×1080",
+          "passed": true
+        },
+        {
+          "name": "Learning_Guide leaves JumpButton unobstructed at 1920×1080",
+          "passed": true
+        },
+        {
+          "name": "Learning_Guide leaves InteractButton unobstructed at 1920×1080",
+          "passed": true
+        },
+        {
+          "name": "Existing Khezu visual rig selected without replacement assets",
+          "passed": true
+        },
+        {
+          "name": "Khezu math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Khezu math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Khezu math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Khezu math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Khezu math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Khezu math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Khezu math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Khezu math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Khezu has its correct problem and existing complete capture lock",
+          "passed": true
+        },
+        {
+          "name": "Real_Math_Barrier_Challenge leaves Joystick unobstructed at 1920×1080",
+          "passed": true
+        },
+        {
+          "name": "Real_Math_Barrier_Challenge leaves JumpButton unobstructed at 1920×1080",
+          "passed": true
+        },
+        {
+          "name": "Real_Math_Barrier_Challenge leaves InteractButton unobstructed at 1920×1080",
+          "passed": true
+        },
+        {
+          "name": "Barrier_Next_Hint is an active normal UI action",
+          "passed": true
+        },
+        {
+          "name": "Barrier_Next_Hint receives the actual topmost raycast",
+          "passed": true
+        },
+        {
+          "name": "Barrier hint immediately scrolls its explanation into view",
+          "passed": true
+        },
+        {
+          "name": "Barrier_Choice_3 is an active normal UI action",
+          "passed": true
+        },
+        {
+          "name": "Barrier_Choice_3 receives the actual topmost raycast",
+          "passed": true
+        },
+        {
+          "name": "Confirm_Barrier_Answer is an active normal UI action",
+          "passed": true
+        },
+        {
+          "name": "Confirm_Barrier_Answer receives the actual topmost raycast",
+          "passed": true
+        },
+        {
+          "name": "Actual Khezu choice and Confirm pointer events enter existing success flow",
+          "passed": true
+        },
+        {
+          "name": "Existing Rajang visual rig selected without replacement assets",
+          "passed": true
+        },
+        {
+          "name": "Rajang math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Rajang math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Rajang math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Rajang math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Rajang math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Rajang math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Rajang math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Rajang math stays hidden until the cinematic finishes",
+          "passed": true
+        },
+        {
+          "name": "Rajang has its correct problem and existing complete capture lock",
+          "passed": true
+        },
+        {
+          "name": "Real_Math_Barrier_Challenge leaves Joystick unobstructed at 1920×1080",
+          "passed": true
+        },
+        {
+          "name": "Real_Math_Barrier_Challenge leaves JumpButton unobstructed at 1920×1080",
+          "passed": true
+        },
+        {
+          "name": "Real_Math_Barrier_Challenge leaves InteractButton unobstructed at 1920×1080",
+          "passed": true
+        },
+        {
+          "name": "Barrier_Choice_0 is an active normal UI action",
+          "passed": true
+        },
+        {
+          "name": "Barrier_Choice_0 receives the actual topmost raycast",
+          "passed": true
+        },
+        {
+          "name": "Confirm_Barrier_Answer is an active normal UI action",
+          "passed": true
+        },
+        {
+          "name": "Confirm_Barrier_Answer receives the actual topmost raycast",
+          "passed": true
+        },
+        {
+          "name": "Actual Rajang choice and Confirm pointer events trigger one heart and the existing stun",
+          "passed": true
+        },
+        {
+          "name": "Math question closes after the encounter releases its player",
+          "passed": true
+        }
+      ],
+      "errors": []
+    },
+    "livePhoton": {
+      "passed": true,
+      "acceptedRemoteCommands": 7,
+      "scope": "Live private Photon room: rendered Editor host and two independent Realtime peers. Verifies transport, sender ownership, shared progress, late join and host handoff. Remote rendered UI and physical Android are not verified.",
+      "checks": [
+        {
+          "name": "Independent clients share an invisible private room",
+          "passed": true
+        },
+        {
+          "name": "Native player retains local control ownership",
+          "passed": true
+        },
+        {
+          "name": "Remote replica cannot consume host input",
+          "passed": true
+        },
+        {
+          "name": "Authenticated guest cannot issue legacy monster debug command AddMistake in Open Archive",
+          "passed": true
+        },
+        {
+          "name": "Authenticated guest cannot issue legacy monster debug command ForceFourMistakes in Open Archive",
+          "passed": true
+        },
+        {
+          "name": "Authenticated guest cannot issue legacy monster debug command Sleep in Open Archive",
+          "passed": true
+        },
+        {
+          "name": "Authenticated guest cannot issue legacy monster debug command ResetHunt in Open Archive",
+          "passed": true
+        },
+        {
+          "name": "Authenticated guest cannot issue legacy monster debug command ResetRotation in Open Archive",
+          "passed": true
+        },
+        {
+          "name": "Optional tutorial opens without movement locking, starting a topic, or starting its clock",
+          "passed": true
+        },
+        {
+          "name": "Tutorial, barrier reading and answer lists have visible native scrollbars",
+          "passed": true
+        },
+        {
+          "name": "Only explicit tutorial acknowledgement marks it seen",
+          "passed": true
+        },
+        {
+          "name": "Personal hint levels checkpoint for the requesting authenticated player",
+          "passed": true
+        },
+        {
+          "name": "The requesting guest receives the same personal reasoning scaffold without a correctness receipt",
+          "passed": true
+        },
+        {
+          "name": "A correct physical draft never turns the personal hint into an answer checker",
+          "passed": true
+        },
+        {
+          "name": "Changing a draft to an incorrect row keeps the same reasoning scaffold",
+          "passed": true
+        },
+        {
+          "name": "Delayed lower-sequence hint request is rejected",
+          "passed": true
+        },
+        {
+          "name": "Three hint levels are capped and never add mistakes, pause, extend or reset the team deadline",
+          "passed": true
+        },
+        {
+          "name": "Out-of-arena hint packet cannot mutate progress",
+          "passed": true
+        },
+        {
+          "name": "Admin reset discards only the current problem's hint applicability",
+          "passed": true
+        },
+        {
+          "name": "Pre-reset hint request cannot populate a fresh problem",
+          "passed": true
+        },
+        {
+          "name": "Real wrong-answer submission identifies the incorrect truth-table row and retains mistake attribution",
+          "passed": true
+        },
+        {
+          "name": "Post-attempt truth-table feedback identifies the row without disclosing its required truth value",
+          "passed": true
+        },
+        {
+          "name": "Confirmed capture advances the one shared deterministic 50-question deck exactly once",
+          "passed": true
+        },
+        {
+          "name": "Captured peer receives the same bank question, option shuffle and shared draw cursor",
+          "passed": true
+        },
+        {
+          "name": "Remote capture hides math controls on the host and locks only the captured actor",
+          "passed": true
+        },
+        {
+          "name": "Rajang uses the module-referenced DM1 bank with four shuffled options and the development outcome selector disabled",
+          "passed": true
+        },
+        {
+          "name": "Rajang's actual captured-player countdown starts at exactly two minutes",
+          "passed": true
+        },
+        {
+          "name": "Late join preserves the bank question, shuffled answer order and cursor without drawing again",
+          "passed": true
+        },
+        {
+          "name": "Another actor cannot spoof the captured player and a client boolean outcome cannot bypass math validation",
+          "passed": true
+        },
+        {
+          "name": "A free hint updates hint state without rerolling the question, answers or shared deck cursor",
+          "passed": true
+        },
+        {
+          "name": "Stale revision, malformed option, wrong hunt serial and another monster identity cannot resolve capture or alter its clock",
+          "passed": true
+        },
+        {
+          "name": "The rendered guest loses legacy monster test permission and the entire test dock during handoff",
+          "passed": true
+        },
+        {
+          "name": "A development host regains its existing test dock after authority returns",
+          "passed": true
+        },
+        {
+          "name": "Authority handoff preserves the complete bank checkpoint, shuffled options, draw cursor, hints and exact original barrier deadline",
+          "passed": true
+        },
+        {
+          "name": "Captured guest's correct DM1 answer enters the existing success outcome without damage",
+          "passed": true
+        },
+        {
+          "name": "Success preserves arena work and its clock, causes no puzzle completion, and retains thirty-second nest sleep",
+          "passed": true
+        },
+        {
+          "name": "Khezu's actual captured-player countdown starts at exactly two minutes",
+          "passed": true
+        },
+        {
+          "name": "Khezu draws the next distinct question from the same shared 50-question DM1 deck",
+          "passed": true
+        },
+        {
+          "name": "Incorrect confirmed math answer holds the prison and delays damage until attack contact",
+          "passed": true
+        },
+        {
+          "name": "Attack deducts exactly one heart at contact and transfers movement lock into the original five-second knockback/stun",
+          "passed": true
+        },
+        {
+          "name": "Replaying a failed answer cannot deduct a second heart",
+          "passed": true
+        },
+        {
+          "name": "Failure resumes the existing eligible-target flow without immediately rehunting its victim",
+          "passed": true
+        },
+        {
+          "name": "Local barrier retains complete movement lock while another living player remains free",
+          "passed": true
+        },
+        {
+          "name": "Correct answer after the original deadline is rejected",
+          "passed": true
+        },
+        {
+          "name": "Expired barrier uses its existing failure timer, exactly one heart and explanatory timeout feedback",
+          "passed": true
+        },
+        {
+          "name": "Barrier hints, answers and timeout never change topic mistake totals or its shared deadline",
+          "passed": true
+        },
+        {
+          "name": "A fresh match resets the shared monster question cursor",
+          "passed": true
+        }
+      ],
+      "errors": []
+    }
+  },
+  "preserved": [
+    "Original topic validators and Book-authoritative shared deadlines.",
+    "Personal hint levels and existing room command validation, stale request gates and host handoff.",
+    "Real inventory transfers, use cooldowns, quantity and charge ownership; tutorial sends no gameplay actions.",
+    "Main academic progress, capture outcomes and reward exclusions for Admin practice fixtures."
+  ],
+  "fixtureCorrection": "The Editor-only graph solution helper now uses GraphAnswerValidator.FindSolution so tests respect required cycle vertices and minimum cycle length. No graph gameplay validator changed.",
+  "limits": [
+    "Physical Android touch, audio and performance were not tested; adb reports no connected device.",
+    "Live Photon used one rendered Editor and two independent Realtime peers, not two rendered Android clients.",
+    "Existing Burst JIT DLL loading error from before these checks was present in console history; no current console errors occurred in the final native and network checks."
+  ],
+  "cleanup": {
+    "playStopped": true,
+    "canonicalSceneClean": true,
+    "tutorialPreferencesRestored": true,
+    "originalGameView": "Recording Resolution (1920x1080)",
+    "privatePhotonRoomDisconnected": true
+  }
+}

@@ -100,17 +100,22 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         }
         public Vector3 BesideTopic(ArchiveTopicStation station)
         {
-            foreach(float across in new[]{15f,17f,19f,21f})
-                foreach(float along in new[]{10f,8f,12f,6f})
+            var best=Vector3.zero;float bestScore=float.PositiveInfinity;
+            // In the authored map, (11,14) lies on the grass corner where the
+            // topic approach meets the outer ring. Prefer that corner rather
+            // than the first empty patch deep inside a planted topic plot.
+            for(float across=8;across<=16;across+=.5f)
+                for(float along=11;along<=20;along+=.5f)
                     foreach(float side in new[]{1f,-1f})
                     {
                         var candidate=station.transform.TransformPoint(new Vector3(across*side,0,along));
-                        // The marker belongs beside the entrance, outside the reserved
-                        // activity circle as well as the island's paved approach.
-                        var local=new Vector2(across,along);
-                        if(local.magnitude*Mathf.Abs(station.transform.lossyScale.x)<44)continue;
-                        if(ClearOfRoads(candidate)&&Ground(candidate,station.transform.position.y,out var grounded)&&ClearOfProps(grounded))return grounded;
+                        if(Vector3.Distance(candidate,station.transform.position)<44)continue;
+                        float score=(across-11)*(across-11)+(along-14)*(along-14);
+                        if(score>=bestScore||!ClearOfRoads(candidate)||!ClearOfGroundcover(candidate,3))continue;
+                        if(!Ground(candidate,station.transform.position.y,out var grounded)||!ClearOfProps(grounded))continue;
+                        best=grounded;bestScore=score;
                     }
+            if(!float.IsPositiveInfinity(bestScore))return best;
             throw new InvalidOperationException("No clear dry shoulder for topic sign: T"+(station.topic+1));
         }
     }

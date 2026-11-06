@@ -33,12 +33,54 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             var result=new Report();
             result.foundations=ArchiveApproachFoundations.Build(map,parent,stone);
             ArchiveNestSanctuaryBuilder.Build(session,parent,stone,trim,glow);result.sanctuary=ArchiveNestSanctuaryBuilder.LastReport;
+            BuildFrontage(session,parent,stone,trim);
             result.shoreline=ArchiveShoreRockGrounding.Apply(map);
             result.physicsPreserved=physics==Physics(scene);result.navigationPreserved=navigation==Navigation(scene);result.monsterSetupPreserved=monsters==Monsters(scene);
             result.passed=result.foundations.passed&&result.sanctuary.passed&&result.shoreline.passed&&result.physicsPreserved&&result.navigationPreserved&&result.monsterSetupPreserved;
             Directory.CreateDirectory("Temp/ArchiveNestFinish");File.WriteAllText("Temp/ArchiveNestFinish/Install.json",JsonUtility.ToJson(result,true));
             if(!result.passed)throw new InvalidOperationException("Nest finish changed existing physics, navigation or encounter setup.");
             return result;
+        }
+        static Transform[] BuildFrontage(ArchiveTopicSession session,Transform parent,Material stone,Material trim)
+        {
+            // Reuse the textured, world-space sanctuary stone for the new ruins.
+            var masonry=AssetDatabase.LoadAssetAtPath<Material>(ArchiveEnvironmentPolishSetup.ArtFolder+"/Nest_Sanctuary_WeatheredFloor.mat")??stone;
+            var foliage=AssetDatabase.LoadAssetAtPath<Material>(ArchiveEnvironmentPolishSetup.ArtFolder+"/Archive_Environment_Leaf.mat");
+            if(foliage==null)throw new InvalidOperationException("The existing environment foliage material is required.");
+            var nest=GameObject.Find("OpenArchive/UniversalMonsterNest").transform;
+            return new[]{ArchiveNestRampShoulders.Build(nest,parent,masonry),ArchiveNestFrontageBuilder.Build(session,parent,masonry,trim,foliage)};
+        }
+        [Serializable] public sealed class FrontageReport
+        {
+            public bool passed,physicsPreserved,navigationPreserved,monsterSetupPreserved;
+            public int ramps,stones,frontageGroups,renderers,triangles,newColliders;
+        }
+        [MenuItem("Tools/Logic Legends/Open Archive/Environment/Refresh Nest Edges And Frontage")]
+        public static void RefreshFrontage()=>ApplyFrontage();
+        public static FrontageReport ApplyFrontage()
+        {
+            var scene=SceneManager.GetActiveScene();
+            if(Application.isPlaying||scene.isDirty||scene.path!="Assets/Scenes/MultiplayerGameplay.unity")
+                throw new InvalidOperationException("Use the saved production MultiplayerGameplay scene outside Play Mode.");
+            string physics=Physics(scene),navigation=Navigation(scene),monsters=Monsters(scene);
+            var session=UnityEngine.Object.FindFirstObjectByType<ArchiveTopicSession>();
+            var parent=GameObject.Find(ArchiveEnvironmentPolishSetup.RootName).transform;
+            var stone=AssetDatabase.LoadAssetAtPath<Material>(ArchiveTopicSetup.Folder+"/Art/Materials/Archive_Topic_Stone.mat");
+            var trim=AssetDatabase.LoadAssetAtPath<Material>(ArchiveTopicSetup.Folder+"/Art/Materials/Archive_Topic_BrassInlay.mat");
+            var roots=BuildFrontage(session,parent,stone,trim);
+            var report=new FrontageReport
+            {
+                physicsPreserved=physics==Physics(scene),navigationPreserved=navigation==Navigation(scene),monsterSetupPreserved=monsters==Monsters(scene),
+                ramps=ArchiveNestRampShoulders.LastRampCount,stones=ArchiveNestRampShoulders.LastStoneCount,
+                frontageGroups=ArchiveNestFrontageBuilder.LastGroups,
+                renderers=roots.Sum(t=>t.GetComponentsInChildren<Renderer>(true).Length),
+                triangles=roots.Sum(t=>t.GetComponentsInChildren<MeshFilter>(true).Sum(f=>f.sharedMesh.triangles.Length/3)),
+                newColliders=roots.Sum(t=>t.GetComponentsInChildren<Collider>(true).Length)
+            };
+            report.passed=report.physicsPreserved&&report.navigationPreserved&&report.monsterSetupPreserved&&report.ramps==4&&report.frontageGroups==4&&report.newColliders==0;
+            Directory.CreateDirectory("Temp/NestFrontagePolish");File.WriteAllText("Temp/NestFrontagePolish/Verification.json",JsonUtility.ToJson(report,true));
+            if(!report.passed)throw new InvalidOperationException("Nest frontage changed existing physics, navigation or monster setup.");
+            EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);AssetDatabase.SaveAssets();return report;
         }
         [MenuItem("Tools/Logic Legends/Open Archive/Environment/Improve Nest And Ground Shore Rocks")]
         public static void Install()=>Apply();

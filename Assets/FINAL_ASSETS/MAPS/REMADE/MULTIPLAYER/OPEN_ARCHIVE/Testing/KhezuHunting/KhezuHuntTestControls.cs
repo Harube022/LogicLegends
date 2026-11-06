@@ -26,6 +26,15 @@ namespace LogicLegends.Tests.Khezu
 #endif
             }
         }
+        // UI permission is read every frame; exclusion belongs only to an
+        // explicit test mutation, never to merely opening the development dock.
+        public static void MarkActionUsed()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var session = LogicLegends.OpenArchive.Topics.ArchiveTopicSession.Current;
+            if (session != null && session.CanUseTopicAdmin) session.MarkRewardsAdminUsed();
+#endif
+        }
     }
 
     public sealed class KhezuHuntTestControls : MonoBehaviour
@@ -33,11 +42,17 @@ namespace LogicLegends.Tests.Khezu
         public KhezuHuntingController monster;
         public Text status;
         float nextUpdate;
-        public void ForceFourMistakes() { if (KhezuLegacyTestPermission.CanUse && monster != null) monster.Request(KhezuCommand.ForceFourMistakes); }
-        public void StartHunting() { if (KhezuLegacyTestPermission.CanUse && monster != null) monster.Request(KhezuCommand.StartHunting); }
-        public void ResetCurrentHunt() { if (KhezuLegacyTestPermission.CanUse && monster != null) monster.Request(KhezuCommand.ResetHunt); }
-        public void ResetFullRotation() { if (KhezuLegacyTestPermission.CanUse && monster != null) monster.Request(KhezuCommand.ResetRotation); }
-        public void ReturnToSleep() { if (KhezuLegacyTestPermission.CanUse && monster != null) monster.Request(KhezuCommand.Sleep); }
+        public void ForceFourMistakes() { RunTestCommand(KhezuCommand.ForceFourMistakes); }
+        public void StartHunting() { RunTestCommand(KhezuCommand.StartHunting); }
+        public void ResetCurrentHunt() { RunTestCommand(KhezuCommand.ResetHunt); }
+        public void ResetFullRotation() { RunTestCommand(KhezuCommand.ResetRotation); }
+        public void ReturnToSleep() { RunTestCommand(KhezuCommand.Sleep); }
+        void RunTestCommand(KhezuCommand command)
+        {
+            if (!KhezuLegacyTestPermission.CanUse || monster == null) return;
+            KhezuLegacyTestPermission.MarkActionUsed();
+            monster.Request(command);
+        }
         void Update()
         {
             if (Time.unscaledTime < nextUpdate || monster == null) return;

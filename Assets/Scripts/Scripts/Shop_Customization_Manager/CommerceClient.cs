@@ -15,8 +15,16 @@ public static class CommerceClient
         public bool sandbox, live, paymentsEnabled;
         public SoloEconomy.Config economy;
         public SoloEconomy.CosmeticPrice[] catalog;
+        public Pack[] packs;
     }
-    [Serializable] public sealed class Checkout { public string orderId, checkoutUrl, status; public bool sandbox, live; }
+    [Serializable] public sealed class Pack { public string id, name, currency; public int gems, amount; }
+    [Serializable] public sealed class Checkout
+    {
+        public string orderId, checkoutUrl, status, productId, currency, expiryReason;
+        public int gems, amount;
+        public long expiresAt;
+        public bool sandbox, live;
+    }
     [Serializable] public sealed class EconomyCapabilities
     {
         public int version;
@@ -27,7 +35,7 @@ public static class CommerceClient
     }
     [Serializable] private sealed class AccountRequest { public string character; }
     [Serializable] private sealed class PurchaseRequest { public string itemId, currency; public int expectedPrice, economyVersion; }
-    [Serializable] private sealed class CheckoutRequest { public string productId = "gems_5"; public string requestId; }
+    [Serializable] private sealed class CheckoutRequest { public string productId; public string requestId; }
     [Serializable] private sealed class ErrorReply { public string error, code; }
     public sealed class ShopSetupException : InvalidOperationException
     {
@@ -167,8 +175,9 @@ public static class CommerceClient
             throw new TimeoutException("Couldn't connect. Check the connection and retry.");
         return await task;
     }
-    public static Task<Checkout> StartCheckout(string requestId) => Send<Checkout>("/checkout", JsonUtility.ToJson(new CheckoutRequest { requestId = requestId }));
+    public static Task<Checkout> StartCheckout(string requestId, string productId = "gems_5") => Send<Checkout>("/checkout", JsonUtility.ToJson(new CheckoutRequest { requestId = requestId, productId = productId }));
     public static Task<Checkout> CheckOrder(string orderId) => Send<Checkout>("/orders/" + UnityWebRequest.EscapeURL(orderId));
+    public static Task<Checkout> CancelOrder(string orderId) => Send<Checkout>("/orders/" + UnityWebRequest.EscapeURL(orderId) + "/cancel", "{}");
     private static async Task<T> Send<T>(string path, string json = null) where T : class
     {
         var settings = Settings;
@@ -179,7 +188,7 @@ public static class CommerceClient
             throw new InvalidOperationException("Test purchases are unavailable in release builds.");
         string uid = UserId;
         if (uid == null) throw new InvalidOperationException("Please sign in to use the shop.");
-        bool read = path == "/account" || path == "/wallet" || path == "/economy" || path.StartsWith("/orders/", StringComparison.Ordinal);
+        bool read = path == "/account" || path == "/wallet" || path == "/economy" || (json == null && path.StartsWith("/orders/", StringComparison.Ordinal));
         if (read && !await EnsureReady()) throw new InvalidOperationException("Couldn't connect to the shop. Please retry.");
         if (UserId != uid) throw new InvalidOperationException("Account changed. Please reopen the shop.");
         string token;

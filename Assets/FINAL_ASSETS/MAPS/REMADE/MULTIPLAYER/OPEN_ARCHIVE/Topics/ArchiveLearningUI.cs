@@ -9,7 +9,7 @@ namespace LogicLegends.OpenArchive.Topics
 {
     /// <summary>Local learning presentation. Owns no progress, outcome, movement token or countdown.</summary>
     [DefaultExecutionOrder(175), DisallowMultipleComponent]
-    public sealed class ArchiveLearningUI : MonoBehaviour
+    public sealed partial class ArchiveLearningUI : MonoBehaviour
     {
         const string PreferencePrefix = "OpenArchive.Learning.v1.";
         public ArchiveTopicSession session;
@@ -47,7 +47,7 @@ namespace LogicLegends.OpenArchive.Topics
             var entryRect = (RectTransform)entry.transform; entryRect.anchorMin = entryRect.anchorMax = new Vector2(.5f, 0);
             entryRect.pivot = new Vector2(.5f, 0); entryRect.anchoredPosition = new Vector2(0, 24); entryRect.sizeDelta = new Vector2(290, 66);
             entryText = entry.GetComponentInChildren<TMP_Text>();
-            BuildGuide(); BuildBarrier();
+            BuildGuide(); BuildBarrier(); BuildOnboarding();
             ArchiveReadingScrollbars.Install(transform);
         }
         void BuildGuide()
@@ -283,6 +283,7 @@ namespace LogicLegends.OpenArchive.Topics
         }
         void OnDisable()
         {
+            HideOnboarding();
             if (encounterStatus != null) encounterStatus.detailedChallengeVisible = false;
             if (guide != null) guide.gameObject.SetActive(false); if (prison != null) prison.gameObject.SetActive(false);
             if (entry != null) entry.gameObject.SetActive(false);

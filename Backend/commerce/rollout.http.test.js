@@ -20,6 +20,9 @@ test('merge rollout defaults off: old clients keep their wallet/shop/rewards; v2
       assert.equal((await call('/purchase',{itemId:'Common_Skin',currency:'coins',expectedPrice:3000,economyVersion:2})).status,503);
       assert.deepEqual((await ref.get()).val(),before,'a merge alone does not change new economy state or balances');
       const wallet=await ok(await call('/wallet'));assert.equal(wallet.economy,undefined);assert.equal(wallet.coins,37);assert.equal(wallet.gems,100);
+      assert.equal(wallet.catalog,undefined);
+      assert.deepEqual(wallet.packs,require('./catalog.json').packs,'top-up packs remain available with economy v2 off');
+      assert.equal(wallet.packs.length,6);
       const bought=await ok(await call('/purchase',{itemId:'Common_Skin'}));assert.equal(bought.gems,90);assert.equal(bought.coins,37);assert.ok(bought.inventory.includes('legacy_outfit'));
       await ok(await call('/purchase',{itemId:'Common_Skin'}));assert.equal((await ref.child('gems').get()).val(),90);
       const request={trial:1,attemptId:id(),newAttempt:true};await ok(await call('/trials/start',request));

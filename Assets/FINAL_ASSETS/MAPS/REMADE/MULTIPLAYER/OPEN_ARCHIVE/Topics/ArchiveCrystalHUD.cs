@@ -50,6 +50,7 @@ namespace LogicLegends.OpenArchive.Topics
                 {var pillar=station.GetComponentInChildren<ArchiveCrystalPillar>();if(pillar==null)continue;float d=Vector3.Distance(Player.LocalInstance.transform.position,pillar.transform.position);if(d<18&&d<distance){distance=d;topic=station.topic;}}
             }
             bool show=topic>=0&&session.CrystalsEnabled&&Time.timeScale>0&&Player.LocalInstance!=null&&!Player.LocalInstance.IsMovementLocked&&(ArchiveTopicUI.Current==null||ArchiveTopicUI.Current.ReadingStation==null);
+            if(ArchiveTeamCoordinationUI.Current!=null&&(ArchiveTeamCoordinationUI.Current.PartyPanelOpen||ArchiveTeamCoordinationUI.Current.PingMenuOpen))show=false;
             panel.gameObject.SetActive(show);if(!show)return;
             var c=session.Crystal(topic);if(c==null){panel.gameObject.SetActive(false);return;}
             var color=ArchiveCrystalPillar.Palette[topic];int value=ArchiveCrystalProgress.Percent(session.State,c);

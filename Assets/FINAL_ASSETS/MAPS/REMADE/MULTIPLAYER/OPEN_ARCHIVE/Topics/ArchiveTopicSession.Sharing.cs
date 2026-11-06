@@ -110,6 +110,7 @@ namespace LogicLegends.OpenArchive.Topics
             }
             if(donor.items[index]<=0)donor.equippedItem=-1;
             donor.nextUseAt=Clock+.45;
+            TrackRewardGift(actor,target,index);
             return true;
         }
     }

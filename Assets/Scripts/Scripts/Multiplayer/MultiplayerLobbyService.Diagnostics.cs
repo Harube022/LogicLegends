@@ -18,6 +18,10 @@ public sealed partial class MultiplayerLobbyService
     [Serializable] public sealed class ConnectionReport
     {
         public string utc, cause, scene, transport, lastRetryCause, recovery = "Pending";
+        public string appVersion, packageId, buildGuid, protocol, unityVersion, platform, region;
+        public string deviceModel, operatingSystem, graphicsDeviceName, graphicsApi;
+        public int systemMemoryMegabytes;
+        public bool developmentBuild;
         public int attempts;
         public List<ConnectionSample> samples;
     }
@@ -55,11 +59,22 @@ public sealed partial class MultiplayerLobbyService
             lastConnectionReport.samples = new List<ConnectionSample>(connectionSamples); WriteConnectionReport(); return;
         }
         LastDisconnectCause = cause;
-        lastConnectionReport = new ConnectionReport { utc = DateTime.UtcNow.ToString("o"), cause = cause.ToString(),
-            scene = SceneManager.GetActiveScene().path, transport = PhotonNetwork.NetworkingClient.LoadBalancingPeer.TransportProtocol.ToString(),
-            samples = new List<ConnectionSample>(connectionSamples) };
+        lastConnectionReport = CreateConnectionReport(cause, connectionSamples);
         WriteConnectionReport();
         Debug.LogWarning("[Multiplayer] Connection interrupted: " + cause + ". Local diagnostics: " + LastDisconnectReportPath);
+    }
+    static ConnectionReport CreateConnectionReport(DisconnectCause cause, List<ConnectionSample> samples)
+    {
+        // Generic build/hardware metadata identifies the tested binary and device
+        // class. Never collect unique device/account IDs, room codes or credentials.
+        return new ConnectionReport { utc = DateTime.UtcNow.ToString("o"), cause = cause.ToString(),
+            scene = SceneManager.GetActiveScene().path, transport = PhotonNetwork.NetworkingClient.LoadBalancingPeer.TransportProtocol.ToString(),
+            appVersion = Application.version, packageId = Application.identifier, buildGuid = Application.buildGUID,
+            protocol = LobbyRules.Protocol, unityVersion = Application.unityVersion, platform = Application.platform.ToString(),
+            region = PhotonNetwork.CloudRegion, developmentBuild = Debug.isDebugBuild,
+            deviceModel = SystemInfo.deviceModel, operatingSystem = SystemInfo.operatingSystem,
+            graphicsDeviceName = SystemInfo.graphicsDeviceName, graphicsApi = SystemInfo.graphicsDeviceType.ToString(),
+            systemMemoryMegabytes = SystemInfo.systemMemorySize, samples = new List<ConnectionSample>(samples) };
     }
     void RecordRecoveryResult(bool success)
     {

@@ -33,7 +33,14 @@ public static class FriendsRepository
 
     public const int MessageLimit = 200;
     public const int MaxContacts = 100;
+    public const long MessageLifetimeMilliseconds = 24L * 60 * 60 * 1000;
     private const string Social = "social";
+    private static long serverTimeOffset;
+    public static bool? IsConnected { get; private set; }
+    internal static long NowMilliseconds => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + serverTimeOffset;
+    internal static bool IsRetained(Message message, long now) => message.SentAt > 0 && message.SentAt > now - MessageLifetimeMilliseconds;
+    internal static List<Message> RetainedMessages(IEnumerable<Message> messages, long now)
+        => messages.Where(message => IsRetained(message, now)).ToList();
 
     public static string MyId => FirebaseManager.IsReady ? FirebaseAuth.DefaultInstance.CurrentUser?.UserId : null;
     private static DatabaseReference Root => FirebaseDatabase.DefaultInstance.RootReference;
@@ -96,23 +103,23 @@ public static class FriendsRepository
             if (!ValidId(friend.Key) || friend.Value is not bool accepted || !accepted) continue;
             string seen = lastReadId(friend.Key);
             DataSnapshot messages = await Conversation(me, friend.Key).OrderByKey().LimitToLast(60).GetValueAsync();
-            int unread = 0;
-            foreach (DataSnapshot message in messages.Children)
-                if (string.CompareOrdinal(message.Key, seen) > 0 &&
-                    message.Child("sender").Value?.ToString() == friend.Key) unread++;
+            int unread = CountUnread(ReadMessages(messages, me, friend.Key), friend.Key, seen);
             if (unread > 0) result.UnreadByFriend[friend.Key] = unread;
         }
         return result;
     }
 
-    public static IDisposable WatchNotifications(Func<string, string> lastReadId,
+    public static NotificationSubscription WatchNotifications(Func<string, string> lastReadId,
         Action<Notifications> changed, Action<Exception> failed)
         => new NotificationSubscription(Mine(), lastReadId, changed, failed);
 
     internal static int CountUnread(IEnumerable<Message> messages, string friend, string seen)
-        => messages.Count(message => message.Sender == friend && string.CompareOrdinal(message.Id, seen) > 0);
+        => CountUnread(messages, friend, seen, NowMilliseconds);
 
-    private sealed class NotificationSubscription : IDisposable
+    internal static int CountUnread(IEnumerable<Message> messages, string friend, string seen, long now)
+        => messages.Count(message => IsRetained(message, now) && message.Sender == friend && string.CompareOrdinal(message.Id, seen) > 0);
+
+    public sealed class NotificationSubscription : IDisposable
     {
         private readonly string me;
         private readonly Func<string, string> lastReadId;
@@ -120,7 +127,7 @@ public static class FriendsRepository
         private readonly Action<Exception> failed;
         private readonly Dictionary<string, IDisposable> conversations = new Dictionary<string, IDisposable>();
         private readonly Dictionary<string, List<Message>> histories = new Dictionary<string, List<Message>>();
-        private IDisposable requests, friends;
+        private IDisposable requests, friends, clock, connection;
         private int requestCount;
         private bool disposed;
 
@@ -130,6 +137,17 @@ public static class FriendsRepository
             this.me = me; this.lastReadId = lastReadId; this.changed = changed; this.failed = failed;
             try
             {
+                IsConnected = null;
+                connection = new SnapshotSubscription(Root.Child(".info/connected"), snapshot =>
+                {
+                    if (Active && snapshot.Value is bool connected) IsConnected = connected;
+                }, ReportError);
+                clock = new SnapshotSubscription(Root.Child(".info/serverTimeOffset"), snapshot =>
+                {
+                    if (!Active) return;
+                    if (long.TryParse(snapshot.Value?.ToString(), out long offset)) serverTimeOffset = offset;
+                    Publish();
+                }, ReportError);
                 requests = new SnapshotSubscription(Root.Child(Social).Child("requests").Child(me), snapshot =>
                 {
                     if (!Active) return;
@@ -185,10 +203,13 @@ public static class FriendsRepository
             changed(result);
         }
 
+        // Expiry also changes counts when Firebase has no new snapshot to deliver.
+        public void Refresh() => Publish();
+
         public void Dispose()
         {
             disposed = true;
-            requests?.Dispose(); friends?.Dispose();
+            requests?.Dispose(); friends?.Dispose(); clock?.Dispose(); connection?.Dispose();
             foreach (var stream in conversations.Values) stream?.Dispose();
             conversations.Clear(); histories.Clear();
         }
@@ -263,7 +284,7 @@ public static class FriendsRepository
     {
         string me = Mine();
         DataSnapshot snapshot = await Conversation(me, other).OrderByKey().LimitToLast(60).GetValueAsync();
-        return ReadMessages(snapshot, me, other);
+        return RetainedMessages(ReadMessages(snapshot, me, other), NowMilliseconds);
     }
 
     public static IDisposable WatchMessages(string other, Action<List<Message>> changed, Action<Exception> failed)
@@ -330,12 +351,12 @@ public static class FriendsRepository
             throw new InvalidOperationException("Invalid invite code.");
         body = InappropriateTextFilter.Censor(body);
         var reference = Conversation(me, other).Push();
-        long sentAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        long sentAt = NowMilliseconds;
         var message = new Dictionary<string, object>
         {
             ["sender"] = me, ["text"] = body,
             ["inviteCode"] = inviteCode ?? string.Empty,
-            ["sentAt"] = sentAt
+            ["sentAt"] = ServerValue.Timestamp
         };
         await reference.SetValueAsync(message);
         return new Message { Id = reference.Key, Sender = me, Text = body, InviteCode = inviteCode, SentAt = sentAt };

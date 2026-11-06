@@ -91,7 +91,8 @@ public static class MainMenuAchievementsUISetup
             .Single(t=>t.name=="Achievements");
         var background=(RectTransform)menu.Find("Backgorund");
         background.localScale=Vector3.one;
-        StageUITheme.Stretch(background,new Vector2(.13f,.06f),new Vector2(.94f,.94f));
+        StageUITheme.Stretch(background,new Vector2(.095f,.06f),new Vector2(.905f,.94f));
+        ConfigureCloseButton(menu, background);
         var art=background.GetComponent<Image>();
         art.sprite=SpriteAt(panelPath);art.type=Image.Type.Simple;art.preserveAspect=false;art.raycastTarget=false;
         foreach(var name in new[]{"Subtitle","ScrollHint","Heading","ColumnHeaders","AchievementsScrollbar"})
@@ -166,6 +167,50 @@ public static class MainMenuAchievementsUISetup
         responsive.RefreshLayout();
         scroll.StopMovement();scroll.verticalNormalizedPosition=1;
         EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);
+    }
+
+    [MenuItem("Logic Legends/Main Menu/Center Achievements And Use Close Button")]
+    public static void UpdateNavigation()
+    {
+        var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+        if (EditorApplication.isPlayingOrWillChangePlaymode || scene.path != "Assets/Scenes/Main Menu.unity")
+            throw new InvalidOperationException("Open Main Menu outside Play Mode first.");
+        var menu = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<Transform>(true))
+            .Single(t => t.name == "Achievements");
+        Undo.RegisterFullObjectHierarchyUndo(menu.gameObject, "Center achievements and replace back arrow");
+        var background = (RectTransform)menu.Find("Backgorund");
+        StageUITheme.Stretch(background, new Vector2(.095f,.06f), new Vector2(.905f,.94f));
+        ConfigureCloseButton(menu, background);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+    }
+
+    private static void ConfigureCloseButton(Transform menu, RectTransform background)
+    {
+        var existing = menu.Find("btn_back") ?? background.Find("CloseAchievements");
+        if (existing == null) throw new InvalidOperationException("The achievements navigation button is missing.");
+        // Reuse the same Button so its ShowMainMenu callback remains connected.
+        existing.SetParent(background, false);
+        existing.name = "CloseAchievements";
+        var button = existing.GetComponent<Button>();
+        var label = button.GetComponentInChildren<TMP_Text>(true);
+        if (label == null)
+        {
+            label = StageUITheme.Text("Label", existing, "X", 38, false);
+            StageUITheme.Stretch(label.rectTransform, Vector2.zero, Vector2.one);
+        }
+        MultiplayerUIArt.StyleCloseAction(button);
+        label.font = StageUITheme.HeadingFont;
+        label.fontSize = 38; label.enableAutoSizing = false; label.isOrthographic = true;
+        label.color = new Color(1f,.95f,.83f); label.alignment = TextAlignmentOptions.Center;
+        label.raycastTarget = false;
+        var rect = (RectTransform)existing;
+        rect.localScale = Vector3.one;
+        rect.anchorMin = rect.anchorMax = new Vector2(.075f,.90f);
+        rect.pivot = new Vector2(.5f,.5f); rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = new Vector2(90,90);
+        existing.SetAsLastSibling();
+        EditorUtility.SetDirty(button);
     }
 
     private static void SetText(Transform parent,string name,Vector2 min,Vector2 max,float size)

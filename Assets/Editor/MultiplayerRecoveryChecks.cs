@@ -15,7 +15,7 @@ using UnityEngine.SceneManagement;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 /// <summary>Private-room transport checks with real loss simulation, rejoin and authoritative checkpoints.</summary>
-public static class MultiplayerRecoveryChecks
+public static partial class MultiplayerRecoveryChecks
 {
     [Serializable] sealed class Report
     {

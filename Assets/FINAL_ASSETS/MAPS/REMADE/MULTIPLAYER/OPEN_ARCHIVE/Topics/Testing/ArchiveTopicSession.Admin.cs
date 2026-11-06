@@ -33,6 +33,7 @@ namespace LogicLegends.OpenArchive.Topics
             var previous = State.stations[command.topic];
             var record = State.actors.FirstOrDefault(a => a.actor == actor);
             if (command.revision != previous.revision || command.sequence <= (record?.lastSequence ?? 0)) return false;
+            MarkRewardsAdminUsed();
             if (record == null) { record = new ArchiveActor { actor=actor,displayName=ActorName(actor) }; State.actors.Add(record); }
             record.lastSequence = command.sequence;
             bool complete = command.action == ArchiveAction.AdminCompleteTopic;
