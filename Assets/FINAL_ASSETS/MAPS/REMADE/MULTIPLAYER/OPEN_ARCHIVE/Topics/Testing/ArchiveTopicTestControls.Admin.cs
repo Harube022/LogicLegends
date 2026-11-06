@@ -12,7 +12,7 @@ namespace LogicLegends.OpenArchive.Topics
         Button adminToggle;
         ScrollRect adminScroll;
         Canvas adminCanvas;
-        int tab,actorIndex,chosenItem,monsterIndex;
+        int tab,actorIndex,chosenItem,monsterIndex,beaconIndex;
         string confirm="";
         public bool AdminPanelOpen=>adminPanel!=null&&adminPanel.gameObject.activeSelf;
         static readonly Color AdminInk=new Color(.025f,.075f,.10f,.985f),AdminCream=new Color(1,.94f,.8f);
@@ -83,6 +83,15 @@ namespace LogicLegends.OpenArchive.Topics
             }
             else
             {
+                void PreviewMatchFilm(bool victory)
+                {
+                    if(Photon.Pun.PhotonNetwork.InRoom){confirm="Match-film previews are available offline. Real matches play them automatically.";return;}
+                    var cinematic=session.GetComponent<ArchiveMatchCinematic>();
+                    if(cinematic==null){confirm="The match cinematic setup is missing.";return;}
+                    if(AdminPanelOpen)ToggleTopicAdmin();
+                    if(victory)cinematic.PreviewVictory();else cinematic.PreviewSummoning();
+                }
+                Row("Summoning intro (offline)",()=>PreviewMatchFilm(false),"Victory ending (offline)",()=>PreviewMatchFilm(true));
                 Row("Start shared clock now",()=>Run(ArchiveAdminTestAction.StartMatchClock),"Clock: 1 minute left",()=>Run(ArchiveAdminTestAction.MatchClockOneMinute,0,0,true));
                 Row("Force MATCH TIMEOUT",()=>Run(ArchiveAdminTestAction.ExpireMatchClock,0,0,true),"Open portal / test 2m escape",()=>Run(ArchiveAdminTestAction.OpenPortal,0,0,true));
                 Row("Monster: "+(monsterIndex==0?"PRIMARY":"NIGHT GUARDIAN"),()=>{monsterIndex=1-monsterIndex;PopulateAdmin();},"Go to nest",()=>Run(ArchiveAdminTestAction.TeleportToNest,0,0,true));
@@ -91,6 +100,10 @@ namespace LogicLegends.OpenArchive.Topics
                 Row("Replay second entrance",()=>Run(ArchiveAdminTestAction.ReplayEntrance,0,0,true),"POV jumpscare (offline)",()=>Run(ArchiveAdminTestAction.PreviewJumpscare,monsterIndex,0,true));
                 Row("Preview real barrier",()=>Run(ArchiveAdminTestAction.PreviewBarrier,monsterIndex,0,true),"Release / reset capture",()=>Run(ArchiveAdminTestAction.ReleaseCapture,monsterIndex));
                 Row("Barrier SUCCESS",()=>Run(ArchiveAdminTestAction.BarrierSuccess,monsterIndex),"Barrier FAILED / attack",()=>Run(ArchiveAdminTestAction.BarrierFail,monsterIndex,0,true));
+                Row("Go to nearest rune site",()=>Run(ArchiveAdminTestAction.VisitFieldSite),"Preview luminous mist",()=>Run(ArchiveAdminTestAction.PreviewFieldEvent,0));
+                Row("Preview floating shards",()=>Run(ArchiveAdminTestAction.PreviewFieldEvent,1),"Preview rune surge",()=>Run(ArchiveAdminTestAction.PreviewFieldEvent,2));
+                Row("Beacon "+(beaconIndex+1)+" / 4 — change",()=>{beaconIndex=(beaconIndex+1)%4;PopulateAdmin();},"Go to selected beacon",()=>Run(ArchiveAdminTestAction.VisitBeacon,beaconIndex));
+                Row("Recharge all beacons",()=>Run(ArchiveAdminTestAction.RechargeBeacons),"Clear field effects",()=>Run(ArchiveAdminTestAction.ClearFieldEffects));
             }
             Canvas.ForceUpdateCanvases();adminScroll.verticalNormalizedPosition=1;
         }

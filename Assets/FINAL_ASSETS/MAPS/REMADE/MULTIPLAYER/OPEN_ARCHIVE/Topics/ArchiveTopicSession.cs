@@ -102,6 +102,7 @@ namespace LogicLegends.OpenArchive.Topics
         }
         void Start()
         {
+            BindRewardIdentity();
             roomMode = PhotonNetwork.InRoom;
             BindLearningEncounter();
             foreach (var station in stations) station.session = this;
@@ -173,6 +174,8 @@ namespace LogicLegends.OpenArchive.Topics
                 return AcceptTopicAdmin(actor, cmd);
             if (TickMatchTime()) Commit();
             if (!MatchTimeAllowsGameplay) return false;
+            if (cmd.action == ArchiveAction.TeamPing) return AcceptTeamPing(actor,cmd);
+            if (cmd.action == ArchiveAction.ActivateBeacon) return AcceptBeacon(actor,cmd);
             if (cmd.action == ArchiveAction.BarrierHint || cmd.action == ArchiveAction.BarrierAnswer)
                 return AcceptBarrierLearning(actor, cmd);
             if (cmd.action == ArchiveAction.RequestHint) return AcceptLearningHint(actor, cmd);
@@ -362,7 +365,7 @@ namespace LogicLegends.OpenArchive.Topics
             else
             {
                 feedback=ArchiveLearningFeedback.Diagnose(q,s,feedback);
-                RecordMistake(actor,sequence,s,"answer");
+                RecordMistake(actor,sequence,s,"answer",feedback);
                 s.feedback="Incorrect — "+ActorName(actor)+" recorded one mistake. "+feedback;
                 if(s.topic==6||s.topic==7||s.topic==8||s.topic==9)
                 {
@@ -378,11 +381,13 @@ namespace LogicLegends.OpenArchive.Topics
             Touch(s);
         }
         void ClearMappingInputs(){foreach(var actor in State.actors){actor.mappingInput=-1;actor.mappingRound=-1;}}
-        void RecordMistake(int actor,int sequence,ArchiveStationState state,string reason)
+        void RecordMistake(int actor,int sequence,ArchiveStationState state,string reason,string reviewFeedback=null)
         {
             var record=State.actors.FirstOrDefault(a=>a.actor==actor);
             if(actor!=0){if(record==null){record=new ArchiveActor{actor=actor,displayName=ActorName(actor)};State.actors.Add(record);}record.mistakes++;}
-            State.mistakes.Add(new ArchiveMistake{actor=actor,topic=state.topic,round=state.round,revision=state.revision,sequence=sequence,time=Clock,reason=reason});
+            State.mistakes.Add(new ArchiveMistake{actor=actor,topic=state.topic,round=state.round,revision=state.revision,sequence=sequence,time=Clock,reason=reason,
+                reviewVersion=1,subphase=state.subphase,resetSerial=state.testResetSerial,reviewFeedback=reviewFeedback});
+            NormalizeLearningReviews();
             if(hunting!=null)hunting.Request(KhezuCommand.AddMistake);
         }
         public string ActorName(int actor)
@@ -408,7 +413,10 @@ namespace LogicLegends.OpenArchive.Topics
             if(crystalRestoration){NormalizeCrystals();RefreshCrystals();}
             NormalizeWorldTime();AdvanceWorldTime();
             AdvanceExitProgress();
+            NormalizeFieldEvents();
             SyncEscapedPlayers();
+            FinalizeMatchRewards();
+            CaptureMatchReward();
             State.revision++;Changed?.Invoke();
             if(PhotonNetwork.InRoom&&IsAuthority)
             {
@@ -419,7 +427,9 @@ namespace LogicLegends.OpenArchive.Topics
         }
         void Update()
         {
+            CaptureMatchReward();
             if(Ready&&TickMatchTime())Commit();
+            if(Ready&&IsAuthority&&TickFieldEvents())Commit();
             SyncMatchTimeout();
             if(Ready)TickSurvival();
             if(TeamDefeated)return;
@@ -491,7 +501,7 @@ namespace LogicLegends.OpenArchive.Topics
                 var state=JsonUtility.FromJson<ArchiveTeamState>(json);
                 if(state==null||state.version!=1||state.stations==null||state.stations.Length!=10||(!initial&&State!=null&&state.revision<=State.revision))return;
                 if(State!=null&&State.matchId!=state.matchId)pendingCommands.Clear();
-                State=state;NormalizeMatchTime();NormalizeSurvival();NormalizeExit();NormalizeLearning();NormalizeCooperation();NormalizeWorldTime();if(crystalRestoration)NormalizeCrystals();questions.Clear();trustedSnapshot=json;SyncEscapedPlayers();Changed?.Invoke();
+                State=state;NormalizeMatchTime();NormalizeSurvival();NormalizeExit();NormalizeLearning();NormalizeCooperation();NormalizeWorldTime();if(crystalRestoration)NormalizeCrystals();NormalizeRewards();NormalizeFieldEvents();questions.Clear();trustedSnapshot=json;SyncEscapedPlayers();CaptureMatchReward();Changed?.Invoke();
             }
             catch(Exception e){Debug.LogWarning("Ignored malformed topic snapshot: "+e.GetType().Name);}
         }

@@ -6,8 +6,8 @@ using NetPlayer = Photon.Realtime.Player;
 public static class LobbyRules
 {
     public const string CodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    // Updated peers share the encounter authority, reconnect behavior and DM1 bank.
-    public const string Protocol = "LL-private-lobby-20";
+    // Peers must preserve the same mistake context across checkpoints and handoff.
+    public const string Protocol = "LL-private-lobby-25";
     public const int RecoverySeatMilliseconds = 45000;
     public const float RecoverySeconds = 30f;
     public const int RecoveryAttempts = 4;

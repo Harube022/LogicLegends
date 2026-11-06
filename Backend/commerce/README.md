@@ -1,5 +1,9 @@
 # Gem top-ups and shop purchases
 
+For Open Archive multiplayer coin rewards and its once-per-account gem
+milestones, see [Multiplayer rewards](MULTIPLAYER_REWARDS.md). This separate
+endpoint preserves the solo trial policy and the existing shop catalog.
+
 This is the new standalone Node.js backend for hosting outside Firebase while the project stays on **Spark**. It replaces `paymongo-local/functions` for the upgraded shop. Both top-ups and clothing purchases use one account wallet: `users/<uid>/gems`. Owned clothes are saved at `users/<uid>/inventory/<itemId>`, so hosted live purchases are compatible with the existing game equipment loaders.
 
 There is **one gem balance**, with no paid/earned split. Existing gems are preserved. Stage completion now awards **0 gems**, including scenes that still serialize an older nonzero reward. Gameplay never writes the gem field, even with a zero increment, so a stage save cannot overwrite a top-up. Coin rewards and stage unlocks continue through transactions on their own fields. Firebase Console or privileged Admin SDK edits can still change coins and gems for developer testing; no administrator credentials or gem-edit backdoor is included in the game.

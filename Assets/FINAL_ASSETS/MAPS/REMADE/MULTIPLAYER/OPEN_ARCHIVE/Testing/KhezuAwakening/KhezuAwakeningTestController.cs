@@ -102,6 +102,7 @@ namespace LogicLegends.Tests.Khezu
         public void IncreaseMistakeCount()
         {
             if (!Application.isPlaying || !enabled) return;
+            KhezuLegacyTestPermission.MarkActionUsed();
             if (MistakeRequested != null) { MistakeRequested(); return; }
             if (preview) ResetTest();
             mistakes = Mathf.Min(4, mistakes + 1);
@@ -111,6 +112,7 @@ namespace LogicLegends.Tests.Khezu
         public void ResetTest()
         {
             if (!Application.isPlaying || !enabled) return;
+            KhezuLegacyTestPermission.MarkActionUsed();
             if (SleepRequested != null) { SleepRequested(); return; }
             ResetLocal();
         }
@@ -124,6 +126,7 @@ namespace LogicLegends.Tests.Khezu
         public bool PreviewAnimation(string clipName)
         {
             if (huntingControl || !Application.isPlaying || !enabled || !AvailableAnimations.Contains(clipName) || !HasState(clipName)) return false;
+            KhezuLegacyTestPermission.MarkActionUsed();
             preview = true;
             BlendTo(clipName);
             return true;
