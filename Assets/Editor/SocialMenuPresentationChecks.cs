@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,7 +29,9 @@ public static class SocialMenuPresentationChecks
         File.Delete(Request);
         try
         {
-            if (mode == "delivery") VerifyDelivery();
+            if (mode == "fade") VerifyFade();
+            else if (mode == "retention") VerifyRetention();
+            else if (mode == "delivery") VerifyDelivery();
             else if (mode == "removal") VerifyRemoval();
             else if (mode == "notifications") VerifyNotifications();
             else Verify();
@@ -36,15 +39,170 @@ public static class SocialMenuPresentationChecks
         catch (Exception error) { File.WriteAllText(Result, "FAIL\n" + error); Debug.LogException(error); }
     }
 
+    private static void VerifyFade()
+    {
+        var preview = EditorSceneManager.NewPreviewScene();
+        GameObject root = null;
+        IEnumerator routine = null;
+        var checks = new List<string>();
+        EditorApplication.CallbackFunction step = null;
+        void Finish(Exception error)
+        {
+            EditorApplication.update -= step;
+            if (preview.IsValid()) EditorSceneManager.ClosePreviewScene(preview);
+            File.WriteAllLines(Result, error == null ? checks : new List<string> { "FAIL", error.ToString() });
+        }
+        IEnumerator Run()
+        {
+            root = new GameObject("Local Social fade check", typeof(RectTransform), typeof(Canvas));
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(root, preview);
+            ((RectTransform)root.transform).sizeDelta = new Vector2(1920, 1080);
+            var owner = root.AddComponent<FriendsUI>();
+            var overlay = MultiplayerUIArt.Rect("Social", root.transform).gameObject;
+            var surface = MultiplayerUIArt.Rect("Content", overlay.transform);
+            var list = MultiplayerUIArt.Rect("ListPane", surface).gameObject;
+            var chat = MultiplayerUIArt.Rect("ChatPane", surface).gameObject;
+            var rows = MultiplayerUIArt.Rect("Rows", list.transform);
+            var messages = MultiplayerUIArt.Rect("Messages", chat.transform);
+            foreach (var pair in new[] { ("overlay", overlay), ("listPane", list), ("chatPane", chat) })
+                typeof(FriendsUI).GetField(pair.Item1, Fields).SetValue(owner, pair.Item2);
+            typeof(FriendsUI).GetField("listContent", Fields).SetValue(owner, rows);
+            typeof(FriendsUI).GetField("messageContent", Fields).SetValue(owner, messages);
+            typeof(FriendsUI).GetMethod("BeginContentLoad", Fields).Invoke(owner, new object[] { "Loading friends..." });
+            var presentation = Get<MenuDataFeedback>(owner, "presentation");
+            presentation.StopAllCoroutines();
+            var listGroup = list.GetComponent<CanvasGroup>();
+            var chatGroup = chat.GetComponent<CanvasGroup>();
+            Check(listGroup != null && chatGroup != null && listGroup.alpha == 1 && chatGroup.alpha == 1 &&
+                listGroup.interactable && chatGroup.interactable,
+                "Social panes stay fully visible and interactive while data is pending", checks);
+            var loadingLabel = Get<TMP_Text>(presentation, "message");
+            Check(!Get<bool>(presentation, "automaticLoadingFeedback") && loadingLabel.text == string.Empty,
+                "Ordinary tab loads do not schedule or show a Loading label", checks);
+            var row = (RectTransform)typeof(FriendsUI).GetMethod("Row", Fields).Invoke(owner,
+                new object[] { rows, "Local friend", 122f, .46f });
+            Check(row.GetComponentInParent<CanvasGroup>() == listGroup,
+                "Dynamically loaded friend rows inherit the actual fade group", checks);
+            var rowButtonMethod = typeof(FriendsUI).GetMethod("RowButton", BindingFlags.NonPublic | BindingFlags.Static);
+            var actions = new[] {
+                (Button)rowButtonMethod.Invoke(null, new object[] { row, "CHAT", -252f, (UnityEngine.Events.UnityAction)(() => { }), false }),
+                (Button)rowButtonMethod.Invoke(null, new object[] { row, "REMOVE", -12f, (UnityEngine.Events.UnityAction)(() => { }), true })
+            };
+            foreach (var button in actions) button.targetGraphic.CrossFadeColor(button.colors.disabledColor, 0f, true, true);
+            typeof(MenuDataFeedback).GetMethod("SetContent", Fields).Invoke(presentation, new object[] { 0f, false });
+            Check(actions.All(button => button.GetComponent<CanvasGroup>().ignoreParentGroups &&
+                button.GetComponent<CanvasGroup>().alpha == 1f && button.targetGraphic.canvasRenderer.GetColor() == Color.white &&
+                button.IsInteractable()),
+                "CHAT and REMOVE stay opaque, untinted and usable while content loads", checks);
+            var group = Get<CanvasGroup>(presentation, "feedbackGroup");
+            var label = Get<TMP_Text>(presentation, "message");
+            presentation.ShowMessage("Loading friends...");
+            typeof(FriendsUI).GetMethod("RevealContent", Fields).Invoke(owner, new object[] { 0 });
+            presentation.StopAllCoroutines();
+            Check(group.alpha == 0 && label.text == string.Empty && listGroup.alpha == 0,
+                "Loading text clears immediately on readiness while rows remain hidden for layout", checks);
+            var revealMethod = typeof(MenuDataFeedback).GetMethod("Reveal", Fields);
+            int version = Get<int>(presentation, "version");
+            var oldReveal = (IEnumerator)revealMethod.Invoke(presentation, new object[] { version });
+            oldReveal.MoveNext(); // layout frame
+            oldReveal.MoveNext(); // first fade frame
+            typeof(FriendsUI).GetMethod("BeginContentLoad", Fields).Invoke(owner, new object[] { "Loading chats..." });
+            presentation.StopAllCoroutines();
+            Check(!oldReveal.MoveNext() && listGroup.alpha == 1 && listGroup.interactable,
+                "Switching tabs cancels the prior fade and restores full visibility without blocking input", checks);
+            typeof(FriendsUI).GetMethod("RevealContent", Fields).Invoke(owner, new object[] { 0 });
+            presentation.StopAllCoroutines();
+            var reveal = (IEnumerator)revealMethod.Invoke(presentation, new object[] { Get<int>(presentation, "version") });
+            bool sawPartialAlpha = false;
+            float deadline = Time.realtimeSinceStartup + 3f;
+            while (reveal.MoveNext())
+            {
+                sawPartialAlpha |= listGroup.alpha > 0 && listGroup.alpha < 1;
+                CheckDuringFade(listGroup, chatGroup, label);
+                if (actions.Any(button => button.GetComponent<CanvasGroup>().alpha != 1f ||
+                    button.targetGraphic.canvasRenderer.GetColor() != Color.white || !button.IsInteractable()))
+                    throw new InvalidOperationException("Buttons became transparent or blocked during the row fade.");
+                if (Time.realtimeSinceStartup > deadline) throw new TimeoutException("Social fade did not finish.");
+                yield return null;
+            }
+            Check(sawPartialAlpha && listGroup.alpha == 1 && chatGroup.alpha == 1 && listGroup.interactable &&
+                chatGroup.interactable && presentation.IsRevealed,
+                "Only ready content fades in while Social input remains usable", checks);
+            Check(actions.All(button => button.GetComponent<CanvasGroup>().alpha == 1f && button.IsInteractable() &&
+                button.targetGraphic.canvasRenderer.GetColor() == Color.white),
+                "Buttons remain fully visible and usable after loading finishes", checks);
+            Check(surface.GetComponentsInChildren<MenuDataFeedback>(true).Length == 1 && list.GetComponents<CanvasGroup>().Length == 1 &&
+                chat.GetComponents<CanvasGroup>().Length == 1,
+                "Repeated tab loads reuse one presenter and one fade group per pane", checks);
+            var other = MultiplayerUIArt.Rect("Other menu", root.transform);
+            var otherGroup = other.gameObject.AddComponent<CanvasGroup>();
+            var otherLabel = StageUITheme.Text("Feedback", other, "", 30);
+            var otherFeedback = otherLabel.gameObject.AddComponent<CanvasGroup>();
+            var otherPresentation = other.gameObject.AddComponent<MenuDataFeedback>();
+            otherPresentation.Configure(new[] { otherGroup }, otherFeedback, otherLabel);
+            Check(Get<float>(otherPresentation, "minimumLoadingDisplay") == .35f &&
+                Get<float>(presentation, "minimumLoadingDisplay") == 0f && Get<bool>(otherPresentation, "automaticLoadingFeedback") &&
+                Get<bool>(otherPresentation, "blockInputWhileLoading"),
+                "Only Social skips routine loading text and input gates; other menus retain their timing", checks);
+            var needsFeedback = typeof(FriendsUI).GetMethod("NeedsConnectionFeedback", BindingFlags.Static | BindingFlags.NonPublic);
+            bool Needs(float elapsed, bool offline, bool? connected) => (bool)needsFeedback.Invoke(null, new object[] { elapsed, offline, connected });
+            Check(!Needs(10f, false, true) && !Needs(.3f, false, false) && !Needs(10f, false, null) &&
+                Needs(2f, false, false) && Needs(0f, true, true),
+                "Feedback appears only for unavailable internet or sustained Firebase disconnection, not ordinary tab loads", checks);
+            checks.Add("COMPLETE: local native CanvasGroup and fade lifecycle checks; no accounts accessed or scene layout saved.");
+        }
+        void CheckDuringFade(CanvasGroup list, CanvasGroup chat, TMP_Text label)
+        {
+            if (label.text.Length != 0 || !list.interactable || !chat.interactable)
+                throw new InvalidOperationException("Routine loading text appeared or input was blocked during the fade.");
+        }
+        routine = Run();
+        step = () =>
+        {
+            try { if (!routine.MoveNext()) Finish(null); }
+            catch (Exception error) { Finish(error); }
+        };
+        EditorApplication.update += step;
+    }
+
+    private static void VerifyRetention()
+    {
+        const long now = 1800000000000, lifetime = 24L * 60 * 60 * 1000;
+        var retained = typeof(FriendsRepository).GetMethod("RetainedMessages", BindingFlags.NonPublic | BindingFlags.Static);
+        var unread = typeof(FriendsRepository).GetMethod("CountUnread", BindingFlags.NonPublic | BindingFlags.Static,
+            null, new[] { typeof(IEnumerable<FriendsRepository.Message>), typeof(string), typeof(string), typeof(long) }, null);
+        var messages = new[] {
+            new FriendsRepository.Message { Id = "001", Sender = "friend", SentAt = now - lifetime - 1 },
+            new FriendsRepository.Message { Id = "002", Sender = "friend", SentAt = now - lifetime, InviteCode = "AB3D7K" },
+            new FriendsRepository.Message { Id = "003", Sender = "friend", SentAt = now - lifetime + 1 },
+            new FriendsRepository.Message { Id = "004", Sender = "me", SentAt = now },
+            new FriendsRepository.Message { Id = "005", Sender = "friend", SentAt = 0 }
+        };
+        var checks = new List<string>();
+        var visible = (List<FriendsRepository.Message>)retained.Invoke(null, new object[] { messages, now });
+        Check(visible.Select(m => m.Id).SequenceEqual(new[] { "003", "004" }),
+            "Expired messages, boundary-age invites and invalid timestamps are hidden", checks);
+        Check((int)unread.Invoke(null, new object[] { messages, "friend", "", now }) == 1,
+            "Expired messages and outgoing sends do not count as unread", checks);
+        Check(((List<FriendsRepository.Message>)retained.Invoke(null, new object[] { messages, now + lifetime })).Count == 0,
+            "Advancing time expires existing history without a Firebase snapshot", checks);
+        VerifyDelivery();
+        checks.Add("PASS Confirmed-send merge and latest-60 delivery regression checks");
+        VerifyNotifications();
+        checks.Add("PASS Existing notification count and badge regression checks");
+        checks.Add("COMPLETE: local retention checks; no live data changed.");
+        File.WriteAllLines(Result, checks);
+    }
+
     private static void VerifyNotifications()
     {
-        var method = typeof(FriendsRepository).GetMethod("CountUnread", BindingFlags.NonPublic | BindingFlags.Static);
+        var method = typeof(FriendsRepository).GetMethod("CountUnread", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(IEnumerable<FriendsRepository.Message>), typeof(string), typeof(string) }, null);
         int Unread(IEnumerable<FriendsRepository.Message> messages, string seen)
             => (int)method.Invoke(null, new object[] { messages, "friend", seen });
-        var old = new FriendsRepository.Message { Id = "001", Sender = "friend", Text = "Earlier message" };
-        var own = new FriendsRepository.Message { Id = "002", Sender = "me", Text = "My reply" };
-        var invite = new FriendsRepository.Message { Id = "003", Sender = "friend", Text = "Join my room", InviteCode = "AB3D7K" };
-        var incoming = new FriendsRepository.Message { Id = "004", Sender = "friend", Text = "New message" };
+        var old = new FriendsRepository.Message { Id = "001", Sender = "friend", Text = "Earlier message", SentAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() };
+        var own = new FriendsRepository.Message { Id = "002", Sender = "me", Text = "My reply", SentAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() };
+        var invite = new FriendsRepository.Message { Id = "003", Sender = "friend", Text = "Join my room", InviteCode = "AB3D7K", SentAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() };
+        var incoming = new FriendsRepository.Message { Id = "004", Sender = "friend", Text = "New message", SentAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() };
         var checks = new List<string>();
         Check(Unread(new[] { old, own, invite }, "001") == 1, "Incoming invites count as unread; outgoing messages do not", checks);
         Check(Unread(new[] { old, own, invite, incoming }, "001") == 2, "A new message updates the unread total from the latest snapshot", checks);
@@ -134,9 +292,9 @@ public static class SocialMenuPresentationChecks
         var merge = typeof(FriendsUI).GetMethod("MergeMessages", BindingFlags.NonPublic | BindingFlags.Static);
         List<FriendsRepository.Message> Merge(IEnumerable<FriendsRepository.Message> snapshot, IEnumerable<FriendsRepository.Message> local)
             => (List<FriendsRepository.Message>)merge.Invoke(null, new object[] { snapshot, local });
-        var old = new FriendsRepository.Message { Id = "001", Sender = "friend", Text = "Earlier message" };
-        var sent = new FriendsRepository.Message { Id = "002", Sender = "me", Text = "New message" };
-        var invite = new FriendsRepository.Message { Id = "003", Sender = "me", Text = "Join my multiplayer room.", InviteCode = "AB3D7K" };
+        var old = new FriendsRepository.Message { Id = "001", Sender = "friend", Text = "Earlier message", SentAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() };
+        var sent = new FriendsRepository.Message { Id = "002", Sender = "me", Text = "New message", SentAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() };
+        var invite = new FriendsRepository.Message { Id = "003", Sender = "me", Text = "Join my multiplayer room.", InviteCode = "AB3D7K", SentAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() };
         var local = new[] { sent, invite };
         var checks = new List<string>();
         var stale = Merge(new[] { old }, local);
@@ -146,7 +304,7 @@ public static class SocialMenuPresentationChecks
         Check(echo.Count == 3 && echo.Last().InviteCode == "AB3D7K", "Firebase echoes do not duplicate the text or invite", checks);
         Check(Merge(Array.Empty<FriendsRepository.Message>(), Array.Empty<FriendsRepository.Message>()).Count == 0,
             "A fresh conversation does not retain another chat's messages", checks);
-        var history = Enumerable.Range(0, 65).Select(i => new FriendsRepository.Message { Id = i.ToString("D3") });
+        var history = Enumerable.Range(0, 65).Select(i => new FriendsRepository.Message { Id = i.ToString("D3"), SentAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
         var latest = Merge(history, Array.Empty<FriendsRepository.Message>());
         Check(latest.Count == 60 && latest.First().Id == "005" && latest.Last().Id == "064", "History keeps the latest 60 messages in order", checks);
         checks.Add("COMPLETE: local delivery regression checks; no live messages sent.");

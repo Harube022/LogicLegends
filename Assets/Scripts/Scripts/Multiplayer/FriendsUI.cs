@@ -34,7 +34,7 @@ public sealed class FriendsUI : MonoBehaviour
     private int renderedMessageCount = -1;
     private string notificationAccount;
     private FriendsRepository.Notifications notifications;
-    private IDisposable notificationSubscription;
+    private FriendsRepository.NotificationSubscription notificationSubscription;
     private float retryNotificationsAt;
     private int notificationVersion;
     private IDisposable messageSubscription;
@@ -47,6 +47,8 @@ public sealed class FriendsUI : MonoBehaviour
     private bool removingFriend;
     private MenuDataFeedback presentation;
     private bool awaitingContent;
+    private float expireMessagesAt;
+    private float contentLoadStartedAt;
 
     private void Awake()
     {
@@ -85,9 +87,19 @@ public sealed class FriendsUI : MonoBehaviour
         bool watchNotifications = account != null && (home || lobbyButton.gameObject.activeInHierarchy || overlay.activeSelf);
         if (!watchNotifications && notificationSubscription != null) StopNotifications();
         if (watchNotifications && notificationSubscription == null && Time.unscaledTime >= retryNotificationsAt) StartNotifications();
+        if (Time.unscaledTime >= expireMessagesAt)
+        {
+            expireMessagesAt = Time.unscaledTime + 1f;
+            notificationSubscription?.Refresh();
+            long now = FriendsRepository.NowMilliseconds;
+            foreach (string id in confirmedSends.Where(pair => !FriendsRepository.IsRetained(pair.Value, now)).Select(pair => pair.Key).ToArray())
+                confirmedSends.Remove(id);
+            if (overlay.activeSelf && conversation != null && !awaitingContent) RenderConversation();
+        }
         if (!overlay.activeSelf) return;
         if (account == null) { Close(); return; }
         invite.gameObject.SetActive(conversation != null && CanInvite());
+        if (awaitingContent) UpdateConnectionFeedback();
         if (accessDenied || awaitingContent || Time.unscaledTime < pollAt) return;
         pollAt = Time.unscaledTime + 8f;
         if (conversation == null && section != Section.Add) Reload();
@@ -139,18 +151,36 @@ public sealed class FriendsUI : MonoBehaviour
         {
             // CanvasGroups only affect visibility/input; authored anchors and button sizes stay untouched.
             var surface = listPane.transform.parent;
-            var listGroup = listPane.GetComponent<CanvasGroup>() ?? listPane.AddComponent<CanvasGroup>();
-            var chatGroup = chatPane.GetComponent<CanvasGroup>() ?? chatPane.AddComponent<CanvasGroup>();
+            // GetComponent can return a Unity missing-object wrapper. C# ?? does
+            // not recognize that wrapper as null, leaving the fade groups absent.
+            var listGroup = listPane.GetComponent<CanvasGroup>();
+            if (listGroup == null) listGroup = listPane.AddComponent<CanvasGroup>();
+            var chatGroup = chatPane.GetComponent<CanvasGroup>();
+            if (chatGroup == null) chatGroup = chatPane.AddComponent<CanvasGroup>();
             var loading = MultiplayerUIArt.Label("SocialLoading", surface, "", .10f, .38f, .90f, .62f,
                 30, true, StageUITheme.ReadingInk);
             loading.raycastTarget = false;
             var feedback = loading.gameObject.AddComponent<CanvasGroup>();
             presentation = surface.gameObject.AddComponent<MenuDataFeedback>();
-            presentation.Configure(new[] { listGroup, chatGroup }, feedback, loading);
+            presentation.Configure(new[] { listGroup, chatGroup }, feedback, loading,
+                minimumLoadingSeconds: 0f, keepButtonsOpaque: true,
+                blockInputWhileLoading: false, automaticLoadingFeedback: false);
         }
         awaitingContent = true;
+        contentLoadStartedAt = Time.unscaledTime;
         pollAt = Time.unscaledTime + 8f;
         presentation.BeginLoad(message);
+    }
+
+    internal static bool NeedsConnectionFeedback(float pendingSeconds, bool noInternet, bool? databaseConnected)
+        => noInternet || pendingSeconds >= 2f && databaseConnected == false;
+
+    private void UpdateConnectionFeedback()
+    {
+        if (NeedsConnectionFeedback(Time.unscaledTime - contentLoadStartedAt,
+            Application.internetReachability == NetworkReachability.NotReachable, FriendsRepository.IsConnected))
+            presentation.ShowMessage("Connection interrupted. Loading...");
+        else presentation.HideFeedback();
     }
 
     private void RevealContent(int version)
@@ -272,7 +302,7 @@ public sealed class FriendsUI : MonoBehaviour
 
     private async void Search()
     {
-        if (awaitingContent || section != Section.Add || conversation != null) return;
+        if (section != Section.Add || conversation != null) return;
         int version = ++viewVersion;
         string id = idInput.text.Trim();
         Clear(listContent);
@@ -468,7 +498,8 @@ public sealed class FriendsUI : MonoBehaviour
     }
 
     internal static List<FriendsRepository.Message> MergeMessages(IEnumerable<FriendsRepository.Message> snapshot,
-        IEnumerable<FriendsRepository.Message> confirmed) => snapshot.Concat(confirmed).GroupBy(m => m.Id).Select(g => g.First())
+        IEnumerable<FriendsRepository.Message> confirmed) => FriendsRepository.RetainedMessages(snapshot.Concat(confirmed), FriendsRepository.NowMilliseconds)
+        .GroupBy(m => m.Id).Select(g => g.First())
         .OrderBy(m => m.Id, StringComparer.Ordinal).TakeLast(60).ToList();
 
     private async void Send()

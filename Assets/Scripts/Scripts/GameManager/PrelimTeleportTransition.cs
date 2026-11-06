@@ -22,6 +22,8 @@ public sealed class PrelimTeleportTransition : MonoBehaviour
     public bool IsTeleporting => isTeleporting;
     public bool IsTransitioning => isTeleporting || startupFading;
     public float FadeAlpha => fadeCanvasGroup != null ? fadeCanvasGroup.alpha : 0f;
+    // Optional scene-owned presentation. Only Main Menu opts in at present.
+    public SharedLoadingScreen LoadingScreen { get; set; }
 
     private bool isTeleporting, startupFading;
     private Coroutine startupFade;
@@ -227,16 +229,61 @@ public sealed class PrelimTeleportTransition : MonoBehaviour
         StartCoroutine(SceneLoadSequence(sceneName, allowedToLoad));
     }
 
+    public IEnumerator RevealAfterLoading(SharedLoadingScreen screen, Action prepareContent)
+    {
+        while (isTeleporting) yield return null;
+        BeginTransition(null);
+        try
+        {
+            yield return FadeTo(1f);
+            prepareContent?.Invoke();
+            screen?.HideImmediate();
+            yield return new WaitForSecondsRealtime(Mathf.Max(0f, blackHoldDuration));
+            yield return FadeTo(0f);
+        }
+        finally
+        {
+            fadeCanvasGroup.alpha = 0f;
+            fadeCanvasGroup.blocksRaycasts = false;
+            ReleaseControl();
+            isTeleporting = false;
+        }
+    }
+
     private IEnumerator SceneLoadSequence(string sceneName, bool allowedToLoad)
     {
         yield return FadeTo(1f);
         yield return new WaitForSecondsRealtime(Mathf.Max(0f, blackHoldDuration));
         if (!allowedToLoad) yield break; // Remain covered until the master synchronizes the scene.
+        var screen = LoadingScreen;
+        if (screen != null)
+        {
+            screen.Show("Loading");
+            // Render the art before starting expensive work; the original black cover remains below it.
+            yield return null;
+        }
         if (PhotonNetwork.InRoom) PhotonNetwork.LoadLevel(sceneName);
         else
         {
             var loading = SceneManager.LoadSceneAsync(sceneName);
+            if (loading != null && screen != null)
+            {
+                loading.allowSceneActivation = false;
+                try
+                {
+                    while (loading.progress < 0.9f)
+                    {
+                        screen.SetProgress(loading.progress / 0.9f);
+                        yield return null;
+                    }
+                    screen.SetProgress(1f);
+                    // Reveal the existing black surface before the destination activates.
+                    yield return screen.FadeOut();
+                }
+                finally { loading.allowSceneActivation = true; }
+            }
             if (loading != null) yield return loading;
+            else if (screen != null) screen.HideImmediate();
         }
     }
 

@@ -1,5 +1,8 @@
 # Gem top-ups and shop purchases
 
+Social messages and invites now have a separate 24-hour cleanup worker in this
+service. See [Render configuration and deployment steps](CHAT_RETENTION.md).
+
 For Open Archive multiplayer coin rewards and its once-per-account gem
 milestones, see [Multiplayer rewards](MULTIPLAYER_REWARDS.md). This separate
 endpoint preserves the solo trial policy and the existing shop catalog.
@@ -20,9 +23,60 @@ The shop refreshes its wallet every eight seconds while open, after purchase not
 
 ## Current prices
 
-- `gems_5`: **5 gems for PHP 1.00** (`100` centavos), QR Ph enabled by default.
+- QR Ph packs: **5 gems/PHP 1.00**, **25/PHP 5.00**, **50/PHP 10.00**,
+  **100/PHP 20.00**, **250/PHP 50.00**, **500/PHP 100.00**.
 - The ten active male/female clothing items: **10 gems each**.
-- Server prices are in `catalog.json`. Unity sends product/item IDs; client amounts and price overrides are ignored. Update both catalog and scene labels if prices change.
+- Edit `packs` in `catalog.json` to change prices or gem amounts: `gems` is the
+  number credited and `amount` is PHP **centavos** (`500` = PHP 5.00). Keep the
+  pack's `id` stable. Commit/push and redeploy the backend, then reopen the shop.
+  `/wallet` supplies the catalog to Unity, so future price/amount changes do not
+  require another APK. The editor setup also uses this file for preview labels.
+- Existing checkout orders retain their original price and gem amount, even
+  after a catalog update. Unity displays that original quote on the pending card.
+- The game sends product/item IDs; client amount and gem overrides are ignored.
+
+## Pending payments, cancellation, and rows
+
+The Main Menu grid uses three equal-width cards per row. Every cell reserves the
+same height for Buy/Continue, Cancel Payment, and status text. Revealing pending
+controls never resizes a card or pushes/overlaps the next row. Other packs cannot
+start another checkout on that device/account while one is unresolved.
+
+Unpurchased cards centre their contents inside the fixed cell; verified pending
+cards rearrange only their own contents to fit Continue, Cancel and status text.
+Initial loading keeps saved previews visible and hides cancellation until the
+server verifies the order. Missing, empty or malformed catalog responses retain
+the previews with new purchases disabled until current prices can be loaded.
+
+A QR Ph code's default 30-minute validity is separate from the Hosted Checkout
+session. PayMongo sessions do not expire automatically. This backend applies its
+own **30-minute limit from order creation**, verifies payment first, then asks
+PayMongo to expire unpaid checkout sessions. A background sweep runs every minute
+while the host is awake; order checks, Continue, and Cancel also enforce expiry.
+Render Free can sleep, so this is not an exact wall-clock guarantee while asleep.
+Existing legacy orders acquire a deadline when next checked by the game.
+
+Publish the added `commerceOrders` index on `expiryCheckAt` from
+`database.rules.json` **without removing existing project rules**. It adds no
+client read/write permission. The index keeps background expiry queries bounded.
+
+`POST /orders/:id/cancel` requires the owner's Firebase token. Only a provider-
+confirmed `expired` result clears the game's pending order. If payment completed,
+it is credited exactly once; if PayMongo reports an in-flight payment, the card
+shows Verifying and waits. A network failure retains the original order and link.
+Cancelled/expired orders remain in `commerceOrders` with `expiredAt` and
+`expiryReason` (`player_cancelled` or `checkout_timeout`); no history is deleted.
+Closing the browser/game does not cancel payment. The `/cancel` return URL alone
+does not expire a checkout. A lost checkout response reuses its original request
+ID before cancellation, preventing a replacement charge after a timeout.
+
+Deploy these backend changes and build/install the updated Unity app together.
+Do not test the new Cancel button against the old hosted backend. Verification
+uses fake accounts and mocked PayMongo responses; a real APK payment is still a
+separate controlled end-to-end check.
+
+Provider references: [session lifecycle and expiry](https://docs.paymongo.com/docs/payment-channels-key-concepts),
+[expire endpoint](https://docs.paymongo.com/reference/expire-a-checkout-session).
 
 ## Local test
 

@@ -10,6 +10,7 @@ public class FirebaseManager : MonoBehaviour
 
     public static bool IsReady { get; private set; }
     public static string InitializationError { get; private set; }
+    private int initializationVersion;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetState()
@@ -20,17 +21,23 @@ public class FirebaseManager : MonoBehaviour
 
     private void Start()
     {
+        RetryInitialization();
+    }
+
+    public void RetryInitialization()
+    {
         if (IsReady)
         {
             OnFirebaseReady?.Invoke();
             return;
         }
         Debug.Log("Waking up Firebase...");
+        int version = ++initializationVersion;
         
         // This checks if the phone has the required Google Play Services
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task => 
         {
-            if (this == null) return;
+            if (this == null || version != initializationVersion) return;
             if (task.IsCanceled || task.IsFaulted)
             {
                 InitializationError = "Could not connect. Please restart the app and try again.";

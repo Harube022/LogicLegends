@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>Hides unfinished menu data and presents scoped authentication-style feedback.</summary>
 [DisallowMultipleComponent]
@@ -20,13 +21,21 @@ public sealed class MenuDataFeedback : MonoBehaviour
     private bool loading;
     private float loadingShownAt = -1;
     private Coroutine feedbackTimer;
+    private bool keepButtonsOpaque;
+    private bool blockInputWhileLoading = true;
+    private bool automaticLoadingFeedback = true;
     public bool IsRevealed { get; private set; }
 
-    public void Configure(CanvasGroup[] groups, CanvasGroup feedback, TMP_Text label)
+    public void Configure(CanvasGroup[] groups, CanvasGroup feedback, TMP_Text label, float minimumLoadingSeconds = .35f,
+        bool keepButtonsOpaque = false, bool blockInputWhileLoading = true, bool automaticLoadingFeedback = true)
     {
         contentGroups = groups;
         feedbackGroup = feedback;
         message = label;
+        minimumLoadingDisplay = Mathf.Max(0f, minimumLoadingSeconds);
+        this.keepButtonsOpaque = keepButtonsOpaque;
+        this.blockInputWhileLoading = blockInputWhileLoading;
+        this.automaticLoadingFeedback = automaticLoadingFeedback;
     }
 
     public void BeginLoad(string loadingMessage)
@@ -37,8 +46,9 @@ public sealed class MenuDataFeedback : MonoBehaviour
         IsRevealed = false;
         loadingShownAt = -1;
         HideFeedback();
-        SetContent(0, false);
-        StartCoroutine(ShowLoading(++version, loadingMessage));
+        SetContent(blockInputWhileLoading ? 0f : 1f, false);
+        ++version;
+        if (automaticLoadingFeedback) StartCoroutine(ShowLoading(version, loadingMessage));
     }
 
     private IEnumerator ShowLoading(int request, string text)
@@ -52,6 +62,8 @@ public sealed class MenuDataFeedback : MonoBehaviour
     public void RevealWhenReady()
     {
         loading = false;
+        if (minimumLoadingDisplay <= 0f) HideFeedback();
+        if (!blockInputWhileLoading) SetContent(0f, true);
         StartCoroutine(Reveal(version));
     }
 
@@ -113,11 +125,27 @@ public sealed class MenuDataFeedback : MonoBehaviour
 
     private void SetContent(float alpha, bool interactive)
     {
+        interactive |= !blockInputWhileLoading;
         foreach (var group in contentGroups)
         {
             if (group == null) continue;
             group.alpha = alpha;
             group.interactable = group.blocksRaycasts = interactive;
+            if (!keepButtonsOpaque) continue;
+            foreach (var button in group.GetComponentsInChildren<Button>(true))
+            {
+                var visibility = button.GetComponent<CanvasGroup>();
+                if (visibility == null) visibility = button.gameObject.AddComponent<CanvasGroup>();
+                visibility.ignoreParentGroups = true;
+                visibility.alpha = 1f;
+                // Social bypasses opacity and input gating; other menus can
+                // retain their existing loading input policy.
+                visibility.interactable = visibility.blocksRaycasts = interactive;
+                // A Button added under a disabled CanvasGroup can retain its
+                // initial disabled tint even after its transition is set to None.
+                if (button.transition == Selectable.Transition.None && button.targetGraphic != null)
+                    button.targetGraphic.CrossFadeColor(Color.white, 0f, true, true);
+            }
         }
     }
 
