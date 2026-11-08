@@ -55,8 +55,10 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     private RectTransform[] boardTabs;
     private TextMeshProUGUI boardExplanation;
     private CinemachineCamera tutorialCamera;
-    private CinemachineBrain cameraBrain;
-    private CinemachineBlendDefinition previousBlend;
+    private PrelimTutorialCameraRig tutorialRig;
+    private Vector3 cameraGoal;
+    private Quaternion cameraRotation;
+    private float cameraFov;
     private readonly System.Collections.Generic.List<Behaviour> pausedCameraInputs =
         new System.Collections.Generic.List<Behaviour>();
     private CursorLockMode previousCursorLock;
@@ -285,6 +287,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
 
     private void LateUpdate()
     {
+        if(tutorialRig!=null)tutorialRig.MoveTowards(cameraGoal,cameraRotation,cameraFov);
         if (IsActive && step != Step.Confirm)
         {
             UpdateWorldAnchor();
@@ -332,14 +335,7 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
     private void UpdateWorldAnchor()
     {
         if (worldTarget == null || worldAnchor == null || Camera.main == null) return;
-        Vector3 point = worldTarget.position;
-        var renderers = worldTarget.GetComponentsInChildren<Renderer>(true);
-        if (renderers.Length > 0)
-        {
-            Bounds bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
-            point = bounds.center;
-        }
+        Vector3 point = TutorialWorldBounds.Stable(worldTarget).center;
         if (step == Step.Book) point += Vector3.up * 1.3f;
         worldAnchor.sizeDelta = step == Step.Book ? new Vector2(480f, 210f) :
             step == Step.BoardOverview ? new Vector2(700f, 320f) :
@@ -358,40 +354,28 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         PauseCameraInput();
         if (tutorialCamera == null)
         {
-            var cameraObject = new GameObject("Inference Tutorial Camera");
-            tutorialCamera = cameraObject.AddComponent<CinemachineCamera>();
+            tutorialRig = PrelimTutorialCameraRig.Create("Inference Tutorial Camera",true);
+            tutorialCamera = tutorialRig.Camera;
             var challenge = FindFirstObjectByType<LogicLegends.Inference.InferenceChallenge>();
-            var source = challenge != null ? challenge.focusCamera.GetComponent<CinemachineCamera>() : null;
-            if (source != null) tutorialCamera.Lens = source.Lens;
-            tutorialCamera.Priority = new PrioritySettings { Enabled = true, Value = 150 };
-            cameraBrain = Camera.main.GetComponent<CinemachineBrain>();
-            if (cameraBrain != null)
-            {
-                previousBlend = cameraBrain.DefaultBlend;
-                cameraBrain.DefaultBlend = new CinemachineBlendDefinition(
-                    CinemachineBlendDefinition.Styles.EaseInOut, cameraBlendSeconds);
-            }
+            var source = challenge != null && challenge.focusCamera!=null ? challenge.focusCamera.GetComponent<CinemachineCamera>() : null;
+            cameraFov=source!=null?source.Lens.FieldOfView:Camera.main.fieldOfView;
         }
         Vector3 focusPoint = target.position;
         if (target == bookTarget || target == altarTarget)
         {
-            var renderers = target.GetComponentsInChildren<Renderer>(true);
-            if (renderers.Length > 0)
-            {
-                Bounds bounds = renderers[0].bounds;
-                for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
-                focusPoint = bounds.center;
-            }
+            focusPoint = TutorialWorldBounds.Stable(target).center;
         }
-        Vector3 cameraPosition = focusPoint + offset;
-        tutorialCamera.transform.SetPositionAndRotation(cameraPosition,
-            Quaternion.LookRotation(focusPoint - cameraPosition, Vector3.up));
-        tutorialCamera.gameObject.SetActive(true);
+        cameraGoal=focusPoint+offset;
+        cameraRotation=Quaternion.LookRotation(focusPoint-cameraGoal,Vector3.up);
     }
 
     private void RestoreGameplayCamera()
     {
-        if (tutorialCamera != null) tutorialCamera.gameObject.SetActive(false);
+        if (tutorialRig != null)
+        {
+            var returning=tutorialRig;tutorialRig=null;tutorialCamera=null;
+            returning.ReturnToGameplay(null);
+        }
         foreach (var cameraInput in pausedCameraInputs)
             if (cameraInput != null) cameraInput.enabled = true;
         pausedCameraInputs.Clear();
@@ -704,8 +688,6 @@ public sealed class InferenceControlsOnboarding : MonoBehaviour
         if (boardHighlightTarget != null) Destroy(boardHighlightTarget.gameObject);
         boardCameraFocus = null;
         boardHighlightTarget = null;
-        if (cameraBrain != null) cameraBrain.DefaultBlend = previousBlend;
-        cameraBrain = null;
         Cursor.lockState = previousCursorLock;
         Cursor.visible = previousCursorVisible;
         mobileControls?.ResetJoystick();

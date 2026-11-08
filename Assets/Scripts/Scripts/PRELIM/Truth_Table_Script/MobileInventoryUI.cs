@@ -20,6 +20,25 @@ public class MobileInventoryUI : MonoBehaviour
     [SerializeField] private Color selectedColor = Color.green;
     [SerializeField] private Color normalColor = Color.white;
 
+    private void Awake()
+    {
+        // Own the two existing slot callbacks, including legacy serialized
+        // SetSelectedSlotDirectly listeners, so a tap toggles exactly once.
+        for(int i=0;i<uiSlots.Length;i++)
+        {
+            var background=uiSlots[i].slotBackground;
+            var button=background!=null?background.GetComponent<UnityEngine.UI.Button>():null;
+            if(button==null)continue;
+            button.onClick=new UnityEngine.UI.Button.ButtonClickedEvent();
+            if(i==0)button.onClick.AddListener(OnClickSlot0);
+            else if(i==1)button.onClick.AddListener(OnClickSlot1);
+            background.raycastTarget=true;
+            if(uiSlots[i].blockIcon!=null)uiSlots[i].blockIcon.raycastTarget=false;
+            if(uiSlots[i].blockTypeText!=null)uiSlots[i].blockTypeText.raycastTarget=false;
+            if(uiSlots[i].countText!=null)uiSlots[i].countText.raycastTarget=false;
+        }
+    }
+
     public void RefreshInventoryDisplay(InventorySlot[] slots, int selectedIndex)
     {
         for (int i = 0; slots!=null&&i < uiSlots.Length&&i<slots.Length; i++)

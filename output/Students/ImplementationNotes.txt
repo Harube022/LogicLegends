@@ -1,0 +1,109 @@
+ROAMING STUDENTS — LOCAL IMPLEMENTATION
+
+Shared runtime: Assets/Scripts/Scripts/Students
+Configuration: Assets/Resources/Students/StudentNpcCatalog.asset
+Editor tools: Logic Legends > Students
+
+No scene assignments are required. The runtime installs one scene-local director
+only in the ten TrialCatalog solo scenes. Garden, menus and multiplayer are excluded.
+The catalog references the twelve existing prepared Gameplay prefabs. It does not
+change equipment IDs, ownership, original skins, controllers or animation clips.
+
+POPULATIONS
+Propositional Logic: 1–2 in each of the five topic chambers; identities are unique
+across the population. Inactive distant chamber students pause their navigation.
+Truth Table / Rules of Inference: 2–3, retained between challenges.
+Formal / Direct / Induction / Sets / Functions / Trees: random 0, 1 or 2 per challenge.
+Graph: 1–2 on generated GraphVertex floors, none in Challenge 2. Question rebuilds
+replace Graph NPCs so no student can remain on a deleted platform.
+The equipped skin is excluded. Admin character changes replace a conflicting
+student skin without changing account equipment or generating duplicate skins.
+
+NAVIGATION AND MOBILE COST
+Collision-derived, incremental walking graphs validate ground support, body
+clearance, bidirectional segments, water hazards and interaction clearance.
+Walk paths use A*. Temporary obstructions block a node briefly and trigger a
+new destination. Recent goals are avoided. The larger island maps keep expanding
+after students spawn locally; work is sliced across frames. Graph floors use an
+explicit GraphVertex whitelist, never a decorative surface or renderer bounds.
+Truth Table scans from playable ground with a 1.25-unit grid (30,000-cell cap).
+Disconnected porch seeds are no longer used. Separate land components remain separate;
+students never cross water or an unsupported gap to reach a distant destination.
+Student body colliders are triggers: they cannot push or physically block players.
+Movement still checks solid scenery and separation from other characters.
+Models hide during board/help/tutorial camera modes and restore their original
+renderer visibility afterwards. The speaking student remains visible in dialogue.
+
+INTERACTION
+The normal hand dispatcher consumes a student conversation before firing gameplay
+events; onboarding practice and required book/house interactions retain priority.
+Talk requires proximity, facing and clear line of sight. A deliberate conversation
+consumes the hand tap without dropping a carried item. Other inventory/placement
+actions retain their existing behavior. Thought bubbles use the existing artwork,
+actual hand icon, distance limit and bounded screen sizing.
+Conversation uses one semi-transparent light-gray speech bubble projected above the NPC's head. There
+is no parchment panel or Back button. The player can move and rotate the camera;
+the trial timer follows its normal state. Only the speaker stops roaming.
+Walking beyond talk range pops the bubble out, resumes roaming, and restores the
+compact prompt under its usual proximity/hint rules. Repeated taps are consumed
+without restarting the animation or generating extra hints. Other menus close
+speech immediately. Screen-space sizing, wrapping, padding and edge placement
+keep text legible; exceptionally long hints can scroll inside the bounded bubble.
+Speech uses the model's head bone as its anchor, a heavier 36-point reading font,
+and at most 36% of safe-area width (also capped by dialogueMaxWidth). One reversible
+0.22-second pop-in / 0.16-second pop-out controller prevents overlapping tweens.
+
+HINTS
+Trial-specific partial adapters read the actual current question/action provider.
+No validation, answer submission, question selection, progression or reward method
+is called by NPC hints. Each skin has its own conversation style and casual lines.
+The scene-local ledger records a hint before its dialogue opens, once per student
+per challenge. It is independent of target activation or dialogue lifetime.
+Afterwards, only casual dialogue is offered. Optional hint eligibility is rolled
+once per skin/challenge. Yellow ! means a hint remains; nearby chat-only indicators
+use an ellipsis without a no-hint disclaimer. Hints and the available-hint label
+are blue; casual dialogue is black. All 60 supplied lines, plus emotion/personality
+metadata, are stored in Resources/Students/StudentDialogueLines.json and keyed
+by the exact skin ID. Line history survives NPC respawning within the trial and
+excludes the previous line from each new random draw.
+
+TUNING
+Catalog: walking speed, collision capsule size, map spacing/cell budget, work per
+frame, talk distance, clearance, rest interval and optional-hint probability.
+Population policy: StudentNpcPolicy. Text: StudentConversation / StudentTrialState.
+
+VERIFICATION
+AssetAndPolicyChecks.txt: twelve prepared controllers, Idle/Walk, population policy,
+skin exclusion and repeat-proof hint ledger.
+SceneNavigationChecks.txt: saved scene collision sampling and actual Graph prefab
+layouts. No scene is saved by this audit.
+PlayModeChecks.txt: isolated offline Editor test, with real prepared controllers,
+hand input and touch/UI raycasts. It does not load real trial controllers or saves.
+The touch harness uses a temporary InputSettings clone so background desktop focus
+cannot discard simulated taps. It restores the original settings afterwards.
+The preview uses a separate Play Mode start scene. Open scene edits are kept, with
+backup copies under Assets/Tests/Students/Backups when the open scene is unsaved.
+Dialogue and bubble screenshots were inspected in the Editor sandbox.
+Bubble checks cover all 60 supplied lines at 800x480, plus each skin's longest line
+at 2160x1080 and 480x800. They check wrapping, safe-area bounds, face clearance,
+hand input, rapid taps, range exit, roaming resume and the one-hint ledger.
+Actual Android/iOS device performance remains a separate check.
+
+Nothing has been committed or pushed.
+
+OUTDOOR ROAMING AND BUBBLE UPDATE
+NPC hand prompts retain the shared Book Statue artwork and actual hand icon.
+Their bounded mobile screen size is enlarged 1.4x, with an 85%-safe-width cap.
+Speech uses a 90%-opaque light-gray surface and matching tail, preserving black
+casual text, blue hints and the existing padding/wrapping/one-hint ledger.
+
+Truth Table and Rules of Inference use Walk for short trips and Run for longer
+routes (22 world units by default). Speed eases from 3.2 to 6.4 units/second;
+NPCs slow near destinations, players, sharper turns and elevation changes.
+The existing per-skin Run clips and natural-cadence parameters are reused.
+Other trials remain walk-only. No player speed, clips or controller assets change.
+Trips mix short strolls with destinations in less-visited 20-unit map sectors.
+Stairs are no longer treated as prohibited interaction points. The NPC collision
+clearance and route sweep use the same configurable 0.7-unit step allowance.
+Height-changing route links are checked in actual movement-sized substeps before
+being added. NPCs continue to avoid water, body obstacles and interaction areas.

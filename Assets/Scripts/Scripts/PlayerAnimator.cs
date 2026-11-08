@@ -57,6 +57,11 @@ public class PlayerAnimator : MonoBehaviour
     private int carryLayer = -1;
     private bool hasCarryParameter;
     public bool IsStunned => externalStun || stunOwners.Count > 0;
+    private bool studentMotion;
+    private float studentSpeed;
+    private bool studentRunning;
+    // NPCs use the same skin controller and retargeting, without a Player or input subscription.
+    public void DriveStudentMotion(float speed, bool running=false) { studentMotion=true;studentSpeed=Mathf.Max(0,speed);studentRunning=running; }
 
     private void Awake()
     {
@@ -130,7 +135,14 @@ public class PlayerAnimator : MonoBehaviour
         if(stunOwners.Count>0){stunOwners.RemoveWhere(o=>o==null);ApplyStun();}
         bool remote = PhotonNetwork.InRoom && view != null && !view.IsMine;
         float speed;
-        if (remote)
+        if (studentMotion)
+        {
+            speed=Time.timeScale>0?studentSpeed:0;
+            animator.SetBool(IS_WALKING,speed>.05f);
+            animator.SetBool(IS_JUMPING,false);
+            if(hasRunParameter)animator.SetBool(IS_RUNNING,studentRunning&&speed>.05f);
+        }
+        else if (remote)
         {
             // Use the owner's measured velocity, not network interpolation/catch-up speed.
             speed = networkMotion != null ? networkMotion.AnimationMovementSpeed : 0f;

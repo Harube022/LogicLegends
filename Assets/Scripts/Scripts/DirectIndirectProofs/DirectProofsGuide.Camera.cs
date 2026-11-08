@@ -22,7 +22,7 @@ public sealed partial class DirectProofsGuide
         if (guiding || Camera.main == null) return;
         if (returningRig != null) { returningRig.FinishReturn(); returningRig = null; }
         guidedCamera = Camera.main;
-        cameraRig = PrelimTutorialCameraRig.Create("Direct Proofs Tutorial Camera");
+        cameraRig = PrelimTutorialCameraRig.Create("Direct Proofs Tutorial Camera",true);
         var lens = cameraRig.Camera.Lens;
         lens.NearClipPlane = guidedCamera.nearClipPlane;
         lens.FarClipPlane = guidedCamera.farClipPlane;

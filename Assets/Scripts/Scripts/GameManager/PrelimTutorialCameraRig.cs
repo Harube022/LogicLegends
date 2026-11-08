@@ -13,6 +13,9 @@ public sealed class PrelimTutorialCameraRig : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetActive() { active.Clear(); leases.Clear(); }
     public CinemachineCamera Camera { get; private set; }
+    public bool IsTutorialView { get; private set; }
+    public static bool HasActiveTutorialView
+    { get { foreach(var rig in active)if(rig!=null&&rig.IsTutorialView&&rig.Camera!=null&&rig.Camera.enabled)return true;return false; } }
     struct BrainState
     {
         public CinemachineBlendDefinition blend;
@@ -30,10 +33,11 @@ public sealed class PrelimTutorialCameraRig : MonoBehaviour
     bool finishing;
     float hintMotionUntil;
     public bool IsMoving => finishing || Time.unscaledTime < hintMotionUntil;
-    public static PrelimTutorialCameraRig Create(string name)
+    public static PrelimTutorialCameraRig Create(string name,bool tutorial=false)
     {
         var rig = new GameObject(name).AddComponent<PrelimTutorialCameraRig>();
         rig.Camera = rig.gameObject.AddComponent<CinemachineCamera>();
+        rig.IsTutorialView=tutorial;
         active.Add(rig); MobileLookInput.CancelAll();
         var rendered = UnityEngine.Camera.main;
         if (rendered != null)

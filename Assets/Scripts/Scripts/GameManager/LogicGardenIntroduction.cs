@@ -67,6 +67,15 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
     private readonly List<Behaviour> pausedCameraInputs = new List<Behaviour>();
     private Material attentionMaterial;
 
+    private void Awake()
+    {
+        // Hide presentation only. The objective data and unlock checks stay active.
+        foreach (var root in gameObject.scene.GetRootGameObjects())
+            foreach (var rect in root.GetComponentsInChildren<RectTransform>(true))
+                if (rect.name == "ObjectivesPanel" || rect.name == "ObjectivesToggleButton" || rect.name == "Scroll_Objectives")
+                    rect.gameObject.SetActive(false);
+    }
+
     private void Start()
     {
         LogicGardenProgress.Load();
@@ -340,6 +349,7 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
                 libraryReached = true;
                 LogicGardenProgress.VisitLibrary();
                 inLibrary = true;
+                BeginLibraryWizardVisit();
                 teleportPending = false;
                 if (locationTitle != null) locationTitle.text = "Logic Library";
                 if (returnToGardenButton != null) returnToGardenButton.gameObject.SetActive(false);

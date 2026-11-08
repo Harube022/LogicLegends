@@ -1,0 +1,1 @@
+return new { project=Application.dataPath,scene=UnityEngine.SceneManagement.SceneManager.GetActiveScene().path,dirty=UnityEngine.SceneManagement.SceneManager.GetActiveScene().isDirty,playing=Application.isPlaying,compiling=EditorApplication.isCompiling,build=EditorUserBuildSettings.activeBuildTarget.ToString() };
