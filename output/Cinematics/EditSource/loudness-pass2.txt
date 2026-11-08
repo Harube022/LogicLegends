@@ -1,0 +1,37 @@
+
+[aist#0:0/pcm_s16le @ 000002d7907707c0] Guessed Channel Layout: mono
+Input #0, wav, from 'Review_Mix_PreMaster.wav':
+  Duration: 00:02:14.13, bitrate: 768 kb/s
+  Stream #0:0: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 48000 Hz, mono, s16, 768 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (pcm_s16le (native) -> pcm_s24le (native))
+Press [q] to stop, [?] for help
+Output #0, wav, to 'Review_Mix_Master.wav':
+  Metadata:
+    ISFT            : Lavf61.7.100
+  Stream #0:0: Audio: pcm_s24le ([1][0][0][0] / 0x0001), 48000 Hz, stereo, s32 (24 bit), 2304 kb/s
+      Metadata:
+        encoder         : Lavc61.19.100 pcm_s24le
+size=    1792KiB time=00:00:08.09 bitrate=1812.4kbits/s speed=15.8x    
+size=    7680KiB time=00:00:28.29 bitrate=2223.2kbits/s speed=27.6x    
+size=   15104KiB time=00:00:54.59 bitrate=2266.2kbits/s speed=35.2x    
+size=   22016KiB time=00:01:19.09 bitrate=2280.1kbits/s speed=38.3x    
+size=   29440KiB time=00:01:45.39 bitrate=2288.2kbits/s speed=40.8x    
+size=   32512KiB time=00:01:57.39 bitrate=2268.6kbits/s speed=37.9x    
+[Parsed_loudnorm_0 @ 000002d790786a40] 
+{
+	"input_i" : "-19.74",
+	"input_tp" : "-0.53",
+	"input_lra" : "11.10",
+	"input_thresh" : "-31.82",
+	"output_i" : "-18.14",
+	"output_tp" : "-1.50",
+	"output_lra" : "8.00",
+	"output_thresh" : "-29.89",
+	"normalization_type" : "dynamic",
+	"target_offset" : "0.14"
+}
+size=   36608KiB time=N/A bitrate=N/A speed=N/A    
+size=   36608KiB time=N/A bitrate=N/A speed=N/A    
+[out#0/wav @ 000002d790770980] video:0KiB audio:37725KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.000264%
+size=   37725KiB time=00:02:14.20 bitrate=2302.9kbits/s speed=  31x    

@@ -94,7 +94,7 @@ public sealed class LogicLibraryTutorialController : MonoBehaviour
         if(owner==null)return;
         ReplayButton.interactable=!IsBusy&&!owner.Talking&&!owner.Transitioning&&!owner.Onboarding.IsActive&&!owner.Onboarding.IsPending&&!GameInput.Instance.GameplayInputBlocked&&Time.timeScale>0;
         ReplayButton.gameObject.SetActive(!IsBusy&&!owner.Talking&&!owner.Onboarding.IsActive&&!owner.Onboarding.IsPending&&!library.IsInReadingView);
-        owner.ReturnButton.gameObject.SetActive(owner.InLibrary&&!IsBusy&&!owner.Talking&&!owner.Transitioning&&!library.IsInReadingView);
+        owner.ReturnButton.gameObject.SetActive(false);
         card.sizeDelta=new Vector2(Mathf.Min(840,host.rect.width-40),Mathf.Min(Confirming?340:520,host.rect.height-60));
         if(cancelAfterTravel&&!owner.Transitioning&&(TeleportManager.Instance==null||!TeleportManager.Instance.IsTeleporting)){cancelAfterTravel=false;Cancel(false);}
     }
@@ -183,6 +183,7 @@ public sealed class LogicLibraryTutorialController : MonoBehaviour
     {
         owner.SubtitleSpeaker.text="Lefyahj";owner.SubtitleNext.gameObject.SetActive(true);
         owner.SubtitleUI.ShowDialoguePanel(StudyLibraryCatalog.TourExplanation(periods[ShelfIndex]));
+        owner.PresentWizardLine(StudyLibraryCatalog.TourExplanation(periods[ShelfIndex]),true);
         overlay.gameObject.SetActive(false);FrameShelf();skip.Show(true);
     }
     void FrameShelf()
@@ -221,7 +222,7 @@ public sealed class LogicLibraryTutorialController : MonoBehaviour
         ShelfIndex++;
         if(Confirming)
         {
-            owner.SubtitleUI.dialoguePanel.SetActive(false);owner.SubtitleNext.gameObject.SetActive(false);ShowChoices(true);skip.Show(true);
+            owner.SubtitleUI.dialoguePanel.SetActive(false);owner.SubtitleNext.gameObject.SetActive(false);ShowChoices(true);owner.PresentWizardLine("Did you get all that?",true);skip.Show(true);
         }
         else ShowShelf();
     }
@@ -229,11 +230,12 @@ public sealed class LogicLibraryTutorialController : MonoBehaviour
     public void ConfirmNo()
     {
         if(!Confirming)return;
-        TourActive=false;overlay.gameObject.SetActive(false);Restore();StartLibraryIntroduction();
+        owner.EndWizardLine();TourActive=false;overlay.gameObject.SetActive(false);Restore();StartLibraryIntroduction();
     }
     public void Cancel(bool acknowledged)
     {
         if(cancelling||!IsBusy)return;
+        owner.EndWizardLine();
         if(owner.Transitioning&&isReplaying){cancelAfterTravel=true;generation++;if(skip!=null)skip.GetComponent<Button>().interactable=false;return;}
         // A replay can demonstrate the library to a new player, but it never
         // grants normal library access before the real wizard conversation.
@@ -260,7 +262,7 @@ public sealed class LogicLibraryTutorialController : MonoBehaviour
         if(player!=null)player.ToggleControl(playerEnabled);if(GameInput.Instance!=null)GameInput.Instance.SetGameplayInputBlocked(previousBlocked);
         Time.timeScale=previousTime;Cursor.lockState=cursorLock;Cursor.visible=cursorVisible;MobileLookInput.ResetDelta();
         owner.SubtitleUI.gameplayInterfacePanel.SetActive(controlsVisible);owner.SubtitleNext.interactable=nextEnabled;owner.SubtitleNext.gameObject.SetActive(nextVisible);
-        owner.ReturnButton.gameObject.SetActive(returnVisible);view=null;
+        owner.ReturnButton.gameObject.SetActive(false);view=null;
         if(location!=null)location.SetActive(locationVisible);owner.SubtitleUI.dialogueText.font=subtitleFont;
     }
     void OnDisable(){if(owner!=null)Cancel(false);if(Active==this)Active=null;}

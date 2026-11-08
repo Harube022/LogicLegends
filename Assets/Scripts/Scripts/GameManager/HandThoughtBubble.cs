@@ -10,6 +10,9 @@ public sealed class HandThoughtBubble : MonoBehaviour
     public CanvasGroup Instruction { get; private set; }
     public UnityEngine.UI.Image HandIcon { get; private set; }
     public float Expansion { get; private set; }
+    // Opt-in for mobile NPC indicators. Other shared bubble layouts are unchanged.
+    public bool BoundedScreenSize { get; set; }
+    public float VisibilityDistance { get; set; }=24;
     readonly List<Material> materials = new List<Material>();
     static Sprite circle;
     RectTransform safeArea;
@@ -77,18 +80,28 @@ public sealed class HandThoughtBubble : MonoBehaviour
     }
     public void Show(bool available,bool near,Vector3 position)
     {
+        var camera = Camera.main;
+        if(BoundedScreenSize)
+            available=available&&camera!=null&&camera.WorldToScreenPoint(position).z>.5f&&Vector3.Distance(camera.transform.position,position)<=VisibilityDistance;
         if(gameObject.activeSelf!=available)gameObject.SetActive(available);
         if(!available){SetExpansion(0);return;}
         Rect.position = position + Vector3.up * (.1f*(1+Mathf.Sin(Time.unscaledTime*2)));
-        var camera = Camera.main;
+        SetExpansion(Mathf.MoveTowards(Expansion,near?1:0,Time.unscaledDeltaTime*3.5f));
         if(camera!=null)
         {
             Rect.rotation = camera.transform.rotation;
             float scale = Mathf.Clamp(Vector3.Distance(camera.transform.position,Rect.position)*.0009f,.006f,.06f);
+            if(BoundedScreenSize)
+            {
+                float depth=camera.WorldToScreenPoint(Rect.position).z;
+                float height=Mathf.Lerp(Mathf.Clamp(Screen.height*.045f,34,48),Mathf.Clamp(Screen.height*.075f,64,82),Expansion);
+                height=Mathf.Min(height,Mathf.Min(360,Screen.safeArea.width*.65f)*110/Mathf.Max(105,Rect.sizeDelta.x));
+                float unitsPerPixel=camera.orthographic?camera.orthographicSize*2/camera.pixelHeight:2*depth*Mathf.Tan(camera.fieldOfView*Mathf.Deg2Rad*.5f)/camera.pixelHeight;
+                scale=height*unitsPerPixel/110;
+            }
             var parentScale = transform.parent.lossyScale;
             Rect.localScale = new Vector3(scale/Mathf.Abs(parentScale.x),scale/Mathf.Abs(parentScale.y),scale/Mathf.Abs(parentScale.z));
         }
-        SetExpansion(Mathf.MoveTowards(Expansion,near?1:0,Time.unscaledDeltaTime*3.5f));
         if(camera!=null&&Expansion>.8f)KeepInstructionInView(camera);
     }
     // Crystal towers can be much taller than the gameplay camera. Keep their

@@ -1,0 +1,90 @@
+SHARED HINT HEARTBEAT — 2026-11-07
+
+TrialContextHints now repeats a gentle two-beat border/icon pulse while the hint
+is active and settled. One 2.8-second cycle contains a broad .72-second first
+beat and a softer .56-second second beat starting at .84 second, then a rest.
+Squared sine lobes keep brightness changes smooth at their boundaries. Border
+alpha stays between .04 and .40, and the second beat is 65% of the first. The
+notice icon gently blends from the established gold toward pale warm gold.
+
+No text color, size, panel scale, icon scale, position, padding, width, wrapping,
+sound file, audio volume or hint rules changed. There are no pulse coroutines,
+additional audio calls or newly generated assets. The one-shot notification path
+is unchanged and does not run from the repeating pulse.
+
+Pulsing begins only after the entrance settles. StopPulse restores the notice
+color and clears the border before a dismissal moves the panel. Entering, exit,
+replacement, pause, source loss, Game Over, completion and scene cleanup reset the
+pulse cleanly. Modal resume can begin a new visual beat without replaying audio.
+
+Changed runtime file: Assets/Scripts/Scripts/GameManager/TrialContextHints.cs.
+Updated Editor checks: Assets/Editor/TrialHintPresentationChecks.cs.
+No scene, prefab, audio or gameplay edits; no commit, push or branch switch.
+
+Verification
+StageHelpGameplayRecorder.CheckContextHints() passed all ten actual trial scenes
+in the offline Editor fixture, at 1920x1080, 2960x1440 and 720x1280. Pulse checks
+sample three complete cycles: at least five measured beat peaks, bounded glow,
+visible icon tint variation, fixed text/color/geometry, no repeated audio, and
+pulse cleanup before exit. Existing alignment, padding, safe area, interrupt /
+replacement, Help/camera pause, 30-second waiting, Admin Show Hint and terminal
+checks also passed. No Help recordings were imported or replaced and no account
+progress/rewards were written. The original clean Main Menu scene was restored;
+temporary generated fixture state was retained only under ignored Library.
+
+An unrelated TreeBoardFocus coroutine error was logged during the final Play Mode
+shutdown after the assertions passed (Trees Stage was inactive). That camera
+cleanup code was not changed by this focused UI update. Physical device testing
+and human evaluation on a phone remain unverified.
+
+Shared hint presentation. Saved-scene offline checks; no account writes/rewards.
+PASS PRELIM 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS PRELIM 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS PRELIM 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS PRELIM 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS PRELIM: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS TruthTable 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS TruthTable 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS TruthTable 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS TruthTable 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS TruthTable: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS RulesOfInference 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS RulesOfInference 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS RulesOfInference 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS RulesOfInference 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS RulesOfInference: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Formal vs. Informal Proofs 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Formal vs. Informal Proofs 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Formal vs. Informal Proofs 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Formal vs. Informal Proofs 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Formal vs. Informal Proofs: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Direct&Indirect 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Direct&Indirect 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Direct&Indirect 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Direct&Indirect 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Direct&Indirect: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Induction 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Induction 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Induction 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Induction 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Induction: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Setssss 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Setssss 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Setssss 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Setssss 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Setssss: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Functions and Relations 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Functions and Relations 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Functions and Relations 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Functions and Relations 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Functions and Relations: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Graph 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Graph 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Graph 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Graph 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Graph: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Trees 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Trees 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Trees 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Trees 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Trees: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
