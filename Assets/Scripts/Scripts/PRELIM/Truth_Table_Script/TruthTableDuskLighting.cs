@@ -164,7 +164,7 @@ public sealed class TruthTableDuskLighting : MonoBehaviour
             {
                 light = poolLight,
                 renderer = fixture,
-                flickers = flickerEveryNthLamp > 0 && index % flickerEveryNthLamp == 1,
+                flickers = !SoloGameSettings.IsTrial(gameObject.scene.name) && flickerEveryNthLamp > 0 && index % flickerEveryNthLamp == 1,
                 nextFlicker = Time.unscaledTime + NextFloat(minimumFlickerInterval, maximumFlickerInterval)
                     + index * 0.13f
             };

@@ -54,7 +54,7 @@ public static class GameplayTouchRouting
             if (!touch.isInProgress) continue;
             ended.Remove(id);
             if (touch.phase.ReadValue() == UnityEngine.InputSystem.TouchPhase.Began)
-                starts[id] = touch.position.ReadValue().x > Screen.width * .5f && IsLookSurface(touch.position.ReadValue());
+                starts[id] = (SoloGameSettings.LeftHanded ? touch.position.ReadValue().x < Screen.width * .5f : touch.position.ReadValue().x > Screen.width * .5f) && IsLookSurface(touch.position.ReadValue());
             if (starts.TryGetValue(id, out bool cameraTouch) && cameraTouch) touches.Add(touch);
         }
         foreach (int id in ended) starts.Remove(id);

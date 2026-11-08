@@ -70,8 +70,16 @@ public static class LatestSkinIntegration
         var binding=AnimationUtility.GetCurveBindings(clip).FirstOrDefault(b=>b.path=="mixamorig:Hips"&&b.propertyName=="m_LocalPosition.y");
         var height=AnimationUtility.GetEditorCurve(clip,binding);if(height==null)return;
         float baseline=height.Evaluate(0), peak=height.keys.Max(k=>k.value), threshold=baseline+(peak-baseline)*.12f;
-        float start=clip.length,end=0;
-        for(float t=0;t<=clip.length;t+=1f/60){if(height.Evaluate(t)>threshold){start=Mathf.Min(start,t);end=t;}}
+        // Keep the airborne interval around the main apex. A later landing
+        // recovery can cross the threshold again (Male Rare does), and spanning
+        // both intervals makes one physics jump play two visual jumps.
+        const float step=1f/60;
+        float apex=0;
+        for(float t=0;t<=clip.length;t+=step)
+            if(height.Evaluate(t)>height.Evaluate(apex))apex=t;
+        float start=apex,end=apex;
+        while(start>0&&height.Evaluate(start)>threshold)start=Mathf.Max(0,start-step);
+        while(end<clip.length&&height.Evaluate(end)>threshold)end=Mathf.Min(clip.length,end+step);
         start=Mathf.Max(0,start-.1f);end=Mathf.Min(clip.length,end+.12f);
         if(end-start<.35f)return;
         foreach(var b in AnimationUtility.GetCurveBindings(clip))

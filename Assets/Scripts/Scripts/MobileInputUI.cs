@@ -13,6 +13,9 @@ public class MobileInputUI : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
     private int pointer;
     private bool dragging;
     private bool IsJoystick => joystickBackground != null && joystickHandle != null;
+    public bool HasJoystick => IsJoystick;
+    private void OnEnable()
+    { if (IsJoystick) SoloTouchSettings.RegisterControl(transform as RectTransform); }
 
     /// <summary>Find the configured joystick, excluding button-only MobileInputUI objects.</summary>
     public static MobileInputUI FindJoystick()
