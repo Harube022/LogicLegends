@@ -111,12 +111,12 @@ public static class TrialAtmosphereChecks
             {
                 Check(RenderSettings.ambientMode == UnityEngine.Rendering.AmbientMode.Flat && sun.intensity == .18f, "Induction: dim chamber fill is active");
                 var flicker = UnityEngine.Object.FindFirstObjectByType<ChamberLightFlicker>();
-                Check(flicker.AffectedLights.Length == 3 && flicker.AffectedLights.All(l => !l.name.Contains("Reading")), "Induction: only decorative lights flicker");
+                Check(flicker.AffectedLights.Length == 3 && flicker.AffectedLights.All(l => !l.name.Contains("Reading")), "Induction: decorative-light references remain intact");
                 flicker.enabled = false; flicker.enabled = true;
                 var original = flicker.AffectedLights.Select(l => l.intensity).ToArray();
                 bool outage = false; var advance = flicker.GetType().GetMethod("Advance", Fields);
                 for (int i = 0; i < 3000; i++) { advance.Invoke(flicker, new object[] { .05f }); outage |= flicker.AffectedLights.Any(l => l.intensity < .01f); }
-                Check(outage && flicker.CompletedEvents > 5, "Induction: irregular dimming and brief outages recover between long steady intervals");
+                Check(!outage && flicker.CompletedEvents == 0 && flicker.AffectedLights.Select((l, i) => Mathf.Approximately(l.intensity, original[i])).All(v => v), "Induction: all fixtures stay fully lit without dimming or outages");
                 flicker.enabled = false;
                 Check(flicker.AffectedLights.Select((l, i) => Mathf.Abs(l.intensity - original[i]) < .001f).All(v => v), "Induction: disabling flicker restores lamp intensities"); flicker.enabled = true;
             }

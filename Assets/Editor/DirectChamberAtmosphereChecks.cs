@@ -87,7 +87,7 @@ public static class DirectChamberAtmosphereChecks
         Check(stage.Guide != null && stage.Guide.IsBusy, "arrival Help available");
         stage.Guide.Cancel(); stage.CompleteOnboarding();
         var flicker = UnityEngine.Object.FindFirstObjectByType<ChamberLightFlicker>();
-        Check(flicker != null && flicker.AffectedLights.Length == 3, "only three decorative fixtures have occasional faults");
+        Check(flicker != null && flicker.AffectedLights.Length == 3, "three decorative fixtures retain their authored references");
         var lights = GameObject.Find("ChamberDecorations").GetComponentsInChildren<Light>(true).Where(l => l.isActiveAndEnabled).ToArray();
         var brightness = lights.ToDictionary(l => l, l => l.intensity);
         var stable = lights.Except(flicker.AffectedLights).ToArray();
@@ -106,8 +106,8 @@ public static class DirectChamberAtmosphereChecks
             outage |= flicker.AffectedLights.Any(l => l.intensity < .01f);
             CheckValue(lights.All(l => l.intensity >= 0 && l.intensity <= brightness[l] + .001f), "flicker exceeded original brightness");
         }
-        Check(dip && outage && flicker.CompletedEvents >= 6, "irregular smooth dips and short outages occur between long steady intervals");
-        Check(altered <= 1 && stable.All(l => l.intensity == brightness[l]), "only one faulty fixture changes at a time; key lights stay steady");
+        Check(!dip && !outage && flicker.CompletedEvents == 0, "solo fixtures stay steady without dips or outages");
+        Check(altered == 0 && stable.All(l => l.intensity == brightness[l]), "decorative and reading lights retain their full brightness");
         Check(randomState.Equals(UnityEngine.Random.state), "private flicker randomness preserves gameplay random stream");
         flicker.enabled = false;
         Check(lights.All(l => l.intensity == brightness[l]), "disabling the effect restores every original intensity");

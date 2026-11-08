@@ -30,6 +30,8 @@ public class ShopItem : MonoBehaviour
     [SerializeField] private Button buyButton;        // The Button component itself
     [SerializeField] private Sprite availableSprite;  // Your green "Buy" sprite
     [SerializeField] private Sprite purchasedSprite;  // Your grey "Buyed" sprite
+    [SerializeField] private Image coinPriceIcon;
+    [SerializeField] private Image gemPriceIcon;
 
     // The ShopManager will call this to set the button's look
     public void UpdateUI(bool isOwned)
@@ -39,9 +41,12 @@ public class ShopItem : MonoBehaviour
         if (label != null && quote != null)
         {
             label.text = quote.coins.ToString("N0") + " Coins\n" + quote.gems.ToString("N0") + " Gems";
-            label.alignment = TMPro.TextAlignmentOptions.Center; label.enableAutoSizing = true; label.fontSizeMin = 22; label.fontSizeMax = 24;
+            label.alignment = TMPro.TextAlignmentOptions.MidlineLeft; label.enableAutoSizing = true; label.fontSizeMin = 22; label.fontSizeMax = 24;
             label.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
-            label.rectTransform.anchoredPosition = new Vector2(0,-67); label.rectTransform.sizeDelta = new Vector2(236,56);
+            label.rectTransform.anchoredPosition = new Vector2(20,-67); label.rectTransform.sizeDelta = new Vector2(172,56);
+            label.ForceMeshUpdate(true);
+            PlacePriceIcon(coinPriceIcon, label, 0);
+            PlacePriceIcon(gemPriceIcon, label, 1);
             ((RectTransform)buyButton.transform).anchoredPosition = new Vector2(0,-144);
             var oldIcon = transform.Find("Coin_Img"); if (oldIcon != null) oldIcon.gameObject.SetActive(false);
         }
@@ -56,6 +61,24 @@ public class ShopItem : MonoBehaviour
             buttonImage.sprite = availableSprite;
             buyButton.interactable = true;
         }
+    }
+
+    private static void PlacePriceIcon(Image icon, TMPro.TMP_Text label, int line)
+    {
+        if (icon == null) return;
+        icon.gameObject.SetActive(true);
+        var rect = icon.rectTransform;
+        rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.one * .5f;
+        float y = line == 0 ? 14 : -14;
+        if (label.textInfo.lineCount > line)
+        {
+            var info = label.textInfo.lineInfo[line];
+            y = (info.ascender + info.descender) * .5f;
+        }
+        rect.anchoredPosition = new Vector2(-104, y);
+        rect.sizeDelta = new Vector2(24, 24);
+        icon.preserveAspect = true;
+        icon.raycastTarget = false;
     }
 
     // Link this to your Buy button's OnClick() event in the Inspector!
