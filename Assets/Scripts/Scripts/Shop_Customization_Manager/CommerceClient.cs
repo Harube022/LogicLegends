@@ -94,7 +94,7 @@ public static class CommerceClient
     {
         _ = EnsureReady();
     }
-    private static Task<bool> EnsureReady()
+    internal static Task<bool> EnsureReady()
     {
         var settings = Settings;
         if (settings == null || !Uri.TryCreate(settings.backendUrl, UriKind.Absolute, out var endpoint) ||

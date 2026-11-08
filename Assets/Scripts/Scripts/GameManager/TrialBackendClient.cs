@@ -73,6 +73,11 @@ public static class TrialBackendClient
         var user = FirebaseAuth.DefaultInstance.CurrentUser;
         if (user == null) throw new InvalidOperationException("Sign in to save your trial reward.");
         string uid = user.UserId;
+        // Share the shop's bounded host wake-up. Only this read waits/retries;
+        // never replay trial mutations after an uncertain response.
+        if (path == "/trials/access" && !await CommerceClient.EnsureReady())
+            throw new InvalidOperationException("Couldn't connect to account services. Please retry.");
+        if (UserId != uid) throw new InvalidOperationException("Your account changed.");
         string token = await CommerceClient.WithTimeout(user.TokenAsync(false));
         if (UserId != uid) throw new InvalidOperationException("Your account changed.");
         using (var request = new UnityWebRequest(settings.backendUrl.TrimEnd('/') + path, json == null ? "GET" : "POST"))
@@ -89,7 +94,7 @@ public static class TrialBackendClient
             if (UserId != uid) throw new InvalidOperationException("Your account changed.");
             if (request.result != UnityWebRequest.Result.Success)
             {
-                if (request.responseCode == 401 || request.responseCode == 403) AdminAuthorization.Refresh();
+                if (path != "/trials/access" && (request.responseCode == 401 || request.responseCode == 403)) AdminAuthorization.Refresh();
                 Error error = null;
                 try { error = JsonUtility.FromJson<Error>(request.downloadHandler.text); } catch (Exception) { }
                 throw new InvalidOperationException(error != null && !string.IsNullOrEmpty(error.error) ? error.error : "Reward save pending. Check your connection.");
