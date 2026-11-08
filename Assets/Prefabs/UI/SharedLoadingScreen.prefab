@@ -154,7 +154,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &7670075438243007458
 RectTransform:
   m_ObjectHideFlags: 0
@@ -568,9 +568,6 @@ MonoBehaviour:
   retryButton: {fileID: 1166932890301350673}
   cancelButton: {fileID: 6324974956473847337}
   fadeSeconds: 0.2
-  minimumSceneDisplaySeconds: 1.25
-  completedSceneHoldSeconds: 0.5
-  sceneFillSeconds: 0.4
   tips:
   - 'Read your objective before you begin.
 
@@ -1352,7 +1349,6 @@ GameObject:
   - component: {fileID: 4874109388379777841}
   - component: {fileID: 9156719178137472920}
   - component: {fileID: 6999770499915304280}
-  - component: {fileID: 5565194249148490141}
   m_Layer: 0
   m_Name: Forest
   m_TagString: Untagged
@@ -1414,18 +1410,6 @@ MonoBehaviour:
     y: 0
     width: 1
     height: 1
---- !u!114 &5565194249148490141
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5274426729389491141}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23b1477474c5f8442a663da672e06514, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CanvasBackgroundCover
 --- !u!1 &5894588016858791036
 GameObject:
   m_ObjectHideFlags: 0

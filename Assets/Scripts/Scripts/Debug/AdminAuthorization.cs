@@ -16,10 +16,7 @@ public static class AdminAuthorization
         {
             case "sngbdsa137@gmail.com":
             case "russelbarrameda593@gmail.com":
-            case "famatigabarrameda@gmail.com": 
-            case "gravata.joshuaharvey@ncst.edu.ph":
-            case "cayangyang.jhayfel@ncst.edu.ph": 
-            return true;
+            case "famatigabarrameda@gmail.com": return true;
             default: return false;
         }
     }

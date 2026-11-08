@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-/// <summary>Legacy fixture ambience outside solo trials. Solo lamps stay steady.</summary>
+/// <summary>Occasional smooth fixture faults. A private random stream never changes question selection.</summary>
 [DisallowMultipleComponent]
 public sealed class ChamberLightFlicker : MonoBehaviour
 {
@@ -27,9 +27,6 @@ public sealed class ChamberLightFlicker : MonoBehaviour
     private void OnEnable()
     {
         if (!Application.isPlaying) return;
-        // Keep solo fixtures steady. Their brightness must not dip to zero
-        // independently of the player's actions or the settings menu.
-        if (SoloGameSettings.IsTrial(gameObject.scene.name)) return;
         random = new System.Random(seed);
         baseline = new float[flickeringLights.Length];
         for (int i = 0; i < baseline.Length; i++)

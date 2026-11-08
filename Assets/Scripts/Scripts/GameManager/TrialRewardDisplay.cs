@@ -6,7 +6,6 @@ public sealed class TrialRewardDisplay : MonoBehaviour
 {
     int trial;
     TMP_Text label;
-    TMP_Text rewardHeading;
     bool completed;
     RectTransform coinRow;
     public static void Attach(StageResultLayout view, int trial, bool completed = true)
@@ -17,17 +16,6 @@ public sealed class TrialRewardDisplay : MonoBehaviour
         if (display.label == null) display.label = StageUITheme.Text("TrialCoinReward", view.Card, "", 30, true);
         if (completed)
         {
-            if (display.rewardHeading == null)
-                display.rewardHeading = StageUITheme.Text("CompletionRewardHeading", view.Card, "REWARDS EARNED", 28);
-            display.rewardHeading.gameObject.SetActive(true);
-            StageUITheme.Stretch(display.rewardHeading.rectTransform, new Vector2(.08f, .46f), new Vector2(.92f, .50f));
-            display.rewardHeading.color = StageUITheme.ReadingInk;
-            display.rewardHeading.enableAutoSizing = true;
-            display.rewardHeading.fontSizeMin = 22;
-            display.rewardHeading.fontSizeMax = 28;
-            display.rewardHeading.alignment = TextAlignmentOptions.Center;
-            display.rewardHeading.textWrappingMode = TextWrappingModes.NoWrap;
-            display.rewardHeading.raycastTarget = false;
             if (display.coinRow == null)
             {
                 display.coinRow = StageUITheme.Rect("Completion Coin Reward", view.Card);
@@ -46,7 +34,6 @@ public sealed class TrialRewardDisplay : MonoBehaviour
         }
         else
         {
-            if (display.rewardHeading != null) display.rewardHeading.gameObject.SetActive(false);
             if (display.coinRow != null) display.coinRow.gameObject.SetActive(false);
             display.label.transform.SetParent(view.Card, false);
             StageUITheme.Stretch(display.label.rectTransform, new Vector2(.08f,.30f), new Vector2(.92f,.49f));

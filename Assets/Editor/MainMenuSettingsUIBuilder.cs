@@ -430,17 +430,21 @@ public static class MainMenuSettingsUIBuilder
             var display = Column(graphics, "Display", "DISPLAY", false);
             Segments(Row(display, 0, "GRAPHICS QUALITY"), new[] { "LOW", "MEDIUM", "HIGH" }, 1);
             Segments(Row(display, 1, "FRAME RATE"), new[] { "30 FPS", "60 FPS" }, 0);
-            Dropdown(Row(display, 2, "SHADOW QUALITY"), "MEDIUM");
+            SliderAt(Row(display, 2, "RESOLUTION QUALITY"), .8f, "80%");
+            Dropdown(Row(display, 3, "SHADOW QUALITY"), "LOW");
+            Dropdown(Row(display, 4, "EDGE SMOOTHING"), "2X");
             var effects = Column(graphics, "Effects", "EFFECTS", true);
             Dropdown(Row(effects, 0, "LIGHTING QUALITY"), "MEDIUM");
-            Switch(Row(effects, 1, "FOG"), true);
-            Switch(Row(effects, 2, "MOTION BLUR"), false);
+            Switch(Row(effects, 1, "BLOOM"), false);
+            Switch(Row(effects, 2, "FOG"), true);
+            Switch(Row(effects, 3, "MOTION BLUR"), false);
             Hint(effects, 4, "Higher quality uses more battery.");
 
             var camera = Column(pages[1].transform, "Camera", "CAMERA", false);
             SliderAt(Row(camera, 0, "HORIZONTAL SENSITIVITY"), .5f, "1.0X");
             SliderAt(Row(camera, 1, "VERTICAL SENSITIVITY"), .5f, "1.0X");
             SliderAt(Row(camera, 2, "PINCH ZOOM SENSITIVITY"), .5f, "1.0X");
+            Switch(Row(camera, 3, "INVERT VERTICAL LOOK"), false);
             var touch = Column(pages[1].transform, "Touch", "TOUCH CONTROLS", true);
             SliderAt(Row(touch, 0, "BUTTON SIZE"), .5f, "100%");
             SliderAt(Row(touch, 1, "BUTTON OPACITY"), .8f, "80%");
@@ -461,6 +465,8 @@ public static class MainMenuSettingsUIBuilder
             Switch(Row(reading, 2, "COLOR-INDEPENDENT CUES"), true);
             Hint(reading, 4, "Symbols and labels help make puzzles clear.");
             var motion = Column(pages[3].transform, "Motion", "MOTION & COMFORT", true);
+            Switch(Row(motion, 0, "REDUCED CAMERA MOTION"), false);
+            Switch(Row(motion, 1, "CAMERA SHAKE"), false);
             Hint(motion, 3, "Choose a calmer view for comfortable play.");
 
             var account = Column(pages[4].transform, "Account", "ACCOUNT & GAME", false);
@@ -486,7 +492,7 @@ public static class MainMenuSettingsUIBuilder
             Export(display.Find("GRAPHICSQUALITY/Control").gameObject, "SettingsQualitySelector");
             Export(display.Find("FRAMERATE/Control").gameObject, "SettingsFrameRateSelector");
             Export(display.Find("SHADOWQUALITY/Control").gameObject, "SettingsDropdown");
-            Export(camera.Find("HORIZONTALSENSITIVITY/Control").gameObject, "SettingsSlider");
+            Export(display.Find("RESOLUTIONQUALITY/Control").gameObject, "SettingsSlider");
             Export(effects.Find("FOG/Control").gameObject, "SettingsToggle");
         }
         finally { EditorSceneManager.ClosePreviewScene(preview); }
@@ -502,8 +508,7 @@ public static class MainMenuSettingsUIBuilder
         CenterExistingSettings();
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        SoloSettingsAuthoring.Upgrade();
-        Debug.Log("Main Menu and solo settings connected to the shared saved preferences.");
+        Debug.Log("Main Menu Settings UI created. Tabs, music/SFX volume and confirmed logout/quit work; other controls are unconnected.");
     }
 
     private static void Export(GameObject source, string name)

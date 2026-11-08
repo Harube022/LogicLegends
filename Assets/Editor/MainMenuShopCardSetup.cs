@@ -57,7 +57,82 @@ public static class MainMenuShopCardSetup
 
     private static void BakePortrait(GameObject source, string path)
     {
-        LatestSkinPortraitSetup.BakePortrait(source, path);
+        var utility = new PreviewRenderUtility();
+        Texture2D texture = null;
+        try
+        {
+            var clone = UnityEngine.Object.Instantiate(source);
+            clone.SetActive(false);
+            clone.transform.SetParent(null, false);
+            clone.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            clone.transform.localScale = source.transform.lossyScale;
+            foreach (var behaviour in clone.GetComponentsInChildren<Behaviour>(true)) behaviour.enabled = false;
+            foreach (var t in clone.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = 0;
+            utility.AddSingleGO(clone);
+            clone.SetActive(true);
+            // Skinned renderer bounds include animation padding. Bake vertices to frame the real head/waist.
+            var bounds = new Bounds();
+            bool found = false;
+            foreach (var renderer in clone.GetComponentsInChildren<Renderer>())
+            {
+                Mesh mesh = null;
+                bool temporary = renderer is SkinnedMeshRenderer;
+                if (renderer is SkinnedMeshRenderer skin) { mesh = new Mesh(); skin.BakeMesh(mesh); }
+                else mesh = renderer.GetComponent<MeshFilter>()?.sharedMesh;
+                if (mesh == null) continue;
+                foreach (var vertex in mesh.vertices)
+                {
+                    var point = renderer.transform.TransformPoint(vertex);
+                    if (!found) { bounds = new Bounds(point, Vector3.zero); found = true; }
+                    else bounds.Encapsulate(point);
+                }
+                if (temporary) UnityEngine.Object.DestroyImmediate(mesh);
+            }
+            if (!found) throw new InvalidOperationException("No outfit geometry: " + source.name);
+            float bottom = bounds.min.y + bounds.size.y * .49f;
+            float top = bounds.max.y + bounds.size.y * .04f;
+            var target = new Vector3(bounds.center.x, (bottom + top) * .5f, bounds.center.z);
+            utility.BeginPreview(new Rect(0, 0, 448, 320), GUIStyle.none);
+            var camera = utility.camera;
+            camera.orthographic = true;
+            camera.orthographicSize = (top - bottom) * .5f;
+            camera.transform.SetPositionAndRotation(target + Vector3.forward * 15, Quaternion.Euler(0, 180, 0));
+            camera.nearClipPlane = .01f; camera.farClipPlane = 40;
+            camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = Color.clear;
+            camera.allowHDR = false;
+            utility.ambientColor = new Color(.65f, .65f, .65f);
+            utility.lights[0].intensity = 1.1f;
+            utility.lights[0].transform.rotation = Quaternion.Euler(30, 210, 0);
+            utility.lights[1].intensity = .65f;
+            utility.lights[1].transform.rotation = Quaternion.Euler(340, 150, 0);
+            utility.Render(true);
+            // EndStaticPreview returns RGB24 and discards transparency. Preserve the render target alpha.
+            var rendered = (RenderTexture)utility.EndPreview();
+            var previous = RenderTexture.active;
+            try
+            {
+                RenderTexture.active = rendered;
+                texture = new Texture2D(rendered.width, rendered.height, TextureFormat.RGBA32, false);
+                texture.ReadPixels(new Rect(0, 0, rendered.width, rendered.height), 0, 0);
+                texture.Apply();
+            }
+            finally { RenderTexture.active = previous; }
+            File.WriteAllBytes(path, texture.EncodeToPNG());
+        }
+        finally
+        {
+            if (texture != null) UnityEngine.Object.DestroyImmediate(texture);
+            utility.Cleanup();
+        }
+        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+        var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+        importer.textureType = TextureImporterType.Sprite;
+        importer.spriteImportMode = SpriteImportMode.Single;
+        importer.alphaIsTransparency = true;
+        importer.mipmapEnabled = false;
+        importer.maxTextureSize = 512;
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
+        importer.SaveAndReimport();
     }
 
     private static void StyleCard(ShopItem item, Sprite portrait)

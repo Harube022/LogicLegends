@@ -206,10 +206,9 @@ public static class MainMenuAchievementsUISetup
         label.raycastTarget = false;
         var rect = (RectTransform)existing;
         rect.localScale = Vector3.one;
-        // The panel artwork has transparent padding around its visible wooden frame.
-        rect.anchorMin = rect.anchorMax = new Vector2(.02f,.93f);
+        rect.anchorMin = rect.anchorMax = new Vector2(.075f,.90f);
         rect.pivot = new Vector2(.5f,.5f); rect.anchoredPosition = Vector2.zero;
-        rect.sizeDelta = new Vector2(80,80);
+        rect.sizeDelta = new Vector2(90,90);
         existing.SetAsLastSibling();
         EditorUtility.SetDirty(button);
     }

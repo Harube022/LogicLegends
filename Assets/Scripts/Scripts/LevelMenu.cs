@@ -11,23 +11,6 @@ public class LevelMenu : MonoBehaviourPunCallbacks
     private Player pausedPlayer;
     private bool previousPlayerEnabled;
     private readonly System.Collections.Generic.List<Behaviour> pausedLookControllers = new System.Collections.Generic.List<Behaviour>();
-    private GameObject soloSettings;
-
-    private void Start() { PrepareSoloSettings(); }
-
-    public void PrepareSoloSettings()
-    {
-        if (soloSettings != null || pausePanel == null || !SoloGameSettings.IsTrial(gameObject.scene.name)) return;
-        var prefab = Resources.Load<GameObject>("Settings/TrialSettingsUI");
-        if (prefab == null) { Debug.LogError("The shared solo settings prefab is missing."); return; }
-        foreach (var oldAudio in pausePanel.GetComponents<AudioVolumePanel>()) oldAudio.enabled = false;
-        foreach (Transform child in pausePanel.transform) child.gameObject.SetActive(false);
-        var canvas = pausePanel.GetComponentInParent<Canvas>().rootCanvas;
-        pausePanel.transform.SetParent(canvas.transform, false);
-        StageUITheme.Stretch((RectTransform)pausePanel.transform, Vector2.zero, Vector2.one);
-        soloSettings = Instantiate(prefab, pausePanel.transform, false);
-        soloSettings.GetComponent<GameSettingsPanel>().ConfigureTrial(this);
-    }
 
     public override void OnDisable()
     {
@@ -40,7 +23,6 @@ public class LevelMenu : MonoBehaviourPunCallbacks
     public void OpenPause()
     {
         if (pauseOpen || pausePanel == null) return;
-        PrepareSoloSettings();
         FindFirstObjectByType<MultiplayerGameChat>()?.Close();
         pauseOpen = true;
         previousTimeScale = Time.timeScale;
@@ -57,7 +39,7 @@ public class LevelMenu : MonoBehaviourPunCallbacks
         var menuCanvas = pausePanel.GetComponent<Canvas>();
         if (menuCanvas == null) menuCanvas = pausePanel.AddComponent<Canvas>();
         menuCanvas.overrideSorting = true;
-        menuCanvas.sortingOrder = soloSettings != null ? 30000 : 1000;
+        menuCanvas.sortingOrder = 1000;
         if (pausePanel.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null)
             pausePanel.AddComponent<UnityEngine.UI.GraphicRaycaster>();
         pausePanel.transform.SetAsLastSibling();

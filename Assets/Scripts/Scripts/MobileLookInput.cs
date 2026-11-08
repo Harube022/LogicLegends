@@ -70,7 +70,7 @@ public class MobileLookInput : MonoBehaviour, IDragHandler, IPointerDownHandler,
     {
         LookDelta = Vector2.zero;
     }
-    private void OnEnable() { active.Add(this); CancelDrag(); SoloTouchSettings.RegisterControl(transform as RectTransform, true); }
+    private void OnEnable() { active.Add(this); CancelDrag(); }
     private void Update() { if (!GameplayTouchRouting.CameraInputAllowed) { CancelDrag(); GameplayTouchRouting.Reset(); } }
     private void OnApplicationFocus(bool focus) { if (!focus) { CancelDrag(); GameplayTouchRouting.Reset(); } }
     private void OnApplicationPause(bool paused) { if (paused) { CancelDrag(); GameplayTouchRouting.Reset(); } }

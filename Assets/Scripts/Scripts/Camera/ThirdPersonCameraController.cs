@@ -99,7 +99,7 @@ public class ThirdPersonCameraController : MonoBehaviour
         // ===== APPLY ZOOM =====
         if (zoomDelta != 0)
         {
-            userDistance -= zoomDelta * SoloGameSettings.ZoomMultiplier;
+            userDistance -= zoomDelta; 
             userDistance = Mathf.Clamp(userDistance, minDistance, maxDistance);
         }
     }
@@ -128,9 +128,8 @@ public class ThirdPersonCameraController : MonoBehaviour
         }
 #endif
 
-        Vector2 multiplier = SoloGameSettings.LookMultiplier;
-        yaw += lookInput.x * sensitivity * multiplier.x;
-        pitch -= lookInput.y * sensitivity * multiplier.y;
+        yaw += lookInput.x * sensitivity;
+        pitch -= lookInput.y * sensitivity;
         pitch = Mathf.Clamp(pitch, minY, maxY);
 
         transform.rotation = Quaternion.Euler(pitch, yaw, 0f);

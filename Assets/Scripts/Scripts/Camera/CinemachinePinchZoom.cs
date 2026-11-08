@@ -48,7 +48,7 @@ public class CinemachinePinchZoom : MonoBehaviour
             float deltaMagnitudeDiff = currentMagnitude - prevMagnitude;
 
             // Update Cinemachine Camera Distance
-            thirdPersonFollow.CameraDistance -= deltaMagnitudeDiff * zoomSpeed * SoloGameSettings.ZoomMultiplier;
+            thirdPersonFollow.CameraDistance -= deltaMagnitudeDiff * zoomSpeed;
             thirdPersonFollow.CameraDistance = Mathf.Clamp(thirdPersonFollow.CameraDistance, minDistance, maxDistance);
         }
     }
