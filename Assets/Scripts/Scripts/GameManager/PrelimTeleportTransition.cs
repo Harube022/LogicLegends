@@ -252,11 +252,24 @@ public sealed class PrelimTeleportTransition : MonoBehaviour
 
     private IEnumerator SceneLoadSequence(string sceneName, bool allowedToLoad)
     {
-        yield return FadeTo(1f);
-        yield return new WaitForSecondsRealtime(Mathf.Max(0f, blackHoldDuration));
-        if (!allowedToLoad) yield break; // Remain covered until the master synchronizes the scene.
         var screen = LoadingScreen;
-        if (screen != null)
+        bool menuTrial = screen != null && gameObject.scene.name == "Main Menu" &&
+            TeleportManager.IsTrialScene(sceneName);
+        if (menuTrial)
+        {
+            screen.ShowSceneLoading();
+            // Trial selection opens the artwork immediately. Set the existing black
+            // cover underneath it after that first frame for the activation handoff.
+            yield return null;
+            fadeCanvasGroup.alpha = 1f;
+        }
+        else
+        {
+            yield return FadeTo(1f);
+            yield return new WaitForSecondsRealtime(Mathf.Max(0f, blackHoldDuration));
+        }
+        if (!allowedToLoad) yield break; // Remain covered until the master synchronizes the scene.
+        if (screen != null && !menuTrial)
         {
             screen.Show("Loading");
             // Render the art before starting expensive work; the original black cover remains below it.
@@ -276,7 +289,7 @@ public sealed class PrelimTeleportTransition : MonoBehaviour
                         screen.SetProgress(loading.progress / 0.9f);
                         yield return null;
                     }
-                    screen.SetProgress(1f);
+                    yield return screen.CompleteSceneLoading();
                     // Reveal the existing black surface before the destination activates.
                     yield return screen.FadeOut();
                 }

@@ -34,10 +34,12 @@ public static class SharedLoadingScreenSetup
         var background = Rect("Forest", root.transform, Vector2.zero, Vector2.zero);
         Stretch(background);
         var raw = background.gameObject.AddComponent<RawImage>();
+        background.gameObject.AddComponent<CanvasBackgroundCover>();
         raw.texture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Assets/Interface_Sprites/background/background(2).png");
         raw.raycastTarget = true;
         var shade = Rect("BackdropShade", root.transform, Vector2.zero, Vector2.zero); Stretch(shade);
         var shadeImage = shade.gameObject.AddComponent<Image>(); shadeImage.sprite = Gradient(); shadeImage.raycastTarget = false;
+        shade.gameObject.SetActive(false); // Match the un-tinted Main Menu forest.
         var safe = Rect("SafeArea", root.transform, Vector2.zero, Vector2.zero); Stretch(safe);
         var content = Rect("Composition", safe, new Vector2(1920, 1080), Vector2.zero);
         var brand = Picture("Brand", content, new Vector2(780, 211), new Vector2(0, 347.5f), Import("LoadingBanner", Vector4.zero));

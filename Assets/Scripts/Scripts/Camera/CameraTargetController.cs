@@ -53,8 +53,9 @@ public class CameraTargetController : MonoBehaviour
 
         Vector2 lookDelta = MobileLookInput.LookDelta;
 
-        cameraYaw += lookDelta.x * sensitivity;
-        cameraPitch -= lookDelta.y * sensitivity;
+        Vector2 multiplier = SoloGameSettings.LookMultiplier;
+        cameraYaw += lookDelta.x * sensitivity * multiplier.x;
+        cameraPitch -= lookDelta.y * sensitivity * multiplier.y;
         cameraPitch = Mathf.Clamp(cameraPitch, bottomClamp, topClamp);
 
         // Apply rotation in world space so it isn't affected by the player body's WASD rotation

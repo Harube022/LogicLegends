@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-/// <summary>Menu navigation only. Settings controls are intentionally unconnected.</summary>
+/// <summary>Shared settings navigation; GameSettingsPanel owns the saved controls.</summary>
 public sealed class MainMenuSettingsTabs : MonoBehaviour
 {
     [SerializeField] private GameObject[] pages;
