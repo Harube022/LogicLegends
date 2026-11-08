@@ -53,7 +53,7 @@ namespace LogicLegends.Graph
             foreach(var b in FindObjectsByType<Behaviour>(FindObjectsSortMode.None))
                 if(b.enabled&&(b is CameraTargetController||b is Unity.Cinemachine.CinemachineInputAxisController||b is CinemachinePinchZoom||b is ThirdPersonCameraController))
                 {cameraInputs.Add(b);b.enabled=false;}
-            BuildPractice();BuildUI();rig=PrelimTutorialCameraRig.Create("Graph Challenge Introduction Camera");
+            BuildPractice();BuildUI();rig=PrelimTutorialCameraRig.Create("Graph Challenge Introduction Camera",true);
             roof=GraphOverheadVisibility.HideCeiling();
             var lens=rig.Camera.Lens;lens.NearClipPlane=.3f;lens.FarClipPlane=2000;rig.Camera.Lens=lens;ShowPage();
         }

@@ -16,7 +16,17 @@ public class GameInput : MonoBehaviour
 
     // Modal gameplay UI can temporarily suppress controls without disabling the
     // shared input component or changing input behavior in other stages.
-    public bool GameplayInputBlocked { get; private set; }
+    private bool legacyInputBlocked;
+    private readonly HashSet<UnityEngine.Object> modalOwners = new HashSet<UnityEngine.Object>();
+    public bool GameplayInputBlocked { get { modalOwners.RemoveWhere(o=>o==null); return legacyInputBlocked || modalOwners.Count>0; } }
+    public void AcquireModalInputBlock(UnityEngine.Object owner)
+    {
+        if(owner==null)return;
+        modalOwners.Add(owner); mobileMovementVector=Vector2.zero;
+        foreach(var joystick in FindObjectsByType<MobileInputUI>(FindObjectsInactive.Include,FindObjectsSortMode.None))joystick.ResetJoystick();
+        MobileLookInput.CancelAll();
+    }
+    public void ReleaseModalInputBlock(UnityEngine.Object owner) { modalOwners.Remove(owner); }
     // Temporary gameplay restrictions (e.g. hammer stun) do not own the camera
     // or overwrite the modal flag that menus/tutorials snapshot and restore.
     private readonly HashSet<UnityEngine.Object> gameplayActionOwners=new HashSet<UnityEngine.Object>();
@@ -33,7 +43,7 @@ public class GameInput : MonoBehaviour
 
     public void SetGameplayInputBlocked(bool blocked)
     {
-        GameplayInputBlocked = blocked;
+        legacyInputBlocked = blocked;
         if (blocked)
         {
             mobileMovementVector = Vector2.zero;
@@ -142,6 +152,7 @@ public class GameInput : MonoBehaviour
         }
         if (BookStatuePresentation.TryHandInteraction()) return;
         if (TruthTableDoorInteraction.TryHandInteraction()) return;
+        if (LogicLegends.Students.StudentNpcDirector.TryTalk()) return;
         OnInteractAction?.Invoke(this, EventArgs.Empty);
     }
 
@@ -191,7 +202,7 @@ public class GameInput : MonoBehaviour
             playerInputActions.Player.Jump.performed-=Jump_performed;
             playerInputActions.Player.Disable();playerInputActions.Dispose();playerInputActions=null;
         }
-        gameplayActionOwners.Clear();OnInteractAction=null;OnJumpAction=null;
+        gameplayActionOwners.Clear();modalOwners.Clear();OnInteractAction=null;OnJumpAction=null;
     }
 
     // ===== MOBILE =====
@@ -282,6 +293,7 @@ public class GameInput : MonoBehaviour
         }
         if (BookStatuePresentation.TryHandInteraction()) return;
         if (TruthTableDoorInteraction.TryHandInteraction()) return;
+        if (LogicLegends.Students.StudentNpcDirector.TryTalk()) return;
         // 1. FIRST CHECK: Do we have a block selected in our inventory? If so, drop it!
         if (InventoryManager.Instance != null && InventoryManager.Instance.HasBlockSelected())
         {

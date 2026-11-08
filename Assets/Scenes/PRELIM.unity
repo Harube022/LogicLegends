@@ -6460,27 +6460,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 346756565366910813, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 346756565366910813, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 346756565366910813, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 190
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 346756565366910813, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 160
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 346756565366910813, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 305
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 346756565366910813, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -80
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 523549998095790493, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
@@ -6868,27 +6868,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6393633359682067476, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6393633359682067476, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6393633359682067476, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 190
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6393633359682067476, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 160
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6393633359682067476, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 95
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6393633359682067476, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -80
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7011393152637864020, guid: 22f0da62785929f478733cb234677266, type: 3}
       propertyPath: m_Name
@@ -36349,6 +36349,13 @@ MonoBehaviour:
     blockValue: 0
     count: 0
     physicalBlocks: []
+  carryingSpeedMultipliers:
+  - 0.95
+  - 0.88
+  - 0.8
+  - 0.75
+  stackGap: 0.025
+  stackCompactionSeconds: 0.14
   uiController: {fileID: 1274172117}
   inventoryBarUI: {fileID: 110784890}
 --- !u!1 &1278222801
@@ -44134,7 +44141,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 2.2975869e-38}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0

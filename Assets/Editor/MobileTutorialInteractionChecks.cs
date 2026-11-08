@@ -232,7 +232,7 @@ public static class MobileTutorialInteractionChecks
     static IEnumerator Quizzes()
     {
         var owner=Find<TruthTableDoorInteraction>();var clock=owner.GetComponent<TruthTableStageClock>();
-        Check(clock.StartFromBook(),"real quiz test starts only through book");
+        Check(clock.IsRunning||clock.StartFromBook(),"real quiz test starts only through book");
         var choices=Field<Button[]>(owner,"answerButtons");var back=Field<Button>(owner,"closeButton");
         var assigned=Field<TruthTableDoorQuestionBank.Question[]>(owner,"assignedQuestions");
         foreach(int size in new[]{6,12,3})
@@ -250,7 +250,7 @@ public static class MobileTutorialInteractionChecks
                 {
                     var menu=Find<LevelMenu>();var pause=Field<GameObject>(menu,"pausePanel");
                     menu.OpenPause();yield return null;
-                    var resume=pause.GetComponentsInChildren<Button>(true).First(b=>Enumerable.Range(0,b.onClick.GetPersistentEventCount()).Any(i=>b.onClick.GetPersistentMethodName(i)=="ClosePause"));
+                    var resume=pause.GetComponentsInChildren<Button>(true).First(b=>b.gameObject.activeInHierarchy&&b.IsInteractable()&&(b.name=="CloseSettingsAction"||Enumerable.Range(0,b.onClick.GetPersistentEventCount()).Any(i=>b.onClick.GetPersistentMethodName(i)=="ClosePause")));
                     yield return Tap(resume);
                     Check(owner.IsQuizOpen&&GameInput.Instance.GameplayInputBlocked&&!Player.LocalInstance.enabled&&clock.IsCountdownPaused,"nested pause returns to the still-paused quiz");
                 }

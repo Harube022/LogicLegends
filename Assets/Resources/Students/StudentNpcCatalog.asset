@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c7004edcff76644bbb6fc9976dfe48a, type: 3}
+  m_Name: StudentNpcCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::LogicLegends.Students.StudentNpcCatalog
+  skins:
+  - id: Female_Common
+    displayName: Female Common
+    prefab: {fileID: 943138281263661549, guid: aa6f6ff86068acf45ac5bd6874ac8d01, type: 3}
+  - id: Female_Elite
+    displayName: Female Elite
+    prefab: {fileID: 6770300293443764976, guid: 0ec0410eabb63684398ba803426e6921, type: 3}
+  - id: Female_Epic
+    displayName: Female Epic
+    prefab: {fileID: 2524631371864936923, guid: d4609501b53c79b47a62eb1e3d639e93, type: 3}
+  - id: Female_Rare
+    displayName: Female Rare
+    prefab: {fileID: 1052990531021290444, guid: 8cd54082d6db0be41a859445cd8d807a, type: 3}
+  - id: Female_Special
+    displayName: Female Special
+    prefab: {fileID: 3272635982954697262, guid: c12e8b9680c9d914ba95f51755212915, type: 3}
+  - id: Female_Uniform
+    displayName: Female Uniform
+    prefab: {fileID: 768429566564269051, guid: 66d46b5d1161bba4689a76069dbf497e, type: 3}
+  - id: Male_Common
+    displayName: Male Common
+    prefab: {fileID: 4611639701328781711, guid: ba7aec0dba2b4674d86a6c580cbdf9e1, type: 3}
+  - id: Male_Elite
+    displayName: Male Elite
+    prefab: {fileID: 685195454655192942, guid: 492efc8fce62e424d9fed65dfd9f8ebd, type: 3}
+  - id: Male_Epic
+    displayName: Male Epic
+    prefab: {fileID: 2089577191967000278, guid: d111f031f6b4b384dbe75e1742781791, type: 3}
+  - id: Male_Rare
+    displayName: Male Rare
+    prefab: {fileID: 3721481827827655884, guid: b470a321c6512784f976145c10d48fbc, type: 3}
+  - id: Male_Special
+    displayName: Male Special
+    prefab: {fileID: 2145084187072240828, guid: 9edaafcc35bd2364095b03ab9fc81e09, type: 3}
+  - id: Male_Uniform
+    displayName: Male Uniform
+    prefab: {fileID: 3874609506094929659, guid: d2957da0f6233b14f8ebd17858edd72f, type: 3}
+  walkSpeed: 3.2
+  runSpeed: 6.4
+  longTripDistance: 22
+  slowNearDestination: 5
+  acceleration: 4
+  stepHeight: 0.7
+  radius: 0.75
+  height: 5.5
+  gridSpacing: 2.5
+  maximumCells: 10000
+  buildCellsPerFrame: 12
+  talkRange: 5
+  dialogueMaxWidth: 800
+  interactionClearance: 4
+  hintChance: 0.75
+  restSeconds: {x: 1.4, y: 4}

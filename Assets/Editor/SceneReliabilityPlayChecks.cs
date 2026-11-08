@@ -76,7 +76,7 @@ public static class SceneReliabilityPlayChecks
         ui.OnPointerDown(other);ui.OnDrag(other);ui.OnPointerUp(other);
         Check(ui.CurrentInput==before,scene+": second finger cannot steal or release joystick");
         input.SetGameplayInputBlocked(true);Check(ui.CurrentInput==Vector2.zero,scene+": modal clears held joystick");
-        input.SetGameplayInputBlocked(false);Check(input.GetMovementVectorNormalized()==Vector2.zero,scene+": closing modal cannot revive stale movement");
+        input.SetGameplayInputBlocked(false);Check(input.GetMovementVectorNormalized()==Vector2.zero,scene+": closing modal cannot revive stale movement; mobile="+Field<Vector2>(input,"mobileMovementVector")+" resolved="+input.GetMovementVectorNormalized());
         ui.OnDrag(first);Check(ui.CurrentInput==Vector2.zero,scene+": old drag requires a new pointer down");
         ui.OnPointerDown(first);var go=ui.gameObject;go.SetActive(false);go.SetActive(true);
         Check(ui.CurrentInput==Vector2.zero&&input.GetMovementVectorNormalized()==Vector2.zero,scene+": hidden control clears drag without pointer-up");

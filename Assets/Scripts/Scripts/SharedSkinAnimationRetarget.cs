@@ -47,6 +47,9 @@ public sealed class SharedSkinAnimationRetarget : MonoBehaviour
     Quaternion[] renderedRotations;
     Vector3 renderedHips;
     bool hasRenderedPose;
+    // Student dialogue can evaluate its own Idle pose while the trial is paused.
+    // Player rigs and ordinary paused animations keep their existing freeze behavior.
+    public bool EvaluatePausedStudentPose { get; set; }
 
     void Awake()
     {
@@ -63,7 +66,7 @@ public sealed class SharedSkinAnimationRetarget : MonoBehaviour
         if (animator == null || !animator.isActiveAndEnabled) return;
         // Menus can freeze animation evaluation. Preserve the last posed bones
         // instead of applying the bind correction repeatedly to that same pose.
-        if(Time.deltaTime<=0)
+        if(Time.deltaTime<=0&&!EvaluatePausedStudentPose)
         {
             if(hasRenderedPose){for(int i=0;i<bones.Length;i++)bones[i].target.localRotation=renderedRotations[i];hips.localPosition=renderedHips;}
             return;

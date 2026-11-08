@@ -12,6 +12,8 @@ public sealed class HandThoughtBubble : MonoBehaviour
     public float Expansion { get; private set; }
     // Opt-in for mobile NPC indicators. Other shared bubble layouts are unchanged.
     public bool BoundedScreenSize { get; set; }
+    public float ScreenSizeMultiplier { get; set; }=1;
+    public float MaximumScreenWidthFraction { get; set; }=.65f;
     public float VisibilityDistance { get; set; }=24;
     readonly List<Material> materials = new List<Material>();
     static Sprite circle;
@@ -95,7 +97,8 @@ public sealed class HandThoughtBubble : MonoBehaviour
             {
                 float depth=camera.WorldToScreenPoint(Rect.position).z;
                 float height=Mathf.Lerp(Mathf.Clamp(Screen.height*.045f,34,48),Mathf.Clamp(Screen.height*.075f,64,82),Expansion);
-                height=Mathf.Min(height,Mathf.Min(360,Screen.safeArea.width*.65f)*110/Mathf.Max(105,Rect.sizeDelta.x));
+                height*=Mathf.Clamp(ScreenSizeMultiplier,.5f,2);
+                height=Mathf.Min(height,Mathf.Min(480,Screen.safeArea.width*Mathf.Clamp(MaximumScreenWidthFraction,.3f,.85f))*110/Mathf.Max(105,Rect.sizeDelta.x));
                 float unitsPerPixel=camera.orthographic?camera.orthographicSize*2/camera.pixelHeight:2*depth*Mathf.Tan(camera.fieldOfView*Mathf.Deg2Rad*.5f)/camera.pixelHeight;
                 scale=height*unitsPerPixel/110;
             }

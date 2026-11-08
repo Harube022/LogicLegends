@@ -7,6 +7,9 @@ public sealed partial class LogicGardenIntroduction
 {
     [SerializeField] WizardActor gardenWizardActor,libraryWizardActor;
     HandThoughtBubble libraryWizardBubble;
+    TMP_Text libraryConversationMarker;
+    bool libraryConversationPending;
+    readonly Vector3[] libraryMarkerCorners=new Vector3[4];
     RectTransform returnQuestion,returnCard;
     TMP_Text returnQuestionText;
     Button returnYes,returnNo;
@@ -20,6 +23,8 @@ public sealed partial class LogicGardenIntroduction
     public Button ReturnYes => returnYes;
     public Button ReturnNo => returnNo;
     public const string ReturnQuestion="Would you like to return to the garden?";
+
+    void BeginLibraryWizardVisit()=>libraryConversationPending=true;
 
     public void PresentWizardLine(string subtitle,bool library)
     {
@@ -46,11 +51,41 @@ public sealed partial class LogicGardenIntroduction
         {
             libraryWizardBubble=HandThoughtBubble.Create(libraryWizardActor.transform,"Library Wizard Interaction",yellowMarker:true);
             libraryWizardBubble.BoundedScreenSize=true;libraryWizardBubble.VisibilityDistance=24;
+            libraryConversationMarker=StageUITheme.Text("Library Wizard Conversation Marker",libraryWizardBubble.Rect,"!",72,true);
+            libraryConversationMarker.font=StageUITheme.ReadingFont;
+            libraryConversationMarker.fontStyle=FontStyles.Bold;
+            libraryConversationMarker.color=new Color(1f,.83f,.12f);
+            libraryConversationMarker.outlineColor=new Color32(35,29,18,255);
+            libraryConversationMarker.outlineWidth=.18f;
+            libraryConversationMarker.raycastTarget=false;
+            var markerRect=libraryConversationMarker.rectTransform;
+            markerRect.anchorMin=markerRect.anchorMax=new Vector2(.5f,1);
+            markerRect.pivot=new Vector2(.5f,0);
+            markerRect.sizeDelta=new Vector2(88,96);
         }
         var position=libraryWizardActor.transform.position+Vector3.up*(libraryWizardActor.standingHeight+1.55f);
         libraryWizardBubble.Show(available,available&&NearLibraryWizard(),position);
         if(available)libraryWizardBubble.KeepInView(libraryWizardActor.GetComponentInChildren<TMP_Text>());
+        UpdateLibraryConversationMarker(available);
         if(returnQuestionOpen)FitReturnQuestion();
+    }
+    void UpdateLibraryConversationMarker(bool available)
+    {
+        if(libraryConversationMarker==null)return;
+        bool show=available&&libraryConversationPending&&libraryWizardBubble.gameObject.activeSelf;
+        libraryConversationMarker.gameObject.SetActive(show);
+        if(!show)return;
+        libraryConversationMarker.rectTransform.anchoredPosition=new Vector2(0,16+8*Mathf.Sin(Time.unscaledTime*1.8f));
+        // Keep both the bubble and its separate marker below the safe-area top.
+        var camera=Camera.main;if(camera==null)return;
+        libraryConversationMarker.rectTransform.GetWorldCorners(libraryMarkerCorners);
+        float top=camera.WorldToScreenPoint(libraryMarkerCorners[1]).y;
+        float ceiling=Mathf.Min(Screen.height,Screen.safeArea.yMax)-16;
+        if(top>ceiling)
+        {
+            var point=camera.WorldToScreenPoint(libraryWizardBubble.Rect.position);
+            libraryWizardBubble.Rect.position=camera.ScreenToWorldPoint(point-Vector3.up*(top-ceiling));
+        }
     }
     bool NearLibraryWizard()
     {
@@ -92,6 +127,8 @@ public sealed partial class LogicGardenIntroduction
         if(player==null)player=FindLocalPlayer();if(!NearLibraryWizard())return false;
         if(libraryWizardActor.TryGetComponent<WizardLibraryRoaming>(out var roaming))roaming.SetPaused(true);
         BuildReturnQuestion();returnQuestionOpen=true;talking=true;
+        libraryWizardBubble?.Show(false,false,Vector3.zero);
+        if(libraryConversationMarker!=null)libraryConversationMarker.gameObject.SetActive(false);
         returnInputBlocked=input!=null&&input.GameplayInputBlocked;returnPlayerEnabled=player.enabled;returnTime=Time.timeScale;
         returnControlsVisible=dialogue.gameplayInterfacePanel.activeSelf;
         returnCursorLock=Cursor.lockState;returnCursorVisible=Cursor.visible;
@@ -106,6 +143,7 @@ public sealed partial class LogicGardenIntroduction
     public void ChooseLibraryReturn(bool yes)
     {
         if(!returnQuestionOpen)return;
+        libraryConversationPending=false;
         CloseLibraryReturnQuestion();if(yes)ReturnToGarden();
     }
     void CloseLibraryReturnQuestion()

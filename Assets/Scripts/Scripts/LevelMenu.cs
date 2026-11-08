@@ -13,7 +13,8 @@ public class LevelMenu : MonoBehaviourPunCallbacks
     private readonly System.Collections.Generic.List<Behaviour> pausedLookControllers = new System.Collections.Generic.List<Behaviour>();
     private GameObject soloSettings;
 
-    private void Start() { PrepareSoloSettings(); }
+    private void Start() { PrepareSoloSettings(); TutorialSettingsLock.Install(gameObject.scene); }
+    private void Update() { if(SoloGameSettings.IsTrial(gameObject.scene.name))TutorialSettingsLock.Observe(); }
 
     public void PrepareSoloSettings()
     {
@@ -39,7 +40,7 @@ public class LevelMenu : MonoBehaviourPunCallbacks
 
     public void OpenPause()
     {
-        if (pauseOpen || pausePanel == null) return;
+        if (pauseOpen || pausePanel == null || SoloGameSettings.IsTrial(gameObject.scene.name)&&TutorialSettingsLock.Blocked) return;
         PrepareSoloSettings();
         FindFirstObjectByType<MultiplayerGameChat>()?.Close();
         pauseOpen = true;

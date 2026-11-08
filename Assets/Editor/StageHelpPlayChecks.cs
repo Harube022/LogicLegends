@@ -23,14 +23,25 @@ public static class StageHelpPlayChecks
     static readonly string[] Scenes = { "PRELIM", "TruthTable", "RulesOfInference", "Formal vs. Informal Proofs", "Direct&Indirect", "Induction", "Setssss", "Functions and Relations", "Graph", "Trees" };
     static readonly string[] Histories = { "FunctionsRelations.LastVariant.", "LogicLegends.Induction.LastVariant.", "LogicLegends.ProofsLibrary.LastVariant.", "LogicLegends.Graph.LastVariant.", "LogicLegends.Trees.LastVariant." };
     static Touchscreen screen;
+    static InputSettings originalInputSettings,isolatedInputSettings;
+    static Keyboard isolatedKeyboard;
+    static void RestoreInputSettings(){if(isolatedKeyboard!=null){InputSystem.EnableDevice(isolatedKeyboard);isolatedKeyboard=null;}if(originalInputSettings!=null){InputSystem.settings=originalInputSettings;UnityEngine.Object.Destroy(isolatedInputSettings);originalInputSettings=null;isolatedInputSettings=null;}}
     static int finger;
 
     [MenuItem("Logic Legends/Mobile/Check Shared Help and Gameplay Videos")]
     public static void Begin() => Begin("PRELIM");
     public static void Begin(string fromScene)
     {
-        if (EditorApplication.isPlayingOrWillChangePlaymode || SceneManager.GetActiveScene().isDirty)
-            throw new InvalidOperationException("Exit Play Mode and save the current scene before running Help checks.");
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            throw new InvalidOperationException("Exit Play Mode before running Help checks.");
+        var original=SceneManager.GetActiveScene();
+        if(original.isDirty)
+        {
+            Directory.CreateDirectory("Assets/Tests/AndroidUIAudit/Backups");
+            EditorSceneManager.SaveScene(original,"Assets/Tests/AndroidUIAudit/Backups/"+original.name+"_BeforeAndroidAudit.unity",true);
+        }
+        SessionState.SetString(Flag+".PreviousPlayStart",AssetDatabase.GetAssetPath(EditorSceneManager.playModeStartScene));
+        SessionState.SetBool(Flag+".PreserveOpenScene",true);
         SessionState.SetString(Flag + ".Scene", SceneManager.GetActiveScene().path);
         SessionState.SetInt(Flag + ".Size", BookMapMobileChecks.GetSize());
         SessionState.SetInt(Flag + ".SafeArea", (int)Crystal.SafeArea.Sim);
@@ -44,7 +55,7 @@ public static class StageHelpPlayChecks
         if (fromScene == "PRELIM" || !File.Exists(Report)) File.WriteAllText(Report, "Shared Help saved-scene touch and gameplay-video checks\n");
         else File.WriteAllLines(Report, File.ReadAllLines(Report).TakeWhile(line => !line.StartsWith("FAIL")));
         SessionState.SetString(Flag + ".From", fromScene);
-        EditorSceneManager.OpenScene("Assets/Scenes/" + fromScene + ".unity");
+        EditorSceneManager.playModeStartScene=AssetDatabase.LoadAssetAtPath<SceneAsset>("Assets/Scenes/"+fromScene+".unity");
         EditorApplication.isPlaying = true;
     }
 
@@ -71,7 +82,16 @@ public static class StageHelpPlayChecks
         }
         PlayerPrefs.Save();
         string path = SessionState.GetString(Flag + ".Scene", "Assets/Scenes/PRELIM.unity");
-        EditorApplication.delayCall += () => EditorSceneManager.OpenScene(path);
+        if(SessionState.GetBool(Flag+".PreserveOpenScene",false))
+        {
+            string start=SessionState.GetString(Flag+".PreviousPlayStart","");
+            EditorSceneManager.playModeStartScene=string.IsNullOrEmpty(start)?null:AssetDatabase.LoadAssetAtPath<SceneAsset>(start);
+        }
+        else EditorApplication.delayCall += () => EditorSceneManager.OpenScene(path);
+        SessionState.SetBool(AndroidTrialUiChecks.Flag,false);
+        SessionState.SetBool(AndroidTrialUiChecks.Flag+".Extras",false);
+        SessionState.SetBool(AndroidTrialUiChecks.Flag+".Reentry",false);
+        SessionState.SetBool(AndroidTrialUiChecks.Flag+".StopAfter",false);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -128,18 +148,26 @@ public static class StageHelpPlayChecks
             {
                 File.AppendAllText(Report, "FAIL " + error + "\n"); Debug.LogException(error);
                 if (screen != null && screen.added) InputSystem.RemoveDevice(screen);
+                RestoreInputSettings();
                 EditorApplication.isPlaying = false; yield break;
             }
             if (next is IEnumerator child) stack.Push(child); else yield return next;
         }
         Log("ALL SHARED HELP CHECKS PASSED"); SceneManager.sceneLoaded -= Loaded;
         if (screen != null && screen.added) InputSystem.RemoveDevice(screen);
+        RestoreInputSettings();
         EditorApplication.isPlaying = false;
     }
 
     static IEnumerator Run()
     {
         Application.runInBackground = true; screen = InputSystem.AddDevice<Touchscreen>(); finger = 100;
+        originalInputSettings=InputSystem.settings;isolatedInputSettings=UnityEngine.Object.Instantiate(originalInputSettings);
+        isolatedInputSettings.hideFlags=HideFlags.HideAndDontSave;
+        isolatedInputSettings.backgroundBehavior=InputSettings.BackgroundBehavior.IgnoreFocus;
+        isolatedInputSettings.editorInputBehaviorInPlayMode=InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+        InputSystem.settings=isolatedInputSettings;
+        if(AndroidTrialUiChecks.Enabled&&Keyboard.current!=null&&Keyboard.current.enabled){isolatedKeyboard=Keyboard.current;InputSystem.DisableDevice(isolatedKeyboard);}
         foreach (string scene in Scenes.SkipWhile(scene => scene != SessionState.GetString(Flag + ".From", "PRELIM")))
         {
             Time.timeScale = 1; GameInput.Instance?.SetGameplayInputBlocked(false);
@@ -153,10 +181,19 @@ public static class StageHelpPlayChecks
             if (scene == "Trees") Find<LogicLegends.Trees.TreeStageManager>().SetLesson(true);
             yield return Until(() => ActivePage() != null, 18, "first Help opens: " + scene);
             yield return CompleteInitialGuide(scene);
+            if(AndroidTrialUiChecks.Enabled&&AndroidTrialUiChecks.Baseline)break;
+            if(AndroidTrialUiChecks.Enabled&&AndroidTrialUiChecks.ExtraOnly)
+            {
+                yield return VerifyBookHand(scene);
+                yield return AndroidTrialUiChecks.ExtraPanels(scene);
+                yield return SoloEconomyPlayChecks.Run(scene);
+                Log(scene+": retry/checkpoint and result actions checked with isolated account transport");
+                continue;
+            }
             Check(Time.timeScale > 0 && Player.LocalInstance.enabled && !GameInput.Instance.GameplayInputBlocked,
                 "first tutorial exit restores controls and book eligibility: " + scene);
 
-            foreach (int size in new[] { 6, 3 })
+            foreach (int size in AndroidTrialUiChecks.Enabled ? new[] { 2,4,6,12 } : new[] { 6, 3 })
             {
                 BookMapMobileChecks.SetSize(size); yield return new WaitForSecondsRealtime(.35f);
                 var before = Snapshot.Capture(scene);
@@ -203,6 +240,9 @@ public static class StageHelpPlayChecks
             activeSnapshot.CheckRestored(scene);
             Check(Coach(scene)==null||!CoachActive(Coach(scene)),"active Help never restarts onboarding: "+scene);
             Log(scene+": reopened active Help preserves proof/progress and restores countdown/input");
+            yield return AndroidTrialUiChecks.Panels(scene);
+            yield return AndroidTrialUiChecks.Reenter(scene);
+            if(AndroidTrialUiChecks.Enabled&&SessionState.GetBool(AndroidTrialUiChecks.Flag+".StopAfter",false))break;
 
         }
     }
@@ -220,6 +260,7 @@ public static class StageHelpPlayChecks
         {
             var coach = Coach(scene);
             Check(coach != null && CoachActive(coach) && Step(coach) == "Movement", "first exit begins movement practice: " + scene);
+            yield return AndroidTrialUiChecks.Tutorial(scene,coach);
             var skip = UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b => b.gameObject.activeInHierarchy &&
                 b.GetComponentInChildren<TMP_Text>() != null && b.GetComponentInChildren<TMP_Text>().text.IndexOf("Skip Tutorial", StringComparison.OrdinalIgnoreCase) >= 0);
             yield return Tap(skip); yield return new WaitForSecondsRealtime(1.1f);
@@ -233,6 +274,7 @@ public static class StageHelpPlayChecks
             var graph = Find<LogicLegends.Graph.GraphStageManager>();
             if (formal != null && formal.IsOpen || sets != null && sets.IsOpen || direct != null && direct.IsIntroduction || graph != null && graph.Introductions.IsOpen)
             {
+                AndroidTrialUiChecks.CheckSettings(scene);
                 var introSkip = UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b => b.gameObject.activeInHierarchy &&
                     b.GetComponentInChildren<TMP_Text>() != null && b.GetComponentInChildren<TMP_Text>().text.IndexOf("Skip Tutorial", StringComparison.OrdinalIgnoreCase) >= 0);
                 yield return Tap(introSkip); yield return null;
@@ -243,6 +285,7 @@ public static class StageHelpPlayChecks
         {
             var trees=Find<LogicLegends.Trees.TreeStageManager>();
             yield return Until(()=>trees.Introductions.IsOpen,5,"Trees initial challenge practice");
+            AndroidTrialUiChecks.CheckSettings(scene);
             yield return Tap(trees.ui.host.GetComponentsInChildren<PrelimTutorialSkipControl>().Single().GetComponent<Button>());
             yield return Until(()=>!trees.Introductions.IsOpen&&!GameInput.Instance.GameplayInputBlocked&&Player.LocalInstance.enabled,6,"Trees initial practice cleanup");
         }
@@ -252,6 +295,8 @@ public static class StageHelpPlayChecks
     }
     static IEnumerator VerifyBookHand(string scene)
     {
+        // SetRequired is refreshed in the stage's Update after practice closes.
+        yield return Until(() => UnityEngine.Object.FindObjectsByType<BookStatuePresentation>(FindObjectsSortMode.None).Any(b => b.InteractionRequired), 3, "book indicator refresh after tutorial: " + scene);
         var book = UnityEngine.Object.FindObjectsByType<BookStatuePresentation>(FindObjectsSortMode.None).Where(b=>b.InteractionRequired).OrderBy(b=>
             Vector3.Distance(b.transform.position,Player.LocalInstance.transform.position)).FirstOrDefault();
         Check(book != null, "waiting book remains eligible after Help: " + scene);
