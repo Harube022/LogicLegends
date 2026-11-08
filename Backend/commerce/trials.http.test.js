@@ -27,7 +27,7 @@ test('all ten trials: authenticated Admin policy and atomic reward receipts use 
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}) });
     const ok = async response => { const body = await response.json(); assert.equal(response.status, 200, JSON.stringify(body)); return body; };
     async function account(name, email) {
-      const uid = prefix + '-' + name; uids.add(uid); records.set(name, { uid, email, disabled: false });
+      const uid = prefix + '-' + name; uids.add(uid); records.set(name, { uid, email, disabled: false, emailVerified: true });
       await db.ref('users/' + uid).set({ coins: 37, gems: 19, unlockedStage: 8, base_character: 'Male_Character', inventory: { Common_Skin: true } });
       return db.ref('users/' + uid);
     }
@@ -35,7 +35,7 @@ test('all ten trials: authenticated Admin policy and atomic reward receipts use 
       assert.equal((await call('missing', 'access')).status, 401);
       await account('ordinary', 'ordinary@example.test');
       assert.equal((await ok(await call('ordinary', 'access'))).admin, false);
-      for (const [i, email] of ['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabarrameda@gmail.com'].entries()) {
+      for (const [i, email] of ['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabarrameda@gmail.com', 'gravata.joshuaharvey@ncst.edu.ph', 'cayangyang.jhayfel@ncst.edu.ph'].entries()) {
         const token = 'admin-' + i; await account(token, '  ' + email.toUpperCase() + '  ');
         assert.equal((await ok(await call(token, 'access'))).admin, true);
         for (let trial = 1; trial <= 10; trial++) {

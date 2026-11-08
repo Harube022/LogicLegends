@@ -9,6 +9,7 @@ public static class AdminAuthorization
     static bool verified, loading;
     static float refreshAt, expiresAt;
     static int version;
+    public static string ConnectionStatus { get; private set; } = "";
     public static string Normalize(string email) => (email ?? "").Trim().ToLowerInvariant();
     public static bool IsAllowedEmail(string email)
     {
@@ -31,11 +32,13 @@ public static class AdminAuthorization
     {
         observedUid = observedEmail = verifiedUid = verifiedEmail = null;
         verified = loading = false; refreshAt = expiresAt = 0; version++;
+        ConnectionStatus = "";
     }
     public static void Refresh()
     {
         verified = false; verifiedUid = verifiedEmail = null;
         refreshAt = expiresAt = 0; loading = false; version++;
+        ConnectionStatus = "";
     }
     public static void Tick()
     {
@@ -48,15 +51,24 @@ public static class AdminAuthorization
     static async Task Verify(string uid, string email, int generation)
     {
         loading = true; refreshAt = Time.realtimeSinceStartup + 15;
+        ConnectionStatus = "Checking admin access...";
         try
         {
             var access = await TrialBackendClient.LoadAccess();
             if (generation != version || TrialBackendClient.UserId != uid || Normalize(TrialBackendClient.Email) != email) return;
             verified = access != null && access.admin && access.uid == uid;
             verifiedUid = uid; verifiedEmail = email;
+            ConnectionStatus = verified ? "Admin access confirmed." : "This account does not have verified admin access.";
             expiresAt = Time.realtimeSinceStartup + 90; refreshAt = Time.realtimeSinceStartup + 60;
         }
-        catch (Exception) { if (generation == version) verified = false; }
+        catch (Exception)
+        {
+            if (generation != version) return;
+            verified = false;
+            refreshAt = Time.realtimeSinceStartup + 15;
+            ConnectionStatus = "Admin access could not be confirmed. Check the backend connection or sign in again. Retrying in 15 seconds.";
+            Debug.LogWarning(ConnectionStatus);
+        }
         finally { if (generation == version) loading = false; }
     }
     public static bool TryUseGameplayAdmin()

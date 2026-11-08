@@ -10,8 +10,8 @@ test('reward reductions use the original base and cap at the two-retry policy', 
   assert.equal(rewardForRetries(10000), 500);
   for (const bad of [-1, 1.5, NaN, Infinity, '2']) assert.throws(() => rewardForRetries(bad));
 });
-test('all three authenticated Admin account emails normalize exactly; lookalikes are denied', () => {
-  for (const email of ['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabarrameda@gmail.com']) {
+test('all five authenticated Admin account emails normalize exactly; lookalikes are denied', () => {
+  for (const email of ['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabarrameda@gmail.com', 'gravata.joshuaharvey@ncst.edu.ph', 'cayangyang.jhayfel@ncst.edu.ph']) {
     assert.equal(isAdminEmail(email), true); assert.equal(isAdminEmail('  ' + email.toUpperCase() + ' '), true);
     assert.equal(isAdminEmail(email + '.attacker.test'), false);
   }

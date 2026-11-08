@@ -53,6 +53,7 @@ public static class SoloSettingsAuthoring
                 selectable.navigation = new Navigation { mode = Navigation.Mode.None };
                 if (selectable.targetGraphic != null) selectable.targetGraphic.raycastTarget = true;
             }
+            GameSettingsPanel.DisableUnavailableActions(frame);
             foreach (var slider in root.GetComponentsInChildren<Slider>(true))
             {
                 slider.fillRect = slider.transform.Find("Track/Fill Area/Fill") as RectTransform;

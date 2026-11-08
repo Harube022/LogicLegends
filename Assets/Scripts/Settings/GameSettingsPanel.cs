@@ -62,8 +62,7 @@ public sealed class GameSettingsPanel : MonoBehaviour
         Action("Footer/Apply", Apply); Action("Footer/Reset", RequestReset);
         Action("GENERALPage/Account/ACCOUNTINFORMATION/Control/VIEWACCOUNT", ShowAccount);
         Action("GENERALPage/Account/TUTORIAL/Control/REPLAYTUTORIAL", ShowGuidePicker);
-        Action("GENERALPage/Help/NEEDHELP?/Control/SUPPORT", () => ShowInfo("HELP & SUPPORT", "Open HELP inside a trial for its controls, examples and gameplay guide.\n\nFor account or payment issues, contact your game administrator with the trial name or payment reference. Never share your password."));
-        Action("GENERALPage/Help/YOURPRIVACY/Control/PRIVACYPOLICY", () => ShowInfo("DATA & PRIVACY", "Settings are saved on this device. Reset changes settings only.\n\nAccount progress, Coins, Gems and owned outfits are stored with your signed-in account. Returning to Main Menu keeps you signed in; Log Out in Main Menu ends your session.\n\nFor account data requests, contact your game administrator."));
+        DisableUnavailableActions(frame);
         var language = frame.Find("GENERALPage/Account/LANGUAGE/Control");
         if (language != null) { var button = language.GetComponent<Button>(); if (button != null) button.interactable = false; var arrow = language.Find("Arrow"); if (arrow != null) arrow.gameObject.SetActive(false); }
         var version = frame.Find("GENERALPage/Account/GAMEVERSION/Version")?.GetComponent<TMP_Text>();
@@ -76,6 +75,15 @@ public sealed class GameSettingsPanel : MonoBehaviour
         feedback.enableAutoSizing = true; feedback.fontSizeMin = 24; feedback.fontSizeMax = 28;
     }
     static string Percent(float value) => Mathf.RoundToInt(value * 100) + "%";
+    public static void DisableUnavailableActions(Transform settingsFrame)
+    {
+        // These entries stay visible until Support and Data & Privacy are ready.
+        foreach (var path in new[] { "GENERALPage/Help/NEEDHELP?/Control/SUPPORT", "GENERALPage/Help/YOURPRIVACY/Control/PRIVACYPOLICY" })
+        {
+            var button = settingsFrame.Find(path)?.GetComponent<Button>();
+            if (button != null) button.interactable = false;
+        }
+    }
     static void Enable(Selectable selectable)
     {
         selectable.enabled = true; selectable.interactable = true; selectable.navigation = new Navigation { mode = Navigation.Mode.None };

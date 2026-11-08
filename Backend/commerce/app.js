@@ -157,7 +157,7 @@ function createApp(env = process.env, integrations = {}) {
     if (req.path.startsWith('/trials/')) {
       // Email comes from Firebase's account record, never request fields or profile text.
       const user = await (integrations.getUser || (id => auth.getUser(id)))(uid);
-      const admin = !user.disabled && trials.isAdminEmail(user.email);
+      const admin = !user.disabled && user.emailVerified === true && trials.isAdminEmail(user.email);
       if (req.method === 'GET' && req.path === '/trials/access')
         return res.json({ admin, uid });
       if (!economyEnabled && (req.body?.economyVersion >= 2 || req.path === '/trials/quiz-answer')) throw fail('Solo economy v2 is not connected yet.',503);
