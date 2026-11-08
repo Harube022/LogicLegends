@@ -36,6 +36,7 @@ public class WizardInteraction : MonoBehaviourPun
     [SerializeField, Range(0f, 1f)] private float scribbleVolume = 0.5f; // Set this lower in the inspector!
 
     [Header("Wizard Voice")]
+    [SerializeField] private bool allowVoiceOver = true;
     [SerializeField] private AudioSource wizardVoiceSource;
     [SerializeField, Range(0f, 1f)] private float wizardTalkVolume = 0.7f;
 
@@ -397,6 +398,7 @@ public class WizardInteraction : MonoBehaviourPun
 
     private void PlayWizardVoice()
     {
+        if(!allowVoiceOver)return;
         DialogueEntry[] activeEntries = isPlayingFeedback
     ? (isSuccessFeedback ? successEntries : failEntries)
     : (isReadingFinalDialogue ? finalDialogueEntries : dialogueEntries);

@@ -1,0 +1,33 @@
+
+[aist#0:0/pcm_s16le @ 000001cad8c121c0] Guessed Channel Layout: mono
+Input #0, wav, from 'Review_Mix_PreMaster.wav':
+  Duration: 00:02:14.13, bitrate: 768 kb/s
+  Stream #0:0: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 48000 Hz, mono, s16, 768 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (pcm_s16le (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf61.7.100
+  Stream #0:0: Audio: pcm_s16le, 192000 Hz, mono, s16, 3072 kb/s
+      Metadata:
+        encoder         : Lavc61.19.100 pcm_s16le
+size=N/A time=00:00:12.50 bitrate=N/A speed=2.29x    
+size=N/A time=00:00:43.70 bitrate=N/A speed=7.31x    
+size=N/A time=00:01:14.00 bitrate=N/A speed=11.4x    
+size=N/A time=00:01:43.90 bitrate=N/A speed=14.8x    
+[Parsed_loudnorm_0 @ 000001cad8bec280] 
+{
+	"input_i" : "-19.74",
+	"input_tp" : "-0.53",
+	"input_lra" : "11.10",
+	"input_thresh" : "-31.82",
+	"output_i" : "-18.69",
+	"output_tp" : "-1.50",
+	"output_lra" : "8.20",
+	"output_thresh" : "-30.46",
+	"normalization_type" : "dynamic",
+	"target_offset" : "0.69"
+}
+[out#0/null @ 000001cad8c12ec0] video:0KiB audio:50300KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+size=N/A time=00:02:14.20 bitrate=N/A speed=  18x    

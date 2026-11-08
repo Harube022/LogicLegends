@@ -39,7 +39,7 @@ public static class TrialContextHintChecks
     }
     public static IEnumerator Run(string scene)
     {
-        if (scene == "PRELIM") { File.WriteAllText(Report, "Offline saved-scene Play Mode checks. Delays accelerated only through an Editor-only clock input. No account writes or completion rewards.\n"); Model(); }
+        if (scene == "PRELIM") { File.WriteAllText(Report, "Offline saved-scene Play Mode checks. Delays accelerated only through an Editor-only clock input. No account writes or completion rewards.\n"); TrialHintPresentationChecks.Begin(); Model(); }
         var owner = UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).First(component => component is ITrialHintSource &&
             (!(component is DynamicLogicPuzzle puzzle) || puzzle.IsTruthTableHintSource) && (!(component is QuizManager) || scene == "PRELIM"));
         var source = (ITrialHintSource)owner;
@@ -54,6 +54,9 @@ public static class TrialContextHintChecks
         Check(!hints.State.Visible, scene + " waits before showing the book hint");
         hints.AdvanceForValidation(1.1f); yield return new WaitForSecondsRealtime(.4f);
         Check(hints.State.Visible && hints.Opacity > .9f, scene + " fades in after the delay; " + Diagnostics(hints, source));
+        int firstSound = hints.NotificationPlayCount;
+        hints.AdvanceForValidation(0); hints.AdvanceForValidation(0);
+        Check(hints.NotificationPlayCount == firstSound, scene + " text refresh does not replay hint audio");
         string key = hints.State.Key;
         Player.LocalInstance.GetComponent<CharacterController>().Move(Vector3.right * .1f); yield return null;
         Check(hints.State.Key == key && hints.State.Visible, scene + " unrelated movement does not complete or reset the action");
@@ -66,7 +69,7 @@ public static class TrialContextHintChecks
         Check(!hints.State.Visible && hints.Opacity == 0 && Mathf.Abs(waiting - hints.State.WaitingSeconds) < .05f, scene + " Help hides and suspends the hint clock");
         Find<StageHelpPage>().BeginButton.onClick.Invoke(); yield return new WaitForSecondsRealtime(.3f);
         hints.AdvanceForValidation(0); yield return new WaitForSecondsRealtime(.4f);
-        Check(hints.State.Visible && hints.State.Key == key, scene + " reopening Help returns to the same unfinished action");
+        Check(hints.State.Visible && hints.State.Key == key && hints.NotificationPlayCount == firstSound, scene + " reopening Help returns to the same unfinished action without another sound");
         if (scene == "PRELIM")
         {
             hints.State.Clear(); yield return new WaitForSecondsRealtime(29);
@@ -88,6 +91,7 @@ public static class TrialContextHintChecks
         {
             BookMapMobileChecks.SetSize(size); yield return new WaitForSecondsRealtime(.65f);
             hints.AdvanceForValidation(0); yield return new WaitForSecondsRealtime(.4f);
+            yield return new WaitForEndOfFrame();
             Check(hints.State.Visible && hints.Opacity > .9f, scene + " rendered hint is visible; " + Diagnostics(hints, source));
             var corners = new Vector3[4]; hints.HintPanel.GetWorldCorners(corners);
             var safe = Screen.safeArea;
@@ -95,10 +99,12 @@ public static class TrialContextHintChecks
                 safe = new Rect(0, 0, Screen.width, Screen.height);
             Check(corners.All(point => point.x >= safe.xMin - 1 && point.x <= safe.xMax + 1 && point.y >= safe.yMin - 1 && point.y <= safe.yMax + 1), scene + " hint fits safe area at " + Screen.width + "x" + Screen.height);
             Check(hints.GetComponent<GraphicRaycaster>() == null && hints.GetComponentsInChildren<Graphic>().All(graphic => !graphic.raycastTarget), scene + " hint cannot block mobile taps at " + Screen.width + "x" + Screen.height);
+            TrialHintPresentationChecks.Layout(scene, hints);
             if (scene == "PRELIM" || scene == "Graph" || scene == "Trees")
             { yield return new WaitForEndOfFrame(); ScreenCapture.CaptureScreenshot("Library/Hint_" + scene + "_" + Screen.width + "x" + Screen.height + ".png"); }
         }
         BookMapMobileChecks.SetSize(6); yield return new WaitForSecondsRealtime(.3f);
+        yield return TrialHintPresentationChecks.Animations(scene, hints);
         yield return Actions(scene, owner);
         var current = source.RequiredHintAction(); hints.AdvanceForValidation(0);
         Check(current.Available && current.Key != key && !hints.State.Visible, scene + " required gameplay action replaces the book hint and starts a new delay");

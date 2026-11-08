@@ -1,0 +1,423 @@
+SHARED HINT NOTIFICATION — 2026-11-07
+
+Implemented locally on the active main checkout; no Git branch changes, commit,
+push, merge, production backend write, gameplay changes or scene saves.
+
+Files to include together
+Assets/Scripts/Scripts/GameManager/TrialContextHints.cs
+Assets/Resources/Audio/Notification.mp3 and its .meta
+Editor-only verification: TrialContextHintChecks.cs, TrialHintPresentationChecks.cs
+and its .meta under Assets/Editor.
+
+Behavior
+The existing shared display serves all ten solo trials. It now aligns directly
+under the actual Settings and Help controls: left edge at Settings, right edge at
+Help, with a 12-reference-unit gap below the lower control. Width follows those
+controls; height follows wrapped text. Padding includes the actual nine-slice
+border plus internal breathing room. Body text uses the existing bold reading
+font, with no auto-shrinking and a 15-screen-pixel minimum at small resolutions.
+The notice badge and text have separate padded areas. Existing fantasy wood art
+is retained; no new UI textures or shaders were made.
+
+One .36-second eased entrance slides from entirely off-screen left. After settling,
+the border and notice icon repeat a gentle 2.8-second heartbeat; text and panel
+geometry stay steady. See HintHeartbeat-2026-11-07.txt for current verification. Completing
+the required action reverses the same motion clock into a .28-second left exit.
+A replacement waits until old text is off-screen; latest pending content wins.
+Reversing during entrance/exit preserves position without competing coroutines.
+
+The supplied Downloads/Notification.mp3 was copied byte-for-byte into Resources;
+source and copy SHA256 hashes match. Unity imports it as a preloaded mono 1.152s
+clip, decompressed on load. One 2D, non-looping AudioSource uses the existing SFX
+mixer group at .8 base gain, so saved SFX volume/mute continues to apply. A new
+notification stops the previous voice before its one shot. Action identity tracks
+which cue has played: text refreshes, normal frames, repeated Show Hint requests
+and modal resume do not duplicate the sound. Help/modals and scene/terminal cleanup
+stop any active cue. No Music-volume setting is changed.
+
+The 30-second inactivity state model and all trial-specific action providers are
+unchanged. Help/tutorial/quiz/reading/camera pauses still exclude hint waiting.
+Admin authorization and its delay-bypass command are retained. Hints stay
+non-interactive: no GraphicRaycaster, CanvasGroup input disabled, graphics do not
+receive raycasts. Game Over/completion/source loss clear immediately to keep
+results unobstructed. Ordinary action changes animate out.
+
+A portrait timing issue was found during verification: Formal's Update temporarily
+resizes Help before its shared LateUpdate dock. Event handlers now update logical
+hint state only. Rendering/measuring happens in the shared component's LateUpdate
+after the dock; the cached text measurement avoids rebuilding global UI each frame.
+
+Verification
+StageHelpGameplayRecorder.CheckContextHints() exercised all ten saved scenes in
+an offline, no-reward test session. No Help recordings were imported or replaced.
+1920x1080, 2960x1440 and 720x1280 passed final-rendered dock alignment, safe bounds,
+text wrapping/padding and non-blocking graphics. Separate checks covered long text,
+off-screen entry/exit, border-only pulse, rapid replacement, reversal, silent
+refresh, single AudioSource/panel, actual SFX routing and ordinary/Admin access.
+The real-time PRELIM wait passed at 29 seconds hidden and after 30 visible. Modal,
+camera, required-action change and terminal predicates passed across all ten trials.
+A final isolated Edit Mode test checked source-disable cleanup. Editor console
+reported no errors. The original Main Menu scene was restored; temporary fixture
+edits were preserved only under ignored Library/HintNotificationQA.
+Physical Android/iOS hardware and audible loudness on phone speakers were not
+verified. Source routing and engine one-shot requests were verified in the Editor.
+
+PRESENTATION RESULTS
+Shared hint presentation. Saved-scene offline checks; no account writes/rewards.
+PASS PRELIM 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS PRELIM 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS PRELIM 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS PRELIM 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS PRELIM: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS TruthTable 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS TruthTable 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS TruthTable 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS TruthTable 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS TruthTable: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS RulesOfInference 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS RulesOfInference 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS RulesOfInference 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS RulesOfInference 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS RulesOfInference: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Formal vs. Informal Proofs 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Formal vs. Informal Proofs 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Formal vs. Informal Proofs 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Formal vs. Informal Proofs 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Formal vs. Informal Proofs: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Direct&Indirect 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Direct&Indirect 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Direct&Indirect 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Direct&Indirect 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Direct&Indirect: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Induction 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Induction 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Induction 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Induction 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Induction: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Setssss 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Setssss 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Setssss 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Setssss 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Setssss: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Functions and Relations 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Functions and Relations 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Functions and Relations 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Functions and Relations 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Functions and Relations: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Graph 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Graph 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Graph 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Graph 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Graph: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Trees 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Trees 2960x1440: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Trees 720x1280: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Trees 1920x1080: exact dock width, below controls, safe wrapped text and padded notice.
+PASS Trees: interrupt/reverse/replace/refresh, one-shot SFX, no duplicate UI, Admin permission and Show Hint behavior.
+PASS Edit Mode cleanup: disabled/missing provider clears logical state, animation, rendered identity and audio without leaving a stale hint.
+
+HINT RULE / ACTION RESULTS
+Offline saved-scene Play Mode checks. Delays accelerated only through an Editor-only clock input. No account writes or completion rewards.
+PASS no hint before 30 seconds
+PASS modal time excluded from delay
+PASS hint appears after 30 active seconds
+PASS unfinished hint remains visible; no periodic reminder reset
+PASS visible hint hides during a modal
+PASS same action resumes without another 30-second delay
+PASS new action clears old hint and starts a fresh delay
+PASS terminal/absent action clears hint
+PASS PRELIM has one shared hint display
+PASS PRELIM begins with an unfinished book action, not an answer reminder: logic/0/0/book
+PASS PRELIM Help/tutorial camera restoration finishes before active waiting is measured
+PASS PRELIM waits before showing the book hint
+PASS PRELIM fades in after the delay; key=logic/0/0/book,elapsed=30.51326,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS PRELIM text refresh does not replay hint audio
+PASS PRELIM unrelated movement does not complete or reset the action
+PASS PRELIM actual Help opens
+PASS PRELIM Help hides and suspends the hint clock
+PASS PRELIM reopening Help returns to the same unfinished action without another sound
+PASS real-time Play Mode check: no hint at 29 seconds
+PASS real-time Play Mode check: hint appears and fades in after 30 seconds
+PASS PRELIM moving camera suspends delay
+PASS PRELIM rendered hint is visible; key=logic/0/0/book,elapsed=34.48785,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS PRELIM hint fits safe area at 1920x1080
+PASS PRELIM hint cannot block mobile taps at 1920x1080
+PASS PRELIM rendered hint is visible; key=logic/0/0/book,elapsed=35.56062,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS PRELIM hint fits safe area at 2960x1440
+PASS PRELIM hint cannot block mobile taps at 2960x1440
+PASS PRELIM rendered hint is visible; key=logic/0/0/book,elapsed=36.63649,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS PRELIM hint fits safe area at 720x1280
+PASS PRELIM hint cannot block mobile taps at 720x1280
+PASS Trial 1 uses the actual door-pad selection mechanic
+PASS PRELIM required gameplay action replaces the book hint and starts a new delay
+VERIFIED PRELIM next action: Compare the answers. Stand on your chosen door's pad.
+PASS Trial 1 Game Over supplies no unfinished-action reminder
+PASS Trial 1 Game Over immediately hides and clears the hint
+PASS TruthTable has one shared hint display
+PASS TruthTable begins with an unfinished book action, not an answer reminder: truth/1/1/book
+PASS TruthTable Help/tutorial camera restoration finishes before active waiting is measured
+PASS TruthTable waits before showing the book hint
+PASS TruthTable fades in after the delay; key=truth/1/1/book,elapsed=30.50815,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS TruthTable text refresh does not replay hint audio
+PASS TruthTable unrelated movement does not complete or reset the action
+PASS TruthTable actual Help opens
+PASS TruthTable Help hides and suspends the hint clock
+PASS TruthTable reopening Help returns to the same unfinished action without another sound
+PASS TruthTable moving camera suspends delay
+PASS TruthTable rendered hint is visible; key=truth/1/1/book,elapsed=35.22829,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS TruthTable hint fits safe area at 1920x1080
+PASS TruthTable hint cannot block mobile taps at 1920x1080
+PASS TruthTable rendered hint is visible; key=truth/1/1/book,elapsed=36.30179,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS TruthTable hint fits safe area at 2960x1440
+PASS TruthTable hint cannot block mobile taps at 2960x1440
+PASS TruthTable rendered hint is visible; key=truth/1/1/book,elapsed=37.36981,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS TruthTable hint fits safe area at 720x1280
+PASS TruthTable hint cannot block mobile taps at 720x1280
+PASS Trial 2 advances to house/block collection
+PASS Trial 2 quiz pauses hint timing
+PASS Truth Table test has four physical blocks
+PASS Trial 2 selected inventory block needs placement
+PASS Trial 2 selected inventory block needs placement
+PASS Trial 2 selected inventory block needs placement
+PASS Trial 2 selected inventory block needs placement
+PASS Trial 2 all four rows need Submit Column, not another block
+PASS TruthTable required gameplay action replaces the book hint and starts a new delay
+VERIFIED TruthTable next action: Tap Submit Column to check your answer.
+PASS Trial 2 Game Over supplies no unfinished-action reminder
+PASS Trial 2 Game Over immediately hides and clears the hint
+PASS Trial 2 completion supplies no unfinished-action reminder
+PASS Trial 2 completion immediately hides and clears the hint
+PASS RulesOfInference has one shared hint display
+PASS RulesOfInference begins with an unfinished book action, not an answer reminder: inference/0/book
+PASS RulesOfInference Help/tutorial camera restoration finishes before active waiting is measured
+PASS RulesOfInference waits before showing the book hint
+PASS RulesOfInference fades in after the delay; key=inference/0/book,elapsed=30.51092,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS RulesOfInference text refresh does not replay hint audio
+PASS RulesOfInference unrelated movement does not complete or reset the action
+PASS RulesOfInference actual Help opens
+PASS RulesOfInference Help hides and suspends the hint clock
+PASS RulesOfInference reopening Help returns to the same unfinished action without another sound
+PASS RulesOfInference moving camera suspends delay
+PASS RulesOfInference rendered hint is visible; key=inference/0/book,elapsed=35.21216,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS RulesOfInference hint fits safe area at 1920x1080
+PASS RulesOfInference hint cannot block mobile taps at 1920x1080
+PASS RulesOfInference rendered hint is visible; key=inference/0/book,elapsed=36.28583,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS RulesOfInference hint fits safe area at 2960x1440
+PASS RulesOfInference hint cannot block mobile taps at 2960x1440
+PASS RulesOfInference rendered hint is visible; key=inference/0/book,elapsed=37.35271,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS RulesOfInference hint fits safe area at 720x1280
+PASS RulesOfInference hint cannot block mobile taps at 720x1280
+PASS Inference book activates
+PASS Trial 3 directs unopened premises to the altar
+PASS Trial 3 incomplete premises need word-bank entries
+PASS RulesOfInference required gameplay action replaces the book hint and starts a new delay
+VERIFIED RulesOfInference next action: Approach the altar and tap View Board.
+PASS Trial 3 Game Over supplies no unfinished-action reminder
+PASS Trial 3 Game Over immediately hides and clears the hint
+PASS Trial 3 completion supplies no unfinished-action reminder
+PASS Trial 3 completion immediately hides and clears the hint
+PASS Formal vs. Informal Proofs has one shared hint display
+PASS Formal vs. Informal Proofs begins with an unfinished book action, not an answer reminder: proofs/0/0/0/book
+PASS Formal vs. Informal Proofs Help/tutorial camera restoration finishes before active waiting is measured
+PASS Formal vs. Informal Proofs waits before showing the book hint
+PASS Formal vs. Informal Proofs fades in after the delay; key=proofs/0/0/0/book,elapsed=30.51106,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Formal vs. Informal Proofs text refresh does not replay hint audio
+PASS Formal vs. Informal Proofs unrelated movement does not complete or reset the action
+PASS Formal vs. Informal Proofs actual Help opens
+PASS Formal vs. Informal Proofs Help hides and suspends the hint clock
+PASS Formal vs. Informal Proofs reopening Help returns to the same unfinished action without another sound
+PASS Formal vs. Informal Proofs moving camera suspends delay
+PASS Formal vs. Informal Proofs rendered hint is visible; key=proofs/0/0/0/book,elapsed=35.20026,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Formal vs. Informal Proofs hint fits safe area at 1920x1080
+PASS Formal vs. Informal Proofs hint cannot block mobile taps at 1920x1080
+PASS Formal vs. Informal Proofs rendered hint is visible; key=proofs/0/0/0/book,elapsed=36.27112,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Formal vs. Informal Proofs hint fits safe area at 2960x1440
+PASS Formal vs. Informal Proofs hint cannot block mobile taps at 2960x1440
+PASS Formal vs. Informal Proofs rendered hint is visible; key=proofs/0/0/0/book,elapsed=37.33912,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Formal vs. Informal Proofs hint fits safe area at 720x1280
+PASS Formal vs. Informal Proofs hint cannot block mobile taps at 720x1280
+PASS Trial 4 begins with scroll reading
+PASS Trial 4 scroll reader suspends hints
+PASS Trial 4 carrying needs placement
+PASS Formal vs. Informal Proofs required gameplay action replaces the book hint and starts a new delay
+VERIFIED Formal vs. Informal Proofs next action: Read a scroll, then tap Get This Scroll.
+PASS Trial 4 result supplies no unfinished-action reminder
+PASS Trial 4 result immediately hides and clears the hint
+PASS Direct&Indirect has one shared hint display
+PASS Direct&Indirect begins with an unfinished book action, not an answer reminder: direct/0/0/0/book
+PASS Direct&Indirect Help/tutorial camera restoration finishes before active waiting is measured
+PASS Direct&Indirect waits before showing the book hint
+PASS Direct&Indirect fades in after the delay; key=direct/0/0/0/book,elapsed=30.51014,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Direct&Indirect text refresh does not replay hint audio
+PASS Direct&Indirect unrelated movement does not complete or reset the action
+PASS Direct&Indirect actual Help opens
+PASS Direct&Indirect Help hides and suspends the hint clock
+PASS Direct&Indirect reopening Help returns to the same unfinished action without another sound
+PASS Direct&Indirect moving camera suspends delay
+PASS Direct&Indirect rendered hint is visible; key=direct/0/0/0/book,elapsed=35.21125,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Direct&Indirect hint fits safe area at 1920x1080
+PASS Direct&Indirect hint cannot block mobile taps at 1920x1080
+PASS Direct&Indirect rendered hint is visible; key=direct/0/0/0/book,elapsed=36.27352,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Direct&Indirect hint fits safe area at 2960x1440
+PASS Direct&Indirect hint cannot block mobile taps at 2960x1440
+PASS Direct&Indirect rendered hint is visible; key=direct/0/0/0/book,elapsed=37.33772,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Direct&Indirect hint fits safe area at 720x1280
+PASS Direct&Indirect hint cannot block mobile taps at 720x1280
+PASS Trial 5 starts with altar selection
+PASS Trial 5 selected altar needs book submission
+PASS Direct&Indirect required gameplay action replaces the book hint and starts a new delay
+VERIFIED Direct&Indirect next action: Return to the Book Statue to submit your answer.
+PASS Trial 5 Game Over supplies no unfinished-action reminder
+PASS Trial 5 Game Over immediately hides and clears the hint
+PASS Trial 5 completion supplies no unfinished-action reminder
+PASS Trial 5 completion immediately hides and clears the hint
+PASS Induction has one shared hint display
+PASS Induction begins with an unfinished book action, not an answer reminder: induction/0/0/book
+PASS Induction Help/tutorial camera restoration finishes before active waiting is measured
+PASS Induction waits before showing the book hint
+PASS Induction fades in after the delay; key=induction/0/0/book,elapsed=30.50952,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Induction text refresh does not replay hint audio
+PASS Induction unrelated movement does not complete or reset the action
+PASS Induction actual Help opens
+PASS Induction Help hides and suspends the hint clock
+PASS Induction reopening Help returns to the same unfinished action without another sound
+PASS Induction moving camera suspends delay
+PASS Induction rendered hint is visible; key=induction/0/0/book,elapsed=35.19947,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Induction hint fits safe area at 1920x1080
+PASS Induction hint cannot block mobile taps at 1920x1080
+PASS Induction rendered hint is visible; key=induction/0/0/book,elapsed=36.26228,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Induction hint fits safe area at 2960x1440
+PASS Induction hint cannot block mobile taps at 2960x1440
+PASS Induction rendered hint is visible; key=induction/0/0/book,elapsed=37.32758,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Induction hint fits safe area at 720x1280
+PASS Induction hint cannot block mobile taps at 720x1280
+PASS Induction book activates
+PASS Trial 6 needs a formula scroll
+PASS Induction required gameplay action replaces the book hint and starts a new delay
+VERIFIED Induction next action: Choose a formula scroll from the scroll stand.
+PASS Trial 6 Game Over supplies no unfinished-action reminder
+PASS Trial 6 Game Over immediately hides and clears the hint
+PASS Trial 6 completion supplies no unfinished-action reminder
+PASS Trial 6 completion immediately hides and clears the hint
+PASS Setssss has one shared hint display
+PASS Setssss begins with an unfinished book action, not an answer reminder: sets/1/0/0/0/book
+PASS Setssss Help/tutorial camera restoration finishes before active waiting is measured
+PASS Setssss waits before showing the book hint
+PASS Setssss fades in after the delay; key=sets/1/0/0/0/book,elapsed=30.51008,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Setssss text refresh does not replay hint audio
+PASS Setssss unrelated movement does not complete or reset the action
+PASS Setssss actual Help opens
+PASS Setssss Help hides and suspends the hint clock
+PASS Setssss reopening Help returns to the same unfinished action without another sound
+PASS Setssss moving camera suspends delay
+PASS Setssss rendered hint is visible; key=sets/1/0/0/0/book,elapsed=35.21361,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Setssss hint fits safe area at 1920x1080
+PASS Setssss hint cannot block mobile taps at 1920x1080
+PASS Setssss rendered hint is visible; key=sets/1/0/0/0/book,elapsed=36.27745,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Setssss hint fits safe area at 2960x1440
+PASS Setssss hint cannot block mobile taps at 2960x1440
+PASS Setssss rendered hint is visible; key=sets/1/0/0/0/book,elapsed=37.3378,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Setssss hint fits safe area at 720x1280
+PASS Setssss hint cannot block mobile taps at 720x1280
+PASS Sets book activates
+PASS Trial 7 needs a requested element, without naming its answer
+PASS Setssss required gameplay action replaces the book hint and starts a new delay
+VERIFIED Setssss next action: Collect an element needed for the question on the board.
+PASS Trial 7 Game Over supplies no unfinished-action reminder
+PASS Trial 7 Game Over immediately hides and clears the hint
+PASS Trial 7 completion supplies no unfinished-action reminder
+PASS Trial 7 completion immediately hides and clears the hint
+PASS Functions and Relations has one shared hint display
+PASS Functions and Relations begins with an unfinished book action, not an answer reminder: relations/0/0/0/book
+PASS Functions and Relations Help/tutorial camera restoration finishes before active waiting is measured
+PASS Functions and Relations waits before showing the book hint
+PASS Functions and Relations fades in after the delay; key=relations/0/0/0/book,elapsed=30.50898,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Functions and Relations text refresh does not replay hint audio
+PASS Functions and Relations unrelated movement does not complete or reset the action
+PASS Functions and Relations actual Help opens
+PASS Functions and Relations Help hides and suspends the hint clock
+PASS Functions and Relations reopening Help returns to the same unfinished action without another sound
+PASS Functions and Relations moving camera suspends delay
+PASS Functions and Relations rendered hint is visible; key=relations/0/0/0/book,elapsed=35.19395,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Functions and Relations hint fits safe area at 1920x1080
+PASS Functions and Relations hint cannot block mobile taps at 1920x1080
+PASS Functions and Relations rendered hint is visible; key=relations/0/0/0/book,elapsed=36.26281,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Functions and Relations hint fits safe area at 2960x1440
+PASS Functions and Relations hint cannot block mobile taps at 2960x1440
+PASS Functions and Relations rendered hint is visible; key=relations/0/0/0/book,elapsed=37.33152,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Functions and Relations hint fits safe area at 720x1280
+PASS Functions and Relations hint cannot block mobile taps at 720x1280
+PASS Trial 8 starts at Domain
+PASS Trial 8 selected input needs an output
+PASS Trial 8 completed connection needs another input or submission
+PASS Functions and Relations required gameplay action replaces the book hint and starts a new delay
+VERIFIED Functions and Relations next action: Select an input from Domain.
+PASS Functions and Relations Game Over supplies no unfinished-action reminder
+PASS Functions and Relations Game Over immediately hides and clears the hint
+PASS Functions and Relations completion supplies no unfinished-action reminder
+PASS Functions and Relations completion immediately hides and clears the hint
+PASS Graph has one shared hint display
+PASS Graph begins with an unfinished book action, not an answer reminder: graphs/0/0/0/book
+PASS Graph Help/tutorial camera restoration finishes before active waiting is measured
+PASS Graph waits before showing the book hint
+PASS Graph fades in after the delay; key=graphs/0/0/0/book,elapsed=30.51002,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Graph text refresh does not replay hint audio
+PASS Graph unrelated movement does not complete or reset the action
+PASS Graph actual Help opens
+PASS Graph Help hides and suspends the hint clock
+PASS Graph reopening Help returns to the same unfinished action without another sound
+PASS Graph moving camera suspends delay
+PASS Graph rendered hint is visible; key=graphs/0/0/0/book,elapsed=35.20613,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Graph hint fits safe area at 1920x1080
+PASS Graph hint cannot block mobile taps at 1920x1080
+PASS Graph rendered hint is visible; key=graphs/0/0/0/book,elapsed=36.28474,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Graph hint fits safe area at 2960x1440
+PASS Graph hint cannot block mobile taps at 2960x1440
+PASS Graph rendered hint is visible; key=graphs/0/0/0/book,elapsed=37.35546,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Graph hint fits safe area at 720x1280
+PASS Graph hint cannot block mobile taps at 720x1280
+PASS Graph book activates
+PASS Trial 9 requires a traversed edge, not unrelated walking
+PASS Graph required gameplay action replaces the book hint and starts a new delay
+VERIFIED Graph next action: Follow the board's route using the connecting bridges.
+PASS Graph degree camera settles and answer mode permits hints despite blocked movement
+PASS Graph degree mode asks for a number without giving it
+PASS Graph number selection changes the required action to Confirm
+PASS hint stays clear of Graph's top-center degree question
+PASS Graph Game Over supplies no unfinished-action reminder
+PASS Graph Game Over immediately hides and clears the hint
+PASS Graph completion supplies no unfinished-action reminder
+PASS Graph completion immediately hides and clears the hint
+PASS Trees has one shared hint display
+PASS Trees begins with an unfinished book action, not an answer reminder: trees/0/0/0/book
+PASS Trees Help/tutorial camera restoration finishes before active waiting is measured
+PASS Trees waits before showing the book hint
+PASS Trees fades in after the delay; key=trees/0/0/0/book,elapsed=30.50998,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Trees text refresh does not replay hint audio
+PASS Trees unrelated movement does not complete or reset the action
+PASS Trees actual Help opens
+PASS Trees Help hides and suspends the hint clock
+PASS Trees reopening Help returns to the same unfinished action without another sound
+PASS Trees moving camera suspends delay
+PASS Trees rendered hint is visible; key=trees/0/0/0/book,elapsed=35.20708,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Trees hint fits safe area at 1920x1080
+PASS Trees hint cannot block mobile taps at 1920x1080
+PASS Trees rendered hint is visible; key=trees/0/0/0/book,elapsed=36.28098,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Trees hint fits safe area at 2960x1440
+PASS Trees hint cannot block mobile taps at 2960x1440
+PASS Trees rendered hint is visible; key=trees/0/0/0/book,elapsed=37.35307,alpha=1,input=False,time=1,sourcePaused=False,blend=False,rig=
+PASS Trees hint fits safe area at 720x1280
+PASS Trees hint cannot block mobile taps at 720x1280
+PASS Trees book opens the interactive board
+PASS Trial 10 first needs a node selection
+PASS Trial 10 selected node needs submission
+PASS Trees required gameplay action replaces the book hint and starts a new delay
+VERIFIED Trees next action: Tap Submit to check your selected node.
+PASS Tree repair: first node requires a second endpoint
+PASS Tree repair: two endpoints require an edit action
+PASS successful tree edit advances the action clock; selecting unrelated nodes does not finish the edit
+PASS Trees Game Over supplies no unfinished-action reminder
+PASS Trees Game Over immediately hides and clears the hint
+PASS Trees completion supplies no unfinished-action reminder
+PASS Trees completion immediately hides and clears the hint
+ALL TEN TRIALS PASSED. Editor mobile resolutions; physical-device profiling not performed.

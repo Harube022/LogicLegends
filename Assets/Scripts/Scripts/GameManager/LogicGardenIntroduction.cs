@@ -88,7 +88,7 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
         if (returnToGardenButton != null)
         {
             returnToGardenButton.onClick.RemoveAllListeners();
-            returnToGardenButton.onClick.AddListener(ReturnToGarden);
+            returnToGardenButton.interactable = false;
             returnToGardenButton.gameObject.SetActive(false);
         }
         if (libraryDoor != null) libraryDoor.SetInteractionUnlocked(conversationComplete);
@@ -128,6 +128,8 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
         if (input != null) input.OnInteractAction -= OnInteract;
         if(libraryTutorial!=null)libraryTutorial.Cancel(false);
         if (talking) CloseDialogue(false);
+        EndWizardLine();
+        if(libraryWizardBubble!=null)libraryWizardBubble.Show(false,false,Vector3.zero);
         RestoreGameplayCamera();
         if (otherLibraryEntrances != null)
             foreach (InteractPortal portal in otherLibraryEntrances)
@@ -144,6 +146,7 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
 
     private void Update()
     {
+        UpdateLibraryWizard();
         if (OnboardingBusy || talking || teleportPending || inLibrary || (input != null && input.GameplayInputBlocked))
         {
             if (contextualButton != null) contextualButton.gameObject.SetActive(false);
@@ -185,6 +188,7 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
 
     public void Interact()
     {
+        if (inLibrary) { TryLibraryWizardInteraction(); return; }
         if (OnboardingBusy || talking || teleportPending || inLibrary || (input != null && input.GameplayInputBlocked)) return;
         if (player == null) player = FindLocalPlayer();
         if (IsTargeted(lefyahj))
@@ -225,6 +229,7 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
         if (speakerText != null) speakerText.text = "Lefyahj";
         if (returnToGardenButton != null) returnToGardenButton.gameObject.SetActive(false);
         dialogue.ShowDialoguePanel(lines[line]);
+        PresentWizardLine(lines[line], libraryDialogue);
     }
 
     public void Next()
@@ -236,6 +241,7 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
         if (line < lines.Length)
         {
             dialogue.UpdateText(lines[line]);
+            PresentWizardLine(lines[line], libraryDialogue);
             if (!libraryDialogue && line == 3) ShowLibraryCamera();
             return;
         }
@@ -244,12 +250,14 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
 
     private void CloseDialogue(bool acknowledgedFinalLine)
     {
+        if (returnQuestionOpen) { CloseLibraryReturnQuestion(); return; }
+        EndWizardLine();
         talking = false;
         RestoreGameplayCamera();
         if (dialogue != null) dialogue.HideDialoguePanel();
         if (input != null) input.SetGameplayInputBlocked(previousInputBlocked);
         if (player != null && !previousInputBlocked) player.ToggleControl(true);
-        if (returnToGardenButton != null) returnToGardenButton.gameObject.SetActive(inLibrary);
+        if (returnToGardenButton != null) returnToGardenButton.gameObject.SetActive(false);
         if (acknowledgedFinalLine && libraryDialogue)
         {
             if(replayDialogue){FinishReplayDialogue(acknowledgedFinalLine);return;}
@@ -334,7 +342,7 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
                 inLibrary = true;
                 teleportPending = false;
                 if (locationTitle != null) locationTitle.text = "Logic Library";
-                if (returnToGardenButton != null) returnToGardenButton.gameObject.SetActive(true);
+                if (returnToGardenButton != null) returnToGardenButton.gameObject.SetActive(false);
                 UpdateWizardAttention();
                 UpdateObjectives();
                 if (!LogicGardenProgress.IntroductionSeen) BeginLibraryDialogue();
@@ -372,7 +380,7 @@ public sealed partial class LogicGardenIntroduction : MonoBehaviour
             yield return null;
         }
         teleportPending = false;
-        if (returnToGardenButton != null) returnToGardenButton.gameObject.SetActive(inLibrary);
+        if (returnToGardenButton != null) returnToGardenButton.gameObject.SetActive(false);
     }
 
     private void UpdateObjectives()

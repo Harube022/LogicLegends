@@ -59,7 +59,7 @@ public sealed partial class LogicGardenIntroduction
             if(!TeleportManager.Instance.IsTeleporting&&Vector2.Distance(new Vector2(player.transform.position.x,player.transform.position.z),new Vector2(destination.position.x,destination.position.z))<3)
             {
                 inLibrary=toLibrary;teleportPending=false;locationTitle.text=toLibrary?"Logic Library":"LogicGarden";
-                returnToGardenButton.gameObject.SetActive(toLibrary);UpdateWizardAttention();arrived?.Invoke(true);yield break;
+                returnToGardenButton.gameObject.SetActive(false);UpdateWizardAttention();arrived?.Invoke(true);yield break;
             }
             yield return null;
         }

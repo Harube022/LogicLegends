@@ -1,0 +1,74 @@
+LEFYAHJ — TEXT-ONLY DIALOGUE AND LIBRARY ROAMING
+
+Scene: Assets/Scenes/LogicGarden.unity, including LogicGarden Study Library.
+Prepared model/prefab, scale, original rig, materials and model GUID are retained.
+Wizard.fbx is the former IDLE.fbx; GUID 02781e3ff58f91a40969c41471e8aa23.
+
+SPEECH REMOVED
+Lefyahj's voice component and dialogue playback calls are removed from the scene.
+Every existing WizardInteraction in this scene has allowVoiceOver=false and its
+spoken clip/source references cleared. Other scenes retain their prior setting.
+Music, task scribbles and unrelated effects are unchanged. Existing generated
+voice source assets are archived, unreferenced by the scene; no synthesis service
+or runtime network dependency remains. The legacy voice class is an inert
+compatibility stub and cannot create an AudioSource or play speech.
+
+GARDEN GREETING
+The garden actor begins Wave when the local player appears. A short self-blend
+keeps the greeting waving until conversation starts. Dialogue gestures blend
+normally; ending/cancelling returns to default Idle. The interaction Transform
+and visual-root position/rotation/scale remain stable. No objectives are granted
+by the animation, replay or greeting.
+
+WALKING
+Animations/Wizard_Walking.anim and Wizard_Walking1.anim are extracted from the
+new Walking.fbx and Walking1.fbx. All original animation keys/timing are retained.
+The matching controller states loop. The clips contain forward translation in
+Hips; WizardActor consumes only that root-Z motion while keeping the limb keys,
+vertical motion and lateral sway. Navigation owns world movement. The measured
+source travel speeds at the prepared uniform scale are approximately 4.666 and
+1.572 world units/second. WalkPlayback tracks actual movement / source speed.
+Gameplay player speeds and the other 12 skins are untouched.
+
+LIBRARY NAVIGATION
+WizardLibraryRoaming uses a dedicated Library Wizard NavMeshAgent type:
+radius 1.25, height 5.349, climb .85, slope 35. Existing player/monster agent types
+are unchanged. Wizard Library Navigation is under LogicGarden Study Library.
+Navigation/StudyLibraryWizard.asset is baked from the existing solid colliders
+inside a collection volume; runtime destinations and every path corner are
+additionally restricted to the interior rectangle. No off-mesh links are used.
+Movement defaults to 2.4 units/second, with configurable short rests. Every
+accepted walking segment selects Walking at 90% or Walking1 at 10%, once only.
+Rejected paths do not consume a new walk choice. Physics casts stop the actor
+before dynamic obstructions; stalled/unreachable routes trigger another choice.
+Navigation pauses outside the library, during dialogue, tours, reading, blocked
+input and global pause. Hand interaction stops the agent immediately and blends
+to Idle before the existing Yes/No return question. No resumes roaming; Yes
+uses the original garden transition and leaves all milestones intact.
+
+BUBBLE
+The shared HandThoughtBubble has an opt-in bounded screen-size mode, enabled
+only for the library wizard. Screen projection uses camera depth/FOV rather
+than unbounded distance multiplication. Compact height is 34–48 pixels;
+expanded height is 64–82 pixels, with width capped at 360 pixels or 65% of the
+safe width. The indicator hides behind the camera or beyond 24 camera units.
+Only actual player proximity (the existing interaction range) expands the
+instruction. The actual hand-button icon, safe-area/control avoidance and
+white/yellow styling are retained. Dialogue/reading/tours hide the bubble.
+
+SETUP AND CHECKS
+WizardRoamingSetup.Apply() updates the current LogicGarden scene in Edit Mode.
+It preserves the existing actors and gameplay objects, extracts the walks,
+configures the controller, disables wizard voices and rebuilds library navigation.
+PrepareLogicGardenWizard.Run() includes the current setup for a fresh preparation.
+WizardPresentationChecks.AssetsCheck() checks all 15 clips, 5,325 original curve
+bindings, 105 poses, uniform scale, the original model GUID and text-only setup.
+Wizard.RoamingChecks in Editor SessionState enables the isolated offline Play Mode
+checks; turn Garden.RunChecks and Wizard.RunChecks off while using it. Tests
+use codex.wizardRoaming.validation, not real account milestones or rewards.
+Checks cover greeting, dialogue/Idle, weighted segment selection, both walk
+speeds/root compensation, invalid destinations, dynamic obstruction, interruption,
+Yes/No, and bubble limits at three mobile aspect ratios and camera distances.
+Physical Android/iOS device verification is separate from Editor touch-style tests.
+Local captures/reports: Library/WizardQA (not imported or added to Git).
+No commits, pushes, merges or production account/backend changes.
