@@ -12,7 +12,7 @@ namespace LogicLegends.Tests.Khezu.Editor
             var test = (KhezuAwakeningTestController)target;
             var hunt = test.GetComponent<LogicLegends.OpenArchive.Hunting.KhezuHuntingController>();
             EditorGUILayout.HelpBox(hunt == null ? "Phase 1 animation test. Enter Play Mode, then add mistakes. Rapid clicks queue every awakening stage. Reset cancels the queue and blends to Sleep." :
-                "Phase 2: four shared mistakes awaken Khezu, then the host selects a player and begins hunting. Preview controls remain in the separate Phase 1 scene.", MessageType.Info);
+                "Phase 2: four shared mistakes awaken the active guardian, then the host selects a player and begins hunting. Preview controls remain in the separate Phase 1 scene.", MessageType.Info);
             EditorGUILayout.LabelField("Mistakes requested", test.Mistakes + " / 4");
             EditorGUILayout.LabelField("Stage playing", test.PlayingStage.ToString());
             EditorGUILayout.LabelField("Animator state", test.CurrentState);

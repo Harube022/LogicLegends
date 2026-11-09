@@ -51,23 +51,20 @@ namespace LogicLegends.OpenArchive.Topics
             var group=go.GetComponent<CanvasGroup>();group.interactable=false;group.blocksRaycasts=false;
             card=Rect("Shared_Match_Clock",root,Vector2.zero,Vector2.one);
             card.anchorMin=card.anchorMax=new Vector2(.5f,1);card.pivot=new Vector2(.5f,1);
-            var paper=card.gameObject.AddComponent<Image>();paper.sprite=StageUITheme.Paper;paper.type=Image.Type.Sliced;
-            paper.pixelsPerUnitMultiplier=4.5f;paper.raycastTarget=false;
-            var clockPlate=Rect("Teal_Clock_Face",card,new Vector2(.69f,.12f),new Vector2(.975f,.88f));
-            clockFace=clockPlate.gameObject.AddComponent<Image>();clockFace.sprite=StageUITheme.ButtonArt;
-            clockFace.type=Image.Type.Sliced;clockFace.pixelsPerUnitMultiplier=5;clockFace.raycastTarget=false;
-            phase=Text("Shared_Clock_Phase",card,26,StageUITheme.HeadingFont,Teal);
-            Stretch(phase.rectTransform,new Vector2(.055f,.21f),new Vector2(.68f,.80f));phase.alignment=TextAlignmentOptions.MidlineLeft;
-            clock=Text("Shared_Time_Remaining",clockPlate,35,StageUITheme.ReadingFont,Cream);
+            card.gameObject.AddComponent<ArchiveHudCardGraphic>().raycastTarget=false;
+            var clockPlate=Rect("Teal_Clock_Face",card,new Vector2(.685f,.14f),new Vector2(.965f,.86f));
+            clockFace=clockPlate.gameObject.AddComponent<Image>();clockFace.color=new Color(.05f,.22f,.23f);clockFace.raycastTarget=false;
+            phase=Text("Shared_Clock_Phase",card,17,StageUITheme.ReadingFont,Cream);phase.fontStyle=FontStyles.Bold;
+            Stretch(phase.rectTransform,new Vector2(.065f,.21f),new Vector2(.665f,.80f));phase.alignment=TextAlignmentOptions.MidlineLeft;
+            clock=Text("Shared_Time_Remaining",clockPlate,29,StageUITheme.ReadingFont,Cream);
             Stretch(clock.rectTransform,new Vector2(.08f,.08f),new Vector2(.92f,.92f));clock.alignment=TextAlignmentOptions.Center;
-            var bar=Rect("Clock_State_Accent",card,new Vector2(.055f,.13f),new Vector2(.63f,.17f));
+            var bar=Rect("Clock_State_Accent",card,new Vector2(.025f,.24f),new Vector2(.034f,.76f));
             accent=bar.gameObject.AddComponent<Image>();accent.color=Teal;accent.raycastTarget=false;
             noticeCard=Rect("Shared_Clock_Notice",card,Vector2.zero,Vector2.one);
             noticeCard.anchorMin=noticeCard.anchorMax=new Vector2(.5f,0);noticeCard.pivot=new Vector2(.5f,1);
             noticeCard.anchoredPosition=new Vector2(0,-5);
-            var shade=noticeCard.gameObject.AddComponent<Image>();shade.sprite=StageUITheme.ButtonArt;
-            shade.type=Image.Type.Sliced;shade.pixelsPerUnitMultiplier=5;shade.raycastTarget=false;
-            notice=Text("Shared_Clock_Notice_Text",noticeCard,22,StageUITheme.ReadingFont,Cream);
+            noticeCard.gameObject.AddComponent<ArchiveHudCardGraphic>().raycastTarget=false;
+            notice=Text("Shared_Clock_Notice_Text",noticeCard,18,StageUITheme.ReadingFont,Cream);
             Stretch(notice.rectTransform,new Vector2(.05f,.08f),new Vector2(.95f,.92f));notice.alignment=TextAlignmentOptions.Center;
             noticeCard.gameObject.SetActive(false);card.gameObject.SetActive(false);
         }
@@ -158,7 +155,7 @@ namespace LogicLegends.OpenArchive.Topics
             noticeValue=value;noticePriority=priority;noticeUntil=Time.unscaledTime+noticeSeconds;
         }
         void SetAccent(Color tint)
-        {phase.color=tint;accent.color=tint;clock.color=tint==Red?new Color(1,.77f,.66f):Cream;}
+        {var visible=tint==Red?new Color(1,.55f,.50f):tint==Amber?new Color(1,.81f,.46f):new Color(.51f,.88f,.79f);phase.color=Cream;accent.color=visible;clock.color=visible;}
         bool SuppressHud()
         {
             if(ArchiveMatchCinematic.Covers(session))return true;
@@ -193,11 +190,11 @@ namespace LogicLegends.OpenArchive.Topics
                     if(candidate.session==session){exit=candidate;break;}
                 if(exit!=null)portalBanner=exit.transform.Find("PortalOpenNotice") as RectTransform;
             }
-            float width=Mathf.Clamp(safe.width/scale*.31f,370,470);
+            float width=340;
             float top=(Screen.height-safe.yMax)/scale+96;
             top=Mathf.Max(top,BottomInset(teamBanner,scale)+8,BottomInset(portalBanner,scale)+8);
-            card.sizeDelta=new Vector2(Mathf.Min(width,safe.width/scale-30),70);
-            noticeCard.sizeDelta=new Vector2(Mathf.Min(620,safe.width/scale*.58f),49);
+            card.sizeDelta=new Vector2(Mathf.Min(width,safe.width/scale-30),56);
+            noticeCard.sizeDelta=new Vector2(Mathf.Min(520,safe.width/scale*.58f),44);
             float centerX=(safe.center.x-Screen.width*.5f)/scale;
             card.anchoredPosition=new Vector2(centerX,-top);
         }

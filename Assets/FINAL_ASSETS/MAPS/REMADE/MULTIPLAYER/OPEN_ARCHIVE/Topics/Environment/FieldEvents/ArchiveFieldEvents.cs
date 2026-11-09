@@ -98,7 +98,7 @@ namespace LogicLegends.OpenArchive.Topics
                     if(lastFocus!=beacon.id||Time.unscaledTime>=nextFocusPoll)
                     {
                         lastFocus=beacon.id;nextFocusPoll=Time.unscaledTime+.2f;
-                        cachedFocusNotice=session.CanUseBeacon(session.LocalActor,beacon.id,out string reason)?"Hand / E: resonate · distract an awake guardian":"Resonance beacon · "+reason;
+                        cachedFocusNotice=session.CanUseBeacon(session.LocalActor,beacon.id,out string reason)?"Tap hand: resonate · distract an awake guardian":"Resonance beacon · "+reason;
                     }
                     FocusNotice=cachedFocusNotice;
                 }

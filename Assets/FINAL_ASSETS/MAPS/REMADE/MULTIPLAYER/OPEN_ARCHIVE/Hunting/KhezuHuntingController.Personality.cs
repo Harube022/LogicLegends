@@ -19,10 +19,10 @@ namespace LogicLegends.OpenArchive.Hunting
         // The existing field authority can suspend pursuit tells while a beacon owns the route.
         public bool HuntingPersonalitySuppressed { get; set; }
         public string HuntingPersonalityHint => !PersonalityVisible ? "" : IsRajangCounter ?
-            (HuntingPersonalityPhase == MonsterHuntingPersonalityPhase.Warning ? "RAJANG braces for a short rush — turn aside" :
-             HuntingPersonalityPhase == MonsterHuntingPersonalityPhase.Active ? "RAJANG rush — change direction" : "RAJANG is recovering") :
-            (HuntingPersonalityPhase == MonsterHuntingPersonalityPhase.Warning ? "KHEZU reads your route — change direction" :
-             HuntingPersonalityPhase == MonsterHuntingPersonalityPhase.Active ? "KHEZU pressures the marked route" : "KHEZU is recovering");
+            (HuntingPersonalityPhase == MonsterHuntingPersonalityPhase.Warning ? ArchiveMonsterNames.PrimalAxiom + " braces for a short rush — turn aside" :
+             HuntingPersonalityPhase == MonsterHuntingPersonalityPhase.Active ? ArchiveMonsterNames.PrimalAxiom + " rush — change direction" : ArchiveMonsterNames.PrimalAxiom + " is recovering") :
+            (HuntingPersonalityPhase == MonsterHuntingPersonalityPhase.Warning ? ArchiveMonsterNames.ProofDevourer + " reads your route — change direction" :
+             HuntingPersonalityPhase == MonsterHuntingPersonalityPhase.Active ? ArchiveMonsterNames.ProofDevourer + " pressures the marked route" : ArchiveMonsterNames.ProofDevourer + " is recovering");
 
         int personalityTarget, movementSampleTarget, presentedPersonalitySerial;
         Vector3 previousPersonalityTargetPosition, sampledTargetVelocity;
@@ -43,7 +43,8 @@ namespace LogicLegends.OpenArchive.Hunting
             (Topics.ArchiveTopicSession.Current == null || (!Topics.ArchiveTopicSession.Current.NightEntranceActive &&
                 !Topics.ArchiveTopicSession.Current.TeamDefeated && !Topics.ArchiveTopicSession.Current.TeamWon));
         bool PersonalityVisible => PersonalityAllowed && HuntingPersonalityPhase != MonsterHuntingPersonalityPhase.None &&
-            personalityTarget == TargetPlayerId && EncounterClock >= HuntingPersonalityStartedAt &&
+            // JSON can round the double start time a fraction ahead of this same frame's clock.
+            personalityTarget == TargetPlayerId && EncounterClock + .001 >= HuntingPersonalityStartedAt &&
             EncounterClock < HuntingPersonalityStartedAt + PersonalityTotalSeconds;
 
         public void CancelHuntingPersonality()
@@ -69,7 +70,7 @@ namespace LogicLegends.OpenArchive.Hunting
             if (HuntingPersonalityPhase != MonsterHuntingPersonalityPhase.None)
             {
                 double elapsed = now - HuntingPersonalityStartedAt;
-                if (personalityTarget != TargetPlayerId || elapsed < 0 || elapsed >= PersonalityTotalSeconds)
+                if (personalityTarget != TargetPlayerId || elapsed < -.001 || elapsed >= PersonalityTotalSeconds)
                 {
                     CancelHuntingPersonality(); nextDestination = 0; SnapshotChanged?.Invoke(); return;
                 }
@@ -142,6 +143,13 @@ namespace LogicLegends.OpenArchive.Hunting
 
         float PersonalityPursuitTurn(float ordinaryTurn) => PersonalityVisible && IsRajangCounter &&
             HuntingPersonalityPhase == MonsterHuntingPersonalityPhase.Active ? ordinaryTurn * .7f : ordinaryTurn;
+
+        Vector3 PursuitLead(Target target)
+        {
+            if(target==null||PersonalityVisible||Mathf.Abs(TargetFeet(target)-transform.position.y)>.85f||
+                TargetSurfaceGap(target)>catchUpDistance||waterPursuit!=null&&waterPursuit.ContainsTarget(target.transform,target.capsule))return Vector3.zero;
+            return Vector3.ClampMagnitude(sampledTargetVelocity*Mathf.Max(0,pursuitLeadSeconds),Mathf.Max(0,maximumPursuitLead));
+        }
 
         bool TryPersonalityPoint(Target target, Vector3 point, out Vector3 sampled, out NavMeshPath path)
         {

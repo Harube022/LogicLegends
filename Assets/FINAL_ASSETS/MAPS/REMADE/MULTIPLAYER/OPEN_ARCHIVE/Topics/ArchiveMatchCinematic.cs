@@ -22,16 +22,18 @@ namespace LogicLegends.OpenArchive.Topics
         [Header("Presentation only")]
         public bool playIntro=true,playVictory=true,reducedMotion;
         public bool playGuardianIntro=true;
+        public const float GuardianShowcaseSeconds=2;
         [Range(3,8)] public float victorySeconds=6;
         public static ArchiveMatchCinematic Current {get;private set;}
         public bool IsPlaying=>frame!=null&&frame.gameObject.activeInHierarchy;
         public string ShotName=>mode.ToString();
         public float Progress {get;private set;}
+        public float TeamRevealProgress=>SummoningProgress(Progress,UseGuardianIntro);
         public int LocksHeld=>locks.Count;
         public int HeroOverridesCount=>heroes.Count;
         public Camera FilmCamera=>filmCamera;
         public bool GuardianIntroVisible=>guardianIntro!=null&&guardianIntro.Visible;
-        public string GuardianName=>guardianIntro?.SpeciesName??"";
+        public string GuardianName=>guardianIntro?.DisplayName??"";
         public string GuardianAnimation=>guardianIntro?.AnimationName??"";
         public int GuardianRendererCount=>guardianIntro?.RendererCount??0;
         public Bounds GuardianBounds {get;private set;}
@@ -42,6 +44,18 @@ namespace LogicLegends.OpenArchive.Topics
         public static bool CoversVictoryResults(ArchiveTopicSession target)=>Current!=null&&Current.session==target&&Current.HidesResults;
         public static float WindowProgress(double now,double started,float duration)
         {double elapsed=now-started;return started<0||duration<=0||elapsed<0||elapsed>=duration?-1:Mathf.Clamp01((float)(elapsed/duration));}
+        // Both beats use the same authoritative countdown. A slow scene load must
+        // not consume the guardian reveal before the selected rig is ready.
+        public static float GuardianProgress(float progress,bool includeGuardian)
+        {
+            float start=1-GuardianShowcaseSeconds/ArchiveTopicSession.MatchCountdownSeconds;
+            return includeGuardian&&progress>=start&&progress<1?Mathf.InverseLerp(start,1,progress):-1;
+        }
+        public static float SummoningProgress(float progress,bool includeGuardian)
+        {
+            float end=includeGuardian?1-GuardianShowcaseSeconds/ArchiveTopicSession.MatchCountdownSeconds:1;
+            return Mathf.InverseLerp(0,end,progress);
+        }
 
         enum Shot {None,Waiting,Summoning,Victory}
         Shot mode,preview;
@@ -58,7 +72,7 @@ namespace LogicLegends.OpenArchive.Topics
         AudioSource rise,impact;
         ArchiveMatchCinematicFx fx;
         ArchiveActiveMonsterIntro guardianIntro;
-        bool guardianRoarPlayed;
+        bool guardianRoarPlayed,guardianUnavailable;
         readonly List<Player> players=new List<Player>();
         readonly Dictionary<Player,Vector3> locks=new Dictionary<Player,Vector3>();
         readonly List<Hero> heroes=new List<Hero>();
@@ -69,6 +83,7 @@ namespace LogicLegends.OpenArchive.Topics
         Vector3 forward=Vector3.forward;
         float nextRoster,nextHeroScan;
         bool AssetsReady=>energyMaterial!=null&&heroSummonMaterial!=null&&heroSummonMaterial.shader!=null&&heroSummonMaterial.shader.isSupported;
+        bool UseGuardianIntro=>playGuardianIntro&&!guardianUnavailable;
         bool ReducedMotion=>reducedMotion||(session?.hunting?.GetComponent<KhezuCinematicJumpscareController>()?.reducedMotion??false);
         sealed class Hero
         {
@@ -104,27 +119,39 @@ namespace LogicLegends.OpenArchive.Topics
                 }
             }
             if(next==Shot.None){Finish();return;}
-            if(next!=mode){Finish();EnsurePresentation();mode=next;risePlayed=impactPlayed=guardianRoarPlayed=false;rise.pitch=impact.pitch=1;nextRoster=nextHeroScan=0;}
+            if(next!=mode){Finish();EnsurePresentation();mode=next;risePlayed=impactPlayed=guardianRoarPlayed=guardianUnavailable=false;rise.pitch=impact.pitch=1;nextRoster=nextHeroScan=0;}
             Progress=progress;
             if(Time.unscaledTime>=nextRoster){nextRoster=Time.unscaledTime+.2f;ReadTeam();}
             if(mode==Shot.Waiting||mode==Shot.Summoning||preview==Shot.Victory)HoldOwnedPlayers();
-            if(mode==Shot.Summoning)RevealHeroes(progress);
+            bool showcasing=mode==Shot.Summoning&&GuardianProgress(progress,UseGuardianIntro)>=0;
+            if(showcasing&&heroes.Count>0)
+            {
+                rise.Stop();impact.Stop();rise.pitch=impact.pitch=1;
+            }
+            if(!showcasing&&guardianIntro!=null&&guardianIntro.Visible)
+            {
+                guardianIntro.Hide();impact.Stop();rise.pitch=impact.pitch=1;
+                risePlayed=impactPlayed=guardianRoarPlayed=false;
+            }
+            if(mode==Shot.Summoning&&!showcasing)RevealHeroes(TeamRevealProgress);
             else RestoreHeroes();
-            UpdateSound(progress);
+            if(!showcasing)UpdateSound(mode==Shot.Summoning?TeamRevealProgress:progress);
         }
         void LateUpdate()
         {
             if(mode==Shot.None||session==null||!session.Ready||MultiplayerLobbyService.IsGameplayRecovering)return;
             EnsurePresentation();EnsureTexture();CoverGameplayRendering();
             frame.gameObject.SetActive(true);filmCamera.enabled=true;
-            float guardianProgress=mode==Shot.Waiting&&playGuardianIntro?
-                WindowProgress(ArchiveTopicSession.Clock,session.State.matchTime.createdAt,ArchiveTopicSession.MatchGuardianIntroSeconds):-1;
+            float guardianProgress=mode==Shot.Summoning?GuardianProgress(Progress,UseGuardianIntro):-1;
             if(guardianProgress>=0&&guardianIntro.Present(session.hunting,guardianProgress,ReducedMotion,out var guardianBounds))
             {GuardianBounds=guardianBounds;PresentGuardian(guardianProgress,guardianBounds);}
             else
             {
+                // Unsupported presentation assets fall back to the existing team
+                // reveal, rather than leaving an empty or black guardian beat.
+                if(guardianProgress>=0)guardianUnavailable=true;
                 guardianIntro.Hide();
-                if(mode==Shot.Victory)PresentVictory(Progress);else PresentSummoning(Progress);
+                if(mode==Shot.Victory)PresentVictory(Progress);else PresentSummoning(mode==Shot.Summoning?TeamRevealProgress:Progress);
             }
             var safe=Screen.safeArea;
             safeRoot.anchorMin=new Vector2(safe.xMin/Mathf.Max(1,Screen.width),safe.yMin/Mathf.Max(1,Screen.height));
@@ -234,16 +261,21 @@ namespace LogicLegends.OpenArchive.Topics
             float motion=ReducedMotion?0:Mathf.SmoothStep(0,1,t);
             var eye=center+forward*Mathf.Lerp(span*1.5f,span,motion)+side*Mathf.Lerp(span*.48f,-span*.22f,motion)+Vector3.up*Mathf.Lerp(7,2.7f,motion);
             var rotation=Quaternion.LookRotation(center-eye);
-            float handoff=!waiting?Mathf.SmoothStep(0,1,Mathf.InverseLerp(.85f,1,t)):0;
+            float handoff=!waiting&&!UseGuardianIntro?Mathf.SmoothStep(0,1,Mathf.InverseLerp(.85f,1,t)):0;
+            PresentCamera(eye,rotation,handoff);
+            if(waiting)fx.Hide();else fx.ShowSummon(feet,t,new Color(.10f,.92f,.78f,1));
+            title.text="THE OPEN ARCHIVE";subtitle.text=waiting?"GATHERING YOUR TEAM...":t<.68f?"THE ARCHIVE HAS SUMMONED YOUR TEAM":UseGuardianIntro?"YOUR ACTIVE GUARDIAN AWAITS":"STAY TOGETHER  ·  RESTORE ALL 10 TOPICS";
+            heroTitle.text=waiting?"TEAM PREPARATION":t>.73f?(UseGuardianIntro?"YOUR TEAM":"BEGIN"):"";
+            heroTitle.alpha=waiting?.8f:Mathf.Sin(Mathf.InverseLerp(.73f,1,t)*Mathf.PI);
+            accent.color=new Color(.15f,.9f,.77f,.9f);
+            float closing=UseGuardianIntro?Mathf.SmoothStep(0,1,Mathf.InverseLerp(.90f,1,t)):0;
+            fade.color=new Color(.005f,.025f,.03f,waiting?0:Mathf.Max(Mathf.Clamp01(1-t/.065f),closing));
+        }
+        void PresentCamera(Vector3 eye,Quaternion rotation,float handoff)
+        {
             var gameplay=coveredCameras.Select(c=>c.camera).FirstOrDefault(c=>c!=null&&c.CompareTag("MainCamera"));
             if(gameplay!=null){eye=Vector3.Lerp(eye,gameplay.transform.position,handoff);rotation=Quaternion.Slerp(rotation,gameplay.transform.rotation,handoff);}
             filmCamera.transform.SetPositionAndRotation(eye,rotation);filmCamera.fieldOfView=Mathf.Lerp(52,gameplay!=null?gameplay.fieldOfView:60,handoff);
-            if(waiting)fx.Hide();else fx.ShowSummon(feet,t,new Color(.10f,.92f,.78f,1));
-            title.text="THE OPEN ARCHIVE";subtitle.text=waiting?"GATHERING YOUR TEAM...":t<.68f?"THE ARCHIVE HAS SUMMONED YOUR TEAM":"STAY TOGETHER  ·  RESTORE ALL 10 TOPICS";
-            heroTitle.text=waiting?"TEAM PREPARATION":t>.73f?"BEGIN":"";
-            heroTitle.alpha=waiting?.8f:Mathf.Sin(Mathf.InverseLerp(.73f,1,t)*Mathf.PI);
-            accent.color=new Color(.15f,.9f,.77f,.9f);
-            fade.color=new Color(.005f,.025f,.03f,waiting?0:Mathf.Clamp01(1-t/.065f));
         }
         void PresentVictory(float t)
         {
@@ -275,13 +307,14 @@ namespace LogicLegends.OpenArchive.Topics
             float distance=Mathf.Max(12,fit*1.35f)+bounds.size.z*.30f;
             var target=bounds.center+Vector3.up*(bounds.size.y*.05f);
             var eye=target+direction*distance+Vector3.up*Mathf.Max(1.2f,bounds.size.y*.16f);
-            filmCamera.transform.SetPositionAndRotation(eye,Quaternion.LookRotation(target-eye));filmCamera.fieldOfView=52;
-            title.text="GUARDIAN OF THE OPEN ARCHIVE";
-            subtitle.text=guardianIntro.SpeciesTitle+"  ·  YOUR MISTAKES WILL AWAKEN IT";
-            heroTitle.text=guardianIntro.SpeciesName.ToUpperInvariant();
+            float handoff=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.85f,1,t));
+            PresentCamera(eye,Quaternion.LookRotation(target-eye),handoff);
+            title.text="YOUR ACTIVE GUARDIAN";
+            subtitle.text="MISTAKES DRAW ITS ATTENTION  ·  STAY TOGETHER";
+            heroTitle.text=guardianIntro.DisplayName.ToUpperInvariant();
             heroTitle.color=Color.Lerp(guardianIntro.Tint,Color.white,.45f);
             heroTitle.alpha=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.08f,.30f,t));accent.color=guardianIntro.Tint;
-            fade.color=new Color(.008f,.015f,.024f,Mathf.Max(Mathf.Clamp01(1-t/.10f),Mathf.SmoothStep(0,1,Mathf.InverseLerp(.87f,1,t))));
+            fade.color=new Color(.008f,.015f,.024f,Mathf.Clamp01(1-t/.10f));
             if(!guardianRoarPlayed&&t>=.38f)
             {
                 guardianRoarPlayed=true;

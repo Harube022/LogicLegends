@@ -14,11 +14,12 @@ public sealed class MultiplayerMatchBriefing : MonoBehaviour
     public const int PageCount = 4;
     MultiplayerLobbyUI lobby;
     GameObject lobbyOverlay, root;
-    RectTransform card, entryRect;
+    RectTransform card, entryRect, safeArea;
     TMP_Text title, pageLabel, body, nextLabel;
     Button entry, previous, next, skip;
     ScrollRect scroll;
     Scrollbar scrollbar;
+    MultiplayerBriefingVideo demonstration;
     int page;
     bool autoConsidered;
     Vector2 screen;
@@ -31,6 +32,7 @@ public sealed class MultiplayerMatchBriefing : MonoBehaviour
     public ScrollRect ReadingScroll => scroll;
     public Scrollbar VisibleScrollbar => scrollbar;
     public RectTransform Card => card;
+    public MultiplayerBriefingVideo Demonstration => demonstration;
     public string CurrentBody => body != null ? body.text : "";
     bool Available => lobby != null && lobby.IsOpen && SceneManager.GetActiveScene().name == "Main Menu" &&
         MultiplayerLobbyService.Instance != null && !MultiplayerLobbyService.Instance.Starting && !MultiplayerLobbyService.Instance.Busy;
@@ -57,16 +59,17 @@ public sealed class MultiplayerMatchBriefing : MonoBehaviour
         var scaler = root.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = .5f;
         var dim = root.AddComponent<Image>(); dim.color = new Color(.012f, .026f, .035f, .82f);
-        var safe = MultiplayerUIArt.Rect("SafeArea", root.transform); safe.gameObject.AddComponent<Crystal.SafeArea>();
-        card = MultiplayerUIArt.Rect("Briefing_Wood_Frame", safe, .12f, .12f, .88f, .88f);
+        safeArea = MultiplayerUIArt.Rect("SafeArea", root.transform); MultiplayerSafeArea.Apply(safeArea); var safe = safeArea;
+        card = MultiplayerUIArt.Rect("Briefing_Wood_Frame", safe, .035f, .055f, .965f, .945f);
         var wood = card.gameObject.AddComponent<Image>(); wood.sprite = StageUITheme.Panel; wood.type = Image.Type.Sliced; wood.pixelsPerUnitMultiplier = 2.3f;
         var paper = MultiplayerUIArt.Paper("Briefing_Paper", card, .045f, .065f, .955f, .935f);
         pageLabel = MultiplayerUIArt.Label("Page_Progress", paper, "", .045f, .90f, .78f, .97f, 22, false, new Color(.04f, .32f, .33f));
-        title = MultiplayerUIArt.Label("Briefing_Title", paper, "", .045f, .76f, .86f, .90f, 36, false, StageUITheme.ReadingInk);
+        pageLabel.alignment = TextAlignmentOptions.MidlineLeft;
+        title = MultiplayerUIArt.Label("Briefing_Title", paper, "", .045f, .79f, .86f, .90f, 36, false, StageUITheme.ReadingInk);
         title.alignment = TextAlignmentOptions.MidlineLeft;
         var close = MultiplayerUIArt.Action("Skip_Briefing_X", paper, "X", .89f, .83f, .97f, .95f);
         close.onClick.AddListener(Dismiss);
-        var area = MultiplayerUIArt.Rect("Briefing_Scroll", paper, .045f, .235f, .955f, .755f);
+        var area = MultiplayerUIArt.Rect("Briefing_Scroll", paper, .045f, .235f, .49f, .77f);
         scroll = area.gameObject.AddComponent<ScrollRect>(); scroll.horizontal = false;
         scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 38;
         var viewport = MultiplayerUIArt.Rect("Viewport", area, 0, 0, .965f, 1);
@@ -86,7 +89,9 @@ public sealed class MultiplayerMatchBriefing : MonoBehaviour
         scrollbar = rail.gameObject.AddComponent<Scrollbar>(); scrollbar.direction = Scrollbar.Direction.BottomToTop;
         scrollbar.targetGraphic = handle.GetComponent<Image>(); scrollbar.handleRect = handle;
         scroll.verticalScrollbar = scrollbar; scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
-        var footer = MultiplayerUIArt.Label("Review_Reminder", paper, "Reopen HOW TO PLAY in the lobby whenever you need a reminder.", .05f, .18f, .95f, .23f, 19, true, new Color(.12f, .31f, .29f));
+        var media = MultiplayerUIArt.Rect("Watch_Gameplay", paper, .52f, .235f, .955f, .77f);
+        demonstration = media.gameObject.AddComponent<MultiplayerBriefingVideo>(); demonstration.Build(media);
+        var footer = MultiplayerUIArt.Label("Review_Reminder", paper, "Watch the demonstration, then practise together. Reopen HOW TO PLAY anytime.", .05f, .18f, .95f, .23f, 19, true, new Color(.12f, .31f, .29f));
         footer.alignment = TextAlignmentOptions.Center;
         previous = MultiplayerUIArt.Action("Previous_Briefing_Page", paper, "BACK", .045f, .045f, .275f, .16f);
         previous.onClick.AddListener(PreviousPage);
@@ -94,12 +99,13 @@ public sealed class MultiplayerMatchBriefing : MonoBehaviour
         skip.onClick.AddListener(Dismiss);
         next = MultiplayerUIArt.Action("Next_Briefing_Page", paper, "NEXT", .585f, .045f, .955f, .16f);
         nextLabel = next.GetComponentInChildren<TMP_Text>(); next.onClick.AddListener(NextPage);
-        RefreshPage(); root.SetActive(false);
+        root.SetActive(false); RefreshPage();
     }
 
     void Update()
     {
         if (root == null) return;
+        MultiplayerSafeArea.Apply(safeArea);
         bool available = Available;
         entry.gameObject.SetActive(available);
         bool inRoom = MultiplayerLobbyService.Instance != null && MultiplayerLobbyService.Instance.InLobby;
@@ -134,12 +140,14 @@ public sealed class MultiplayerMatchBriefing : MonoBehaviour
         if (root == null) return;
         if (remember && Visible) { PlayerPrefs.SetInt(SeenPreference, 1); PlayerPrefs.Save(); }
         root.SetActive(false);
+        demonstration.Hide();
     }
     void RefreshPage()
     {
         page = Mathf.Clamp(page, 0, PageCount - 1);
         pageLabel.text = "THE OPEN ARCHIVE  |  " + (page + 1) + " / " + PageCount;
         title.text = PageTitle(page); body.text = PageBody(page); previous.interactable = page > 0;
+        if (Visible) demonstration.Show(page);
         skip.gameObject.SetActive(page < PageCount - 1); nextLabel.text = page == PageCount - 1 ? "GOT IT" : "NEXT";
         Canvas.ForceUpdateCanvases(); scroll.verticalNormalizedPosition = 1;
     }
@@ -172,9 +180,10 @@ public sealed class MultiplayerMatchBriefing : MonoBehaviour
                 return "<b>MISTAKES WAKE A GUARDIAN</b>\nFour mistakes fully awaken the first guardian. Incorrect answers and challenge timeouts have consequences, so discuss the reason for your answer before confirming.\n\n" +
                     "<b>THE WORLD CHANGES WITH YOUR PROGRESS</b>\nAt seven completed topics, night arrives and a second guardian enters. After the entrance warning, guardians can hunt even if your team has fewer than four mistakes.\n\n" +
                     "Prepare your flashlight and supplies before dark. Stay aware of your teammates, help anyone being chased, and keep working toward the portal.\n\n"+
+                    "<b>BREAK THE HUNT</b>\nSprint has no stamina limit. After 30 seconds of active pursuit, your guardian becomes enraged and accelerates. At 40 seconds, it captures its eligible target through the usual jumpscare and barrier challenge. Use a tranquilizer or teammate beacon to delay pursuit. Sedation, active distractions, cinematics and another ongoing capture pause this chase clock.\n\n"+
                     "<b>READ THE ROAD AND THE GUARDIAN</b>\nAfter every two completed topics, a short rune disturbance may form on a road margin. Its golden outline warns for three seconds. The marked area slows walking briefly; use the clear paved lane beside it. It does not remove a heart or prevent jumping.\n\n"+
-                    "Rajang's orange tell warns of a short rush. Khezu's crimson tell marks the route it is reading. Change direction rather than running straight through the warning.\n\n"+
-                    "<b>RESONANCE BEACONS</b>\nUse Hand / E beside a ready teal beacon to draw one nearby hunting guardian toward it after a rising chime. Use those few seconds to help a solver or rescue a teammate. Sleeping guardians ignore beacons. Every beacon shares a long recharge, so plan the distraction together.";
+                    "The Primal Axiom's orange tell warns of a short rush. The Proof Devourer's crimson tell marks the route it is reading. Change direction rather than running straight through the warning.\n\n"+
+                    "<b>RESONANCE BEACONS</b>\nTap the hand button beside a ready teal beacon to draw one nearby hunting guardian toward it after a rising chime. Use those few seconds to help a solver or rescue a teammate. Sleeping guardians ignore beacons. Every beacon shares a long recharge, so plan the distraction together.";
             default:
                 return "<b>CAPTURED DOES NOT MEAN DEFEATED</b>\nA captured player has " + (KhezuHuntingController.BarrierChallengeSeconds / 60).ToString("0") + " minutes to solve a Discrete Mathematics barrier challenge. A wrong answer or timeout costs one heart and briefly stuns the player. The other teammates can keep moving.\n\n" +
                     "<b>REVIVE AT THE NEST</b>\nA player with zero hearts is carried to the monster nest and spectates until revived. Bring a revival kit to rescue them. If every teammate is down, the team loses.\n\n" +

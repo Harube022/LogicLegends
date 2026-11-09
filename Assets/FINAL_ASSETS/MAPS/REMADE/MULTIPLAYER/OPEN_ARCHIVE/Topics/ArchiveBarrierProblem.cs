@@ -37,14 +37,14 @@ namespace LogicLegends.OpenArchive.Topics
             {
                 if(state.bankVersion!=ArchiveMonsterChallengeBank.CurrentVersion)throw new InvalidOperationException("Monster challenge content version mismatch.");
                 bankQuestion=ArchiveMonsterChallengeBank.Get(state.questionIndex);
-                title=(inference?"RAJANG":"KHEZU")+" · DM1 ESCAPE CHALLENGE";
+                title=ArchiveMonsterNames.ForPrimalAxiom(inference).ToUpperInvariant()+" · DM1 ESCAPE CHALLENGE";
                 prompt=ArchiveTopicCatalog.Names[bankQuestion.topic]+"\n\n"+bankQuestion.prompt;
                 optionIds=ArchiveTopicQuestions.Permutation(bankQuestion.options.Length,unchecked(state.seed ^ state.questionIndex*7919 ^ 0x4d3101));
                 options=optionIds.Select(i=>bankQuestion.options[i]).ToArray();
                 return;
             }
             source = ArchiveTopicQuestions.Build(catalog, inference ? 2 : 1, state.sourceRound, state.seed, inference ? 1 : 0);
-            title = inference ? "RAJANG · PROVE YOUR ESCAPE" : "KHEZU · BREAK THE FALSE CLAIM";
+            title = ArchiveMonsterNames.ForPrimalAxiom(inference).ToUpperInvariant() + (inference ? " · PROVE YOUR ESCAPE" : " · BREAK THE FALSE CLAIM");
             prompt = inference
                 ? "Which rule justifies the stated conclusion?\n\nPREMISES\n" + source.prompt + "\n\n" + source.successText
                 : "Disprove the claim ‘always TRUE’.\n\n" + source.prompt +

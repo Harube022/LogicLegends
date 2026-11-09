@@ -45,7 +45,7 @@ namespace LogicLegends.OpenArchive.Topics
             primary=MakeButton(reader,"Begin at Book",Primary,new Vector2(.70f,.075f),new Vector2(300,82),25);primaryLabel=primary.GetComponentInChildren<TMP_Text>();
             returnButton=MakeButton(reader,"Return item",()=>owner.session.Request(2,ArchiveAction.ReturnItem),new Vector2(.35f,.075f),new Vector2(225,82),24);
             for(int i=0;i<5;i++){var r=Rect("Completed_Inference_"+(i+1),reader,new Vector2(.065f+i*.032f,.06f),new Vector2(.09f+i*.032f,.085f));progress[i]=r.gameObject.AddComponent<Image>();progress[i].raycastTarget=false;}
-            reader.gameObject.SetActive(false);objective.gameObject.SetActive(false);
+            reader.gameObject.SetActive(false);owner.RegisterObjective(2,objective,title,timer);objective.gameObject.SetActive(false);
         }
         public void Open(){reader.gameObject.SetActive(true);revision=-1;Refresh();}
         public void Close(){if(reader!=null)reader.gameObject.SetActive(false);}
@@ -54,7 +54,7 @@ namespace LogicLegends.OpenArchive.Topics
         void Update(){
             if(owner==null||owner.session==null||!owner.session.Ready)return;var session=owner.session;
             bool near=Player.LocalInstance!=null&&session.CanAct(session.LocalActor)&&Time.timeScale>0&&Vector3.Distance(Player.LocalInstance.transform.position,session.stations[2].transform.position)<34;
-            objective.gameObject.SetActive(near&&owner.ReadingStation==null);
+            owner.SetObjectiveVisible(2,near&&owner.ReadingStation==null);
             if(!near){if(IsOpen)owner.Close();return;}
             if(screen!=new Vector2(Screen.width,Screen.height)||safe!=Screen.safeArea||!Mathf.Approximately(canvasScale,owner.GetComponent<Canvas>().scaleFactor))PositionObjective();
             if(revision!=session.State.revision){revision=session.State.revision;Refresh();}
@@ -68,8 +68,8 @@ namespace LogicLegends.OpenArchive.Topics
             if(s.phase==1){
                 var focus=owner.FocusedPoint;var held=s.carries.FirstOrDefault(c=>c.actor==session.LocalActor);
                 bool recent=s.lastAnswerResult<0&&ArchiveTopicSession.Clock-s.lastAnswerAt<2.5;
-                cue.text=recent?"Incorrect · your arrangement is kept":focus!=null&&focus.station.topic==2?"Hand / E · "+focus.caption:held!=null?"Carrying "+q.items[held.item]:filled?words?"Premises filled · check words":"Crystal ready · confirm rule":words?"Take a word tablet · Hand / E":"Read a crystal name · Hand / E";
-            }else if(s.phase==0)cue.text=canStart?"Book Statue · Hand / E":"Return to the Book Statue";
+                cue.text=recent?"Incorrect · your arrangement is kept":focus!=null&&focus.station.topic==2?"Tap hand · "+focus.caption:held!=null?"Carrying "+q.items[held.item]:filled?words?"Premises filled · check words":"Crystal ready · confirm rule":words?"Take a word tablet · Tap hand":"Read a crystal name · Tap hand";
+            }else if(s.phase==0)cue.text=canStart?"Book Statue · Tap hand":"Return to the Book Statue";
         }
         void Refresh(){
             var session=owner.session;if(!session.Ready)return;var s=session.State.stations[2];var q=session.Question(2);bool words=ArchiveInferencePresentation.IsPremises(q);int challenge=Mathf.Min(5,s.round+1);
@@ -79,8 +79,8 @@ namespace LogicLegends.OpenArchive.Topics
             summary.text=!display?s.phase==2?"Five shared team challenges solved":"Premise words → rule → conclusion":words?filled+" / "+q.slots.Length+" numbered blanks filled":"Altar: "+(filled==0?"empty":q.items[s.placements[0]]);
             readerTitle.text="T3  RULES OF INFERENCE\n"+(s.phase==2?"Team complete · 5 / 5":"Challenge "+challenge+" / 5 · "+(words?"Restore premises":"Choose the rule"));
             string key=session.State.seed+":"+s.round+":"+s.subphase+":"+s.phase;if(key!=readingKey){readingKey=key;premiseScroll.verticalNormalizedPosition=referenceScroll.verticalNormalizedPosition=1;}
-            premises.text=display?ArchiveInferencePresentation.Premises(q,s)+"\n\n"+(words?"Match each numbered blank to a word tablet. Numbering follows the reading order above.":"The premise words are restored. Choose the rule justified by these premises. The conclusion stays sealed until the correct crystal is submitted."):s.phase==2?"All five inference challenges are complete.\n\n"+s.reveal:s.timerExpired?"Return to the Book to retry.":s.round==0?"Restore the missing connector words in each premise, then bring the matching Rule Crystal to the altar.\n\nUse Hand / E to read, take and place. Your team shares every placement.":"Challenge "+s.round+" completed.\n\n"+s.reveal+"\n\nUse the Book to start the next challenge.";
-            reference.text=words?"WORD TABLETS\n\n"+string.Join("\n",q.items.GroupBy(w=>w.ToUpperInvariant()).Select(g=>g.Key+"  × "+g.Count()))+"\n\nTake one tablet, approach a numbered socket, and use Hand / E. You can lift a placed tablet to correct it.\n\nCheck only when all blanks are filled. Duplicate words are interchangeable.":string.Join("\n\n",session.catalog.inferenceRules.Select(r=>r.abbreviation+" · "+r.ruleName+"\n"+r.instruction));
+            premises.text=display?ArchiveInferencePresentation.Premises(q,s)+"\n\n"+(words?"Match each numbered blank to a word tablet. Numbering follows the reading order above.":"The premise words are restored. Choose the rule justified by these premises. The conclusion stays sealed until the correct crystal is submitted."):s.phase==2?"All five inference challenges are complete.\n\n"+s.reveal:s.timerExpired?"Return to the Book to retry.":s.round==0?"Restore the missing connector words in each premise, then bring the matching Rule Crystal to the altar.\n\nTap the hand button to read, take and place. Your team shares every placement.":"Challenge "+s.round+" completed.\n\n"+s.reveal+"\n\nUse the Book to start the next challenge.";
+            reference.text=words?"WORD TABLETS\n\n"+string.Join("\n",q.items.GroupBy(w=>w.ToUpperInvariant()).Select(g=>g.Key+"  × "+g.Count()))+"\n\nTake one tablet, approach a numbered socket, and tap the hand button. You can lift a placed tablet to correct it.\n\nCheck only when all blanks are filled. Duplicate words are interchangeable.":string.Join("\n\n",session.catalog.inferenceRules.Select(r=>r.abbreviation+" · "+r.ruleName+"\n"+r.instruction));
             feedback.text=session.TopicLockNotice(2);if(string.IsNullOrEmpty(feedback.text))feedback.text=s.feedback;
             feedback.color=s.lastAnswerResult<0&&s.phase==1?Red:Ink;
             checkLabel.text=words?"Check words":"Confirm rule";primaryLabel.text=s.phase==2?"Explore":s.phase==1?checkLabel.text:s.timerExpired?"Retry at Book":s.round==0?"Begin at Book":"Next at Book";

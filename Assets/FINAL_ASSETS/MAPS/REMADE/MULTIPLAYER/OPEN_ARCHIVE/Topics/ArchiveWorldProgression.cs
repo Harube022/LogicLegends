@@ -31,6 +31,7 @@ namespace LogicLegends.OpenArchive.Topics
         [Min(3)] public float warningSeconds=5;
         [NonSerialized] public bool suppressThreatsForVerification;
         public string SecondaryName {get;private set;}="Second guardian";
+        public string SecondaryDisplayName=>SecondaryName=="Second guardian"?SecondaryName:ArchiveMonsterNames.ForPrimalAxiom(SecondaryName=="Rajang");
         static readonly Color[] SkyColors={Color.white,new Color(1,.74f,.49f),new Color(.45f,.29f,.51f),new Color(.10f,.17f,.33f)};
         static readonly Color[] SunColors={Color.white,new Color(1,.69f,.40f),new Color(1,.43f,.30f),new Color(.48f,.62f,1)};
         static readonly float[] SunStrength={1, .84f,.34f,.10f},SkyExposure={1,.8f,.45f,.19f};
@@ -50,7 +51,7 @@ namespace LogicLegends.OpenArchive.Topics
             originalSky=RenderSettings.skybox;originalFog=RenderSettings.fogColor;originalFogDensity=RenderSettings.fogDensity;originalFogEnabled=RenderSettings.fog;
             CaptureNightAtmosphere();
             originalSkyAmbient=RenderSettings.ambientSkyColor;originalEquator=RenderSettings.ambientEquatorColor;originalGround=RenderSettings.ambientGroundColor;
-            if(originalSky!=null){runtimeSky=new Material(originalSky);originalExposure=runtimeSky.HasProperty("_Exposure")?runtimeSky.GetFloat("_Exposure"):1;originalSkyTint=runtimeSky.HasProperty("_Tint")?runtimeSky.GetColor("_Tint"):Color.white;RenderSettings.skybox=runtimeSky;}
+            if(originalSky!=null){runtimeSky=new Material(originalSky);if(nightFogSkyboxShader!=null&&originalSky.shader.name=="Skybox/Cubemap")runtimeSky.shader=nightFogSkyboxShader;originalExposure=runtimeSky.HasProperty("_Exposure")?runtimeSky.GetFloat("_Exposure"):1;originalSkyTint=runtimeSky.HasProperty("_Tint")?runtimeSky.GetColor("_Tint"):Color.white;RenderSettings.skybox=runtimeSky;}
             if(sun!=null){originalSunIntensity=sun.intensity;originalSun=sun.color;originalSunRotation=sun.transform.rotation;}
             dayVolumes=dayAmbience.Select(a=>a==null?0:a.volume).ToArray();
             wind=Voice("Night_Wind",nightWind,true,.0f);cracks=Voice("Night_Cracks",nightCracks,true,0);roar=Voice("Second_Guardian_Entrance",entranceRoar,false,.55f);
@@ -81,6 +82,8 @@ namespace LogicLegends.OpenArchive.Topics
             cinematic.mouthUpperBone=profile.mouthUpper;cinematic.mouthLowerBone=profile.mouthLower;cinematic.faceTargetOffset=profile.faceOffset;cinematic.framingDistance=profile.framingDistance;
             secondary.GetComponent<KhezuBarrierVfxPresentation>().styleOverride=profile.barrierStyle;
             var encounter=secondary.GetComponent<KhezuCaptureEncounterController>();encounter.inferenceBarrier=kind==DevelopmentMonster.Rajang;encounter.developmentTestOutcomes=false;
+            var soundscape=GetComponentInChildren<ArchiveAudioLandscape>();
+            if(soundscape!=null){soundscape.ApplyMonsterProfile(secondary);entranceRoar=cinematic.monsterRoar;if(roar!=null&&!roar.isPlaying)roar.clip=entranceRoar;}
             secondary.rajangCounterProfile=kind==DevelopmentMonster.Rajang;secondary.health=session.hunting.health;secondary.monsterSpawnPoint=secondarySpawn;
             secondary.GetComponent<KhezuAwakeningTestController>().RefreshAssemblyAnchor();
             if(secondary.gameObject.activeInHierarchy)secondary.RefreshAnimationRig();
@@ -97,6 +100,7 @@ namespace LogicLegends.OpenArchive.Topics
                 ambientDiscovered=true;
                 var previousSources=dayAmbience;var previousVolumes=dayVolumes;
                 dayAmbience=dayAmbience.Concat(FindObjectsByType<AudioSource>(FindObjectsSortMode.None).Where(a=>a!=wind&&a!=cracks&&a.loop&&a.clip!=null&&a.spatialBlend==0&&
+                    a.GetComponentInParent<ArchiveAudioLandscape>()==null&&
                     (a.name=="MainMenuMusic"||a.outputAudioMixerGroup!=null&&a.outputAudioMixerGroup.name=="Music"))).Where(a=>a!=null).Distinct().ToArray();
                 dayVolumes=dayAmbience.Select(a=>{int index=Array.IndexOf(previousSources,a);return index>=0&&index<previousVolumes.Length?previousVolumes[index]:a.volume;}).ToArray();
             }
@@ -110,8 +114,8 @@ namespace LogicLegends.OpenArchive.Topics
             var sky=originalSkyTint*Color.Lerp(SkyColors[from],SkyColors[to],blend);float night=Mathf.Lerp(from==3?1:0,to==3?1:0,blend);
             if(runtimeSky!=null){if(runtimeSky.HasProperty("_Tint"))runtimeSky.SetColor("_Tint",sky);if(runtimeSky.HasProperty("_Exposure"))runtimeSky.SetFloat("_Exposure",originalExposure*Mathf.Lerp(SkyExposure[from],SkyExposure[to],blend));}
             if(sun!=null){sun.color=Color.Lerp(originalSun*SunColors[from],originalSun*SunColors[to],blend);sun.intensity=originalSunIntensity*Mathf.Lerp(SunStrength[from],SunStrength[to],blend);sun.transform.rotation=Quaternion.Slerp(SunRotation(from),SunRotation(to),blend);}
-            if(moon!=null)moon.intensity=night*.35f;
-            RenderSettings.ambientSkyColor=Color.Lerp(originalSkyAmbient,new Color(.22f,.29f,.48f),night);RenderSettings.ambientEquatorColor=Color.Lerp(originalEquator,new Color(.20f,.24f,.34f),night);RenderSettings.ambientGroundColor=Color.Lerp(originalGround,new Color(.14f,.17f,.23f),night);
+            ApplyNightKeyLight(night);
+            RenderSettings.ambientSkyColor=Color.Lerp(originalSkyAmbient,nightAmbientSky,night);RenderSettings.ambientEquatorColor=Color.Lerp(originalEquator,nightAmbientEquator,night);RenderSettings.ambientGroundColor=Color.Lerp(originalGround,nightAmbientGround,night);
             ApplyNightFog(night);
             bool entering=w.phase==3&&w.arrivalStartedAt>=0&&!session.TeamWon&&!session.TeamDefeated;float elapsed=entering?(float)(ArchiveTopicSession.Clock-w.arrivalStartedAt):-1;
             bool captured=Player.LocalInstance!=null&&Player.LocalInstance.IsMovementLocked&&!introPlayers.Contains(Player.LocalInstance);
@@ -148,7 +152,7 @@ namespace LogicLegends.OpenArchive.Topics
             UpdateNightAmbience(night,warning||captured||session.TeamWon||session.TeamDefeated);
             bool transition=w.serial>0&&ArchiveTopicSession.Clock-w.changedAt<lightingTransitionSeconds;
             banner.transform.parent.gameObject.SetActive((warning||transition)&&!captured);
-            if(warning)banner.text=elapsed<entranceSeconds?"NIGHTFALL - "+SecondaryName.ToUpperInvariant()+" AWAKENS":!w.secondaryReleased?SecondaryName.ToUpperInvariant()+" HUNTS IN "+Mathf.CeilToInt(entranceSeconds+warningSeconds-elapsed)+"...":"NIGHT HUNT - TWO GUARDIANS ARE ACTIVE";
+            if(warning)banner.text=elapsed<entranceSeconds?"NIGHTFALL - "+SecondaryDisplayName.ToUpperInvariant()+" AWAKENS":!w.secondaryReleased?SecondaryDisplayName.ToUpperInvariant()+" HUNTS IN "+Mathf.CeilToInt(entranceSeconds+warningSeconds-elapsed)+"...":"NIGHT HUNT - TWO GUARDIANS ARE ACTIVE";
             else if(transition)banner.text=new[]{"DAYLIGHT","AFTERNOON","EVENING","NIGHT"}[to]+" - "+session.State.stations.Count(s=>s.phase==2)+" / 10 TOPICS COMPLETE";
             UpdateWarningFx(warning&&!showFilm&&!captured&&!session.TeamWon&&!session.TeamDefeated,elapsed);
         }

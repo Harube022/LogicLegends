@@ -11,7 +11,10 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         struct Triangle {public Vector2 a,b,c;public Rect bounds;}
         readonly List<Triangle> roads=new List<Triangle>();
         readonly List<Triangle> groundcover=new List<Triangle>();
+        readonly List<Bounds> treeBounds=new List<Bounds>();
         public const float SignClearance=4.5f;
+        // A topic waymark is 5.1 m wide, including its brass frame.
+        public const float TopicSignClearance=3.1f;
         public ArchiveWayfindingPlacement(Transform environment)
         {
             foreach(string group in new[]{"MainPaths","SecondaryPaths"})
@@ -45,6 +48,12 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                     groundcover.Add(new Triangle{a=p,b=q,c=r,bounds=Rect.MinMaxRect(min.x,min.y,max.x,max.y)});
                 }
             }
+            var trees=environment.Find("Trees");
+            if(trees!=null)
+                foreach(var renderer in trees.GetComponentsInChildren<Renderer>(true))
+                    // Batched bushes cover entire sectors in renderer bounds;
+                    // they are tested triangle by triangle above instead.
+                    if(renderer.gameObject.activeInHierarchy&&renderer.name.StartsWith("Tree_",StringComparison.Ordinal))treeBounds.Add(renderer.bounds);
         }
         static float Cross(Vector2 a,Vector2 b)=>a.x*b.y-a.y*b.x;
         static float SegmentDistanceSquared(Vector2 point,Vector2 a,Vector2 b)
@@ -101,22 +110,44 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         public Vector3 BesideTopic(ArchiveTopicStation station)
         {
             var best=Vector3.zero;float bestScore=float.PositiveInfinity;
-            // In the authored map, (11,14) lies on the grass corner where the
-            // topic approach meets the outer ring. Prefer that corner rather
-            // than the first empty patch deep inside a planted topic plot.
-            for(float across=8;across<=16;across+=.5f)
-                for(float along=11;along<=20;along+=.5f)
+            // Follow the two shoulders of the approach/ring junction. Do not
+            // retreat into the grove when one corner is occupied: try the
+            // opposite corner, including rendered foliage without colliders.
+            for(float across=7.5f;across<=14;across+=.25f)
+                for(float along=12;along<=16.5f;along+=.25f)
                     foreach(float side in new[]{1f,-1f})
                     {
                         var candidate=station.transform.TransformPoint(new Vector3(across*side,0,along));
-                        if(Vector3.Distance(candidate,station.transform.position)<44)continue;
-                        float score=(across-11)*(across-11)+(along-14)*(along-14);
-                        if(score>=bestScore||!ClearOfRoads(candidate)||!ClearOfGroundcover(candidate,3))continue;
+                        float score=(across-9.5f)*(across-9.5f)+(along-14.75f)*(along-14.75f);
+                        if(score>=bestScore||!ClearOfRoads(candidate,TopicSignClearance)||ClearOfRoads(candidate,6))continue;
+                        if(!ClearOfGroundcover(candidate,TopicSignClearance)||!ClearOfTrees(candidate,TopicSignClearance))continue;
+                        if(!ClearReadingApproach(station,candidate))continue;
                         if(!Ground(candidate,station.transform.position.y,out var grounded)||!ClearOfProps(grounded))continue;
                         best=grounded;bestScore=score;
                     }
             if(!float.IsPositiveInfinity(bestScore))return best;
             throw new InvalidOperationException("No clear dry shoulder for topic sign: T"+(station.topic+1));
+        }
+        public bool ClearOfTrees(Vector3 position,float radius)
+        {
+            var footprint=new Bounds(position+Vector3.up*2.4f,new Vector3(radius*2,4.8f,radius*2));
+            return !treeBounds.Any(b=>b.Intersects(footprint));
+        }
+        public bool ClearReadingApproach(ArchiveTopicStation station,Vector3 position)
+        {
+            // Check the complete sign face from the ring junction, not only
+            // its post. Decorative tree canopies often have no collider.
+            var reader=station.transform.TransformPoint(new Vector3(0,1.35f,19));
+            var forward=position-reader;forward.y=0;forward.Normalize();
+            var right=Vector3.Cross(Vector3.up,forward);
+            foreach(float side in new[]{-1f,0f,1f})
+            {
+                var target=position+Vector3.up*3.42f+right*(side*2.5f);
+                var delta=target-reader;var ray=new Ray(reader,delta.normalized);
+                foreach(var bounds in treeBounds)
+                    if(bounds.IntersectRay(ray,out float distance)&&distance<delta.magnitude)return false;
+            }
+            return true;
         }
     }
 }

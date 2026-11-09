@@ -19,6 +19,7 @@ namespace LogicLegends.OpenArchive.Hunting
         public Quaternion rotation;
         public string animation;
         public float normalizedTime, animationSpeed;
+        public float pursuitSeconds;
         public bool pending, awake;
         public double captureStartedAt;
         public int encounterPhase;
@@ -60,6 +61,10 @@ namespace LogicLegends.OpenArchive.Hunting
         [Range(.05f, .25f)] public float closeDestinationInterval = .1f;
         [Min(10)] public float turnSpeed = 150;
         [Min(1)] public float acceleration = 16;
+        [Tooltip("Turning acceleration in close pursuit. Top running speeds stay bounded by the existing chase multipliers.")]
+        [Min(1)] public float closePursuitAcceleration = 56;
+        [Range(0,.5f)] public float pursuitLeadSeconds = .30f;
+        [Range(0,8)] public float maximumPursuitLead = 5.5f;
         [Min(.1f)] public float destinationInterval = .25f;
         [Min(.2f)] public float rosterInterval = .5f;
         [Min(.1f)] public float catchInterval = .1f;
@@ -180,6 +185,7 @@ namespace LogicLegends.OpenArchive.Hunting
                     else BeginHunt();
                     break;
                 case KhezuCommand.ResetHunt:
+                    ResetTimedPursuit();
                     ResetCloseCounter(true);
                     CancelBarrierSequence();
                     StopNavigation(); animator.speed = 1; TargetPlayerId = CaughtPlayerId = 0; pending = false;
@@ -187,6 +193,7 @@ namespace LogicLegends.OpenArchive.Hunting
                     if (fullyAwake) Blend("Idle");
                     break;
                 case KhezuCommand.ResetRotation:
+                    ResetTimedPursuit();
                     ResetCloseCounter(true);
                     CancelBarrierSequence();
                     StopNavigation(); animator.speed = 1; TargetPlayerId = CaughtPlayerId = 0; pending = false;
@@ -195,6 +202,7 @@ namespace LogicLegends.OpenArchive.Hunting
                     if (fullyAwake) Blend("Idle");
                     break;
                 case KhezuCommand.Sleep:
+                    ResetTimedPursuit();
                     EntranceHeld=false;
                     ResetCloseCounter(true);
                     CancelBarrierSequence();
@@ -237,14 +245,16 @@ namespace LogicLegends.OpenArchive.Hunting
             if (!targets.TryGetValue(TargetPlayerId, out target) || target.transform == null || !target.transform.gameObject.activeInHierarchy || EscapedArchivePlayer(TargetPlayerId))
             { ResetCloseCounter(false); StopNavigation(); TargetPlayerId = 0; BeginHunt(); return; }
             if (UpdateBeaconDiversion()) return;
+            if (UpdateTimedPursuit(target, Time.deltaTime)) return;
             if (UpdateCloseCounter(target)) { CancelHuntingPersonality(); return; }
-            UpdateHuntingPersonality(target);
+            if (PursuitEnraged) CancelHuntingPersonality(); else UpdateHuntingPersonality(target);
             float gap = TargetSurfaceGap(target);
             float catchUp = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(closePressureDistance, Mathf.Max(closePressureDistance + 1, catchUpDistance), gap));
             float closeMultiplier = Mathf.Clamp(closeChaseSpeedMultiplier, 1, Mathf.Max(1, chaseSpeedMultiplier));
             agent.speed = PersonalityPursuitSpeed(normalPlayerRunSpeed * Mathf.Lerp(closeMultiplier, chaseSpeedMultiplier, catchUp));
             float pursuitTurn = PersonalityPursuitTurn(Mathf.Lerp(Mathf.Max(turnSpeed, closeTurnSpeed), turnSpeed, catchUp));
-            agent.angularSpeed = pursuitTurn; agent.acceleration = acceleration;
+            agent.angularSpeed = pursuitTurn; agent.acceleration = Mathf.Lerp(Mathf.Max(acceleration,closePursuitAcceleration),acceleration,catchUp);
+            ApplyTimedPursuitSpeed();
             // A live pursuit must not brake to a stop at the target's last sampled position.
             agent.autoBraking = false;
             if (Time.time >= nextDestination)
@@ -330,6 +340,7 @@ namespace LogicLegends.OpenArchive.Hunting
             if (TargetPlayerId == 0) { State = KhezuHuntState.WaitingForPlayers; Status = "Waiting for an eligible player"; Blend("Idle"); SnapshotChanged?.Invoke(); return; }
             avoidNextTarget=0;
             CaughtPlayerId = 0; State = KhezuHuntState.Hunting; HuntSerial++;
+            ResetTimedPursuit();
             nextDestination = nextCatch = 0; Status = "Hunting " + TargetName;
             HuntStarted?.Invoke(TargetPlayerId); SnapshotChanged?.Invoke();
         }
@@ -356,7 +367,7 @@ namespace LogicLegends.OpenArchive.Hunting
                     if (path == null || agent.SetPath(path)) return;
                 }
                 if (!wet && landApproach.TryRoute(target.transform, TargetFeet(target), agent, catchObstructionMask,
-                    point => ElevatedApproachPenalty(target, point), out path))
+                    point => ElevatedApproachPenalty(target, point), out path, PursuitLead(target)))
                 {
                     if (waterPursuit != null) waterPursuit.Reset();
                     State = KhezuHuntState.Hunting; Status = "Approaching " + TargetName + " around obstacles";
@@ -372,6 +383,8 @@ namespace LogicLegends.OpenArchive.Hunting
             // target path succeeds. Shoreline, ledge and obstacle fallbacks keep their routes.
             NavMeshPath personalityPath;
             if (TryHuntingPersonalityRoute(target, out personalityPath)) path = personalityPath;
+            else if(!PersonalityVisible&&PursuitLead(target).sqrMagnitude>.04f&&
+                TryPersonalityPoint(target,target.transform.position+PursuitLead(target),out _,out var interceptPath))path=interceptPath;
             State = KhezuHuntState.Hunting; Status = "Hunting " + TargetName;
             agent.isStopped = false;
             if (!agent.SetPath(path)) { agent.isStopped = true; State = KhezuHuntState.NavigationBlocked; Status = "Navigation could not accept the complete route"; }
@@ -463,6 +476,7 @@ namespace LogicLegends.OpenArchive.Hunting
                 target = TargetPlayerId, caught = CaughtPlayerId, hunted = rotation.HuntedPlayerIds.OrderBy(i => i).ToArray(), excluded = excluded.OrderBy(i => i).ToArray(),
                 position = transform.position, rotation = transform.rotation, animation = animationName,
                 normalizedTime = animationTime, animationSpeed = animator.speed,
+                pursuitSeconds = PursuitElapsedSeconds,
                 pending = pending, awake = fullyAwake, huntSerial = HuntSerial, captureSerial = CaptureSerial,
                 captureStartedAt = CaptureStartedAt, encounterPhase = EncounterPhase,
                 rescueActor = RescueActor, rescueAtNest = RescueAtNest, rescuePickedUp = RescuePickedUp };
@@ -486,6 +500,7 @@ namespace LogicLegends.OpenArchive.Hunting
             bool notifyCatch = !initial && s.captureSerial > CaptureSerial;
             State = (KhezuHuntState)s.state; TargetPlayerId = s.target; CaughtPlayerId = s.caught;
             HuntSerial = s.huntSerial; CaptureSerial = s.captureSerial; pending = s.pending; fullyAwake = s.awake;
+            RestoreTimedPursuit(s.pursuitSeconds);
             CaptureStartedAt = s.captureStartedAt; EncounterPhase = s.encounterPhase;
             RestoreRescueCarry(s.rescueActor,s.rescueAtNest,s.rescuePickedUp);
             RestoreHuntingPersonalitySnapshot(s);

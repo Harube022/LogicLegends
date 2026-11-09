@@ -133,9 +133,11 @@ namespace LogicLegends.Tests.Khezu
                     hunt.ApplySnapshot(checkpoint, false);
                     Record(monster + ": snapshot restores warning without resetting its deadline", hunt.CloseCounterStartedAt == originalStart && hunt.CloseCounterPhase == MonsterCloseCounterPhase.Warning);
                     Vector3 strikeOrigin = hunt.transform.position;
+                    Vector3 escapeDirection=-hunt.transform.forward;
                     until = KhezuHuntingController.EncounterClock + 1.2;
                     while (hunt.CloseCounterPhase == MonsterCloseCounterPhase.Warning && KhezuHuntingController.EncounterClock < until)
-                    { Place(AtGap(Vector3.forward, 18)); TickCounter(); yield return null; }
+                    { bool dodge=KhezuHuntingController.EncounterClock-hunt.CloseCounterStartedAt>hunt.counterWarningSeconds-.25f;
+                        Place(AtGap(dodge?escapeDirection:Vector3.forward,6)); TickCounter(); yield return null; }
                     Vector3 aim = hunt.CloseCounterAim;
                     Place(AtGap(-aim, 1)); TickCounter();
                     Record(monster + ": strike aim stays committed when target dodges behind", Vector3.Angle(aim, hunt.CloseCounterAim) < .1f && hunt.State != KhezuHuntState.Caught);
@@ -150,6 +152,10 @@ namespace LogicLegends.Tests.Khezu
                     { Place(AtGap(hunt.transform.forward, .2f)); TickCounter(); yield return null; }
                     Record(monster + ": missed counter grants recovery without a capture", hunt.CaptureSerial == serial && KhezuHuntingController.EncounterClock - recoveryAt >= .65);
                     Record(monster + ": cooldown remains after recovery", hunt.CloseCounterPhase == MonsterCloseCounterPhase.None && hunt.CloseCounterCooldownUntil - KhezuHuntingController.EncounterClock > 3);
+                    Prepare(selection,monster);Place(AtGap(Vector3.forward,1));Call("BeginCloseCounter",target);
+                    Place(AtGap(Vector3.forward,18));TickCounter();
+                    Record(monster+": leaving the warning resumes pursuit without waiting through a missed strike",hunt.CloseCounterPhase==MonsterCloseCounterPhase.None&&hunt.State!=KhezuHuntState.Caught);
+                    Record(monster+": escaped warning keeps its cooldown",hunt.CloseCounterCooldownUntil>KhezuHuntingController.EncounterClock);
                     Prepare(selection, monster); Place(AtGap(Vector3.forward, 1)); StrikeFixture();
                     Record(monster + ": visible target inside strike reach can be hit", (bool)Call("CanCounterHit", target));
                     Place(AtGap(Vector3.forward, 14));

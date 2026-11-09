@@ -56,12 +56,12 @@ namespace LogicLegends.OpenArchive.Topics
                 readerOutputs[row]=Label("Placed_Tile_Value",face,27,owner.textFont,Teal,Vector2.zero,Vector2.one);readerOutputs[row].alignment=TextAlignmentOptions.Center;
             }
             var instruction=Label("World_Interaction_Instructions",reader,22,owner.textFont,Teal,new Vector2(.07f,.195f),new Vector2(.93f,.30f));
-            instruction.text="Take T / True or F / False at a tile stand. Carry it to a row's OUTPUT and use Hand / E. You can replace any placed tile. Check when all four rows are filled.";
+            instruction.text="Take T / True or F / False at a tile stand. Carry it to a row's OUTPUT and tap the hand button. You can replace any placed tile. Check when all four rows are filled.";
             feedback=Label("Shared_Team_Feedback",reader,22,owner.textFont,Ink,new Vector2(.07f,.12f),new Vector2(.93f,.195f));
             primary=MakeButton(reader,"Begin at Book",Primary,new Vector2(.69f,.065f),new Vector2(290,82),26);primaryLabel=primary.GetComponentInChildren<TMP_Text>();
             returnButton=MakeButton(reader,"Return tile",()=>owner.session.Request(1,ArchiveAction.ReturnItem),new Vector2(.34f,.065f),new Vector2(230,82),24);
             for(int i=0;i<9;i++)progress[i]=Flat("Solved_Table_"+(i+1),reader,new Color(.2f,.4f,.35f,.2f),new Vector2(.07f+i*.021f,.06f),new Vector2(.085f+i*.021f,.085f)).GetComponent<Image>();
-            reader.gameObject.SetActive(false);objective.gameObject.SetActive(false);
+            reader.gameObject.SetActive(false);owner.RegisterObjective(1,objective,title,timer);objective.gameObject.SetActive(false);
         }
         public void Open(){reader.gameObject.SetActive(true);revision=-1;Refresh();}
         public void Close(){if(reader!=null)reader.gameObject.SetActive(false);}
@@ -77,7 +77,7 @@ namespace LogicLegends.OpenArchive.Topics
             if(owner==null||owner.session==null||!owner.session.Ready)return;
             var session=owner.session;
             bool near=Player.LocalInstance!=null&&session.CanAct(session.LocalActor)&&Time.timeScale>0&&Vector3.Distance(Player.LocalInstance.transform.position,session.stations[1].transform.position)<34;
-            objective.gameObject.SetActive(near&&owner.ReadingStation==null);
+            owner.SetObjectiveVisible(1,near&&owner.ReadingStation==null);
             if(!near){if(IsOpen)owner.Close();return;}
             if(screen!=new Vector2(Screen.width,Screen.height)||safe!=Screen.safeArea||!Mathf.Approximately(canvasScale,owner.GetComponent<Canvas>().scaleFactor))PositionObjective();
             if(revision!=session.State.revision){revision=session.State.revision;Refresh();}
@@ -91,9 +91,9 @@ namespace LogicLegends.OpenArchive.Topics
             if(state.phase==1){
                 var focus=owner.FocusedPoint;var carried=state.carries.FirstOrDefault(c=>c.actor==session.LocalActor);
                 bool recent=state.lastAnswerResult<0&&ArchiveTopicSession.Clock-state.lastAnswerAt<2.5;
-                cue.text=recent?"Incorrect · correct the placed tiles":focus!=null&&focus.station.topic==1?focus.role==ArchivePointRole.Item?focus.index==0?"Hand / E · take T / True":"Hand / E · take F / False":focus.role==ArchivePointRole.Slot?"Hand / E · "+(carried==null?"row "+(focus.index+1):"place "+(carried.item==0?"T":"F")+" in row "+(focus.index+1)):"Book · Hand / E":carried!=null?"Carrying "+(carried.item==0?"T / True":"F / False")+" · choose an output":Filled(state)?"Four outputs ready · check table":"Take a T or F tile · Hand / E";
+                cue.text=recent?"Incorrect · correct the placed tiles":focus!=null&&focus.station.topic==1?focus.role==ArchivePointRole.Item?focus.index==0?"Tap hand · take T / True":"Tap hand · take F / False":focus.role==ArchivePointRole.Slot?"Tap hand · "+(carried==null?"row "+(focus.index+1):"place "+(carried.item==0?"T":"F")+" in row "+(focus.index+1)):"Book · Tap hand":carried!=null?"Carrying "+(carried.item==0?"T / True":"F / False")+" · choose an output":Filled(state)?"Four outputs ready · check table":"Take a T or F tile · Tap hand";
             }
-            else if(state.phase==0)cue.text=canStart?"Book Statue · Hand / E":"Return to the Book Statue";
+            else if(state.phase==0)cue.text=canStart?"Book Statue · Tap hand":"Return to the Book Statue";
         }
         void Refresh(){
             var session=owner.session;if(!session.Ready)return;var state=session.State.stations[1];var q=session.Question(1);int round=Mathf.Min(9,state.round+1);
@@ -108,7 +108,7 @@ namespace LogicLegends.OpenArchive.Topics
                 readerOutputs[row].text=item<0?"Empty":item==0?"T / True":"F / False";readerOutputs[row].color=item==1?False:True;
                 outputFaces[row].color=item<0?new Color(.12f,.32f,.32f,.10f):item==0?new Color(.15f,.65f,.45f,.18f):new Color(.89f,.60f,.22f,.22f);
             }
-            cue.text=state.timerExpired?"Timeout · one mistake recorded":state.phase==2?"Shared team success":"Book Statue · Hand / E";
+            cue.text=state.timerExpired?"Timeout · one mistake recorded":state.phase==2?"Shared team success":"Book Statue · Tap hand";
             feedback.text=state.feedback;feedback.color=state.lastAnswerResult<0&&state.phase==1?Red:Ink;
             primaryLabel.text=state.phase==2?"Explore":state.phase==1?"Check table":state.timerExpired?"Retry at Book":state.round==0?"Begin at Book":"Next at Book";
             for(int i=0;i<9;i++)progress[i].color=i<state.round?True:new Color(.2f,.4f,.35f,.2f);

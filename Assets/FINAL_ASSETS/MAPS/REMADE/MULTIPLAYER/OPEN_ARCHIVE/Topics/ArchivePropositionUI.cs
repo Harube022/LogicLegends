@@ -68,7 +68,7 @@ namespace LogicLegends.OpenArchive.Topics
                 var pip=Flat("Completed_Challenge_"+(i+1),reader,Teal,new Vector2(.07f+i*.038f,.087f),new Vector2(.098f+i*.038f,.105f));
                 progressPips[i]=pip.GetComponent<Image>();
             }
-            reader.gameObject.SetActive(false);objective.gameObject.SetActive(false);
+            reader.gameObject.SetActive(false);owner.RegisterObjective(0,objective,objectiveTitle,objectiveTimer);objective.gameObject.SetActive(false);
         }
         public void Open(){reader.gameObject.SetActive(true);revision=-1;Refresh();}
         public void Close(){if(reader!=null)reader.gameObject.SetActive(false);}
@@ -85,7 +85,7 @@ namespace LogicLegends.OpenArchive.Topics
             if(lastScreen!=new Vector2(Screen.width,Screen.height)||lastSafeArea!=Screen.safeArea||!Mathf.Approximately(lastCanvasScale,owner.GetComponent<Canvas>().scaleFactor))PositionObjective();
             var session=owner.session;
             bool near=Player.LocalInstance!=null&&Vector3.Distance(Player.LocalInstance.transform.position,session.stations[0].transform.position)<34&&session.CanAct(session.LocalActor)&&Time.timeScale>0;
-            objective.gameObject.SetActive(near&&owner.ReadingStation==null);
+            owner.SetObjectiveVisible(0,near&&owner.ReadingStation==null);
             if(!near){if(IsOpen)owner.Close();return;}
             var state=session.State.stations[0];
             bool relayPending=session.T1RelayPending;
@@ -116,8 +116,8 @@ namespace LogicLegends.OpenArchive.Topics
             {
                 var focus=owner.FocusedPoint;
                 if(focus!=null&&focus.station.topic==0)
-                    objectiveState.text=focus.role==ArchivePointRole.Book?"Book Statue\nHand / E":"Rune "+(char)('A'+focus.index)+" · Hand / E";
-                else if(state.phase==1&&!state.feedback.StartsWith("Channel cancelled"))objectiveState.text="Choose a rune\nHand / E";
+                    objectiveState.text=focus.role==ArchivePointRole.Book?"Book Statue\nTap hand":"Rune "+(char)('A'+focus.index)+" · Tap hand";
+                else if(state.phase==1&&!state.feedback.StartsWith("Channel cancelled"))objectiveState.text="Choose a rune\nTap hand";
             }
         }
         void PositionObjective()
@@ -148,19 +148,19 @@ namespace LogicLegends.OpenArchive.Topics
             int round=Mathf.Min(state.round+1,5);
             objectiveTitle.text=state.phase==2?"T1  ·  TEAM COMPLETE  5 / 5":"T1  ·  TEAM CHALLENGE "+round+" / 5";
             objectiveQuestion.text=state.timerExpired?"Time up. Solved challenges kept. Return to the Book Statue to retry challenge "+round+".":state.phase==1?q.prompt:state.phase==2?"Rune Choice Circle restored. Completed for the whole team.":state.round==0?"Read the Book Statue. Match each statement to its logical connective.":"Correct! Return to the Book Statue for challenge "+round+".";
-            objectiveState.text=state.timerExpired?"Timeout · one mistake":state.phase==1?"Choose a world rune · Hand / E":state.phase==2?"Shared team success":"Book Statue · Hand / E";
-            if(state.phase==1&&state.feedback!="Challenge active. Your team shares this work.")objectiveState.text=state.feedback.StartsWith("Rune ")?"Incorrect · one mistake recorded":state.feedback.StartsWith("Channel cancelled")?"Channel cancelled · no mistake":"Choose a world rune · Hand / E";
+            objectiveState.text=state.timerExpired?"Timeout · one mistake":state.phase==1?"Choose a world rune · Tap hand":state.phase==2?"Shared team success":"Book Statue · Tap hand";
+            if(state.phase==1&&state.feedback!="Challenge active. Your team shares this work.")objectiveState.text=state.feedback.StartsWith("Rune ")?"Incorrect · one mistake recorded":state.feedback.StartsWith("Channel cancelled")?"Channel cancelled · no mistake":"Choose a world rune · Tap hand";
             title.text="T1  PROPOSITIONAL LOGIC\n"+(state.phase==2?"Rune Choice Circle · Team complete":"Rune Choice Circle · Challenge "+round+" / 5");
             question.text=state.timerExpired?"Time up. Challenge "+round+" is ready to retry. Your team's solved challenges are kept.":state.phase==1?q.prompt:state.phase==2?"Five challenges solved. The circle is restored.":state.round==0?"Identify the logical connective described by each statement.":"Challenge "+state.round+" solved by "+owner.session.ActorName(state.lastAnswerActor)+".";
             choices.gameObject.SetActive(state.phase==1);
             explanation.gameObject.SetActive(state.phase!=1);
-            explanation.text=string.IsNullOrEmpty(state.reveal)?"1   Read the question with your team.\n2   Walk inside an answer rune and tap Hand / E once.\n3   Stay until the ring fills. Step away to cancel.":state.reveal;
+            explanation.text=string.IsNullOrEmpty(state.reveal)?"1   Read the question with your team.\n2   Walk inside an answer rune and tap the hand button once.\n3   Stay until the ring fills. Step away to cancel.":state.reveal;
             for(int i=0;i<4;i++)
             {
                 choiceLabels[i].text=((char)('A'+i))+"    "+ArchivePropositionNotation.Symbol(q.items[i])+"    "+q.items[i];
                 choiceFaces[i].color=state.channelActor!=0&&state.channelChoice==i?new Color(1,.93f,.70f):Color.white;
             }
-            instructions.text=state.phase==1?"Read-only choices. Answer at a world rune; tap Hand / E once and stay in its ring.":state.phase==2?"Shared team progress is saved. Explore the remaining topic clearings.":"Use the Book Statue to begin. The world stays active while you read.";
+            instructions.text=state.phase==1?"Read-only choices. Answer at a world rune; tap the hand button once and stay in its ring.":state.phase==2?"Shared team progress is saved. Explore the remaining topic clearings.":"Use the Book Statue to begin. The world stays active while you read.";
             feedback.text=state.feedback;feedback.color=state.lastAnswerResult<0&&state.feedback.StartsWith("Rune ")?Red:Ink;
             actionLabel.text=state.timerExpired?"Retry at Book":state.phase==0?(state.round==0?"Begin at Book":"Next at Book"):state.phase==2?"Explore":"Return to runes";
             var relay=owner.session.State.coop;

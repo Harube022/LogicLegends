@@ -39,7 +39,8 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             const string atmosphere="Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Topics/Art/Atmosphere/Audio/";
             world.nightWind=AssetDatabase.LoadAssetAtPath<AudioClip>(atmosphere+"Archive_Night_Ominous_Wind_Loop.wav");
             world.nightCracks=AssetDatabase.LoadAssetAtPath<AudioClip>(atmosphere+"Archive_Night_Distant_Creaks_Loop.wav");
-            world.nightFogColor=new Color(.10f,.13f,.18f);world.nightFogDensity=.016f;
+            world.nightFogColor=new Color(.16f,.19f,.24f);world.nightFogDensity=.023f;
+            world.nightFogSkyboxShader=Shader.Find("LogicLegends/OpenArchive/Fog Horizon Skybox");
             world.nightWindVolume=.22f;world.nightDetailVolume=.24f;world.warningAmbienceMultiplier=.18f;
             world.entranceRoar=AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Cinematics/Audio/Khezu_Maw_Roar_Stinger.wav");
             world.dayAmbience=UnityEngine.Object.FindObjectsByType<AudioSource>(FindObjectsSortMode.None).Where(a=>a.clip!=null&&(a.clip.name.IndexOf("ForestBirds",StringComparison.OrdinalIgnoreCase)>=0||a.clip.name=="FOREST2")).ToArray();

@@ -26,7 +26,7 @@ namespace LogicLegends.OpenArchive.Topics
             {
                 case 0:
                     ArchiveCurriculumQuestions.BuildProposition(q, round, seed);
-                    q.instructions = "Discuss the question with your team. Walk onto A, B, C or D, tap Hand / E once, and stay inside its ring until the channel completes. Step away to cancel."; break;
+                    q.instructions = "Discuss the question with your team. Walk onto A, B, C or D, tap the hand button once, and stay inside its ring until the channel completes. Step away to cancel."; break;
                 case 1:
                     int difficulty = round / 3;
                     var truthPool = ArchiveCurriculumQuestions.TruthBanks[difficulty];
@@ -36,7 +36,7 @@ namespace LogicLegends.OpenArchive.Topics
                     q.prompt = truth.Expression; q.items = new[] { "True", "False" }; q.reusableItems = true;
                     q.slots = new[] { "P=T, Q=T", "P=T, Q=F", "P=F, Q=T", "P=F, Q=F" };
                     q.expected = Enumerable.Range(0, 4).Select(i => truth.EvaluateRow(i) ? 0 : 1).ToArray();
-                    q.instructions = "Read P and Q for each row (TT, TF, FT, FF). Take a reusable T / True or F / False tile with Hand / E, carry it to that row's output, and use Hand / E to place it. Fill four outputs, then Check table. You can replace a tile to correct a row. Teammates share the same table."; break;
+                    q.instructions = "Read P and Q for each row (TT, TF, FT, FF). Take a reusable T / True or F / False tile with the hand button, carry it to that row's output, and tap the hand button to place it. Fill four outputs, then Check table. You can replace a tile to correct a row. Teammates share the same table."; break;
                 case 2: BuildInference(catalog, q, round, seed, subphase); break;
                 case 3:
                     var proof = ArchiveCurriculumQuestions.Proof(catalog, round, seed); q.proof = proof; q.title = proof.title; q.prompt = proof.context;
@@ -88,19 +88,19 @@ namespace LogicLegends.OpenArchive.Topics
                     var mapping = ArchiveCurriculumQuestions.Mapping(catalog, round, seed);
                     q.activity=ArchiveActivity.Mapping;q.mapping=mapping;q.title=mapping.title;q.prompt=mapping.instruction;
                     q.inputLabels=mapping.domain;q.outputLabels=mapping.codomain;
-                    q.instructions="Use Hand / E at a Domain crystal, then at a Codomain crystal to connect them. Blue lasers are editable; amber lasers are fixed. Undo at Codomain removes the last editable team connection. The range contains only reached outputs. Verdicts distinguish a function, an invalid endpoint pair, and a valid relation that is not a function. Property seals include None of these.";break;
+                    q.instructions="Tap the hand button at a Domain crystal, then at a Codomain crystal to connect them. Blue lasers are editable; amber lasers are fixed. Undo at Codomain removes the last editable team connection. The range contains only reached outputs. Verdicts distinguish a function, an invalid endpoint pair, and a valid relation that is not a function. Property seals include None of these.";break;
                 case 8:
                     var graph=ArchiveCurriculumQuestions.Graph(catalog, round, seed);
                     q.activity=ArchiveActivity.Graph;q.graph=graph;q.title=graph.title;q.prompt=graph.objective;
                     q.nodeIds=graph.vertices.Select(v=>v.id).ToArray();
                     var boundsX=graph.vertices.Select(v=>v.position.x).ToArray();var boundsZ=graph.vertices.Select(v=>v.position.z).ToArray();float graphScale=9.6f/Mathf.Max(1,Mathf.Max(boundsX.Max()-boundsX.Min(),boundsZ.Max()-boundsZ.Min()));
                     q.nodes=graph.vertices.Select(v=>new Vector2((v.position.x-(boundsX.Min()+boundsX.Max())*.5f)*graphScale,-(v.position.z-(boundsZ.Min()+boundsZ.Max())*.5f)*graphScale)).ToArray();
-                    q.instructions="Use Hand / E at the green start rune to take the route. One teammate walks it while everyone shares the result. Stay on a connected stone path, cross its middle, and follow directed arrows. Confirm while standing on the goal vertex; a cycle finishes back at its start. Retry at the start clears only the unfinished route. Degree questions use choices 0 to 6.";break;
+                    q.instructions="Tap the hand button at the green start rune to take the route. One teammate walks it while everyone shares the result. Stay on a connected stone path, cross its middle, and follow directed arrows. Confirm while standing on the goal vertex; a cycle finishes back at its start. Retry at the start clears only the unfinished route. Degree questions use choices 0 to 6.";break;
                 case 9:
                     var tree=ArchiveCurriculumQuestions.Tree(catalog, round, seed);
                     q.activity=ArchiveActivity.Tree;q.tree=tree;q.title=tree.title;q.prompt=tree.objective;
                     q.nodeIds=tree.nodes.Select(n=>n.id).ToArray();var treePoints=tree.nodes.Select(n=>new Vector2(n.position.x*4.5f,n.position.y*5)).ToArray();var treeMin=new Vector2(treePoints.Min(p=>p.x),treePoints.Min(p=>p.y));var treeMax=new Vector2(treePoints.Max(p=>p.x),treePoints.Max(p=>p.y));float treeScale=9.6f/Mathf.Max(1,Mathf.Max(treeMax.x-treeMin.x,treeMax.y-treeMin.y));q.nodes=treePoints.Select(p=>(p-(treeMin+treeMax)*.5f)*treeScale).ToArray();
-                    q.instructions="Use Hand / E at a node, or select it on the live tree diagram. Build and Repair: select the parent first, then the child, then Connect. Remove accepts either endpoint order; remove an old parent before adding a new one. Spanning trees use only original branches. Clear Pick keeps all branches. Identify selects one node; Depth / Height uses choices 0 to 5. Confirm the shared answer. Reading keeps movement and the active timer running.";break;
+                    q.instructions="Tap the hand button at a node, or select it on the live tree diagram. Build and Repair: select the parent first, then the child, then Connect. Remove accepts either endpoint order; remove an old parent before adding a new one. Spanning trees use only original branches. Clear Pick keeps all branches. Identify selects one node; Depth / Height uses choices 0 to 5. Confirm the shared answer. Reading keeps movement and the active timer running.";break;
                 default: throw new ArgumentOutOfRangeException(nameof(topic));
             }
             if(topic>=3){q.difficulty=ArchiveCurriculumQuestions.TierName(topic,round);q.moduleReference=ArchiveCurriculumQuestions.References[topic];q.title=q.difficulty+" · "+q.title;}

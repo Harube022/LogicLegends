@@ -19,14 +19,23 @@ namespace LogicLegends.OpenArchiveTesting
         {
             explorer = player; spawnPoint = spawn; followCamera = camera;
             preserveInitialPosition = keepSpawnPosition;
+            ReleaseLegacyStamina();
         }
 
         private void Start()
         {
             if (explorer == null) return;
             explorer.SetRunningEnabled(true);
+            ReleaseLegacyStamina();
             // PlayerSpawner already grounded the online avatar in its distinct room slot.
             if (!preserveInitialPosition) ReturnToSpawn();
+        }
+
+        private void ReleaseLegacyStamina()
+        {
+            // Existing scenes may retain the old component; never create a new stamina owner.
+            var stamina = GetComponent<LogicLegends.OpenArchive.Exploration.ArchiveSprintStamina>();
+            if (stamina != null) stamina.enabled = false;
         }
 
         private void Update()

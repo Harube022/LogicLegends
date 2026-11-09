@@ -19,17 +19,17 @@ namespace LogicLegends.Tests.Monsters.Editor
             using (new EditorGUI.DisabledScope(settings.HasSharedEncounter && !settings.CanSwap))
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Select Rajang")) ApplySelection(settings, DevelopmentMonster.Rajang);
-                if (GUILayout.Button("Select Khezu")) ApplySelection(settings, DevelopmentMonster.Khezu);
+                if (GUILayout.Button("Select The Primal Axiom")) ApplySelection(settings, DevelopmentMonster.Rajang);
+                if (GUILayout.Button("Select The Proof Devourer")) ApplySelection(settings, DevelopmentMonster.Khezu);
             }
             var test = settings.ActiveTest;
             if (test == null) return;
-            EditorGUILayout.LabelField("Selected monster", settings.Selected.ToString());
+            EditorGUILayout.LabelField("Selected monster", LogicLegends.OpenArchive.ArchiveMonsterNames.ForPrimalAxiom(settings.Selected == DevelopmentMonster.Rajang));
             EditorGUILayout.LabelField("Mistakes / stage", test.Mistakes + " / 4    |    " + test.PlayingStage);
             EditorGUILayout.LabelField("Animator state", test.CurrentState);
             using (new EditorGUI.DisabledScope(!Application.isPlaying || (settings.HasSharedEncounter && !settings.CanSwap)))
             {
-                if (GUILayout.Button("Reset Rajang")) settings.ResetRajang();
+                if (GUILayout.Button("Reset The Primal Axiom")) settings.ResetRajang();
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     if (GUILayout.Button("Play Sleep")) settings.PlaySleep();

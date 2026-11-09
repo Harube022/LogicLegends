@@ -47,7 +47,7 @@ namespace LogicLegends.Tests.Khezu.Editor
             var root=Rect("Khezu_Barrier_Development_UI",safe,Vector2.zero,Vector2.zero);var ui=root.gameObject.AddComponent<KhezuBarrierDevelopmentUI>();ui.encounter=encounter;
             var panel=Rect("Mathematical_Barrier_Panel",root,new Vector2(0,-40),new Vector2(800,360));var background=panel.gameObject.AddComponent<Image>();background.color=new Color(.045f,.012f,.02f,.94f);ui.panel=panel.gameObject;
             Label("Title",panel,"MATHEMATICAL BARRIER",new Vector2(0,124),new Vector2(760,54),32);
-            Label("Description",panel,"Khezu has trapped you inside a mathematical seal!",new Vector2(0,60),new Vector2(750,55),25);
+            Label("Description",panel,"The Proof Devourer has trapped you inside a mathematical seal!",new Vector2(0,60),new Vector2(750,55),25);
             ui.status=Label("Test_Message",panel,"Choose an outcome to test the encounter.",new Vector2(0,6),new Vector2(740,48),23);
             ui.successButton=Button("Barrier_SUCCESS",panel,"SUCCESS",new Vector2(-164,-90),new Color(.06f,.40f,.18f,1),ui.Success);
             ui.failedButton=Button("Barrier_FAILED",panel,"FAILED",new Vector2(164,-90),new Color(.66f,.035f,.075f,1),ui.Failed);

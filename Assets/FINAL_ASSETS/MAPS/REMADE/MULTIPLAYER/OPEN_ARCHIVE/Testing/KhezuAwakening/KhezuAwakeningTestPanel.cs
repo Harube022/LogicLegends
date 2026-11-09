@@ -47,8 +47,16 @@ namespace LogicLegends.Tests.Khezu
         void Refresh()
         {
             bool ready = KhezuLegacyTestPermission.CanUse && test != null && test.isActiveAndEnabled && Time.timeScale > 0;
-            if (status != null) status.text = test == null ? "KHEZU TEST — Monster unavailable" :
-                "KHEZU TEST   |   Mistakes " + test.Mistakes + " / 4   |   " + test.CurrentState;
+            if (status != null)
+            {
+                string rig = test != null && test.Animator != null && test.Animator.runtimeAnimatorController != null ? test.Animator.runtimeAnimatorController.name : "";
+                bool primal = rig.IndexOf("primal", System.StringComparison.OrdinalIgnoreCase) >= 0 || rig.IndexOf("rajang", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                status.text = test == null ? "MONSTER TEST — Monster unavailable" :
+                    LogicLegends.OpenArchive.ArchiveMonsterNames.ForPrimalAxiom(primal).ToUpperInvariant() + " TEST   |   Mistakes " + test.Mistakes + " / 4   |   " + test.CurrentState;
+                status.resizeTextForBestFit = true;
+                status.resizeTextMinSize = 12;
+                status.resizeTextMaxSize = status.fontSize;
+            }
             bool canIncrease = ready && (test.Mistakes < 4 || test.IsPreviewing);
             if (increaseButton != null) increaseButton.interactable = canIncrease;
             if (awakenAllButton != null) awakenAllButton.interactable = canIncrease;

@@ -55,7 +55,7 @@ namespace LogicLegends.OpenArchive.Topics
             {
                 shown=color;properties.SetColor("_BaseColor",color);inlay.SetPropertyBlock(properties);channelArc.SetPropertyBlock(properties);symbol.color=color;
             }
-            condition.text=channel?"CHANNELING "+Mathf.RoundToInt(fill*100)+"%":result?(state.lastAnswerResult==1?"CORRECT":"TRY AGAIN"):focused?"TAP HAND / E":active?"STAND IN RING":"";
+            condition.text=channel?"CHANNELING "+Mathf.RoundToInt(fill*100)+"%":result?(state.lastAnswerResult==1?"CORRECT":"TRY AGAIN"):focused?"TAP HAND":active?"STAND IN RING":"";
             int steps=channel?Mathf.Max(2,Mathf.CeilToInt(fill*48)):0;
             if(steps!=arcSteps)
             {
