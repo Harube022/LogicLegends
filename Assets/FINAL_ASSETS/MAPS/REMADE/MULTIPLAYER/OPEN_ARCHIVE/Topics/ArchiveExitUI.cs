@@ -9,7 +9,7 @@ namespace LogicLegends.OpenArchive.Topics
 {
     /// <summary>Local waiting and team result views; no currency or solo-stage completion side effects.</summary>
     [DefaultExecutionOrder(3201)]
-    public sealed class ArchiveExitUI : MonoBehaviour
+    public sealed partial class ArchiveExitUI : MonoBehaviour
     {
         public ArchiveTopicSession session;
         Canvas canvas;
@@ -36,6 +36,7 @@ namespace LogicLegends.OpenArchive.Topics
             StageUITheme.Stretch(notice.rectTransform,new Vector2(.035f,.06f),new Vector2(.965f,.94f));
             notice.color=new Color(1,.88f,.57f);notice.alignment=TextAlignmentOptions.Center;notice.raycastTarget=false;
             result=StageResultCard.Build(transform,()=>StartCoroutine(Leave()));
+            BuildMatchPresentation();
             var menuLabel=result.Menu.GetComponentInChildren<TMP_Text>();if(menuLabel!=null)menuLabel.text="RETURN TO PARTY";
             result.Primary.onClick.AddListener(ArchiveLearningRecapUI.OpenLastReview);
             result.Primary.GetComponentInChildren<TMP_Text>().text="REVIEW LEARNING";
@@ -56,6 +57,7 @@ namespace LogicLegends.OpenArchive.Topics
             banner.gameObject.SetActive(opened&&!escaped&&!won&&!defeated);
             bool show=escaped||won||defeated;
             result.Root.gameObject.SetActive(show);
+            if(show) PresentMatchStats(won,defeated);
             ArchiveLearningRecapUI.Observe(session);
             result.Primary.gameObject.SetActive((won||defeated)&&ArchiveLearningRecapUI.HasReview);
             result.Menu.gameObject.SetActive(won||defeated);
@@ -63,8 +65,8 @@ namespace LogicLegends.OpenArchive.Topics
             {
                 if(ArchiveTopicUI.Current!=null&&ArchiveTopicUI.Current.ReadingStation!=null)ArchiveTopicUI.Current.Close();
                 bool expired=session.State.survival.defeatReason==ArchiveTopicSession.MatchTimeoutReason;
-                result.Stage.text="THE OPEN ARCHIVE";result.Heading.text=expired?"TIME IS UP":"TEAM DEFEAT";
-                result.Summary.text=(expired?"The Archive's shared match time has ended.":"No teammate remains to rescue the team.")+"\nReturning to the party in "+Mathf.CeilToInt(session.DefeatRemaining)+"...\n"+session.MatchRewardSummary;
+                result.Stage.text="THE OPEN ARCHIVE · MATCH ENDED";result.Heading.text=expired?"TIME IS UP":"TEAM DEFEAT";
+                result.Summary.text=(expired?"The shared match clock has ended.":"No teammate remains to rescue the team.")+"\nReturning to party in "+Mathf.CeilToInt(session.DefeatRemaining)+"s";
                 Cursor.lockState=CursorLockMode.None;Cursor.visible=true;return;
             }
             if(!opened)return;
@@ -77,9 +79,9 @@ namespace LogicLegends.OpenArchive.Topics
                 return;
             }
             if(ArchiveTopicUI.Current!=null&&ArchiveTopicUI.Current.ReadingStation!=null)ArchiveTopicUI.Current.Close();
-            result.Stage.text="THE OPEN ARCHIVE · 10 / 10 TOPICS COMPLETE";
+            result.Stage.text="THE OPEN ARCHIVE · "+(won?"TEAM ESCAPE COMPLETE":"ESCAPE IN PROGRESS");
             result.Heading.text=won?"VICTORY":"YOU ESCAPED";
-            result.Summary.text=won?"Every surviving teammate reached the portal.\n"+session.MatchRewardSummary:
+            result.Summary.text=won?"All ten topics complete. Your surviving team escaped together.":
                 "You are safe beyond the portal.\nWaiting for teammates · "+escapedCount+" / "+total+" survivors escaped";
             // Leaving early would abandon the remaining team. The menu appears at the shared victory.
             result.Menu.gameObject.SetActive(won);
@@ -87,11 +89,10 @@ namespace LogicLegends.OpenArchive.Topics
         }
         void LateUpdate()
         {
-            if(!ResultVisible||session==null||!session.TeamWon&&!session.TeamDefeated)return;
-            // StageResultLayout is shared with solo. Apply only this multiplayer
-            // card's denser receipt text and party action after its common layout.
-            StageUITheme.Stretch(result.Summary.rectTransform,new Vector2(.09f,.32f),new Vector2(.91f,.60f));
-            result.Summary.fontSizeMin=19;result.Summary.fontSizeMax=27;
+            if(!ResultVisible){resultFade=0;return;}
+            LayoutMatchPresentation();
+            resultFade=Mathf.MoveTowards(resultFade,1,Time.unscaledDeltaTime*4);
+            resultGroup.alpha=resultFade;
             var label=result.Menu.GetComponentInChildren<TMP_Text>();if(label!=null)label.text="RETURN TO PARTY";
             var review=result.Primary.GetComponentInChildren<TMP_Text>();if(review!=null)review.text="REVIEW LEARNING";
         }

@@ -90,6 +90,17 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         static void ClearControls(string panel)
         {
             Rect window = Box(FindRect(panel));
+            if (panel == "Real_Math_Barrier_Challenge")
+            {
+                Check(window.xMin >= 0 && window.yMin >= 0 && window.xMax <= Screen.width && window.yMax <= Screen.height,
+                    "Focused barrier board stays inside the screen");
+                Check(Player.LocalInstance.IsMovementLocked, "Focused barrier board retains the existing capture movement lock");
+                var reading = Box(FindRect("Barrier_Reading")); var answers = Box(FindRect("Barrier_Choices"));
+                var actions = Box(FindRect("Barrier_Actions")); var title = Box(FindRect("Barrier_Problem_Title"));
+                Check(!reading.Overlaps(answers) && !actions.Overlaps(reading) && !actions.Overlaps(answers) && !title.Overlaps(reading),
+                    "Question, choices, header and fixed actions occupy separate readable areas");
+                return;
+            }
             foreach (string name in new[] { "Joystick", "JumpButton", "InteractButton" })
                 Check(!window.Overlaps(Box(FindRect(name))), panel + " leaves " + name + " unobstructed at " + Screen.width + "×" + Screen.height);
         }
@@ -146,7 +157,9 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             yield return Capture(DevelopmentMonster.Khezu);
             int revision = session.State.barrier.revision; Click(FindButton("Barrier_Next_Hint")); yield return Wait(() => session.State.barrier.revision > revision, "Offline hint commits"); yield return .1f;
             var prisonScroll = ui.GetComponentsInChildren<ScrollRect>(true).First(s => s.name == "Barrier_Reading");
-            Check(session.State.barrier.hintLevel == 1 && prisonScroll.verticalNormalizedPosition < .05f, "Barrier hint immediately scrolls its explanation into view");
+            Check(session.State.barrier.hintLevel == 1 &&
+                (prisonScroll.content.rect.height <= prisonScroll.viewport.rect.height + 2 || prisonScroll.verticalNormalizedPosition < .05f),
+                "Barrier hint is visible, scrolling only when its explanation overflows");
             ScreenCapture.CaptureScreenshot("Temp/ArchiveLearningSprint/Khezu_Hint.png"); yield return .15f;
             var problem = session.BarrierProblem(); int answer = Enumerable.Range(0, problem.options.Length).First(i => problem.Validate(i, out _));
             var option = FindButton("Barrier_Choice_" + answer); yield return Reveal(option); Click(option); yield return .1f;

@@ -21,7 +21,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         [Serializable] public sealed class Report
         {
             public bool passed;
-            public string scope="Offline Unity Editor Play in saved MultiplayerGameplay. Both existing selected species, guardian-prelude timing, source-rig/state preservation, player handoff, and interruption/foreign-lock ownership. No Android, remote Photon rendering, or real multi-device test claim.";
+            public string scope="Offline Unity Editor Play in saved MultiplayerGameplay. Both selected species, delayed scene preparation, team-then-guardian countdown and offline preview, source-rig/state preservation, player handoff, and interruption/foreign-lock ownership. No Android, remote Photon rendering, or real multi-device test claim.";
             public List<string> checks=new List<string>(),errors=new List<string>();
         }
         static readonly Stack<IEnumerator> flow=new Stack<IEnumerator>();
@@ -127,15 +127,26 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             playerMaterials.Clear();foreach(var skin in player.GetComponentsInChildren<SkinnedMeshRenderer>(true))playerMaterials[skin]=skin.sharedMaterials.ToArray();
             Check(!player.IsMovementLocked,"Fixture begins without another movement-lock owner");
             Check(ArchiveTopicSession.MatchGuardianIntroSeconds==3&&ArchiveTopicSession.MatchCountdownSeconds==5,
-                "Three-second guardian preparation precedes the unchanged five-second team countdown");
+                "Existing preparation and authoritative five-second countdown durations are unchanged");
+            Check(ArchiveMatchCinematic.GuardianProgress(0,true)<0&&ArchiveMatchCinematic.GuardianProgress(.59f,true)<0&&
+                Mathf.Approximately(ArchiveMatchCinematic.GuardianProgress(.6f,true),0)&&
+                Mathf.Approximately(ArchiveMatchCinematic.GuardianProgress(.8f,true),.5f)&&
+                ArchiveMatchCinematic.GuardianProgress(1,true)<0&&ArchiveMatchCinematic.GuardianProgress(.8f,false)<0,
+                "Guardian beat follows the team during the last two seconds, with an exclusive end boundary");
+            Check(Mathf.Approximately(ArchiveMatchCinematic.SummoningProgress(0,true),0)&&
+                Mathf.Approximately(ArchiveMatchCinematic.SummoningProgress(.3f,true),.5f)&&
+                Mathf.Approximately(ArchiveMatchCinematic.SummoningProgress(.6f,true),1)&&
+                Mathf.Approximately(ArchiveMatchCinematic.SummoningProgress(1,true),1)&&
+                Mathf.Approximately(ArchiveMatchCinematic.SummoningProgress(.2f,false),.2f),
+                "Team reveal owns the first three seconds; disabling guardian presentation retains the original reveal mapping");
             yield return Species(DevelopmentMonster.Khezu,117531);
             yield return Species(DevelopmentMonster.Rajang,117532);
 
             Status="Guardian interruption and foreign lock ownership";
             cinematic.enabled=false;selector.Select(originalSpecies);yield return .05f;SourceBaseline();
             session.Initialize(117533);cinematic.enabled=true;
-            yield return Wait(()=>cinematic.GuardianIntroVisible,"Guardian reveal starts for interruption fixture",3);
-            yield return Wait(()=>ArchiveTopicSession.Clock-session.State.matchTime.createdAt>=.60,"Guardian reveal reaches interruption beat",2);
+            yield return Wait(()=>cinematic.GuardianIntroVisible,"Guardian reveal starts for interruption fixture",7);
+            yield return Wait(()=>ArchiveMatchCinematic.GuardianProgress(cinematic.Progress,true)>=.2f,"Guardian reveal reaches interruption beat",2);
             foreignOwner=new GameObject("Archive_Guardian_Intro_QA_Foreign_Lock");var anchor=player.transform.position;
             player.AcquireMovementLock(foreignOwner,"Guardian intro QA foreign lock",anchor,200);
             cinematic.enabled=false;yield return .12f;
@@ -163,14 +174,24 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             selector.Select(species);yield return .08f;
             Check(selector.Selected==species,species+": existing selector applied the requested actual rig");SourceBaseline();
             session.Initialize(seed);cinematic.enabled=true;
+            // A client whose preparation lasts longer than the old three-second
+            // creation-time window must still see its selected guardian.
+            session.State.matchTime.createdAt=ArchiveTopicSession.Clock-10;
             Check(session.MatchTimePhase==ArchiveMatchTimePhase.WaitingForPlayers&&session.State.matchTime.startedAt<0,
                 species+": guardian reveal uses the existing unstarted preparation checkpoint");
-            yield return Wait(()=>cinematic.GuardianIntroVisible,"The selected guardian proxy becomes visible",3);
-            yield return Wait(()=>ArchiveTopicSession.Clock-session.State.matchTime.createdAt>=1.4,"The selected guardian reaches the reveal midpoint",2);
-            double elapsed=ArchiveTopicSession.Clock-session.State.matchTime.createdAt;
-            Check(elapsed<ArchiveTopicSession.MatchGuardianIntroSeconds&&session.MatchTimePhase==ArchiveMatchTimePhase.WaitingForPlayers&&session.State.matchTime.startedAt<0,
-                species+": reveal stays inside preparation and consumes no shared gameplay time");
-            Check(cinematic.GuardianName.IndexOf(species.ToString(),StringComparison.OrdinalIgnoreCase)>=0,
+            yield return Wait(()=>cinematic.ShotName=="Summoning"&&cinematic.HeroOverridesCount>0,
+                "Players are summoned before the guardian appears",4);
+            Check(!cinematic.GuardianIntroVisible&&cinematic.Progress<.6f&&MaterialsRestored()==false,
+                species+": countdown opens with the existing player reveal and no guardian proxy");
+            yield return Wait(()=>cinematic.GuardianIntroVisible,"The selected guardian proxy becomes visible after delayed preparation",7);
+            yield return Wait(()=>ArchiveMatchCinematic.GuardianProgress(cinematic.Progress,true)>=.45f,"The selected guardian reaches the reveal midpoint",2);
+            double countdown=session.State.matchTime.countdownStartedAt;
+            double elapsed=ArchiveTopicSession.Clock-countdown;
+            Check(elapsed>=ArchiveTopicSession.MatchCountdownSeconds-ArchiveMatchCinematic.GuardianShowcaseSeconds&&
+                elapsed<ArchiveTopicSession.MatchCountdownSeconds&&session.MatchTimePhase==ArchiveMatchTimePhase.Countdown&&session.State.matchTime.startedAt<0,
+                species+": delayed loading does not consume the guardian beat or shared gameplay time");
+            Check(cinematic.HeroOverridesCount==0&&MaterialsRestored(),species+": team summon materials restore before the guardian showcase");
+            Check(cinematic.GuardianName==ArchiveMonsterNames.ForPrimalAxiom(species==DevelopmentMonster.Rajang),
                 species+": title matches the selected primary guardian");
             Check(Normalize(cinematic.GuardianAnimation)=="fullawaken",species+": the existing Full_Awaken clip drives the visual-only rig");
             Check(cinematic.GuardianRendererCount>0&&cinematic.GuardianBounds.size.sqrMagnitude>1,
@@ -180,13 +201,12 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Check(player.IsMovementLocked&&!session.CanAct(session.LocalActor),species+": player movement and academic actions wait for preparation to finish");
             SourceUnchanged(species+" midpoint");
             ScreenCapture.CaptureScreenshot(Folder+"/Guardian-"+species+".png");yield return .10f;
-            yield return Wait(()=>session.MatchTimePhase==ArchiveMatchTimePhase.Countdown,"Guardian preparation hands off to the team countdown",5);
-            double countdown=session.State.matchTime.countdownStartedAt;
+            yield return Wait(()=>session.MatchTimePhase==ArchiveMatchTimePhase.Active,"Guardian showcase hands off to gameplay after the team reveal",4);
             Check(countdown>=session.State.matchTime.createdAt+ArchiveTopicSession.MatchGuardianIntroSeconds-.02,
-                species+": authority cannot start team countdown before the guardian-prelude floor");
+                species+": original preparation floor still applies");
             yield return .12f;
-            Check(!cinematic.GuardianIntroVisible&&VisibilityRestored(),species+": team summoning restores the live sleeping guardian's renderer flags");
-            Check(GuardianGraphsStopped(),species+": cached guardian graph stops after the prelude");
+            Check(!cinematic.GuardianIntroVisible&&VisibilityRestored(),species+": gameplay restores the live sleeping guardian's renderer flags");
+            Check(GuardianGraphsStopped(),species+": cached guardian graph stops after its showcase");
             SourceUnchanged(species+" after reveal");
             yield return Wait(()=>session.MatchTimePhase==ArchiveMatchTimePhase.Active,"Unchanged five-second team countdown reaches Active",8);
             yield return .15f;
@@ -198,6 +218,19 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Check(gameplay.enabled&&gameplay.cullingMask==cameraMask&&gameplay.clearFlags==cameraClear&&!player.IsMovementLocked,
                 species+": normal gameplay camera and character control return");
             SourceUnchanged(species+" Active");
+            cinematic.PreviewSummoning();
+            yield return Wait(()=>cinematic.PreviewPlaying&&cinematic.HeroOverridesCount>0,"Offline preview begins with players",2);
+            Check(!cinematic.GuardianIntroVisible,species+": Admin preview also shows players before the monster");
+            cinematic.CancelPreview();yield return .10f;
+            Check(!cinematic.IsPlaying&&!player.IsMovementLocked&&MaterialsRestored(),species+": cancelling the first player beat restores gameplay");
+            cinematic.PreviewSummoning();
+            yield return Wait(()=>cinematic.PreviewPlaying&&cinematic.GuardianIntroVisible,"Offline preview then includes the selected active guardian",4);
+            Check(cinematic.GuardianName==ArchiveMonsterNames.ForPrimalAxiom(species==DevelopmentMonster.Rajang),
+                species+": preview title matches the same selected guardian");
+            cinematic.CancelPreview();yield return .10f;
+            Check(!cinematic.IsPlaying&&!cinematic.GuardianIntroVisible&&!player.IsMovementLocked&&VisibilityRestored()&&MaterialsRestored(),
+                species+": cancelling during the guardian beat restores gameplay, models and locks");
+            SourceUnchanged(species+" preview cancellation");
         }
         static void Finish(bool success)
         {

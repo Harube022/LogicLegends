@@ -26,7 +26,8 @@ namespace LogicLegends.OpenArchive.Topics
         [Range(0,.4f)] public float flashlightImpactOpacity=.14f;
         public Mesh sparkMesh;
         public Material glowMaterial;
-        public AudioClip chestOpenSound, formationSound, dartSound;
+        public AudioClip chestOpenSound, chestSpawnSound, formationSound, dartSound;
+        public int ChestSpawnCueCount {get;private set;}
         [Min(.2f)] public float disappearSeconds=1.35f;
         public static readonly Vector3 ChestLocalPosition=ArchiveTopicStation.BookPosition+new Vector3(3.4f,0,-.8f);
         public static ArchiveRewardView Current {get;private set;}
@@ -39,6 +40,8 @@ namespace LogicLegends.OpenArchive.Topics
             public GameObject chest, sparks, preview;
             public int previewItem=-1;
             public Transform lid;
+            public ArchiveChestArt art;
+            public AudioSource chestVoice;
             public Quaternion lidClosed;
             public TMP_Text label;
             public Transform[] flecks;
@@ -103,7 +106,7 @@ namespace LogicLegends.OpenArchive.Topics
             bool canUse=Player.LocalInstance!=null&&session.CanAct(session.LocalActor)&&Time.timeScale>0;
             bool reading=ArchiveTopicUI.Current!=null&&ArchiveTopicUI.Current.ReadingStation!=null;
             claimPanel.gameObject.SetActive(canUse&&!reading&&focusedTopic>=0);
-            if(focusedTopic>=0)claimText.text="T"+(focusedTopic+1)+(session.Chest(focusedTopic).orphaned?" TEAM SALVAGE":" REWARD RESERVED FOR YOU")+"\nOpen chest · Hand / E";
+            if(focusedTopic>=0)claimText.text="T"+(focusedTopic+1)+(session.Chest(focusedTopic).orphaned?" TEAM SALVAGE":" REWARD RESERVED FOR YOU")+"\nOpen chest · Tap hand";
             defeatPanel.gameObject.SetActive(session.TeamDefeated&&(ArchiveExitUI.Current==null||!ArchiveExitUI.Current.isActiveAndEnabled));
             if(session.TeamDefeated){defeatText.text=session.State.survival.defeatReason==ArchiveTopicSession.MatchTimeoutReason?
                 "TIME'S UP — THE ARCHIVE HAS SEALED\nReturning to the party in "+Mathf.CeilToInt(session.DefeatRemaining)+"...":
@@ -141,15 +144,25 @@ namespace LogicLegends.OpenArchive.Topics
                 else if(v.sparks!=null){v.sparks.SetActive(false);}
                 if(reward!=null&&progress>=1)
                 {
-                    if(v.chest==null)MakeChest(v,pair.Key);
+                    if(v.chest==null)
+                    {
+                        MakeChest(v,pair.Key);
+                        // An existing checkpoint is silent. Only a newly witnessed, nearby
+                        // formation plays the arrival cue, once for this chest instance.
+                        if(v.observed&&near&&elapsed-disappearSeconds<1&&chestSpawnSound!=null)
+                        {v.chestVoice.PlayOneShot(chestSpawnSound,.75f);ChestSpawnCueCount++;}
+                    }
                     float appearance=Mathf.SmoothStep(0,1,Mathf.Clamp01(((float)elapsed-disappearSeconds)/.5f));
                     v.chest.transform.localScale=Vector3.one*appearance;
-                    float lid=Mathf.SmoothStep(0,1,reward.claimed?Mathf.Clamp01((float)(ArchiveTopicSession.Clock-reward.claimedAt)/.45f):0);
-                    if(v.lid!=null)v.lid.localRotation=v.lidClosed*Quaternion.Euler(-72*lid,0,0);
+                    float lid=Mathf.SmoothStep(0,1,Mathf.Clamp01(((float)elapsed-disappearSeconds-.10f)/.65f));
+                    if(v.lid!=null)v.lid.localRotation=v.lidClosed*Quaternion.Euler(-(v.art!=null?v.art.openAngle:105)*lid,0,0);
+                    if(v.art!=null&&v.art.interiorLight!=null)
+                    {var observer=Camera.main!=null?Camera.main.transform.position:Player.LocalInstance!=null?Player.LocalInstance.transform.position:v.chest.transform.position;
+                        v.art.interiorLight.enabled=!reward.claimed&&appearance>.05f&&Vector3.Distance(observer,v.chest.transform.position)<18;}
                     if(reward.claimed&&!v.observedClaimed)
                     {
                         v.observedClaimed=true;
-                        if(near&&ArchiveTopicSession.Clock-reward.claimedAt<1&&chestOpenSound!=null)audioSource.PlayOneShot(chestOpenSound,.7f);
+                        if(near&&ArchiveTopicSession.Clock-reward.claimedAt<1&&chestOpenSound!=null)v.chestVoice.PlayOneShot(chestOpenSound,.7f);
                     }
                     bool labelNear=Player.LocalInstance!=null&&Vector3.Distance(Player.LocalInstance.transform.position,v.chest.transform.position)<22;
                     v.label.gameObject.SetActive(labelNear);
@@ -219,8 +232,12 @@ namespace LogicLegends.OpenArchive.Topics
         {
             v.chest=Instantiate(chestPrefab,v.station.transform);v.chest.name="T"+(topic+1)+"_Solver_Reward_Chest";v.chest.transform.localPosition=ChestLocalPosition;v.chest.transform.localRotation=Quaternion.Euler(0,180,0);
             foreach(var collider in v.chest.GetComponentsInChildren<Collider>(true))collider.enabled=false;
-            v.lid=v.chest.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>t.name.IndexOf("Lid",StringComparison.OrdinalIgnoreCase)>=0);
+            v.art=v.chest.GetComponent<ArchiveChestArt>();
+            v.lid=v.art!=null?v.art.lid:v.chest.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>t.name.IndexOf("Lid",StringComparison.OrdinalIgnoreCase)>=0);
             if(v.lid!=null)v.lidClosed=v.lid.localRotation;
+            v.chestVoice=v.chest.AddComponent<AudioSource>();v.chestVoice.playOnAwake=false;v.chestVoice.spatialBlend=1;
+            v.chestVoice.volume=.55f;v.chestVoice.rolloffMode=AudioRolloffMode.Linear;v.chestVoice.minDistance=4;v.chestVoice.maxDistance=40;v.chestVoice.dopplerLevel=0;
+            AudioVolumeSettings.Route(v.chestVoice,GameAudioChannel.SoundFX);
             var go=new GameObject("Chest_Owner_Label");go.transform.SetParent(v.chest.transform,false);go.transform.localPosition=new Vector3(0,2.25f,0);
             v.label=go.AddComponent<TextMeshPro>();v.label.font=StageUITheme.ReadingFont;v.label.fontSize=.9f;v.label.rectTransform.sizeDelta=new Vector2(5.8f,1.5f);v.label.alignment=TextAlignmentOptions.Center;v.label.color=Cream;v.label.richText=false;v.label.raycastTarget=false;
         }
@@ -232,13 +249,29 @@ namespace LogicLegends.OpenArchive.Topics
             if(visual.preview==null||visual.previewItem!=item)
             {
                 if(visual.preview!=null)Destroy(visual.preview);
-                visual.preview=new GameObject("Chest_3D_Drop_Preview");visual.preview.transform.SetParent(visual.chest.transform,false);visual.previewItem=item;
+                visual.preview=new GameObject("Chest_3D_Drop_Preview");visual.preview.transform.SetParent(visual.art!=null&&visual.art.rewardAnchor!=null?visual.art.rewardAnchor:visual.chest.transform,false);visual.previewItem=item;
                 var model=Instantiate(itemPrefabs[item],visual.preview.transform,false);model.name="Preview_"+reward.item;
-                var renderers=model.GetComponentsInChildren<Renderer>();if(renderers.Length>0){var bounds=renderers[0].bounds;foreach(var r in renderers)bounds.Encapsulate(r.bounds);model.transform.localPosition-=visual.preview.transform.InverseTransformPoint(bounds.center);}
-                visual.preview.transform.localScale=Vector3.one*.8f;
+                // Fit in local mesh space, including during the zero-scale spawn frame.
+                // The equipment's authored grip/lens/muzzle coordinates are untouched.
+                model.transform.localRotation=Quaternion.Euler(item==1?new Vector3(0,15,90):item==0?new Vector3(0,65,-8):item==4?new Vector3(0,70,0):item==5?new Vector3(0,0,70):new Vector3(-60,0,0));
+                var bounds=PreviewBounds(model.transform);var size=visual.art!=null?visual.art.displaySize:new Vector3(1.35f,.50f,.72f);
+                float fit=Mathf.Min(size.x/Mathf.Max(.001f,bounds.size.x),Mathf.Min(size.y/Mathf.Max(.001f,bounds.size.y),size.z/Mathf.Max(.001f,bounds.size.z)));
+                model.transform.localScale*=fit;model.transform.localPosition-=bounds.center*fit;
             }
-            visual.preview.SetActive(true);visual.preview.transform.localPosition=new Vector3(0,1.45f+Mathf.Sin(Time.unscaledTime*1.8f)*.07f,0);
-            visual.preview.transform.localRotation=Quaternion.Euler(0,Time.unscaledTime*24,0);
+            visual.preview.SetActive(true);visual.preview.transform.localPosition=visual.art!=null&&visual.art.rewardAnchor!=null?Vector3.zero:new Vector3(0,.50f,0);
+            visual.preview.transform.localRotation=Quaternion.identity;
+        }
+        static Bounds PreviewBounds(Transform model)
+        {
+            var bounds=new Bounds();bool first=true;
+            foreach(var filter in model.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if(filter.sharedMesh==null)continue;var matrix=Matrix4x4.identity;
+                for(var t=filter.transform;t!=model.parent;t=t.parent)matrix=Matrix4x4.TRS(t.localPosition,t.localRotation,t.localScale)*matrix;
+                var b=filter.sharedMesh.bounds;
+                for(int i=0;i<8;i++){var p=matrix.MultiplyPoint3x4(b.center+Vector3.Scale(b.extents,new Vector3((i&1)==0?-1:1,(i&2)==0?-1:1,(i&4)==0?-1:1)));if(first){bounds=new Bounds(p,Vector3.zero);first=false;}else bounds.Encapsulate(p);}
+            }
+            return bounds;
         }
         public GameObject ChestPreview(int topic)=>topics.TryGetValue(topic,out var visual)?visual.preview:null;
         void RefreshLights()

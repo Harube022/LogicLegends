@@ -175,14 +175,14 @@ namespace LogicLegends.Tests.Monsters.Editor
             var button = buttonObject.GetComponent<Button>();
             for (int i = button.onClick.GetPersistentEventCount() - 1; i >= 0; i--) UnityEventTools.RemovePersistentListener(button.onClick, i);
             var ui = buttonObject.AddComponent<DevelopmentMonsterSwapButton>();
-            ui.selection = selection; ui.button = button; ui.label = button.GetComponentInChildren<Text>(); ui.label.text = "Swap to Khezu";
+            ui.selection = selection; ui.button = button; ui.label = button.GetComponentInChildren<Text>(); ui.label.text = "Swap to The Proof Devourer";
             ui.heading = transforms.Single(t => t.name == "Show_Hide_Test_Tools").Find("Title").GetComponent<Text>();
-            ui.heading.text = "RAJANG TEST TOOLS";
+            ui.heading.text = "THE PRIMAL AXIOM TEST TOOLS";
             ui.awakenLabel = transforms.Single(t => t.name == "Hunt_ForceFour").GetComponentInChildren<Text>();
-            ui.awakenLabel.text = "Awaken Rajang";
+            ui.awakenLabel.text = "Awaken The Primal Axiom";
             var barrier = Object.FindFirstObjectByType<KhezuBarrierDevelopmentUI>();
             ui.barrierDescription = barrier.panel.transform.Find("Description").GetComponent<Text>();
-            ui.barrierDescription.text = "Rajang has trapped you inside a mathematical seal!";
+            ui.barrierDescription.text = "The Primal Axiom has trapped you inside a mathematical seal!";
             UnityEventTools.AddPersistentListener(button.onClick, ui.Swap);
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)row);
         }

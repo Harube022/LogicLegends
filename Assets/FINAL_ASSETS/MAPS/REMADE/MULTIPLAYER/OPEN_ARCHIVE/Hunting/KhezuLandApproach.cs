@@ -30,7 +30,7 @@ namespace LogicLegends.OpenArchive.Hunting
                 hit.transform==target || hit.transform.IsChildOf(target);
         }
 
-        public bool TryRoute(Transform selected,float feet,NavMeshAgent agent,int obstructionMask,System.Func<Vector3,float> elevatedReachPenalty,out NavMeshPath route){
+        public bool TryRoute(Transform selected,float feet,NavMeshAgent agent,int obstructionMask,System.Func<Vector3,float> elevatedReachPenalty,out NavMeshPath route,Vector3 pursuitLead=default){
             route=null;
             bool moved=target!=selected || FlatSquared(selected.position-lastTarget)>4;
             bool valid=agent.hasPath && agent.pathStatus==NavMeshPathStatus.PathComplete;
@@ -57,7 +57,10 @@ namespace LogicLegends.OpenArchive.Hunting
                         (ClearApproach(hit.position,selected,feet,agent,obstructionMask)?0:40);
                     float length=0;var corners=path.corners;
                     for(int c=1;c<corners.Length;c++)length+=Vector3.Distance(corners[c-1],corners[c]);
-                    float score=Mathf.Sqrt(FlatSquared(hit.position-selected.position))+Mathf.Abs(hit.position.y-feet)*2+length*.04f+exposure;
+                    // Prefer the reachable side ahead of a circling runner. The complete
+                    // baked path and real sight/reach tests still gate movement and capture.
+                    var goal=selected.position+(elevated?Vector3.zero:pursuitLead);
+                    float score=Mathf.Sqrt(FlatSquared(hit.position-goal))+Mathf.Abs(hit.position.y-feet)*2+length*.04f+exposure;
                     // When an obstruction still covers the player, explore another reachable
                     // side rather than continuously returning an already reached blocked point.
                     if(exposure>0 && FlatSquared(hit.position-agent.transform.position)<4)score+=30;

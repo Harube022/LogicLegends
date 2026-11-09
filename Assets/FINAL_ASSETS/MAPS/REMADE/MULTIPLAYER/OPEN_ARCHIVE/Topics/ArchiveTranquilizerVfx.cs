@@ -21,7 +21,7 @@ namespace LogicLegends.OpenArchive.Topics
             public Vector3 origin,end,direction;
             public float began,duration;
             public int serial;
-            public bool active,hit;
+            public bool active,hit,impactPresented;
         }
         readonly ShotVisual[] pool=new ShotVisual[PoolSize];
         ArchiveRewardView view;
@@ -41,6 +41,7 @@ namespace LogicLegends.OpenArchive.Topics
             get{int count=0;foreach(var slot in pool)if(slot!=null&&slot.active&&Time.unscaledTime-slot.began<slot.duration)count++;return count;}
         }
         public int LastVisualSerial {get;private set;}=-1;
+        public event System.Action<Vector3,bool> ImpactPresented;
         public bool LastVisualHit {get;private set;}
         public Vector3 LastVisualOrigin {get;private set;}
         public Vector3 LastVisualEnd {get;private set;}
@@ -82,7 +83,7 @@ namespace LogicLegends.OpenArchive.Topics
             var slot=pool[nextSlot];lastSlot=nextSlot;nextSlot=(nextSlot+1)%PoolSize;
             slot.origin=origin;slot.end=state.shotEnd;slot.direction=delta.normalized;
             slot.duration=Mathf.Clamp(delta.magnitude/Mathf.Max(1,projectileSpeed),.10f,.6f);
-            slot.began=Time.unscaledTime;slot.serial=state.shotSerial;slot.hit=state.shotHit;slot.active=true;
+            slot.began=Time.unscaledTime;slot.serial=state.shotSerial;slot.hit=state.shotHit;slot.active=true;slot.impactPresented=false;
             slot.root.SetActive(true);
             LastVisualSerial=slot.serial;LastVisualHit=slot.hit;LastVisualOrigin=origin;LastVisualEnd=slot.end;LastTravelDuration=slot.duration;
             UpdateSlot(slot,0);return true;
@@ -100,6 +101,7 @@ namespace LogicLegends.OpenArchive.Topics
             if(age>slot.duration+embeddedSeconds)
             {slot.active=false;slot.root.SetActive(false);return;}
             float flight=Mathf.Clamp01(age/slot.duration);bool arrived=flight>=1;
+            if(arrived&&!slot.impactPresented){slot.impactPresented=true;ImpactPresented?.Invoke(slot.end,slot.hit);}
             Vector3 position=Vector3.Lerp(slot.origin,slot.end,flight);
             slot.dart.SetPositionAndRotation(position,Quaternion.LookRotation(slot.direction));
             float fade=arrived?1-Mathf.SmoothStep(0,1,Mathf.Clamp01((age-slot.duration-.7f)/Mathf.Max(.1f,embeddedSeconds-.7f))):1;

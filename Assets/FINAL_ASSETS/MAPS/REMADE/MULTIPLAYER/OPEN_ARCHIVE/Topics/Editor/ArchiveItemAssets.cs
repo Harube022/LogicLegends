@@ -140,7 +140,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         }
         static Material Mat(string name,Color color)
         {string path=Folder+"/Item_"+name+".mat";var m=AssetDatabase.LoadAssetAtPath<Material>(path);if(m!=null)return m;m=new Material(Shader.Find("Universal Render Pipeline/Lit")){name="Item_"+name,enableInstancing=true};m.SetColor("_BaseColor",color);m.SetFloat("_Smoothness",.28f);AssetDatabase.CreateAsset(m,path);return m;}
-        static void RenderIcon(GameObject prefab,string path,Vector3 cameraOffset=default)
+        internal static void RenderIcon(GameObject prefab,string path,Vector3 cameraOffset=default)
         {
             var preview=EditorSceneManager.NewPreviewScene();var root=UnityEngine.Object.Instantiate(prefab);SceneManager.MoveGameObjectToScene(root,preview);
             foreach(var t in root.GetComponentsInChildren<Transform>())t.gameObject.layer=31;

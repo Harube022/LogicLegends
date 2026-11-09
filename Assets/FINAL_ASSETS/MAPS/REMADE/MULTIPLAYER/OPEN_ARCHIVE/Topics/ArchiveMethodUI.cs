@@ -50,7 +50,7 @@ namespace LogicLegends.OpenArchive.Topics
             returnButton=MakeButton(reader,"Return item",()=>owner.session.Request(4,ArchiveAction.ReturnItem),new Vector2(.44f,.075f),new Vector2(225,82),24);
             primary=MakeButton(reader,"Begin at Book",Primary,new Vector2(.75f,.075f),new Vector2(300,82),25);primaryLabel=primary.GetComponentInChildren<TMP_Text>();
             for(int i=0;i<5;i++){var r=Rect("Accepted_Proof_"+(i+1),reader,new Vector2(.065f+i*.032f,.13f),new Vector2(.09f+i*.032f,.145f));progress[i]=r.gameObject.AddComponent<Image>();progress[i].raycastTarget=false;}
-            reader.gameObject.SetActive(false);objective.gameObject.SetActive(false);
+            reader.gameObject.SetActive(false);owner.RegisterObjective(4,objective,title,timer);objective.gameObject.SetActive(false);
         }
         public void Open(){selected=-1;reader.gameObject.SetActive(true);revision=-1;Refresh();}
         public void Close(){if(reader!=null)reader.gameObject.SetActive(false);}
@@ -65,7 +65,7 @@ namespace LogicLegends.OpenArchive.Topics
         void Update(){
             if(owner==null||owner.session==null||!owner.session.Ready)return;var session=owner.session;
             bool near=Player.LocalInstance!=null&&session.CanAct(session.LocalActor)&&Time.timeScale>0&&Vector3.Distance(Player.LocalInstance.transform.position,session.stations[4].transform.position)<34;
-            objective.gameObject.SetActive(near&&owner.ReadingStation==null);if(!near){if(IsOpen)owner.Close();return;}
+            owner.SetObjectiveVisible(4,near&&owner.ReadingStation==null);if(!near){if(IsOpen)owner.Close();return;}
             if(screen!=new Vector2(Screen.width,Screen.height)||safe!=Screen.safeArea||!Mathf.Approximately(canvasScale,owner.GetComponent<Canvas>().scaleFactor))PositionObjective();
             if(revision!=session.State.revision){revision=session.State.revision;Refresh();}
             var s=session.State.stations[4];var q=session.Question(4);int seconds=Mathf.CeilToInt(session.TimerRemaining(s));string value=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
@@ -74,8 +74,8 @@ namespace LogicLegends.OpenArchive.Topics
             primary.interactable=s.phase==2||s.phase==0&&start||filled;checkButton.interactable=filled;returnButton.gameObject.SetActive(s.carries.Any(c=>c.actor==session.LocalActor));
             if(!string.IsNullOrEmpty(session.TopicLockNotice(4))){cue.text="Another topic is active";primary.interactable=checkButton.interactable=false;return;}
             if(s.phase==1){var focus=owner.FocusedPoint;var held=s.carries.FirstOrDefault(c=>c.actor==session.LocalActor);bool recent=s.lastAnswerResult<0&&ArchiveTopicSession.Clock-s.lastAnswerAt<2.5;
-                cue.text=recent?"Incorrect · your arrangement is kept":focus!=null&&focus.station.topic==4?focus.role==ArchivePointRole.Item?"Hand / E · take "+q.items[focus.index]+" · Read for text":focus.role==ArchivePointRole.Slot?"Hand / E · "+q.slots[focus.index]:focus.role==ArchivePointRole.Select?"Hand / E · choose "+ArchiveMethodPresentation.MethodName(focus.index):"Book · Hand / E":held!=null?"Carrying "+q.items[held.item]:filled?"Arrangement ready · Check proof":q.items.Length==0?"Walk to a method altar · Hand / E":"Read a tablet, then carry it · Hand / E";
-            }else if(s.phase==0)cue.text=start?"Book Statue · Hand / E":"Return to the Book Statue";
+                cue.text=recent?"Incorrect · your arrangement is kept":focus!=null&&focus.station.topic==4?focus.role==ArchivePointRole.Item?"Tap hand · take "+q.items[focus.index]+" · Read for text":focus.role==ArchivePointRole.Slot?"Tap hand · "+q.slots[focus.index]:focus.role==ArchivePointRole.Select?"Tap hand · choose "+ArchiveMethodPresentation.MethodName(focus.index):"Book · Tap hand":held!=null?"Carrying "+q.items[held.item]:filled?"Arrangement ready · Check proof":q.items.Length==0?"Walk to a method altar · Tap hand":"Read a tablet, then carry it · Tap hand";
+            }else if(s.phase==0)cue.text=start?"Book Statue · Tap hand":"Return to the Book Statue";
         }
         string Location(int item,ArchiveQuestion q,ArchiveStationState state){
             if(state.phase!=1&&!state.timerExpired)return "At its stand";var held=state.carries.FirstOrDefault(c=>c.item==item);if(held!=null)return "Carried by "+owner.session.ActorName(held.actor);
@@ -88,8 +88,8 @@ namespace LogicLegends.OpenArchive.Topics
             stage.text=s.phase==2?"Proof Forge restored":s.timerExpired?"Time up · work kept":s.phase==0?"Read the Book to continue":ArchiveMethodPresentation.KindLabel(q);
             summary.text=display?ArchiveMethodPresentation.MethodName(ArchiveMethodPresentation.NeedsMethod(q)?s.selection:(int)q.trial.station)+(q.PlacementCount==0?s.selection<0?" · select an altar":" · ready to check":" · "+s.placements.Count(p=>p>=0)+" / "+q.PlacementCount+" steps"):s.phase==2?"Five shared proof challenges complete":"Method altars → ordered proof tablets";
             readerTitle.text="T5  DIRECT & INDIRECT PROOFS\n"+(s.phase==2?"Team complete · 5 / 5":"Challenge "+challenge+" / 5 · "+ArchiveMethodPresentation.KindLabel(q));
-            body.text=!display?s.phase==2?"Your team restored the Proof Forge.\n\n"+s.reveal:s.round==0?"Identify a proof method, construct a direct proof, order a contrapositive argument, complete a contradiction proof, then choose a strategy and build the final proof.\n\nUse Hand / E at the Book to begin. Reading alone never starts the clock.":"Challenge "+s.round+" accepted.\n\n"+s.reveal+"\n\nReturn to the Book for the next challenge.":selected>=0&&selected<q.items.Length?q.items[selected].ToUpperInvariant()+"\n"+Location(selected,q,s)+"\n\n"+ArchiveMethodPresentation.ItemText(selected,q)+"\n\nUse Hand / E to take this tablet and place it in a numbered socket.":q.title+"\n\n"+ArchiveMethodPresentation.Problem(q)+"\n\n"+Instructions(q)+"\n\nTEAM ARRANGEMENT\n"+ArchiveMethodPresentation.Arrangement(q,s);
-            if(display&&selected<=-2&&selected>=-4)body.text=MethodGuide(-selected-2)+"\n\nThis is a reading reference. Walk to its altar and use Hand / E to select your team's answer.";
+            body.text=!display?s.phase==2?"Your team restored the Proof Forge.\n\n"+s.reveal:s.round==0?"Identify a proof method, construct a direct proof, order a contrapositive argument, complete a contradiction proof, then choose a strategy and build the final proof.\n\nTap the hand button at the Book to begin. Reading alone never starts the clock.":"Challenge "+s.round+" accepted.\n\n"+s.reveal+"\n\nReturn to the Book for the next challenge.":selected>=0&&selected<q.items.Length?q.items[selected].ToUpperInvariant()+"\n"+Location(selected,q,s)+"\n\n"+ArchiveMethodPresentation.ItemText(selected,q)+"\n\nTap the hand button to take this tablet and place it in a numbered socket.":q.title+"\n\n"+ArchiveMethodPresentation.Problem(q)+"\n\n"+Instructions(q)+"\n\nTEAM ARRANGEMENT\n"+ArchiveMethodPresentation.Arrangement(q,s);
+            if(display&&selected<=-2&&selected>=-4)body.text=MethodGuide(-selected-2)+"\n\nThis is a reading reference. Walk to its altar and tap the hand button to select your team's answer.";
             for(int i=0;i<entries.Count;i++){int item=entryIds[i];entryLabels[i].text=item<0?ArchiveMethodPresentation.MethodName(-item-2)+"\nMethod reference":q.items[item]+"\n"+Location(item,q,s);var colors=entries[i].colors;colors.normalColor=item==selected?new Color(1,.90f,.65f):Color.white;entries[i].colors=colors;}
             feedback.text=session.TopicLockNotice(4);if(string.IsNullOrEmpty(feedback.text))feedback.text=s.feedback;feedback.color=s.lastAnswerResult<0&&s.phase==1?Red:Ink;
             primaryLabel.text=s.phase==2?"Explore":s.phase==1?"Check proof":s.timerExpired?"Retry at Book":s.round==0?"Begin at Book":"Next at Book";
@@ -97,8 +97,8 @@ namespace LogicLegends.OpenArchive.Topics
             if(!string.IsNullOrEmpty(session.TopicLockNotice(4))){stage.text="Finish the active topic first";primaryLabel.text="Topic in progress";}
         }
         public static string Instructions(ArchiveQuestion q)=>
-            (ArchiveMethodPresentation.NeedsMethod(q)?"Walk to a method altar and use Hand / E to select it. The glowing ring marks your team's selection, not a confirmed answer.\n\nDirect: derive the conclusion from the assumptions.\nContrapositive (indirect): prove ¬Q implies ¬P instead of P implies Q.\nContradiction (indirect): assume the conclusion is false and derive a contradiction.\n\n":"Assigned method: "+ArchiveMethodPresentation.MethodName((int)q.trial.station)+".\n\n")+
-            (q.items.Length>0?"Read each tablet's statement and justification. Carry it with Hand / E, then place it in a numbered STEP socket. Every tablet must appear once. You can pick a placed tablet back up to revise the proof.\n\n":"")+
+            (ArchiveMethodPresentation.NeedsMethod(q)?"Walk to a method altar and tap the hand button to select it. The glowing ring marks your team's selection, not a confirmed answer.\n\nDirect: derive the conclusion from the assumptions.\nContrapositive (indirect): prove ¬Q implies ¬P instead of P implies Q.\nContradiction (indirect): assume the conclusion is false and derive a contradiction.\n\n":"Assigned method: "+ArchiveMethodPresentation.MethodName((int)q.trial.station)+".\n\n")+
+            (q.items.Length>0?"Read each tablet's statement and justification. Carry it with the hand button, then place it in a numbered STEP socket. Every tablet must appear once. You can pick a placed tablet back up to revise the proof.\n\n":"")+
             "Check proof when ready. Incorrect answers keep your work and record one mistake for the submitting player.";
         void BuildEntries(ArchiveQuestion q){
             foreach(Transform child in itemContent){child.gameObject.SetActive(false);Destroy(child.gameObject);}entries.Clear();entryLabels.Clear();entryIds.Clear();

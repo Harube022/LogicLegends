@@ -184,8 +184,12 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         }
         static void PlaceTopicSign(ArchiveTopicStation station,Transform marker,Vector3 position)
         {
-            var towardTopic=station.transform.position-position;towardTopic.y=0;
-            marker.SetPositionAndRotation(position,Quaternion.LookRotation(towardTopic,Vector3.up));
+            // TMP's front face looks along local -Z. Face the junction where
+            // players arrive; aiming the board at the topic made it edge-on
+            // from the pathway. The ground arrow is oriented separately.
+            var junction=station.transform.TransformPoint(new Vector3(0,0,19));
+            var awayFromReader=position-junction;awayFromReader.y=0;
+            marker.SetPositionAndRotation(position,Quaternion.LookRotation(awayFromReader,Vector3.up));
         }
         static Mesh SignPostMesh()
         {

@@ -15,13 +15,13 @@ namespace LogicLegends.OpenArchive.Hunting
         [Min(150)] public float closeTurnSpeed = 300;
         [Min(.5f)] public float circleSecondsBeforeCounter = 1.8f;
         [Min(30)] public float circleDegreesBeforeCounter = 80;
-        [Min(5)] public float minimumCircleDegreesPerSecond = 25;
+        [Min(5)] public float minimumCircleDegreesPerSecond = 8;
         [Range(.5f, 1.5f)] public float counterWarningSeconds = .9f;
         [Range(.15f, .6f)] public float counterStrikeSeconds = .35f;
         [Range(.5f, 1.5f)] public float counterRecoverySeconds = .8f;
         [Min(2)] public float counterCooldownSeconds = 3.5f;
         [Tooltip("Additional world-space reach beyond the existing body surface. Regular captures keep their current range.")]
-        [Range(.5f, 5)] public float counterSurfaceReach = 3;
+        [Range(.5f, 8)] public float counterSurfaceReach = 6.5f;
         [Range(90, 180)] public float rajangCounterArc = 160;
         [Range(45, 120)] public float khezuCounterArc = 90;
         [Range(0, 5)] public float khezuCounterLunge = 3;
@@ -32,10 +32,15 @@ namespace LogicLegends.OpenArchive.Hunting
         public Vector3 CloseCounterAim { get; private set; }
         int counterTarget, orbitTarget;
         float orbitSeconds, orbitDegrees, counterLungeMoved;
+        float coverPressureSeconds;
+        double nextCoverCheck;
+        bool compactCoverReachable;
         Vector3 previousOrbitPlayer;
         double previousOrbitAt;
         bool hasOrbitSample;
         LineRenderer counterWarning;
+        LineRenderer counterCoverWarning;
+        readonly Vector3[] counterCoverPoints=new Vector3[4];
         Material counterWarningMaterial;
         AudioSource counterVoice;
         int presentedCounterSerial;
@@ -56,7 +61,8 @@ namespace LogicLegends.OpenArchive.Hunting
 
         void ResetOrbitTracking()
         {
-            orbitSeconds = orbitDegrees = 0; hasOrbitSample = false; orbitTarget = 0;
+            orbitSeconds = orbitDegrees = coverPressureSeconds = 0; hasOrbitSample = false; orbitTarget = 0;
+            nextCoverCheck=0;compactCoverReachable=false;
         }
         void ResetCloseCounter(bool clearCooldown)
         {
@@ -72,6 +78,8 @@ namespace LogicLegends.OpenArchive.Hunting
                 { FinishCloseCounter(); return true; }
                 HoldCounterNavigation();
                 double elapsed = EncounterClock - CloseCounterStartedAt;
+                if(elapsed<counterWarningSeconds&&TargetSurfaceGap(target)>counterSurfaceReach+(IsRajangCounter?0:khezuCounterLunge)+1.25f)
+                {FinishCloseCounter();Status="Runner escaped the counter — resuming pursuit";return false;}
                 // An authority handover must never apply a hit from an already elapsed strike window.
                 if (elapsed >= CounterTotalSeconds) { FinishCloseCounter(); return true; }
                 if (elapsed >= counterWarningSeconds + counterStrikeSeconds)
@@ -105,10 +113,11 @@ namespace LogicLegends.OpenArchive.Hunting
                 return true;
             }
             if (!closeCounterEnabled || !agent.enabled || !agent.isOnNavMesh || EncounterClock < CloseCounterCooldownUntil ||
-                TargetSurfaceGap(target) > closePressureDistance || !CounterSight(target) ||
+                TargetSurfaceGap(target) > Mathf.Max(closePressureDistance,counterSurfaceReach+3) ||
                 (waterPursuit != null && waterPursuit.ContainsTarget(target.transform, target.capsule)))
             { ResetOrbitTracking(); return false; }
             double now = EncounterClock;
+            if(now>=nextCoverCheck){nextCoverCheck=now+.15;compactCoverReachable=CounterAroundCompactCover(target);}
             if (!hasOrbitSample || orbitTarget != TargetPlayerId)
             {
                 hasOrbitSample = true; orbitTarget = TargetPlayerId;
@@ -123,10 +132,13 @@ namespace LogicLegends.OpenArchive.Hunting
             float degrees = from.sqrMagnitude > .1f && to.sqrMagnitude > .1f ? Mathf.Abs(Vector3.SignedAngle(from, to, Vector3.up)) : 0;
             previousOrbitPlayer = target.transform.position; previousOrbitAt = now;
             if (dt <= 0 || dt > .25f) { orbitSeconds = orbitDegrees = 0; return false; }
+            coverPressureSeconds=compactCoverReachable?coverPressureSeconds+dt:Mathf.Max(0,coverPressureSeconds-dt);
             if (degrees / dt >= minimumCircleDegreesPerSecond)
             { orbitSeconds += dt; orbitDegrees += degrees; }
-            else { orbitSeconds = Mathf.Max(0, orbitSeconds - dt * 2); orbitDegrees = Mathf.Max(0, orbitDegrees - dt * 90); }
-            if (orbitSeconds < circleSecondsBeforeCounter || orbitDegrees < circleDegreesBeforeCounter) return false;
+            else { orbitSeconds = Mathf.Max(0, orbitSeconds - dt * .5f); orbitDegrees = Mathf.Max(0, orbitDegrees - dt * 20); }
+            if ((orbitSeconds < circleSecondsBeforeCounter || orbitDegrees < circleDegreesBeforeCounter)&&coverPressureSeconds<3) return false;
+            if(TargetSurfaceGap(target)>counterSurfaceReach+(IsRajangCounter?0:khezuCounterLunge))return false;
+            if(!CounterSight(target)&&!compactCoverReachable)return false;
             BeginCloseCounter(target);
             return true;
         }
@@ -185,9 +197,45 @@ namespace LogicLegends.OpenArchive.Hunting
             if (!IsAuthority || !agent.enabled || !agent.isOnNavMesh || CloseCounterPhase != MonsterCloseCounterPhase.Strike ||
                 EncounterClock < CloseCounterStartedAt + counterWarningSeconds ||
                 EncounterClock >= CloseCounterStartedAt + counterWarningSeconds + counterStrikeSeconds ||
-                TargetSurfaceGap(target) > counterSurfaceReach || !CounterSight(target)) return false;
+                TargetSurfaceGap(target) > counterSurfaceReach || (!CounterSight(target)&&!CounterAroundCompactCover(target))) return false;
             Vector3 toward = target.transform.position - CounterCenter; toward.y = 0;
             return toward.sqrMagnitude < .01f || Vector3.Angle(CloseCounterAim, toward) <= (IsRajangCounter ? rajangCounterArc : khezuCounterArc) * .5f;
+        }
+        bool CounterAroundCompactCover(Target target)
+        {
+            // A charged ground sweep can curl around ONE small trunk/pillar. A
+            // complete three-segment physical route is required: never ignore walls.
+            if(Mathf.Abs(TargetFeet(target)-transform.position.y)>.85f||TargetSurfaceGap(target)>counterSurfaceReach+1)return false;
+            Vector3 end=target.capsule!=null?target.transform.TransformPoint(target.capsule.center):target.transform.position+Vector3.up;
+            Vector3 start=body.ClosestPoint(end);start.y=end.y;
+            Vector3 direction=end-start;if(direction.sqrMagnitude<.01f)return false;
+            start+=direction.normalized*.10f;
+            if(Physics.CheckSphere(start,.08f,catchObstructionMask,QueryTriggerInteraction.Ignore))return false;
+            if(!Physics.Linecast(start,end,out var obstruction,catchObstructionMask,QueryTriggerInteraction.Ignore)||
+                obstruction.transform==target.transform||obstruction.transform.IsChildOf(target.transform))return false;
+            var collider=obstruction.collider;var bounds=collider.bounds;
+            float wide=Mathf.Max(bounds.size.x,bounds.size.z),narrow=Mathf.Min(bounds.size.x,bounds.size.z);
+            if(collider.GetComponentInParent<Player>()!=null||wide>6||narrow<.15f||wide/narrow>2.5f)return false;
+            if(!Physics.Raycast(new Vector3(end.x,TargetFeet(target)+.2f,end.z),Vector3.down,.6f,catchObstructionMask,QueryTriggerInteraction.Ignore))return false;
+            const float clearance=.25f;
+            var corners=new[]{new Vector3(bounds.min.x-clearance,end.y,bounds.min.z-clearance),new Vector3(bounds.min.x-clearance,end.y,bounds.max.z+clearance),
+                new Vector3(bounds.max.x+clearance,end.y,bounds.max.z+clearance),new Vector3(bounds.max.x+clearance,end.y,bounds.min.z-clearance)};
+            for(int i=0;i<4;i++)foreach(int sign in new[]{-1,1})
+            {
+                Vector3 a=corners[i],b=corners[(i+sign+4)%4];
+                if(Vector3.Distance(start,a)+Vector3.Distance(a,b)+Vector3.Distance(b,end)>counterSurfaceReach+3.5f)continue;
+                if(ClearCounterSegment(start,a,target.transform)&&ClearCounterSegment(a,b,target.transform)&&ClearCounterSegment(b,end,target.transform))
+                {counterCoverPoints[0]=start;counterCoverPoints[1]=a;counterCoverPoints[2]=b;counterCoverPoints[3]=end;return true;}
+            }
+            return false;
+        }
+        bool ClearCounterSegment(Vector3 a,Vector3 b,Transform target)
+        {
+            if(Physics.CheckSphere(a,.10f,catchObstructionMask,QueryTriggerInteraction.Ignore))return false;
+            Vector3 delta=b-a;if(delta.sqrMagnitude<.001f)return true;
+            foreach(var hit in Physics.SphereCastAll(a,.10f,delta.normalized,delta.magnitude,catchObstructionMask,QueryTriggerInteraction.Ignore))
+                if(hit.transform!=target&&!hit.transform.IsChildOf(target))return false;
+            return true;
         }
         void CatchTarget(Target target)
         {
@@ -230,7 +278,7 @@ namespace LogicLegends.OpenArchive.Hunting
                 (State == KhezuHuntState.Hunting || State == KhezuHuntState.NavigationBlocked) &&
                 (CloseCounterPhase == MonsterCloseCounterPhase.Warning || CloseCounterPhase == MonsterCloseCounterPhase.Strike) &&
                 EncounterClock < CloseCounterStartedAt + counterWarningSeconds + counterStrikeSeconds;
-            if (!visible) { if (counterWarning != null) counterWarning.enabled = false; if (counterVoice != null) counterVoice.Stop(); return; }
+            if (!visible) { if (counterWarning != null) counterWarning.enabled = false; if(counterCoverWarning!=null)counterCoverWarning.enabled=false; if (counterVoice != null) counterVoice.Stop(); return; }
             if (counterWarning == null)
             {
                 var source = Resources.Load<Material>("Multiplayer/CloseCounterWarning");
@@ -244,6 +292,10 @@ namespace LogicLegends.OpenArchive.Hunting
                 counterWarning.startColor = counterWarning.endColor = Color.white;
                 counterWarning.widthMultiplier = .28f; counterWarning.numCornerVertices = 2;
                 counterWarning.shadowCastingMode = ShadowCastingMode.Off; counterWarning.receiveShadows = false;
+                var curl=new GameObject("Counter_Around_Cover_Tell");curl.transform.SetParent(go.transform,false);
+                counterCoverWarning=curl.AddComponent<LineRenderer>();counterCoverWarning.sharedMaterial=counterWarningMaterial;
+                counterCoverWarning.useWorldSpace=true;counterCoverWarning.positionCount=4;counterCoverWarning.numCornerVertices=3;
+                counterCoverWarning.startColor=counterCoverWarning.endColor=Color.white;counterCoverWarning.shadowCastingMode=ShadowCastingMode.Off;counterCoverWarning.receiveShadows=false;
                 counterVoice = go.AddComponent<AudioSource>(); counterVoice.playOnAwake = false; counterVoice.spatialBlend = 1;
                 counterVoice.rolloffMode = AudioRolloffMode.Linear; counterVoice.minDistance = 10; counterVoice.maxDistance = 65;
                 AudioVolumeSettings.Route(counterVoice, GameAudioChannel.SoundFX);
@@ -253,6 +305,9 @@ namespace LogicLegends.OpenArchive.Hunting
             float pulse = CloseCounterPhase == MonsterCloseCounterPhase.Strike ? 1.7f : 1 + .35f * Mathf.Sin((float)(EncounterClock - CloseCounterStartedAt) * 22);
             counterWarningMaterial.SetColor("_BaseColor", color);
             counterWarning.widthMultiplier = .28f * pulse;
+            bool curlVisible=targets.TryGetValue(TargetPlayerId,out var currentTarget)&&CounterAroundCompactCover(currentTarget);
+            counterCoverWarning.enabled=curlVisible;counterCoverWarning.widthMultiplier=.22f*pulse;
+            if(curlVisible)for(int i=0;i<4;i++){var point=counterCoverPoints[i];point.y=transform.position.y+.22f;counterCoverWarning.SetPosition(i,point);}
             Vector3 center = CounterCenter + Vector3.up * .18f;
             Vector3 aim = CloseCounterPhase == MonsterCloseCounterPhase.Warning ? transform.forward : CloseCounterAim;
             float arc = IsRajangCounter ? rajangCounterArc : khezuCounterArc;

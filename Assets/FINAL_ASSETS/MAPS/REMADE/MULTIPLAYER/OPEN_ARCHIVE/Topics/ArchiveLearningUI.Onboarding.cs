@@ -141,7 +141,7 @@ namespace LogicLegends.OpenArchive.Topics
                 string.IsNullOrEmpty(session.TopicLockNotice(point.station.topic))&&onboardingHand!=null&&onboardingHand.gameObject.activeInHierarchy)
             {
                 onboardingBookTopic=point.station.topic;
-                ShowOnboarding(ArchiveOnboardingStep.Book,"READ THE BOOK","Face the marked Book. Tap Hand / E to open its challenge. Book activation starts the topic clock.",onboardingHand,point.transform);return;
+                ShowOnboarding(ArchiveOnboardingStep.Book,"READ THE BOOK","Face the marked Book. Tap the hand button to open its challenge. Book activation starts the topic clock.",onboardingHand,point.transform);return;
             }
             if(view==null){HideOnboarding();return;}
             int selected=session.EquippedItem(session.LocalActor);

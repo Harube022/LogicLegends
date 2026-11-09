@@ -58,7 +58,7 @@ namespace LogicLegends.OpenArchive.Topics
                 var player=session.ActorPlayer(actor);if(player==null||introPlayers.Contains(player)||player.IsMovementLocked)continue;
                 introPlayers.Add(player);player.AcquireMovementLock(this,"Nightfall cinematic",player.transform.position,70);
             }
-            filmTitle.text=SecondaryName=="Rajang"?"RAJANG  ·  THE PRIMAL AXIOM":"KHEZU  ·  THE PROOF DEVOURER";
+            filmTitle.text=SecondaryDisplayName.ToUpperInvariant();
             var elapsed=(float)(ArchiveTopicSession.Clock-entranceToken);
             var tint=EntranceTint;
             filmTitle.color=Color.Lerp(tint,Color.white,.40f);filmTitle.alpha=Mathf.Clamp01((elapsed-.25f)*1.2f);

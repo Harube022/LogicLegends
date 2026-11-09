@@ -69,20 +69,7 @@ namespace LogicLegends.OpenArchive.Topics
         }
         void BuildBarrier()
         {
-            prison = Panel("Real_Math_Barrier_Challenge", new Vector2(.26f, .47f), new Vector2(.74f, .90f));
-            prisonTitle = Label("Barrier_Problem_Title", prison, "", 29, true); Stretch(prisonTitle.rectTransform, new Vector2(.045f, .85f), new Vector2(.79f, .96f));
-            prisonClock = Label("Existing_Barrier_Clock", prison, "", 30, true); Stretch(prisonClock.rectTransform, new Vector2(.80f, .85f), new Vector2(.955f, .96f)); prisonClock.alignment = TextAlignmentOptions.Right;
-            prisonScroll = Scroll("Barrier_Reading", prison, new Vector2(.05f, .23f), new Vector2(.56f, .83f), out prisonContent);
-            Scroll("Barrier_Choices", prison, new Vector2(.58f, .23f), new Vector2(.95f, .83f), out choiceContent);
-            var optionLayout = choiceContent.GetComponent<VerticalLayoutGroup>(); optionLayout.spacing = 8; optionLayout.padding = new RectOffset(2, 3, 4, 4);
-            var footer = Rect("Barrier_Actions", prison, new Vector2(.05f, .055f), new Vector2(.95f, .20f));
-            barrierHint = Button("Barrier_Next_Hint", footer, "Next hint", () => RequestBarrier(false));
-            Stretch((RectTransform)barrierHint.transform, new Vector2(0, .08f), new Vector2(.31f, .92f));
-            confirm = Button("Confirm_Barrier_Answer", footer, "Confirm answer", () => RequestBarrier(true));
-            Stretch((RectTransform)confirm.transform, new Vector2(.58f, .08f), new Vector2(1, .92f));
-            var notice = Label("One_Confirmed_Attempt", footer, "Wrong/timeout:\n−1 heart + stun", 20, false);
-            Stretch(notice.rectTransform, new Vector2(.32f, .08f), new Vector2(.57f, .92f)); notice.alignment = TextAlignmentOptions.Center;
-            prison.gameObject.SetActive(false);
+            BuildBarrierPresentation();
         }
         void UpdateAutoCaption() { autoCaption.text = "First-visit tips: " + (AutoTips ? "ON" : "OFF"); }
         public void OpenGuide(int topic)
@@ -120,11 +107,12 @@ namespace LogicLegends.OpenArchive.Topics
             if (topicUI == null) topicUI = ArchiveTopicUI.Current;
             if (Screen.width > 0 && Screen.height > 0)
             {
-                var a = Screen.safeArea; safe.anchorMin = new Vector2(a.xMin / Screen.width, a.yMin / Screen.height); safe.anchorMax = new Vector2(a.xMax / Screen.width, a.yMax / Screen.height);
+                MultiplayerSafeArea.Apply(safe);
             }
             bool ready = session != null && session.Ready && Player.LocalInstance != null && Time.timeScale > 0;
             bool captive = ready && session.IsLocalBarrierQuestion;
             prison.gameObject.SetActive(captive);
+            if (barrierShade != null) barrierShade.gameObject.SetActive(captive);
             if (session != null && session.learningEncounter != null)
             {
                 var status = session.learningEncounter.GetComponent<KhezuBarrierStatusUI>();
@@ -176,31 +164,31 @@ namespace LogicLegends.OpenArchive.Topics
             if (identity!=displayedMonsterProblem)
             {
                 displayedMonsterProblem=identity;
-                selected = -1; pending = false; displayedBarrierRevision = -1; displayedChoiceWidth=-1;
+                selected = -1; pending = false; displayedBarrierRevision = -1; displayedBarrierHintLevel = -1; displayedChoiceWidth=-1;
                 foreach (Transform child in prisonContent) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
                 foreach (Transform child in choiceContent) { child.gameObject.SetActive(false); Destroy(child.gameObject); }
-                Paragraph("Barrier_Instructions", prisonContent, problem.prompt, 27);
+                var question = Paragraph("Barrier_Instructions", prisonContent, problem.prompt, 29);
+                question.richText = false; question.lineSpacing = 5;
                 choices = new Button[problem.options.Length];
                 for (int i = 0; i < choices.Length; i++)
                 {
                     int choice = i;
                     choices[i] = Button("Barrier_Choice_" + i, choiceContent, "", () => { if (!pending && b.outcome == 0) selected = choice; });
-                    choices[i].gameObject.AddComponent<LayoutElement>().preferredHeight = 60;
-                    var choiceLabel = choices[i].GetComponentInChildren<TMP_Text>(); choiceLabel.enableAutoSizing = false;
-                    choiceLabel.fontSize = 24;
+                    StyleBarrierChoice(choices[i], i);
                 }
-                selectedDetail = Paragraph("Selected_Rule_Definition", prisonContent, "", 24);
-                prisonHint = Paragraph("Barrier_Progressive_Hints", prisonContent, "", 24); prisonHint.color = Teal;
+                selectedDetail = Paragraph("Selected_Rule_Definition", prisonContent, "", 24); selectedDetail.color = Teal;
+                prisonHint = Paragraph("Barrier_Progressive_Hints", prisonContent, "", 25); prisonHint.color = Teal;
                 prisonFeedback = Paragraph("Validated_Barrier_Feedback", prisonContent, "", 26);
-                Canvas.ForceUpdateCanvases(); prisonScroll.verticalNormalizedPosition = 1;
+                Canvas.ForceUpdateCanvases(); prisonScroll.verticalNormalizedPosition = 1; barrierChoicesScroll.verticalNormalizedPosition = 1;
             }
             if (pending && (b.revision != pendingRevision || Time.unscaledTime >= retryAt)) pending = false;
             Color accent = b.kind == 1 ? new Color(.61f, .24f, .015f) : new Color(.65f, .025f, .10f);
-            prisonTitle.text = problem.title;
+            prisonTitle.text = ArchiveMonsterNames.ForPrimalAxiom(b.kind == 1).ToUpperInvariant();
             int seconds = Mathf.CeilToInt(hunt.BarrierSecondsRemaining);
             prisonClock.text = b.outcome == 0 ? (seconds / 60).ToString("00") + ":" + (seconds % 60).ToString("00") : b.outcome == 1 ? "SOLVED" : "FAILED";
             prisonClock.color = prisonTitle.color = accent;
-            float choiceWidth=Mathf.Max(100,(choiceContent.rect.width-5)*.91f);
+            PaintBarrierPresentation(accent, b.outcome, seconds, hunt.BarrierSecondsRemaining);
+            float choiceWidth=Mathf.Max(100,(choiceContent.rect.width-20)*.80f);
             bool resized=Mathf.Abs(choiceWidth-displayedChoiceWidth)>.5f;
             displayedChoiceWidth=choiceWidth;
             for (int i = 0; i < choices.Length; i++)
@@ -208,23 +196,27 @@ namespace LogicLegends.OpenArchive.Topics
                 bool picked = (b.outcome == 0 ? selected : b.selected) == i;
                 choices[i].interactable = !pending && b.outcome == 0 && hunt.BarrierSecondsRemaining > 0;
                 var label = choices[i].GetComponentInChildren<TMP_Text>();
-                string caption=(picked ? "> " : "") + (char)('A' + i) + ". " + problem.options[i];
+                string caption=problem.options[i];
                 bool changed=label.text!=caption;label.text=caption;
                 // Longer proof answers stay readable at the same font size and scroll vertically.
                 if(changed||resized)choices[i].GetComponent<LayoutElement>().preferredHeight=
-                    Mathf.Max(60,(label.GetPreferredValues(caption,choiceWidth,float.PositiveInfinity).y+12)/.84f);
+                    Mathf.Max(64,label.GetPreferredValues(caption,choiceWidth,float.PositiveInfinity).y+24);
                 label.color = picked ? new Color(1, .88f, .42f) : StageUITheme.Ink;
+                choices[i].GetComponent<Outline>().effectColor = picked ? new Color(1, .76f, .24f, 1) : Color.clear;
+                choices[i].GetComponent<Image>().color = picked ? new Color(.80f, 1, .93f) : Color.white;
             }
-            selectedDetail.text = selected < 0 ? "Select one option, read it, then confirm. Only you can answer your capture." : problem.OptionDetail(selected);
+            selectedDetail.text = selected < 0 ? "" : problem.OptionDetail(selected);
+            barrierSelection.text = b.outcome != 0 ? (b.outcome == 1 ? "Escape confirmed" : "The guardian is preparing its attack") : selected < 0 ? "Choose an answer, then confirm. Only you can answer this challenge." : "ANSWER " + (char)('A' + selected) + " SELECTED  ·  Confirm when ready";
             if (displayedBarrierRevision != b.revision)
             {
-                bool scrollToReceipt = displayedBarrierRevision >= 0;
+                bool revealNewHint = displayedBarrierHintLevel >= 0 && b.hintLevel > displayedBarrierHintLevel;
+                displayedBarrierHintLevel = b.hintLevel;
                 displayedBarrierRevision = b.revision;
                 string hints = "";
                 for (int level = 1; level <= b.hintLevel; level++) hints += "HINT " + level + " / 3\n" + problem.Hint(level) + "\n\n";
-                prisonHint.text = b.hintLevel == 0 ? problem.Hint(0) : hints;
+                prisonHint.text = b.hintLevel == 0 ? "" : hints;
                 prisonFeedback.text = b.feedback;
-                Canvas.ForceUpdateCanvases(); if (scrollToReceipt) prisonScroll.verticalNormalizedPosition = 0;
+                Canvas.ForceUpdateCanvases(); if (revealNewHint) prisonScroll.verticalNormalizedPosition = 0;
             }
             confirm.interactable = !pending && b.outcome == 0 && selected >= 0 && hunt.BarrierSecondsRemaining > 0;
             barrierHint.interactable = !pending && b.outcome == 0 && b.hintLevel < 3 && hunt.BarrierSecondsRemaining > 0;
@@ -286,6 +278,7 @@ namespace LogicLegends.OpenArchive.Topics
             HideOnboarding();
             if (encounterStatus != null) encounterStatus.detailedChallengeVisible = false;
             if (guide != null) guide.gameObject.SetActive(false); if (prison != null) prison.gameObject.SetActive(false);
+            if (barrierShade != null) barrierShade.gameObject.SetActive(false);
             if (entry != null) entry.gameObject.SetActive(false);
         }
         void OnDestroy() { if (encounterStatus != null) encounterStatus.detailedChallengeVisible = false; if (Current == this) Current = null; }

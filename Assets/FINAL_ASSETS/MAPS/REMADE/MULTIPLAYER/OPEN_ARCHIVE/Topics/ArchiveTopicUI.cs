@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace LogicLegends.OpenArchive.Topics
 {
     /// <summary>Local reading/edit controls. Never pauses the room, locks a player or owns puzzle state.</summary>
-    public sealed class ArchiveTopicUI : MonoBehaviour
+    public sealed partial class ArchiveTopicUI : MonoBehaviour
     {
         public ArchiveTopicSession session;
         public Sprite panelArt, statusArt, buttonArt;
@@ -88,7 +88,7 @@ namespace LogicLegends.OpenArchive.Topics
                     best=score;focus=point;
                 }
             }
-            hint.text=focus==null||(openStation!=null&&openStation.topic<=9)?"":"Hand / E: "+focus.caption;
+            hint.text=focus==null||(openStation!=null&&openStation.topic<=9)?"":"Tap hand: "+focus.caption;
             if(focus!=null&&focus.role==ArchivePointRole.Book&&!string.IsNullOrEmpty(session.TopicLockNotice(focus.station.topic)))hint.text=session.TopicLockNotice(focus.station.topic);
             if(focus!=null&&focus.station.topic==0&&proposition!=null&&proposition.IsObjectiveVisible)hint.text="";
             if(focus!=null&&focus.station.topic==1&&truth!=null&&truth.IsObjectiveVisible)hint.text="";
@@ -200,7 +200,7 @@ namespace LogicLegends.OpenArchive.Topics
             returnButton.gameObject.SetActive(returnButton.interactable);
             float scrollPosition=resetScrollOnRefresh?1:scroll.verticalNormalizedPosition;resetScrollOnRefresh=false;
             foreach(Transform child in content){child.gameObject.SetActive(false);Destroy(child.gameObject);}
-            if(s.phase!=1){Paragraph(!string.IsNullOrEmpty(lockNotice)?lockNotice:s.phase==2?"Completed for the whole team.":"Approach the Book Statue and use Hand / E or Start to begin the next challenge. The world remains active while you read.");if(!string.IsNullOrEmpty(s.reveal))Paragraph(s.reveal);Canvas.ForceUpdateCanvases();scroll.verticalNormalizedPosition=1;return;}
+            if(s.phase!=1){Paragraph(!string.IsNullOrEmpty(lockNotice)?lockNotice:s.phase==2?"Completed for the whole team.":"Approach the Book Statue and tap the hand button or Start to begin the next challenge. The world remains active while you read.");if(!string.IsNullOrEmpty(s.reveal))Paragraph(s.reveal);Canvas.ForceUpdateCanvases();scroll.verticalNormalizedPosition=1;return;}
             Paragraph(q.title+"\n"+q.prompt);Paragraph(q.instructions);
             if(q.activity==ArchiveActivity.Truth)
                 Paragraph(string.Join("\n",q.slots.Select((name,i)=>name+"  →  "+(s.placements[i]<0?"[empty]":q.items[s.placements[i]]))));
@@ -221,7 +221,7 @@ namespace LogicLegends.OpenArchive.Topics
                 var own=session.State.actors.FirstOrDefault(a=>a.actor==session.LocalActor);
                 if(q.mapping.questionKind==MappingQuestionKind.BuildExactRelation)
                 {
-                    Paragraph("Selected input: "+(own!=null&&own.mappingRound==s.round&&own.mappingInput>=0&&own.mappingInput<q.inputLabels.Length?q.inputLabels[own.mappingInput]:"none")+". Walk to a Domain marker, then a Range marker, using Hand / E at both.");
+                    Paragraph("Selected input: "+(own!=null&&own.mappingRound==s.round&&own.mappingInput>=0&&own.mappingInput<q.inputLabels.Length?q.inputLabels[own.mappingInput]:"none")+". Walk to a Domain marker, then a Range marker, by tapping the hand button at both.");
                     Row(new[]{"Undo Laser"},i=>session.Request(s.topic,ArchiveAction.Undo));
                 }
                 else if(q.mapping.questionKind==MappingQuestionKind.ClassifyFunction)Row(ArchiveMappingPresentation.ClassificationNames,i=>session.Request(s.topic,ArchiveAction.Select,i));

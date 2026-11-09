@@ -5,14 +5,21 @@ namespace LogicLegends.OpenArchive.Topics
     public sealed partial class ArchiveWorldProgression
     {
         [Header("Night distance fog - lightweight URP scene fog")]
-        public Color nightFogColor=new Color(.10f,.13f,.18f);
-        [Range(.004f,.04f)] public float nightFogDensity=.016f;
+        public Color nightFogColor=new Color(.16f,.19f,.24f);
+        [Range(.004f,.04f)] public float nightFogDensity=.023f;
+        public Shader nightFogSkyboxShader;
+        [Header("Moon key and night visibility")]
+        [Range(.1f,.8f)] public float moonKeyIntensity=.35f;
+        public Color nightAmbientSky=new Color(.14f,.19f,.30f),nightAmbientEquator=new Color(.11f,.14f,.20f),nightAmbientGround=new Color(.075f,.09f,.13f);
         [Header("Night ambience - uses the existing SFX mixer")]
         [Range(0,.5f)] public float nightWindVolume=.22f;
         [Range(0,.5f)] public float nightDetailVolume=.24f;
         [Range(0,1)] public float warningAmbienceMultiplier=.18f;
         FogMode originalFogMode;
         float originalFogStart,originalFogEnd,nightAudioDuck=1;
+        Light originalRenderSun;
+        LightShadows originalSunShadows,originalMoonShadows;
+        float originalMoonIntensity;
         public float NightFogBlend {get;private set;}
         public bool NightFogActive => NightFogBlend>0&&RenderSettings.fog&&RenderSettings.fogMode==FogMode.ExponentialSquared;
         public float NightAmbienceDuck => nightAudioDuck;
@@ -22,6 +29,19 @@ namespace LogicLegends.OpenArchive.Topics
         {
             originalFogMode=RenderSettings.fogMode;
             originalFogStart=RenderSettings.fogStartDistance;originalFogEnd=RenderSettings.fogEndDistance;
+            originalRenderSun=RenderSettings.sun;
+            if(sun!=null)originalSunShadows=sun.shadows;
+            if(moon!=null){originalMoonShadows=moon.shadows;originalMoonIntensity=moon.intensity;}
+        }
+        void ApplyNightKeyLight(float night)
+        {
+            if(moon!=null)moon.intensity=night*moonKeyIntensity;
+            bool moonKey=night>.55f&&moon!=null&&moon.isActiveAndEnabled;
+            // One directional shadow map follows the brightest key; the second
+            // directional remains a soft fill during the time-of-day crossfade.
+            if(sun!=null)sun.shadows=moonKey?LightShadows.None:originalSunShadows;
+            if(moon!=null)moon.shadows=moonKey?LightShadows.Soft:LightShadows.None;
+            RenderSettings.sun=moonKey?moon:sun!=null?sun:originalRenderSun;
         }
         float OriginalExp2Density()
         {
@@ -37,6 +57,7 @@ namespace LogicLegends.OpenArchive.Topics
         void ApplyNightFog(float blend)
         {
             NightFogBlend=Mathf.Clamp01(blend);
+            if(runtimeSky!=null&&runtimeSky.HasProperty("_NightMist"))runtimeSky.SetFloat("_NightMist",NightFogBlend);
             if(NightFogBlend<=.00001f){RestoreDayFog();return;}
             // URP's existing per-vertex/fragment fog is shared by the map's
             // custom shaders. No fullscreen pass, particles or depth texture.
@@ -51,6 +72,7 @@ namespace LogicLegends.OpenArchive.Topics
             RenderSettings.fogColor=originalFog;RenderSettings.fogDensity=originalFogDensity;
             RenderSettings.fogStartDistance=originalFogStart;RenderSettings.fogEndDistance=originalFogEnd;
             NightFogBlend=0;
+            if(runtimeSky!=null&&runtimeSky.HasProperty("_NightMist"))runtimeSky.SetFloat("_NightMist",0);
         }
         void UpdateNightAmbience(float night,bool warningOrCaptured)
         {
@@ -71,6 +93,9 @@ namespace LogicLegends.OpenArchive.Topics
         {
             if(!initialized)return;
             RestoreDayFog();nightAudioDuck=1;
+            RenderSettings.sun=originalRenderSun;
+            if(sun!=null)sun.shadows=originalSunShadows;
+            if(moon!=null){moon.shadows=originalMoonShadows;moon.intensity=originalMoonIntensity;}
             if(wind!=null){wind.Stop();wind.volume=0;}if(cracks!=null){cracks.Stop();cracks.volume=0;}
             for(int i=0;dayAmbience!=null&&dayVolumes!=null&&i<dayAmbience.Length&&i<dayVolumes.Length;i++)
                 if(dayAmbience[i]!=null)dayAmbience[i].volume=dayVolumes[i];

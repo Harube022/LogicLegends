@@ -141,8 +141,9 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Check(materials.Any(p=>p.Key!=null&&!p.Key.sharedMaterials.SequenceEqual(p.Value)),"The real existing hero rig receives temporary summon materials");
             Check(cinematic.FilmCamera!=null&&cinematic.FilmCamera.enabled&&cinematic.FilmCamera.targetTexture!=null,"The native film camera renders to its bounded texture");
             Check(cinematic.FilmCamera.targetTexture.width<=1280,"The cinematic rendering width is capped for mobile cost");
-            yield return Wait(()=>cinematic.Progress>=.38f||session.MatchTimePhase!=ArchiveMatchTimePhase.Countdown,"The reveal reaches its middle beat",4);
+            yield return Wait(()=>cinematic.TeamRevealProgress>=.38f||session.MatchTimePhase!=ArchiveMatchTimePhase.Countdown,"The team reveal reaches its middle beat before the guardian showcase",4);
             Check(session.MatchTimePhase==ArchiveMatchTimePhase.Countdown&&cinematic.Progress<.90f,"The genuine midpoint is captured before gameplay starts");
+            Check(!cinematic.GuardianIntroVisible&&cinematic.HeroOverridesCount>0,"Players appear first, ahead of the active guardian showcase");
             ScreenCapture.CaptureScreenshot(Folder+"/Summoning.png");yield return .12f;
             yield return Wait(()=>session.MatchTimePhase==ArchiveMatchTimePhase.Active,"Gameplay starts after the original five-second countdown",8);
             yield return .15f;

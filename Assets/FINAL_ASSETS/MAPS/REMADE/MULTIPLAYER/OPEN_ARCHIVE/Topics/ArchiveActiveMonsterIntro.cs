@@ -29,6 +29,7 @@ namespace LogicLegends.OpenArchive.Topics
 
         public bool Visible {get;private set;}
         public string SpeciesName {get;private set;}="Guardian";
+        public string DisplayName=>SpeciesName=="Guardian"?"Guardian":ArchiveMonsterNames.ForPrimalAxiom(SpeciesName=="Rajang");
         public string SpeciesTitle {get;private set;}="THE ARCHIVE GUARDIAN";
         public Color Tint {get;private set;}=new Color(1,.055f,.14f,1);
         public string AnimationName=>clip!=null?clip.name:"";

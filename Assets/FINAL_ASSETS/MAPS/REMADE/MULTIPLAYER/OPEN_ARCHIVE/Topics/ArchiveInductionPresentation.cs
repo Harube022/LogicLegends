@@ -55,7 +55,7 @@ namespace LogicLegends.OpenArchive.Topics
         }
         public void Refresh(ArchiveStationState state){
             if(question==null)return;
-            station.board.text=state.phase==2?"INDUCTION COURT RESTORED\n5 / 5 team challenges complete":state.timerExpired?"TIME UP · FORMULAS KEPT\nReturn to the Book to retry.":state.phase==0?state.round==0?"THE INDUCTION COURT\nP(1) · P(k) · P(k + 1)\nRead the Book to begin.":"CHALLENGE "+state.round+" ACCEPTED\nRead the accepted proof in the Book.\nUse it for the next challenge.":"CHALLENGE "+(state.round+1)+" / 5\n"+KindLabel(question)+"\nHand / E · carry and place formulas";
+            station.board.text=state.phase==2?"INDUCTION COURT RESTORED\n5 / 5 team challenges complete":state.timerExpired?"TIME UP · FORMULAS KEPT\nReturn to the Book to retry.":state.phase==0?state.round==0?"THE INDUCTION COURT\nP(1) · P(k) · P(k + 1)\nRead the Book to begin.":"CHALLENGE "+state.round+" ACCEPTED\nRead the accepted proof in the Book.\nUse it for the next challenge.":"CHALLENGE "+(state.round+1)+" / 5\n"+KindLabel(question)+"\nTap hand · carry and place formulas";
             if(observed&&state.phase==1&&previousPlacements.Length==state.placements.Length){
                 for(int i=0;i<state.placements.Length;i++)if(state.placements[i]>=0&&state.placements[i]!=previousPlacements[i]){Burst(SocketPosition(i,question)+Vector3.up*.3f,energyColor,5);Sound(placeSound,.55f);}
                 string held=string.Join(";",state.carries.Select(c=>c.actor+":"+c.item));if(held!=previousCarries&&state.carries.Count>0)Sound(takeSound,.45f);

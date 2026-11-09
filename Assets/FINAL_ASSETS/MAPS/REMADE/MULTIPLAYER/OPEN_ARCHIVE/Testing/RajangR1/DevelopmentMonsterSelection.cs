@@ -4,7 +4,11 @@ using UnityEngine;
 
 namespace LogicLegends.Tests.Monsters
 {
-    public enum DevelopmentMonster { Khezu, Rajang }
+    public enum DevelopmentMonster
+    {
+        [InspectorName("The Proof Devourer")] Khezu,
+        [InspectorName("The Primal Axiom")] Rajang
+    }
 
     /// <summary>Initializes the existing encounter's room-selected rig. Manual swaps remain offline tests.</summary>
     [DisallowMultipleComponent, DefaultExecutionOrder(-10000)]
@@ -64,11 +68,11 @@ namespace LogicLegends.Tests.Monsters
             if (Application.isPlaying && active.Animator != null && active.Animator.isInitialized) active.ResetTest();
         }
 
-        [ContextMenu("R1/Select Rajang")]
+        [ContextMenu("R1/Select The Primal Axiom")]
         public void SelectRajang() { Select(DevelopmentMonster.Rajang); }
-        [ContextMenu("R1/Select Khezu")]
+        [ContextMenu("R1/Select The Proof Devourer")]
         public void SelectKhezu() { Select(DevelopmentMonster.Khezu); }
-        [ContextMenu("R1/Reset Rajang")]
+        [ContextMenu("R1/Reset The Primal Axiom")]
         public void ResetRajang() { SelectRajang(); PlaySleep(); }
         [ContextMenu("R1/Play Sleep")]
         public void PlaySleep() { if (Application.isPlaying && ActiveTest != null && (!HasSharedEncounter || CanSwap)) ActiveTest.ResetTest(); }

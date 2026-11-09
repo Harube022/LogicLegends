@@ -49,7 +49,7 @@ namespace LogicLegends.OpenArchive.Topics
             returnButton=MakeButton(reader,"Return item",()=>owner.session.Request(5,ArchiveAction.ReturnItem),new Vector2(.44f,.075f),new Vector2(225,82),24);
             primary=MakeButton(reader,"Begin at Book",Primary,new Vector2(.75f,.075f),new Vector2(300,82),25);primaryLabel=primary.GetComponentInChildren<TMP_Text>();
             for(int i=0;i<5;i++){var r=Rect("Accepted_Proof_"+(i+1),reader,new Vector2(.065f+i*.032f,.13f),new Vector2(.09f+i*.032f,.145f));progress[i]=r.gameObject.AddComponent<Image>();progress[i].raycastTarget=false;}
-            reader.gameObject.SetActive(false);objective.gameObject.SetActive(false);
+            reader.gameObject.SetActive(false);owner.RegisterObjective(5,objective,title,timer);objective.gameObject.SetActive(false);
         }
         public void Open(){selected=-1;reader.gameObject.SetActive(true);revision=-1;Refresh();}
         public void Close(){if(reader!=null)reader.gameObject.SetActive(false);}
@@ -64,7 +64,7 @@ namespace LogicLegends.OpenArchive.Topics
         void Update(){
             if(owner==null||owner.session==null||!owner.session.Ready)return;var session=owner.session;
             bool near=Player.LocalInstance!=null&&session.CanAct(session.LocalActor)&&Time.timeScale>0&&Vector3.Distance(Player.LocalInstance.transform.position,session.stations[5].transform.position)<34;
-            objective.gameObject.SetActive(near&&owner.ReadingStation==null);if(!near){if(IsOpen)owner.Close();return;}
+            owner.SetObjectiveVisible(5,near&&owner.ReadingStation==null);if(!near){if(IsOpen)owner.Close();return;}
             if(screen!=new Vector2(Screen.width,Screen.height)||safe!=Screen.safeArea||!Mathf.Approximately(canvasScale,owner.GetComponent<Canvas>().scaleFactor))PositionObjective();
             if(revision!=session.State.revision){revision=session.State.revision;Refresh();}
             var s=session.State.stations[5];var q=session.Question(5);int seconds=Mathf.CeilToInt(session.TimerRemaining(s));string value=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
@@ -73,8 +73,8 @@ namespace LogicLegends.OpenArchive.Topics
             primary.interactable=s.phase==2||s.phase==0&&start||filled;checkButton.interactable=filled;returnButton.gameObject.SetActive(s.carries.Any(c=>c.actor==session.LocalActor));
             if(!string.IsNullOrEmpty(session.TopicLockNotice(5))){cue.text="Another topic is active";primary.interactable=checkButton.interactable=false;return;}
             if(s.phase==1){var focus=owner.FocusedPoint;var held=s.carries.FirstOrDefault(c=>c.actor==session.LocalActor);bool recent=s.lastAnswerResult<0&&ArchiveTopicSession.Clock-s.lastAnswerAt<2.5;
-                cue.text=recent?"Incorrect · your formulas are kept":focus!=null&&focus.station.topic==5?focus.role==ArchivePointRole.Item?"Hand / E · take "+q.items[focus.index]+" · Read formula":focus.role==ArchivePointRole.Slot?"Hand / E · "+ArchiveInductionPresentation.SlotLabel(focus.index,q):"Book · Hand / E":held!=null?"Carrying "+q.items[held.item]:filled?"Proof ready · Check proof":"Read a formula, then carry it · Hand / E";
-            }else if(s.phase==0)cue.text=start?"Book Statue · Hand / E":"Return to the Book Statue";
+                cue.text=recent?"Incorrect · your formulas are kept":focus!=null&&focus.station.topic==5?focus.role==ArchivePointRole.Item?"Tap hand · take "+q.items[focus.index]+" · Read formula":focus.role==ArchivePointRole.Slot?"Tap hand · "+ArchiveInductionPresentation.SlotLabel(focus.index,q):"Book · Tap hand":held!=null?"Carrying "+q.items[held.item]:filled?"Proof ready · Check proof":"Read a formula, then carry it · Tap hand";
+            }else if(s.phase==0)cue.text=start?"Book Statue · Tap hand":"Return to the Book Statue";
         }
         string Location(int item,ArchiveQuestion q,ArchiveStationState state){
             if(state.phase!=1&&!state.timerExpired)return "At its stand";var held=state.carries.FirstOrDefault(c=>c.item==item);if(held!=null)return "Carried by "+owner.session.ActorName(held.actor);
@@ -87,7 +87,7 @@ namespace LogicLegends.OpenArchive.Topics
             stage.text=s.phase==2?"Induction Court restored":s.timerExpired?"Time up · work kept":s.phase==0?"Read the Book to continue":ArchiveInductionPresentation.KindLabel(q);
             summary.text=display?s.placements.Count(p=>p>=0)+" / "+q.PlacementCount+" proof anchors filled":s.phase==2?"Five shared induction challenges complete":"Base case → hypothesis → inductive step";
             readerTitle.text="T6  MATHEMATICAL INDUCTION\n"+(s.phase==2?"Team complete · 5 / 5":"Challenge "+challenge+" / 5 · "+ArchiveInductionPresentation.KindLabel(q));
-            body.text=!display?s.phase==2?"Your team restored the Induction Court.\n\n"+s.reveal:s.round==0?"Verify a base case, identify the inductive hypothesis, identify the next statement to prove, complete a four-line inductive step, then build a full induction proof.\n\nUse Hand / E at the Book to begin. Reading alone never starts the clock.":"Challenge "+s.round+" accepted.\n\n"+s.reveal+"\n\nReturn to the Book for the next challenge.":selected>=0&&selected<q.items.Length?q.items[selected].ToUpperInvariant()+"\n"+Location(selected,q,s)+"\n\n"+ArchiveInductionPresentation.ItemText(selected,q)+"\n\nTHEOREM\n"+q.prompt+"\n\nUse Hand / E to take this scroll and place it at a proof anchor.":q.title+"\n\nTHEOREM\n"+q.prompt+"\n\n"+Instructions(q)+"\n\nTEAM ARRANGEMENT\n"+ArchiveInductionPresentation.Arrangement(q,s);
+            body.text=!display?s.phase==2?"Your team restored the Induction Court.\n\n"+s.reveal:s.round==0?"Verify a base case, identify the inductive hypothesis, identify the next statement to prove, complete a four-line inductive step, then build a full induction proof.\n\nTap the hand button at the Book to begin. Reading alone never starts the clock.":"Challenge "+s.round+" accepted.\n\n"+s.reveal+"\n\nReturn to the Book for the next challenge.":selected>=0&&selected<q.items.Length?q.items[selected].ToUpperInvariant()+"\n"+Location(selected,q,s)+"\n\n"+ArchiveInductionPresentation.ItemText(selected,q)+"\n\nTHEOREM\n"+q.prompt+"\n\nTap the hand button to take this scroll and place it at a proof anchor.":q.title+"\n\nTHEOREM\n"+q.prompt+"\n\n"+Instructions(q)+"\n\nTEAM ARRANGEMENT\n"+ArchiveInductionPresentation.Arrangement(q,s);
             body.text=ArchiveInductionPresentation.FormulaText(body.text);
             for(int i=0;i<entries.Count;i++){int item=q.itemOrder[i];entryLabels[i].text=q.items[item]+"\n"+Location(item,q,s);var colors=entries[i].colors;colors.normalColor=item==selected?new Color(1,.90f,.65f):Color.white;entries[i].colors=colors;}
             feedback.text=session.TopicLockNotice(5);if(string.IsNullOrEmpty(feedback.text))feedback.text=s.feedback;feedback.color=s.lastAnswerResult<0&&s.phase==1?Red:Ink;
@@ -95,7 +95,7 @@ namespace LogicLegends.OpenArchive.Topics
             for(int i=0;i<5;i++)progress[i].color=i<s.round?Teal:new Color(.2f,.4f,.35f,.2f);
             if(!string.IsNullOrEmpty(session.TopicLockNotice(5))){stage.text="Finish the active topic first";primaryLabel.text="Topic in progress";}
         }
-        public static string Instructions(ArchiveQuestion q)=>q.instructions.Replace("then press Submit","then Check proof")+"\n\nRead formula scrolls here, then take and place them with Hand / E in the court. Unused choices can stay on their stands. Pick a placed scroll back up to revise your work.\n\nBASE: establish P(1).\nHYPOTHESIS: assume P(k) for arbitrary k ≥ 1.\nSTEP: use P(k) to establish P(k + 1).\n\nCheck proof when the required anchors are filled. Your team shares this work; an incorrect submission records one mistake for its submitting player.";
+        public static string Instructions(ArchiveQuestion q)=>q.instructions.Replace("then press Submit","then Check proof")+"\n\nRead formula scrolls here, then take and place them with the hand button in the court. Unused choices can stay on their stands. Pick a placed scroll back up to revise your work.\n\nBASE: establish P(1).\nHYPOTHESIS: assume P(k) for arbitrary k ≥ 1.\nSTEP: use P(k) to establish P(k + 1).\n\nCheck proof when the required anchors are filled. Your team shares this work; an incorrect submission records one mistake for its submitting player.";
         void BuildEntries(ArchiveQuestion q){
             foreach(Transform child in itemContent){child.gameObject.SetActive(false);Destroy(child.gameObject);}entries.Clear();entryLabels.Clear();
             foreach(int value in q.itemOrder){int item=value;var r=Box("Read_"+item,itemContent,Vector2.zero,new Vector2(0,90),owner.buttonArt);r.gameObject.AddComponent<LayoutElement>().preferredHeight=90;r.GetComponent<Image>().raycastTarget=true;var button=r.gameObject.AddComponent<Button>();button.onClick.AddListener(()=>SelectItem(item));entries.Add(button);

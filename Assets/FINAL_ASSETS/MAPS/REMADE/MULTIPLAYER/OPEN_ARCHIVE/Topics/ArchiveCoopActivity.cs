@@ -71,7 +71,7 @@ namespace LogicLegends.OpenArchive.Topics
                 return result ? 0 : 1;
             }).ToArray();
             a.initialValues = Empty(4);
-            a.instructions = "Split the rows with your teammates. Use Hand / E to take a reusable TRUE or FALSE tile, then place it in that row's output socket. Replace any tile you want to correct, then check the complete table.";
+            a.instructions = "Split the rows with your teammates. Tap the hand button to take a reusable TRUE or FALSE tile, then place it in that row's output socket. Replace any tile you want to correct, then check the complete table.";
             a.explanation = expression + " gives " + string.Join(", ", a.expected.Select((value, row) => a.slots[row] + ": " + Truth(value == 0))) + ". Evaluate the parentheses and negations before combining the final values.";
         }
 
@@ -106,7 +106,7 @@ namespace LogicLegends.OpenArchive.Topics
             }
             ShuffleCards(a, correct.Concat(distractors).ToArray(), correct, random);
             a.initialValues = Empty(a.slots.Length);
-            a.instructions = "Share the argument roles: one player reads the givens while another carries the premise, rule and conclusion tablets with Hand / E. Fill each named socket and check the completed argument. Extra tablets are distractors.";
+            a.instructions = "Share the argument roles: one player reads the givens while another carries the premise, rule and conclusion tablets with the hand button. Fill each named socket and check the completed argument. Extra tablets are distractors.";
         }
 
         static void BuildProofSort(ArchiveCoopActivity a, System.Random random)
@@ -133,7 +133,7 @@ namespace LogicLegends.OpenArchive.Topics
             a.expected = order.Select(i => i % 2).ToArray();
             a.initialValues = Empty(a.items.Length);
             a.context = "These four arguments are valid. Classify how each argument presents its reasoning; do not confuse presentation style with mathematical validity.";
-            a.instructions = "Divide the scrolls between your teammates. Read a scroll, carry it with Hand / E, and deliver it to the Formal or Informal tray. All four scrolls must be classified before the shared check.";
+            a.instructions = "Divide the scrolls between your teammates. Read a scroll, carry it with the hand button, and deliver it to the Formal or Informal tray. All four scrolls must be classified before the shared check.";
             a.explanation = "Formal excerpts list deductions with explicit justifications and supporting lines. Informal excerpts explain valid reasoning in everyday language. An informal proof is not automatically incorrect.";
         }
 
@@ -166,7 +166,7 @@ namespace LogicLegends.OpenArchive.Topics
             // Every physical tablet is already placed. Swapping the two central roles
             // creates a concrete repair task rather than another empty order puzzle.
             a.initialValues = new[] { a.expected[2], a.expected[0], a.expected[3], a.expected[1] };
-            a.instructions = "Inspect the existing arrangement together. Use Hand / E to lift and move misplaced proof tablets into their named roles. Keep the valid assumption before the calculation and the conclusion after its justification. Check only after repairing all four positions.";
+            a.instructions = "Inspect the existing arrangement together. Tap the hand button to lift and move misplaced proof tablets into their named roles. Keep the valid assumption before the calculation and the conclusion after its justification. Check only after repairing all four positions.";
         }
 
         static void BuildInduction(ArchiveCoopActivity a, System.Random random)
@@ -186,7 +186,7 @@ namespace LogicLegends.OpenArchive.Topics
             string distractor = "CIRCULAR: assume S(k+1) is already true before deriving it.";
             ShuffleCards(a, correct.Append(distractor).ToArray(), correct, random);
             a.context = "Claim: " + sum + "=" + formula + " for every integer n≥1. Activate the proof signals in the order that justifies mathematical induction.";
-            a.instructions = "Coordinate the signal order. Use Hand / E at the next correct pillar: base case, hypothesis, inductive step and final conclusion. Activated signals form a shared sequence. Clear the unfinished sequence to retry; the circular-assumption pillar does not belong in the proof.";
+            a.instructions = "Coordinate the signal order. Tap the hand button at the next correct pillar: base case, hypothesis, inductive step and final conclusion. Activated signals form a shared sequence. Clear the unfinished sequence to retry; the circular-assumption pillar does not belong in the proof.";
             a.explanation = "The base case establishes P(1). Assume P(k) for arbitrary k≥1, add the next term to derive P(k+1), and use induction to conclude every allowed case. Assuming P(k+1) before deriving it is circular.";
         }
 
@@ -204,7 +204,7 @@ namespace LogicLegends.OpenArchive.Topics
             a.expected = order.Select(i => i < 2 ? 0 : i < 4 ? 1 : 2).ToArray();
             a.initialValues = Empty(6);
             a.context = "A=" + Values(setA) + "; B=" + Values(setB) + ". Deliver each supplied element exactly once to its Venn region. The overlap is shared membership, not a second copy.";
-            a.instructions = "Split the delivery work. Pick up a numbered token with Hand / E, carry it to A only, A ∩ B or B only, and place it there. Teammates may work on different tokens at the same time. Check the complete six-token arrangement together.";
+            a.instructions = "Split the delivery work. Pick up a numbered token with the hand button, carry it to A only, A ∩ B or B only, and place it there. Teammates may work on different tokens at the same time. Check the complete six-token arrangement together.";
             a.explanation = "A only contains " + Values(values.Take(2)) + "; A ∩ B contains " + Values(values.Skip(2).Take(2)) + "; B only contains " + Values(values.Skip(4)) + ". Every shared element appears once in the overlap.";
         }
 
@@ -222,7 +222,7 @@ namespace LogicLegends.OpenArchive.Topics
             a.requiredLinks = Enumerable.Range(0, 3).Select(i => Edge(i, 3 + Array.IndexOf(outputOrder, i))).ToArray();
             string rule = (scale == 1 ? "x" : scale + "x") + (offset < 0 ? " − " + -offset : offset == 0 ? "" : " + " + offset);
             a.context = "Function f(x)=" + rule + ". Domain=" + Values(inputs) + "; codomain=" + Values(outputOrder.Select(i => outputs[i])) + ". Build the three directed input-to-output cables.";
-            a.instructions = "Divide the inputs among the team. Use Hand / E at an input connector, then its correct output connector, to add a cable. Remove an incorrect cable before checking. Every input must have exactly one output, following f(x).";
+            a.instructions = "Divide the inputs among the team. Tap the hand button at an input connector, then its correct output connector, to add a cable. Remove an incorrect cable before checking. Every input must have exactly one output, following f(x).";
             a.explanation = "The completed ordered pairs are " + string.Join(", ", inputs.Select((x, i) => "(" + x + "," + outputs[i] + ")")) + ". The function rule determines the output; matching connector positions do not.";
         }
 
@@ -257,7 +257,7 @@ namespace LogicLegends.OpenArchive.Topics
             a.initialLinks = new[] { Edge(0,1), Edge(0,2), Edge(parentE,3), Edge(parentE,4) };
             string dParent = dUnderB ? "B" : "C", eParent = dUnderB ? "C" : "B";
             a.context = "Root A must have children B and C. D must be a child of " + dParent + "; E must be a child of " + eParent + ". One existing parent link is wrong. Keep all other correct links.";
-            a.instructions = "Inspect the branches together. One teammate identifies the incorrect parent link; another selects its parent and child with Hand / E and removes it. Select the correct parent and child to connect the replacement. Each non-root node must have exactly one parent. Check the repaired tree.";
+            a.instructions = "Inspect the branches together. One teammate identifies the incorrect parent link; another selects its parent and child with the hand button and removes it. Select the correct parent and child to connect the replacement. Each non-root node must have exactly one parent. Check the repaired tree.";
             a.explanation = "Keep A→B, A→C and " + eParent + "→E. Replace the incorrect link into D with " + dParent + "→D. The result connects every node, points away from the root, has one parent per non-root node and has no cycle.";
         }
 
