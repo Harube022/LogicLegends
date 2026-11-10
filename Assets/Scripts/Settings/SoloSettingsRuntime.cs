@@ -13,12 +13,13 @@ public sealed class SoloSettingsRuntime : MonoBehaviour
     UniversalRenderPipelineAsset runtimePipeline;
     RenderPipelineAsset originalPipeline;
     int originalFPS, originalVsync, originalMips;
-    float originalLod;
+    float originalLod, originalMeshLodThreshold;
     bool scoped;
     Coroutine pending;
     SoloTrialVisuals visuals;
     int pipelineKey = -1;
     static readonly float[] LodBias = { .4f, .7f, 1f };
+    static readonly float[] MeshLodThreshold = { 2f, 1.5f, 1f };
     static readonly float[] RenderScale = { .8f, .9f, 1f };
     static readonly float[] ShadowDistance = { 0f, 20f, 35f, 55f };
     static readonly int[] ShadowResolution = { 512, 512, 1024, 1024 };
@@ -49,6 +50,7 @@ public sealed class SoloSettingsRuntime : MonoBehaviour
         {
             originalPipeline = QualitySettings.renderPipeline; originalFPS = Application.targetFrameRate;
             originalVsync = QualitySettings.vSyncCount; originalMips = QualitySettings.globalTextureMipmapLimit; originalLod = QualitySettings.lodBias;
+            originalMeshLodThreshold = QualitySettings.meshLodThreshold;
             scoped = true;
         }
         visuals = null;
@@ -67,6 +69,8 @@ public sealed class SoloSettingsRuntime : MonoBehaviour
         Application.targetFrameRate = data.frameRate; QualitySettings.vSyncCount = 0;
         QualitySettings.globalTextureMipmapLimit = data.graphicsQuality == 0 ? 1 : 0;
         QualitySettings.lodBias = LodBias[data.graphicsQuality];
+        if (Application.platform == RuntimePlatform.Android)
+            QualitySettings.meshLodThreshold = MeshLodThreshold[data.graphicsQuality];
         AudioListener.volume = data.mute ? 0 : 1;
         int key = data.graphicsQuality * 100 + data.lightingQuality * 10 + data.shadowQuality;
         if (runtimePipeline == null || pipelineKey != key)
@@ -82,7 +86,8 @@ public sealed class SoloSettingsRuntime : MonoBehaviour
                 runtimePipeline.mainLightShadowmapResolution = ShadowResolution[data.shadowQuality];
                 runtimePipeline.shadowCascadeCount = 1; runtimePipeline.cascadeBorder = .25f;
                 runtimePipeline.maxAdditionalLightsCount = LightCount[data.lightingQuality];
-                runtimePipeline.renderScale = RenderScale[data.graphicsQuality];
+                runtimePipeline.renderScale = Application.platform == RuntimePlatform.Android && data.graphicsQuality == 0
+                    ? .7f : RenderScale[data.graphicsQuality];
                 runtimePipeline.msaaSampleCount = data.graphicsQuality == 2 ? 2 : 1;
                 QualitySettings.renderPipeline = runtimePipeline; pipelineKey = key;
             }
@@ -96,6 +101,7 @@ public sealed class SoloSettingsRuntime : MonoBehaviour
         if (runtimePipeline != null) Destroy(runtimePipeline); runtimePipeline = null; pipelineKey = -1;
         Application.targetFrameRate = originalFPS; QualitySettings.vSyncCount = originalVsync;
         QualitySettings.globalTextureMipmapLimit = originalMips; QualitySettings.lodBias = originalLod; scoped = false;
+        QualitySettings.meshLodThreshold = originalMeshLodThreshold;
     }
     void OnDestroy()
     {

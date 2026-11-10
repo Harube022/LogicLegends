@@ -9,9 +9,11 @@ public sealed class SoloTrialVisuals : MonoBehaviour
 {
     readonly Dictionary<Renderer, Material[]> originalMaterials = new Dictionary<Renderer, Material[]>();
     readonly Dictionary<Material, Material> litCopies = new Dictionary<Material, Material>();
+    readonly Dictionary<Material, Material> meshLodMaterials = new Dictionary<Material, Material>();
     readonly Dictionary<Light, LightShadows> lightShadows = new Dictionary<Light, LightShadows>();
     readonly Dictionary<Light, float> shadowStrengths = new Dictionary<Light, float>();
     AmbientMode ambientMode;
+    SphericalHarmonicsL2 ambientProbe;
     Color sky, equator, ground, fogColor;
     bool originalFog;
     bool authoredAmbient;
@@ -27,6 +29,7 @@ public sealed class SoloTrialVisuals : MonoBehaviour
     void Awake()
     {
         ambientMode = RenderSettings.ambientMode; sky = RenderSettings.ambientSkyColor;
+        ambientProbe = RenderSettings.ambientProbe;
         equator = RenderSettings.ambientEquatorColor; ground = RenderSettings.ambientGroundColor;
         originalFog = RenderSettings.fog; fogMode = RenderSettings.fogMode; fogColor = RenderSettings.fogColor;
         fogDensity = RenderSettings.fogDensity; fogStart = RenderSettings.fogStartDistance; fogEnd = RenderSettings.fogEndDistance;
@@ -44,10 +47,24 @@ public sealed class SoloTrialVisuals : MonoBehaviour
     void LightOpaqueSurface(Renderer renderer)
     {
         if (renderer.GetComponentInParent<Canvas>() != null || renderer.GetComponent<TMPro.TMP_Text>() != null) return;
+        var filter = renderer.GetComponent<MeshFilter>();
+        bool useMeshLods = filter != null && filter.sharedMesh != null && filter.sharedMesh.lodCount > 1 &&
+            renderer.GetComponentInParent<LODGroup>() == null;
         var materials = renderer.sharedMaterials; bool changed = false;
         for (int i = 0; i < materials.Length; i++)
         {
             var source = materials[i]; if (source == null) continue;
+            // GPU-instanced draws always select LOD0. Share copies that allow automatic Mesh LOD selection.
+            if (useMeshLods && source.enableInstancing)
+            {
+                if (!meshLodMaterials.TryGetValue(source, out var copy))
+                {
+                    copy = new Material(source) { name = source.name + " (Solo Mesh LOD)",
+                        hideFlags = HideFlags.DontSave, enableInstancing = false };
+                    meshLodMaterials[source] = copy;
+                }
+                source = copy; materials[i] = copy; changed = true;
+            }
             string shader = source.shader.name;
             if (shader != "Universal Render Pipeline/Unlit" && shader != "Unlit/Color" && shader != "Unlit/Texture") continue;
             // Keep deliberately emissive effects and readable puzzle surfaces unlit.
@@ -74,12 +91,28 @@ public sealed class SoloTrialVisuals : MonoBehaviour
     public void Apply(SoloSettingsData value)
     {
         settings = value;
-        // Existing sunset and chamber lighting owns its own colors and local
-        // render scopes. Only legacy flat ambient needs a directional gradient.
-        if (ambientMode == AmbientMode.Flat && !authoredAmbient)
+        // Existing sunset and chamber lighting owns its own colors and render scopes.
+        bool flatAmbient = ambientMode == AmbientMode.Flat;
+        bool mobile = Application.platform == RuntimePlatform.Android;
+        if (!authoredAmbient && (flatAmbient || (mobile && ambientMode == AmbientMode.Trilight)))
         {
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = sky * .98f; RenderSettings.ambientEquatorColor = sky * .85f; RenderSettings.ambientGroundColor = sky * .65f;
+            Color skyFill = flatAmbient ? sky * .98f : sky;
+            Color equatorFill = flatAmbient ? sky * .85f : equator;
+            Color groundFill = flatAmbient ? sky * .65f : ground;
+            RenderSettings.ambientSkyColor = mobile ? LiftDimAmbient(skyFill) : skyFill;
+            RenderSettings.ambientEquatorColor = mobile ? LiftDimAmbient(equatorFill) : equatorFill;
+            RenderSettings.ambientGroundColor = mobile ? LiftDimAmbient(groundFill) : groundFill;
+            if (mobile)
+            {
+                Color originalFill = flatAmbient ? sky : (sky + equator + ground) / 3f;
+                Color updatedFill = (RenderSettings.ambientSkyColor + RenderSettings.ambientEquatorColor +
+                    RenderSettings.ambientGroundColor) / 3f;
+                Color lift = updatedFill.linear - originalFill.linear;
+                var probe = ambientProbe;
+                probe.AddAmbientLight(new Color(Mathf.Max(0f, lift.r), Mathf.Max(0f, lift.g), Mathf.Max(0f, lift.b)));
+                RenderSettings.ambientProbe = probe;
+            }
         }
         RenderSettings.fog = value.fog;
         if (!originalFog && value.fog)
@@ -104,6 +137,11 @@ public sealed class SoloTrialVisuals : MonoBehaviour
         if (volume != null) volume.enabled = value.motionBlur;
         if (blur != null) { blur.intensity.Override(value.motionBlur ? .16f : 0); blur.clamp.Override(.035f); }
         ApplyCamera();
+    }
+    static Color LiftDimAmbient(Color color)
+    {
+        float lift = Mathf.Max(0f, .3f - color.grayscale) * .5f;
+        return new Color(color.r + lift, color.g + lift, color.b + lift, color.a);
     }
     void LateUpdate()
     {
@@ -137,10 +175,12 @@ public sealed class SoloTrialVisuals : MonoBehaviour
         RestoreCamera();
         foreach (var pair in originalMaterials) if (pair.Key != null) pair.Key.sharedMaterials = pair.Value;
         foreach (var material in litCopies.Values) if (material != null) CoreUtils.Destroy(material);
+        foreach (var material in meshLodMaterials.Values) if (material != null) CoreUtils.Destroy(material);
         foreach (var entry in lightShadows) if (entry.Key != null) { entry.Key.shadows = entry.Value; entry.Key.shadowStrength = shadowStrengths[entry.Key]; }
         if (SceneManager.GetActiveScene() == gameObject.scene)
         {
             RenderSettings.ambientMode = ambientMode; RenderSettings.ambientSkyColor = sky; RenderSettings.ambientEquatorColor = equator; RenderSettings.ambientGroundColor = ground;
+            RenderSettings.ambientProbe = ambientProbe;
             RenderSettings.fog = originalFog; RenderSettings.fogMode = fogMode; RenderSettings.fogColor = fogColor;
             RenderSettings.fogDensity = fogDensity; RenderSettings.fogStartDistance = fogStart; RenderSettings.fogEndDistance = fogEnd;
         }

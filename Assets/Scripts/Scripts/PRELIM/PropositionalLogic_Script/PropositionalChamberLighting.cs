@@ -75,11 +75,13 @@ public sealed class PropositionalChamberLighting : MonoBehaviour
     {
         if (!AppliesTo(camera) || scopes.ContainsKey(camera)) return;
         var original = Environment.Capture(sunlight); scopes.Add(camera, original);
+        Color fill = Application.platform == RuntimePlatform.Android
+            ? Color.Lerp(ambientColor, new Color(.36f, .325f, .28f), .4f) : ambientColor;
         RenderSettings.ambientMode = AmbientMode.Flat;
-        RenderSettings.ambientLight = ambientColor; RenderSettings.ambientIntensity = 1;
+        RenderSettings.ambientLight = fill; RenderSettings.ambientIntensity = 1;
         RenderSettings.reflectionIntensity = Mathf.Min(original.reflectionIntensity, reflectionIntensity);
         // Scale the scene's existing SH rather than rebuilding or baking global probes.
-        var probe = original.probe; Color source = original.sky.linear, target = ambientColor.linear;
+        var probe = original.probe; Color source = original.sky.linear, target = fill.linear;
         for (int channel = 0; channel < 3; channel++)
         {
             float scale = Mathf.Clamp01(target[channel] / Mathf.Max(.001f, source[channel]));
