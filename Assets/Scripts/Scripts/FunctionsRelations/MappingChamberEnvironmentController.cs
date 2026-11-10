@@ -22,6 +22,7 @@ public sealed class MappingChamberEnvironmentController : MonoBehaviour
 
     private MaterialPropertyBlock block;
     private Player player;
+    private MappingChamberQuality activeQuality;
     private FunctionsRelationsState previousState;
     private float nextVisualUpdate;
     private float activationUntil;
@@ -50,9 +51,16 @@ public sealed class MappingChamberEnvironmentController : MonoBehaviour
         block = new MaterialPropertyBlock();
         if (stage == null) stage = FindFirstObjectByType<FunctionsRelationsStageManager>();
         previousState = stage != null ? stage.State : FunctionsRelationsState.WAITING_FOR_ACTIVATION;
-        ApplyQuality();
         RefreshProgress();
     }
+
+    private void OnEnable()
+    {
+        SoloGameSettings.Changed += ApplyQuality;
+        ApplyQuality();
+    }
+
+    private void OnDisable() => SoloGameSettings.Changed -= ApplyQuality;
 
     public void SetQuality(MappingChamberQuality value)
     {
@@ -63,6 +71,15 @@ public sealed class MappingChamberEnvironmentController : MonoBehaviour
     private MappingChamberQuality EffectiveQuality()
     {
         if (quality != MappingChamberQuality.Auto) return quality;
+        if (Application.platform == RuntimePlatform.Android)
+        {
+            switch (SoloGameSettings.Current.graphicsQuality)
+            {
+                case 0: return MappingChamberQuality.Low;
+                case 1: return MappingChamberQuality.Medium;
+                default: return MappingChamberQuality.High;
+            }
+        }
         if (SystemInfo.deviceType != DeviceType.Handheld) return MappingChamberQuality.High;
         return SystemInfo.graphicsMemorySize > 0 && SystemInfo.graphicsMemorySize < 2400 ?
             MappingChamberQuality.Low : MappingChamberQuality.Medium;
@@ -70,18 +87,18 @@ public sealed class MappingChamberEnvironmentController : MonoBehaviour
 
     private void ApplyQuality()
     {
-        MappingChamberQuality active = EffectiveQuality();
-        if (distantDetails != null) distantDetails.SetActive(active == MappingChamberQuality.High);
-        if (distantTrees != null) distantTrees.SetActive(active != MappingChamberQuality.Low);
+        activeQuality = EffectiveQuality();
+        if (distantDetails != null) distantDetails.SetActive(activeQuality == MappingChamberQuality.High);
+        if (distantTrees != null) distantTrees.SetActive(activeQuality != MappingChamberQuality.Low);
         if (bookMotes != null)
         {
             ParticleSystem.MainModule main = bookMotes.main;
-            main.maxParticles = active == MappingChamberQuality.Low ? 0 :
-                active == MappingChamberQuality.Medium ? 6 : 12;
+            main.maxParticles = activeQuality == MappingChamberQuality.Low ? 0 :
+                activeQuality == MappingChamberQuality.Medium ? 6 : 12;
             ParticleSystem.EmissionModule emission = bookMotes.emission;
-            emission.rateOverTime = active == MappingChamberQuality.Low ? 0f :
-                active == MappingChamberQuality.Medium ? 1.5f : 3f;
-            if (active == MappingChamberQuality.Low) bookMotes.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            emission.rateOverTime = activeQuality == MappingChamberQuality.Low ? 0f :
+                activeQuality == MappingChamberQuality.Medium ? 1.5f : 3f;
+            if (activeQuality == MappingChamberQuality.Low) bookMotes.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             else if (!bookMotes.isPlaying) bookMotes.Play();
         }
     }
@@ -89,7 +106,7 @@ public sealed class MappingChamberEnvironmentController : MonoBehaviour
     private void Update()
     {
         if (Time.time < nextVisualUpdate) return;
-        nextVisualUpdate = Time.time + (EffectiveQuality() == MappingChamberQuality.Low ? .18f : .09f);
+        nextVisualUpdate = Time.time + (activeQuality == MappingChamberQuality.Low ? .18f : .09f);
         if (stage == null) return;
 
         FunctionsRelationsState state = stage.State;

@@ -64,15 +64,20 @@ Shader "LogicLegends/Inference/StylizedMeadowAndPaths"
                 float2 plane=an.y>=max(an.x,an.z)?i.world.xz:(an.x>an.z?i.world.zy:i.world.xy);
                 float2 uv=plane/max(.25,_TileMeters);
                 half3 a=SAMPLE_TEXTURE2D(_GrassMap,sampler_GrassMap,uv).rgb;
+                #if defined(SHADER_API_MOBILE)
+                half3 blades=clamp(a/max(_GrassReference.rgb,half3(.01,.01,.01)),.48,1.75);
+                half3 earth=_EarthColor.rgb*lerp(1,lerp(.88,1.12,saturate(blades.g*.5)),_DetailStrength);
+                #else
                 half3 b=SAMPLE_TEXTURE2D(_GrassMap,sampler_GrassMap,float2(-uv.y,uv.x)*.537+float2(.31,.67)).rgb;
-                half4 macro=SAMPLE_TEXTURE2D(_MacroMap,sampler_MacroMap,i.world.xz*.008);
                 half3 blades=clamp(lerp(a,b,.23)/max(_GrassReference.rgb,half3(.01,.01,.01)),.48,1.75);
-                half3 grass=_GrassColor.rgb*lerp(half3(1,1,1),blades,_DetailStrength);
-                grass*=lerp(1,lerp(.82,1.16,macro.b),_Variation);
-                grass=lerp(grass,grass*half3(1.11,1.02,.79),saturate((macro.g-.52)*2)*_Variation);
                 float2 earthUV=plane/3.1;
                 half4 earthDetail=SAMPLE_TEXTURE2D_GRAD(_DetailAtlas,sampler_DetailAtlas,(float2(1,0)+(frac(earthUV)*.96875+.015625))*.5,ddx(earthUV)*.484375,ddy(earthUV)*.484375);
                 half3 earth=_EarthColor.rgb*lerp(1,(.83+earthDetail.r*.34)*(1-earthDetail.g*.16),_DetailStrength);
+                #endif
+                half4 macro=SAMPLE_TEXTURE2D(_MacroMap,sampler_MacroMap,i.world.xz*.008);
+                half3 grass=_GrassColor.rgb*lerp(half3(1,1,1),blades,_DetailStrength);
+                grass*=lerp(1,lerp(.82,1.16,macro.b),_Variation);
+                grass=lerp(grass,grass*half3(1.11,1.02,.79),saturate((macro.g-.52)*2)*_Variation);
                 earth*=lerp(.91,1.08,macro.b);
                 float2 maskUV=(i.world.xz-_WorldRect.xy)/_WorldRect.zw;
                 half path=SAMPLE_TEXTURE2D(_PathMask,sampler_PathMask,maskUV).r;
