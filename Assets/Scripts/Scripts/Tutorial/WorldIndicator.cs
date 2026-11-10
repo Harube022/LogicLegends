@@ -30,6 +30,7 @@ public class WorldIndicator : MonoBehaviour
 
     private void Start()
     {
+        GuidanceArrowGlow.AttachHierarchy(transform);
         // 1. Find your Canvas and spawn the UI arrow inside it
         if (uiPointerPrefab != null)
         {
@@ -47,6 +48,7 @@ public class WorldIndicator : MonoBehaviour
                 // Spawn the arrow inside the Safe Area (or Canvas)
                 uiPointerInstance = Instantiate(uiPointerPrefab, uiContainer.transform);
                 uiPointerRect = uiPointerInstance.GetComponent<RectTransform>();
+                GuidanceArrowGlow.AttachHierarchy(uiPointerInstance.transform);
 
                 // ---> NEW: Automatically add a CanvasGroup to handle the fading! <---
                 uiCanvasGroup = uiPointerInstance.GetComponent<CanvasGroup>();

@@ -103,7 +103,7 @@ namespace LogicLegends.Induction
         internal void CompleteOnboarding(){OnboardingPending=false;}
         public void Hide()
         {
-            if(!IsOpen)return;IsOpen=false;if(Overlay!=null)Overlay.SetActive(false);stage.ui.ShowHelp(false);
+            if(!IsOpen)return;IsOpen=false;if(Overlay!=null)Overlay.SetActive(false);if(stage!=null&&stage.ui!=null)stage.ui.ShowHelp(false);
         }
         public void Previous(){if(IsOpen&&PageIndex>0){PageIndex--;ShowPage();}}
         public void Next(){if(IsOpen&&PageIndex<PageCount-1){PageIndex++;ShowPage();}}

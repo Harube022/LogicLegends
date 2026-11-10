@@ -110,7 +110,7 @@ namespace LogicLegends.Induction
             BookStatuePresentation.SetRequired(book, isActiveAndEnabled && Ready && State == InductionState.WaitingForBook &&
                 (help == null || !help.OnboardingPending && !help.IsOpen) && (onboarding == null || !onboarding.IsActive), bookPrompt);
             if (!Ready) return;
-            if (State == InductionState.Active && CanAct) timer.Tick(Time.deltaTime);
+            if (State == InductionState.Active && CanAct && !SoloStageLoader.IsLoading) timer.Tick(Time.deltaTime);
             RefreshTarget(); ui.Refresh();
             if (bookPrompt != null) bookPrompt.gameObject.SetActive(false);
         }
@@ -327,6 +327,12 @@ namespace LogicLegends.Induction
         public void CloseReading()
         {
             if (!Reading) return;
+            if (!gameObject.scene.isLoaded || SceneManager.GetActiveScene() != gameObject.scene)
+            {
+                // UI roots may already be destroyed during async scene unload.
+                // Do not restore this scene's controls/time into the next trial.
+                Reading = false; BrowsingScrolls = false; pausedLook.Clear(); return;
+            }
             help?.Hide();
             boardView?.RestoreImmediately();
             Reading = false; BrowsingScrolls = false; ui.CloseReader();

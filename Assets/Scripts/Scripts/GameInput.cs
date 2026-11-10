@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameInput : MonoBehaviour
 {
@@ -18,7 +19,20 @@ public class GameInput : MonoBehaviour
     // shared input component or changing input behavior in other stages.
     private bool legacyInputBlocked;
     private readonly HashSet<UnityEngine.Object> modalOwners = new HashSet<UnityEngine.Object>();
+    // Loading is transient transport state, not a Help/tutorial modal snapshot.
+    // Including it in GameplayInputBlocked caused panels to restore a stale true.
+    private readonly HashSet<UnityEngine.Object> loadingOwners = new HashSet<UnityEngine.Object>();
     public bool GameplayInputBlocked { get { modalOwners.RemoveWhere(o=>o==null); return legacyInputBlocked || modalOwners.Count>0; } }
+    public bool LoadingInputBlocked { get { loadingOwners.RemoveWhere(o=>o==null); return loadingOwners.Count>0; } }
+    public bool CameraInputBlocked => GameplayInputBlocked || LoadingInputBlocked;
+    public void AcquireLoadingInputBlock(UnityEngine.Object owner)
+    {
+        if(owner==null)return;
+        loadingOwners.Add(owner);mobileMovementVector=Vector2.zero;
+        foreach(var joystick in FindObjectsByType<MobileInputUI>(FindObjectsInactive.Include,FindObjectsSortMode.None))joystick.ResetJoystick();
+        MobileLookInput.CancelAll();
+    }
+    public void ReleaseLoadingInputBlock(UnityEngine.Object owner) { loadingOwners.Remove(owner); }
     public void AcquireModalInputBlock(UnityEngine.Object owner)
     {
         if(owner==null)return;
@@ -31,7 +45,7 @@ public class GameInput : MonoBehaviour
     // or overwrite the modal flag that menus/tutorials snapshot and restore.
     private readonly HashSet<UnityEngine.Object> gameplayActionOwners=new HashSet<UnityEngine.Object>();
     public bool HasGameplayActionBlock { get { gameplayActionOwners.RemoveWhere(o=>o==null);return gameplayActionOwners.Count>0; } }
-    public bool GameplayActionsBlocked => GameplayInputBlocked || HasGameplayActionBlock;
+    public bool GameplayActionsBlocked => GameplayInputBlocked || LoadingInputBlocked || HasGameplayActionBlock;
     public void AcquireGameplayActionBlock(UnityEngine.Object owner)
     {
         if(owner==null)return;
@@ -63,12 +77,22 @@ public class GameInput : MonoBehaviour
 
         instance = this;
         DontDestroyOnLoad(gameObject);
+        SceneManager.sceneLoaded += SceneLoaded;
 
         playerInputActions = new PlayerInputActions();
         playerInputActions.Player.Enable();
 
         playerInputActions.Player.Interact.performed += Interact_performed;
         playerInputActions.Player.Jump.performed += Jump_performed;
+    }
+    private void SceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if(mode!=LoadSceneMode.Single && scene!=SceneManager.GetActiveScene())return;
+        // Scene-local Help/Game Over legacy flags must not leak through this
+        // persistent input service. Destination modals acquire their state in Start.
+        legacyInputBlocked=false;mobileMovementVector=Vector2.zero;
+        modalOwners.RemoveWhere(o=>o==null);gameplayActionOwners.RemoveWhere(o=>o==null);
+        MobileLookInput.CancelAll();
     }
 
     private void Jump_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
@@ -195,6 +219,7 @@ public class GameInput : MonoBehaviour
 
     private void OnDestroy()
     {
+        SceneManager.sceneLoaded -= SceneLoaded;
         if(instance==this)instance=null;
         if(playerInputActions!=null)
         {
@@ -202,7 +227,7 @@ public class GameInput : MonoBehaviour
             playerInputActions.Player.Jump.performed-=Jump_performed;
             playerInputActions.Player.Disable();playerInputActions.Dispose();playerInputActions=null;
         }
-        gameplayActionOwners.Clear();modalOwners.Clear();OnInteractAction=null;OnJumpAction=null;
+        gameplayActionOwners.Clear();modalOwners.Clear();loadingOwners.Clear();OnInteractAction=null;OnJumpAction=null;
     }
 
     // ===== MOBILE =====

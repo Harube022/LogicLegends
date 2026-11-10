@@ -14,7 +14,7 @@ namespace LogicLegends.Graph
         { Remaining = Mathf.Max(0, seconds); ActiveSeconds = 0; Running = false; timeout = onTimeout; }
         public void Resume() { if (Remaining > 0) Running = true; }
         public void Pause() => Running = false;
-        private void Update() => Tick(Time.deltaTime);
+        private void Update() { if (!SoloStageLoader.IsLoading) Tick(Time.deltaTime); }
         public void Tick(float seconds)
         {
             if (!Running || seconds <= 0) return;

@@ -386,7 +386,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
 
     private void TickTimer()
     {
-        if (!started || complete || gameOverTriggered || Time.deltaTime <= 0f ||
+        if (SoloStageLoader.IsLoading || !started || complete || gameOverTriggered || Time.deltaTime <= 0f ||
             presentation != null && presentation.IsIntroductionOpen) return;
         timeRemaining = Mathf.Max(0f, timeRemaining - Time.deltaTime);
         UpdateTimerDisplay();

@@ -168,7 +168,7 @@ namespace LogicLegends.Students
                     {node.Links.Add(next);Nodes[next].Links.Add(current);}
                     if(Nodes.Count>=cellLimit)break;
                 }
-                if(++work>=config.buildCellsPerFrame||Time.realtimeSinceStartupAsDouble-slice>.002)
+                if(++work>=config.buildCellsPerFrame||Time.realtimeSinceStartupAsDouble-slice>SoloGraphicsBudget.NavigationSliceSeconds)
                 {work=0;yield return null;slice=Time.realtimeSinceStartupAsDouble;}
             }
             queue.Clear();foreach(var node in Nodes)node.Component=-1;int component=0;

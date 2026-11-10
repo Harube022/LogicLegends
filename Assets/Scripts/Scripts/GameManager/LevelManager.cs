@@ -64,12 +64,12 @@ public class LevelManager : MonoBehaviourPun
     private void Update()
     {
         // ---> NEW: Global Stage Stopwatch <---
-        if (isStageActive)
+        if (isStageActive && !SoloStageLoader.IsLoading)
         {
             totalStageTime += Time.deltaTime;
         }
 
-        if (isTimerRunning)
+        if (isTimerRunning && !SoloStageLoader.IsLoading)
         {
             timeRemaining = Mathf.Max(0f, timeRemaining - Time.deltaTime);
             UpdateTimerUI();

@@ -225,6 +225,13 @@ public sealed class PrelimTeleportTransition : MonoBehaviour
     public void StartSceneTransition(string sceneName, bool allowedToLoad)
     {
         if (isTeleporting) return;
+        if (allowedToLoad && !PhotonNetwork.InRoom &&
+            (TeleportManager.IsTrialScene(sceneName) || TeleportManager.IsTrialScene(gameObject.scene.name) ||
+             gameObject.scene.name == "LogicGarden"))
+        {
+            SoloStageLoader.Load(sceneName);
+            return;
+        }
         BeginTransition(null);
         StartCoroutine(SceneLoadSequence(sceneName, allowedToLoad));
     }

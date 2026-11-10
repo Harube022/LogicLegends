@@ -169,7 +169,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
             !finished && !transitioning && secondsLeft > 0f);
         if (input == null) BindInput();
         if (player == null) player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
-        if (started && !finished && !GameplayPaused)
+        if (started && !finished && !GameplayPaused && !SoloStageLoader.IsLoading)
         {
             secondsLeft = Mathf.Max(0f, secondsLeft - Time.deltaTime);
             activeGameplaySeconds += Time.deltaTime;

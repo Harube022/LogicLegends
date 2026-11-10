@@ -285,7 +285,7 @@ public class WizardInteraction : MonoBehaviourPun
         areAllTasksCompleted = false;
     }
 
-    public void ChooseLetsGo() { SceneManager.LoadScene(nextSceneName); }
+    public void ChooseLetsGo() { TeleportManager.Navigate(nextSceneName); }
 
 // ---> FIX: We now check the network before resetting <---
     public void ResetWizardStatus()

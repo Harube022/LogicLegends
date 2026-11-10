@@ -6,7 +6,7 @@ public sealed class TruthTablePlacementArrow : MonoBehaviour
     public Transform visual;
     [Min(0)] public float height=1.6f;
     [Range(0,.2f)] public float bob=.065f;
-    void OnEnable(){if(visual!=null)visual.gameObject.SetActive(true);}
+    void OnEnable(){if(visual!=null){GuidanceArrowGlow.AttachHierarchy(visual);visual.gameObject.SetActive(true);}}
     void OnDisable(){if(visual!=null)visual.gameObject.SetActive(false);}
     void LateUpdate()
     {

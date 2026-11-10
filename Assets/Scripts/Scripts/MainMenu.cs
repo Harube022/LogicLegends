@@ -28,7 +28,7 @@ public class MainMenu : MonoBehaviour
 
     public void LoadSolo()
     {
-        SceneManager.LoadScene("LogicGarden");
+        TeleportManager.Navigate("LogicGarden");
     }
 
     public void LoadCoop()
