@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -636,6 +637,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
 
     private void FailSubmission(string message)
     {
+        RecordTrialAnswer(false);
         hintRejectedProof = HintProofArrangement;
         mistakeCount++;
         secondsLeft = Mathf.Max(0f, secondsLeft - wrongPenalty);
@@ -662,6 +664,7 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
 
     private void CompleteCurrentChallenge()
     {
+        RecordTrialAnswer(true);
         correctCount++;
         started = false;
         transitioning = true;
@@ -679,6 +682,21 @@ public sealed partial class ProofsLibraryStageController : MonoBehaviour
         for (int i = 0; i < Current.scrolls.Length; i++)
             if ((placements[i] == 0) != Current.scrolls[i].isFormal) return false;
         return true;
+    }
+
+    private void RecordTrialAnswer(bool correct)
+    {
+        if (Current == null) return;
+        string expected = Current.kind == ProofChallengeKind.SortScrolls
+            ? string.Join("; ", Current.scrolls.Select(s => s.title + ": " + (s.isFormal ? "Formal" : "Informal")))
+            : Current.kind == ProofChallengeKind.MissingRule ? Current.expectedRule
+            : string.Join(" OR ", Current.acceptableOrders.Select(o => string.Join(" → ", o.stepIds.Select(id => id >= 0 && id < Current.steps.Length ? Current.steps[id].statement : "?"))));
+        string submitted = Current.kind == ProofChallengeKind.SortScrolls
+            ? string.Join("; ", Current.scrolls.Select((s, i) => s.title + ": " + (i < placements.Length && placements[i] == 0 ? "Formal" : i < placements.Length && placements[i] == 1 ? "Informal" : "Unplaced")))
+            : "Submitted proof arrangement (" + string.Join(", ", placements) + ")";
+        TrialRewards.RecordAnswer(4, "proof4-" + System.Guid.NewGuid().ToString("N"),
+            "proof4-c" + challengeIndex + "-q" + questionIndex, Current.title + "\n" + Current.instructions,
+            string.IsNullOrEmpty(expected) ? Current.instructions : expected, submitted, correct);
     }
 
     private IEnumerator AdvanceChallenge()

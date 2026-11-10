@@ -19,6 +19,8 @@ public static class TrialBackendClient
     [Serializable] public sealed class QuizAnswer
     {
         public string eventKey, questionId;
+        public string kind;
+        public string question, correctAnswer, selectedAnswer;
         public int choice, bonus;
         public bool correct;
     }
@@ -26,9 +28,9 @@ public static class TrialBackendClient
     {
         public int economyVersion = 2;
         public int trial;
-        public string attemptId, operationId, eventKey, questionId;
+        public string attemptId, operationId, eventKey, questionId, answerType, question, correctAnswer, selectedAnswer;
         public int choice;
-        public bool newAttempt;
+        public bool newAttempt, correct;
     }
     [Serializable] sealed class Error { public string error; }
 #if UNITY_EDITOR

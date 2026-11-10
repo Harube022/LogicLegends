@@ -282,6 +282,7 @@ namespace LogicLegends.Graph
             State = GraphStageState.VALIDATING;
             bool valid = GraphAnswerValidator.Validate(Challenge, Tracker.Route, Answer,
                 Tracker.IsContinuous && Tracker.AtVertex, out string reason);
+            RecordTrialAnswer(valid);
             if (!valid) hintRejectedGraph = HintGraphArrangement;
             // Queue the preloaded sound immediately, before starting particle feedback.
             audioSource.PlayOneShot(valid ? correctSound : wrongSound);
@@ -307,6 +308,18 @@ namespace LogicLegends.Graph
             }
             else ui.HideAnnouncement();
             StartCoroutine(Advance());
+        }
+        private void RecordTrialAnswer(bool correct)
+        {
+            string expected = Challenge.type == GraphChallengeType.Degree
+                ? Challenge.Degree(Challenge.degreeVertex).ToString()
+                : string.Join(" → ", GraphAnswerValidator.FindSolution(Challenge) ?? new List<string>());
+            string submitted = Challenge.type == GraphChallengeType.Degree
+                ? (Answer.HasValue ? Answer.Value.ToString() : "No degree selected")
+                : string.Join(" → ", Tracker.Route);
+            TrialRewards.RecordAnswer(9, "graph9-" + Guid.NewGuid().ToString("N"),
+                "graph9-c" + ChallengeIndex + "-q" + QuestionIndex, Challenge.title + "\n" + Challenge.objective,
+                expected, submitted, correct);
         }
         public bool CanDebugClearChallenge => CanAct && State == GraphStageState.ACTIVE;
         public void DebugClearCurrentChallenge()

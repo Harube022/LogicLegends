@@ -96,7 +96,9 @@ namespace LogicLegends.Inference
             bool correct = choice == Current.CorrectChoice;
             if (!IsPractice && rewardEvent != null)
             {
-                TrialRewards.RecordQuizAnswer(3, rewardEvent, "roi-" + Current.Question.Id, Current.ChoiceOrder[choice], correct);
+                TrialRewards.RecordQuizAnswer(3, rewardEvent, "roi-" + Current.Question.Id, Current.ChoiceOrder[choice], correct,
+                    false, Current.Question.Prompt, Current.Question.Choices[Current.CorrectChoice],
+                    Current.Question.Choices[Current.ChoiceOrder[choice]]);
                 rewardCrystal?.MarkPickupQuizCompleted();
             }
             foreach (var button in AnswerButtons) button.interactable = false;
