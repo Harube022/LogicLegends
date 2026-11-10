@@ -199,7 +199,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && !GuidanceBlocksGameplay && state == TrialState.WaitingForActivation);
         if (input == null) BindInput();
         if (player == null) player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
-        if (timerRunning && !GuidanceBlocksGameplay)
+        if (timerRunning && !GuidanceBlocksGameplay && !SoloStageLoader.IsLoading)
         {
             float elapsed = Time.deltaTime;
             activeSeconds += elapsed;

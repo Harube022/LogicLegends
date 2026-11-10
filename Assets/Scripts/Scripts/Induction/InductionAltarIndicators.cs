@@ -24,7 +24,7 @@ namespace LogicLegends.Induction
             mesh.vertices = new[] { new Vector3(-.18f,.8f,0),new Vector3(.18f,.8f,0),new Vector3(.18f,0,0),new Vector3(.6f,0,0),new Vector3(0,-.7f,0),new Vector3(-.6f,0,0),new Vector3(-.18f,0,0) };
             mesh.triangles = new[] { 0,1,2,0,2,6,5,3,4 };mesh.RecalculateNormals();mesh.RecalculateBounds();
             var shader = arrowShader != null ? arrowShader : Shader.Find("Universal Render Pipeline/Unlit");
-            gold = new Material(shader) { name = "Altar Indicator Gold" };gold.SetColor("_BaseColor",new Color(1,.8f,.2f));
+            gold = GuidanceArrowGlow.NewYellowMaterial("Altar Indicator Gold");
             outline = new Material(shader) { name = "Altar Indicator Outline" };outline.SetColor("_BaseColor",new Color(.11f,.07f,.025f));
             Arrows = new Transform[3];
             for(int i=0;i<Arrows.Length;i++)
@@ -40,6 +40,7 @@ namespace LogicLegends.Induction
             shape.transform.localScale=Vector3.one*scale;shape.transform.localPosition=Vector3.forward*depth;
             shape.GetComponent<MeshFilter>().sharedMesh=mesh;var renderer=shape.GetComponent<MeshRenderer>();renderer.sharedMaterial=material;
             renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;
+            if(material==gold)GuidanceArrowGlow.Attach(shape);
         }
         void LateUpdate() { Refresh(); }
         public void Refresh()

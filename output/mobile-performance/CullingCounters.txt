@@ -1,0 +1,95 @@
+VFX | VFX.CullJob
+VFX | VFX.CullJob
+VFX | VFX.CollectShadowCullResults
+Render | TilemapRenderer.CalculateChunkCullingBounds
+Render | TerrainManager.CullAllTerrains
+Render | Terrain.Trees.RayTracingCulling
+Render | Terrain.Heightmap.RayTracingCullingStep3
+Render | Terrain.Heightmap.RayTracingCullingStep2
+Render | Terrain.Heightmap.RayTracingCullingStep1
+Lighting | UpdateCulling
+Lighting | IssuePVRCullLightmapJob
+Lighting | IssuePVRSetCullingJob
+Render | CullResultsToVisibleReflectionProbes
+Render | CullResultsToVisibleLights
+Render | CullResultsToNativeArrays
+Render | CullShadowCastersScriptable
+Render | CullScriptable
+Render | RayTracingInstanceCulling.GenerateInstances
+Render | RayTracingInstanceCulling.CullingJob
+Render | RayTracingAccelerationStructure.CullInstances
+Render | CullPerObjectReflectionProbesJob
+Render | CullPerObjectReflectionProbesCombine
+Render | CullPerObjectReflectionProbes
+Render | CullPerObjectLightsCombine
+Render | CullPerObjectLights
+Render | CullObjectsWithoutUmbra
+Render | CullDynamicObjectsWithUmbra
+Render | Shadows.CullShadowCastersDetailSpot
+Render | Shadows.CullShadowCastersDetailPoint
+Render | CullingGroupSendEvents
+Render | CullGroupCombineResults
+Render | CullGroupSphereRange
+Render | ScheduleCullingGroups
+Render | Shadows.CullingCallbacks
+Render | Shadows.CombineLocalShadowCasterCullignIndexListsAndDestroy
+Render | Shadows.CombineDirectionalShadowCasterCullignIndexListsAndDestroy
+Render | Shadows.CullShadowCastersWithoutUmbra
+Render | Shadows.CullShadowCastersDirectionalUmbra
+Render | Shadows.CullDirectionalShadowCasters
+Render | Shadows.CreateUmbraShadowCuller
+Render | Shadows.PrepareUmbraShadowCullerBuffers
+Render | Shadows.CullDirectionalCascades
+Render | Shadows.CullLocalLightShadowCasters
+Render | Shadows.CullShadowCastersLocalDetail
+Render | Shadows.CullShadowCastersLocal
+Render | Shadows.CullShadowCastersDirectionalDetail
+Render | Shadows.CullShadowCastersDirectional
+Render | CullResults.CreateSharedRendererScene
+Render | DestroyCullResults
+Render | CullSendEvents
+Render | CullSceneObjects
+Render | CullAllVisibleReflectionProbes
+Render | CullAllVisibleLights
+Render | SceneCulling
+Render | FrustumCullReflectionProbesJob
+Render | PrepareSceneCullingParameters
+Render | Culling
+Render | CullSceneDynamicObjectsCombineJob
+Render | CullSceneDynamicObjects
+Render | CullQueryPortalVisibilityCombineJob
+Render | CullQueryPortalVisibilityUmbra
+Render | CullLightFrustumLocal
+Render | OcclusionAndConnectivityCullLight
+Render | FrustumAndOcculusionCullLocalLightsCombine
+Render | FrustumAndOcculusionCullLocalLights
+Render | GPU Frame Time
+Scripts | AssemblyDataFrom PhotonUnityNetworking.Utilities.Culling.Editor.dll
+Managed Jobs | CullingJob
+Burst Jobs | CullingJob (Burst)
+Managed Jobs | CullingJob (Cleanup)
+Managed Jobs | CullSceneViewHiddenRenderersJob
+Burst Jobs | CullSceneViewHiddenRenderersJob (Burst)
+Managed Jobs | CullSceneViewHiddenRenderersJob (Cleanup)
+Managed Jobs | InstanceDataSystem:CalculateInterpolatedLightAndOcclusionProbesBatchJob
+Burst Jobs | InstanceDataSystem:CalculateInterpolatedLightAndOcclusionProbesBatchJob (Burst)
+Managed Jobs | InstanceDataSystem:CalculateInterpolatedLightAndOcclusionProbesBatchJob (Cleanup)
+Scripts | TMP.RegisterTextElementForCullingUpdate
+PlayerLoop | gameObjectChangedSceneCullingMask.Invoke
+Scripts | XR Occlusion Mesh
+Scripts | Inl_XR Occlusion Mesh
+Scripts | LensFlareDataDrivenComputeOcclusion
+Scripts | Inl_LensFlareDataDrivenComputeOcclusion
+Scripts | XROcclusionMeshPass
+Scripts | Inl_XROcclusionMeshPass
+Scripts | Draw XR Occlusion Mesh
+Scripts | Inl_Draw XR Occlusion Mesh
+Scripts | ScriptableRenderer.SetupCullingParameters
+Scripts | Inl_ScriptableRenderer.SetupCullingParameters
+PlayerLoop | afterCullingOutputReady.Invoke
+Scripts | UniversalRenderPipeline.ComputeShadowCasterCullingInfos
+Scripts | Inl_UniversalRenderPipeline.ComputeShadowCasterCullingInfos
+Scripts | NRPRGComp_CullNodes
+Scripts | Inl_NRPRGComp_CullNodes
+Other | EditorApplication.update: Unity.Pipeline.Editor.Commands.Baking.OcclusionBakeCommands.OnUpdate
+Other | EditorApplication.playModeStateChanged: ChamberOcclusionPlayChecks.Restore

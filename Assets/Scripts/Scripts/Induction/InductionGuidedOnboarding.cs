@@ -230,6 +230,7 @@ namespace LogicLegends.Induction
         void CreateAltarPointer()
         {
             altarPointer=new GameObject("Induction Practice Altar Arrow");pointerLabel=altarPointer.AddComponent<TextMeshPro>();pointerLabel.text="▼";pointerLabel.fontSize=8;pointerLabel.alignment=TextAlignmentOptions.Center;pointerLabel.color=new Color(1,.86f,.22f);pointerLabel.rectTransform.sizeDelta=new Vector2(2,2);
+            GuidanceArrowGlow.Attach(altarPointer);
         }
         void LayoutGuide()
         {

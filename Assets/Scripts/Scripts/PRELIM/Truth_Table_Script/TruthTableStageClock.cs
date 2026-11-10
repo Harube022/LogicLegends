@@ -84,7 +84,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
 
     private void Update()
     {
-        if (IsCountdownPaused || StageSelectionState.SelectedStage != 2) return;
+        if (SoloStageLoader.IsLoading || IsCountdownPaused || StageSelectionState.SelectedStage != 2) return;
         remainingSeconds = Mathf.Max(0f, remainingSeconds - Time.deltaTime);
         RefreshTimer();
         if (remainingSeconds <= 0f) TriggerGameOver();
@@ -249,8 +249,7 @@ public sealed class TruthTableStageClock : MonoBehaviour
 
     private static string FormatTime(float seconds)
     {
-        int total = Mathf.CeilToInt(Mathf.Max(0f, seconds));
-        return string.Format("{0:00}:{1:00}", total / 60, total % 60);
+        return StageJourneyUI.FormatTime(seconds);
     }
 
     private void BuildUi(RectTransform host, TMP_Text style)

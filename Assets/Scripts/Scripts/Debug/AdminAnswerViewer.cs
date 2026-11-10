@@ -14,6 +14,8 @@ public sealed class AdminAnswerViewer : MonoBehaviour
     Canvas host;
     IReadOnlyList<AdminAnswerPage> pages;
     int index, width, height;
+    float measuredFontSize, measuredWidth;
+    TMP_FontAsset measuredFont;
     bool visible;
 
     public void Build(Canvas canvas, RectTransform parent, TMP_FontAsset font, Action back)
@@ -83,7 +85,12 @@ public sealed class AdminAnswerViewer : MonoBehaviour
         if (!visible) return;
         Vector2 oldSize = root.sizeDelta;
         Layout();
-        if (oldSize != root.sizeDelta) ResizeContent();
+        if (oldSize != root.sizeDelta || measuredFontSize != body.fontSize || measuredFont != body.font ||
+            Mathf.Abs(measuredWidth - viewport.rect.width) > .5f)
+        {
+            float position = scroll.verticalNormalizedPosition;
+            ResizeContent(); scroll.verticalNormalizedPosition = position;
+        }
     }
     void Layout()
     {
@@ -114,6 +121,7 @@ public sealed class AdminAnswerViewer : MonoBehaviour
         content.sizeDelta = new Vector2(0, Mathf.Max(viewport.rect.height, needed));
         content.anchoredPosition = Vector2.zero;
         body.ForceMeshUpdate();
+        measuredFontSize = body.fontSize; measuredFont = body.font; measuredWidth = viewport.rect.width;
     }
     static RectTransform Rect(string name, Transform parent)
     {

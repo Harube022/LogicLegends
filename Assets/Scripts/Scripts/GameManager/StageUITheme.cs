@@ -230,6 +230,7 @@ public static class StageUITheme
         text.alignment = TextAlignmentOptions.Center;
         text.textWrappingMode = TextWrappingModes.Normal;
         text.raycastTarget = false;
+        if (name.IndexOf("arrow", System.StringComparison.OrdinalIgnoreCase) >= 0 && (value == "▼" || value == "↓")) GuidanceArrowGlow.Attach(text.gameObject);
         return text;
     }
 

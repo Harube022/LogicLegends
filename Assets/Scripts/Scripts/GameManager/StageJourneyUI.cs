@@ -178,7 +178,7 @@ public sealed class StageJourneyUI : MonoBehaviour
         }
         else if (stage == 3)
         {
-            if (inference != null && inference.HasStarted && !inferenceFinished && !resultOpen && !tutorialOpen &&
+            if (!SoloStageLoader.IsLoading && inference != null && inference.HasStarted && !inferenceFinished && !resultOpen && !tutorialOpen &&
                 (inferenceOnboarding == null || !inferenceOnboarding.IsActive) &&
                 !inference.IsBoardOpen && !inferenceQuizOpen && Time.timeScale > 0)
             {
@@ -259,7 +259,16 @@ public sealed class StageJourneyUI : MonoBehaviour
     }
 
     public static string StageName(int stage) => stage == 1 ? "Propositional Logic" : stage == 2 ? "Truth Table" : "Rules of Inference";
-    public static string FormatTime(float seconds) { int total = Mathf.CeilToInt(Mathf.Max(0, seconds)); return (total / 60).ToString("00") + ":" + (total % 60).ToString("00"); }
+    static int formattedSecond = int.MinValue;
+    static string formattedTime;
+    public static string FormatTime(float seconds)
+    {
+        int total = Mathf.CeilToInt(Mathf.Max(0, seconds));
+        if (total == formattedSecond) return formattedTime;
+        formattedSecond = total;
+        formattedTime = (total / 60).ToString("00") + ":" + (total % 60).ToString("00");
+        return formattedTime;
+    }
 
     private void BuildHud()
     {

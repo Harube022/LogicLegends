@@ -1,0 +1,18 @@
+Rendering-only isolated fixture. Real TruthTable art and lighting; no NPCs, gameplay, account or reward controllers. Editor measurements are not Android frame rates.
+Before_Low_legacy | 800x480 | draw/frame=370.5 | setpass/frame=12.0 | triangles/frame=997703 | main-thread-ms(includes wait/editor)=16.45 | localLights=25 | grass=ungated
+After_Low | 800x480 | draw/frame=277.2 | setpass/frame=11.0 | triangles/frame=995224 | main-thread-ms(includes wait/editor)=16.46 | localLights=6 | grass=170/1756
+After_Medium | 800x480 | draw/frame=502.0 | setpass/frame=16.0 | triangles/frame=1642852 | main-thread-ms(includes wait/editor)=16.67 | localLights=12 | grass=558/1756
+After_High | 800x480 | draw/frame=627.5 | setpass/frame=16.0 | triangles/frame=1927979 | main-thread-ms(includes wait/editor)=16.47 | localLights=24 | grass=1376/1756
+PASS quality reapply after scene reload
+PASS saved quality read after cache reset
+PASS Trial 1 named fixture: Low/Medium/High, active-scene reapply, scene-script light override
+PASS Trial 2 named fixture: Low/Medium/High, active-scene reapply, scene-script light override
+PASS Trial 3 named fixture: Low/Medium/High, active-scene reapply, scene-script light override
+PASS Trial 4 named fixture: Low/Medium/High, active-scene reapply, scene-script light override
+PASS Trial 5 named fixture: Low/Medium/High, active-scene reapply, scene-script light override
+PASS Trial 6 named fixture: Low/Medium/High, active-scene reapply, scene-script light override
+PASS Trial 7 named fixture: Low/Medium/High, active-scene reapply, scene-script light override
+PASS Trial 8 named fixture: Low/Medium/High, active-scene reapply, scene-script light override
+PASS Trial 9 named fixture: Low/Medium/High, active-scene reapply, scene-script light override
+PASS Trial 10 named fixture: Low/Medium/High, active-scene reapply, scene-script light override
+COMPLETE; gameplay/NPC CPU and physical Android remain separate tests.

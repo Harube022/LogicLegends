@@ -1,0 +1,142 @@
+Logic Legends — solo graphics audit
+10 November 2026
+
+Implemented locally. No commits, pushes, scene replacements, account changes or reward changes.
+
+FINDINGS
+
+1. TruthTable's PT_Grass_Mat uses a legacy transparent foliage shader. Its forward
+   pass blends alpha but writes depth, including texels that should be invisible;
+   alpha clipping is conditional and is not enabled on the authored grass material.
+   It also includes expensive PBR/translucency/wind variants and multiple passes.
+   This is a confirmed material/depth defect and a compatibility risk. The exact
+   multicolored Android streaks were NOT reproduced on the desktop GPU, so their
+   device-specific cause cannot be declared conclusively diagnosed.
+
+2. TruthTable's saved scene contains 1,756 legacy foliage renderers. PRELIM and
+   RulesOfInference each contain 1,626, including inactive content. No unsupported
+   shaders were reported by the current Editor graphics API in any saved trial.
+   These are scene inventories, not counts of objects drawn in each frame.
+
+3. Low previously limited per-object light evaluation and render resolution but
+   did not cap active scene-local lights. Authored post-processing could remain
+   enabled. Scene lighting scripts could enable lights independently of settings.
+
+4. The late-order settings component could miss first-scene initialization: the
+   component existed but its scene graphics host was absent. A Start fallback and
+   active-scene-change handling fix this. Installation is idempotent.
+
+CHANGES
+
+- SoloFoliage.shader: lightweight URP alpha-cutout foliage, proper alpha discard
+  before depth writes, matching depth-only pass, bounded wind, safe normals and
+  float lighting accumulation. Keeps original card geometry, textures, tint and
+  coverage settings. Runtime material copies apply only to the legacy plant shader
+  in solo trials. Pack source materials and multiplayer assets are unchanged.
+- SoloGraphicsBudget / SoloSceneGraphics: shared limits inside the existing solo
+  settings implementation. Closest local lights have priority, with hysteresis.
+  Light intensity/flicker scripts retain their authored animation; the final gate
+  controls cost. Foliage cost reduction changes renderers only, never colliders.
+- SoloTrialVisuals: Low caps shadows and post-processing; camera settings are
+  enforced after scene scripts. Material/camera/light changes restore on cleanup.
+- SoloSettingsRuntime: applies on initial entry, active-scene transitions and reloads,
+  without duplicate hosts. Reuses the existing saved preference key and controls.
+- Graph bloom respects graphics quality as well as lighting quality.
+- Student navigation build slices use smaller Low/Medium CPU budgets. Population,
+  routes, safety checks, walk/run speeds, dialogue and hint limits are unchanged.
+- Existing minimap rendering already caches its image and throttles updates;
+  that behavior was inspected and retained. No physics/gameplay rules were changed.
+
+QUALITY LIMITS
+
+                           Low          Medium          High
+Android render scale       0.70         0.90            1.00
+Local real-time lights     up to 6      up to 12        up to 24
+Grass density              50%          75%             100%
+Grass draw distance        65 units     100 units       150 units
+Post-processing            off          permitted       permitted
+Directional shadows        off          capped Medium   user selection
+NPC map build slice        0.5 ms        1 ms            2 ms
+
+Lighting quality can further reduce the light limit. Shadow and motion-blur
+preferences are retained even when the graphics ceiling temporarily disables them.
+Local-light shadow maps are disabled. Shader repair applies at every quality level;
+the additional Low/Medium foliage reduction is a separate performance measure.
+The existing mip/LOD settings and saved frame-rate preference remain in use.
+
+MEASUREMENTS
+
+Unity 6000.3.6f1, Windows Editor, NVIDIA GeForce GTX 1070 Ti, Direct3D 12.
+Android was the active build target. No Android device/emulator was attached.
+Actual saved TruthTable art and sunset lighting in an isolated rendering fixture;
+fixed view near its real spawn, 800 x 480 Game View, 90 sampled frames per case
+after warm-up. Gameplay/account/reward controllers, NPCs and minimap were excluded.
+Therefore these are rendering-only Editor figures, NOT full-trial Android FPS.
+
+Case                 Draws/frame  SetPass/frame  Triangles/frame  Local lights
+Before Low (legacy)   370.5        12.0           997,703          25
+After Low            277.2        11.0           995,224           6
+After Medium         502.0        16.0         1,642,852          12
+After High           627.5        16.0         1,927,979          24
+
+Low draw calls decreased about 25.2%; active local lights decreased 76%.
+Main-thread samples, including wait/Editor overhead, stayed near 16.5 ms. This
+desktop test was frame limited; it does NOT establish an FPS increase or GPU-time
+improvement. Device CPU/GPU frame times, thermals and full-game performance remain
+unmeasured. Higher tiers intentionally render more detail and lighting.
+
+VERIFICATION COMPLETED
+
+- Read-only saved-scene rendering/material/light/collider inventories for all ten:
+  PRELIM, TruthTable, RulesOfInference, Formal vs. Informal Proofs, Direct&Indirect,
+  Induction, Setssss, Functions and Relations, Graph, Trees.
+- Policy assertions for Low/Medium/High passed.
+- TruthTable fixed-camera before/after images inspected: readable paths and lamps,
+  preserved stylized appearance, reduced grass density on Low, no desktop streaks.
+- Initial settings installation, scene reload and reading saved quality after
+  clearing the in-memory cache passed in Play Mode.
+- Thirty quality-tier cases passed in isolated fixtures named for Trials 1–10,
+  including active-scene transitions and a script repeatedly enabling lights.
+  These fixtures verify shared routing/ownership, not full gameplay walkthroughs.
+- Android validation asset bundle compiled the foliage and TruthTable ground
+  shaders for the configured Vulkan and OpenGLES3 APIs. No shader errors reported.
+  This is NOT an APK or an Android runtime test.
+- Runtime C# compilation passed; final console checked for errors.
+- Original Graph editing scene restored, not dirty; original graphics preferences
+  restored. Generated test scenes/materials removed. No Build Profile entries added.
+
+STILL REQUIRES PHYSICAL ANDROID VERIFICATION
+
+- Confirm the original rainbow/flickering defect is gone on the affected device,
+  testing Vulkan and GLES3 where available, especially TruthTable Low.
+- Capture before/after CPU/GPU frame times and sustained FPS on that device using
+  matching camera routes, thermal conditions and resolution.
+- Exercise real NPCs, minimap updates, water, quizzes, board/tutorial cameras and
+  transitions in all ten actual trials; inspect Low chamber illumination.
+- Check actual trial retries and a full application restart on Android. The shared
+  save/reapply path passed Editor fixtures, but no Android app build was executed.
+
+FILES / REPRODUCTION
+
+Assets/Scripts/Settings/SoloGraphicsBudget.cs — centralized adjustable limits.
+Assets/Scripts/Settings/SoloSceneGraphics.cs — local lights and foliage cost gate.
+Assets/Scripts/Settings/SoloFoliageMaterials.cs — trial-only legacy material adapter.
+Assets/Resources/Settings/SoloFoliage.shader — mobile foliage shader.
+Assets/Scripts/Settings/SoloSettingsRuntime.cs — existing quality install/save flow.
+Assets/Scripts/Settings/SoloTrialVisuals.cs — existing visual/camera settings flow.
+Assets/Scripts/Scripts/Graph/GraphChamberAtmosphere.cs — quality-aware bloom.
+Assets/Scripts/Scripts/Students/StudentWalkMap.cs — incremental work budget.
+
+Unity menu: Logic Legends / Graphics
+  Audit all ten saved trials
+  Check quality policy
+  Profile isolated TruthTable rendering
+  Compile Android foliage validation bundle
+
+EditorProfile.txt contains raw counters and pass results.
+Trial1_SavedScene.json through Trial10_SavedScene.json contain scene inventories.
+AndroidShaderBuild.txt records Android compilation status.
+AndroidShaders/ contains the validation bundle (not integrated into gameplay).
+Before/after PNGs are retained in Library/AndroidGraphicsAudit (ignored by Git).
+The profiler command creates disposable fixtures under Assets/Tests/AndroidGraphics;
+remove only those generated fixtures after future checks. It restores saved settings.

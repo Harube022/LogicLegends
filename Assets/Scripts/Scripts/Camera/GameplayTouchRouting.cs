@@ -15,7 +15,7 @@ public static class GameplayTouchRouting
     static readonly List<TouchControl> touches = new List<TouchControl>();
     static int frame = -1;
     public static bool CameraInputAllowed => Time.timeScale > 0 &&
-        (GameInput.Instance == null || !GameInput.Instance.GameplayInputBlocked) &&
+        (GameInput.Instance == null || !GameInput.Instance.CameraInputBlocked) &&
         (Player.LocalInstance == null || Player.LocalInstance.enabled && !Player.LocalInstance.IsMovementLocked) &&
         !PrelimTutorialCameraRig.HasActiveView && IsPlayerView();
     static bool IsPlayerView()

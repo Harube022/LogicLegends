@@ -294,7 +294,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         if (input == null) BindInput();
         if (player == null) player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
         if (GameplayPaused) { RefreshTimer(); return; }
-        if (timerStarted && state == FunctionsRelationsState.ACTIVE)
+        if (timerStarted && state == FunctionsRelationsState.ACTIVE && !SoloStageLoader.IsLoading)
         {
             float elapsed = Time.deltaTime;
             activePlaySeconds += elapsed;

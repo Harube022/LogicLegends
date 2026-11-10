@@ -35,6 +35,8 @@ public class TeleportManager : MonoBehaviourPun
     public static void Navigate(string sceneName)
     {
         string current = SceneManager.GetActiveScene().name;
+        if (!PhotonNetwork.InRoom && (IsTrialScene(current) || IsTrialScene(sceneName) || current == "LogicGarden"))
+        { SoloStageLoader.Load(sceneName); return; }
         if (IsTrialScene(current) || current == "Main Menu")
             EnsureExists().LoadSceneWithFade(sceneName);
         else SceneManager.LoadScene(sceneName);
@@ -51,7 +53,7 @@ public class TeleportManager : MonoBehaviourPun
         SceneManager.GetActiveScene().name == "Trees" ||
         MultiplayerSceneRoutes.IsGameplay(SceneManager.GetActiveScene());
     public bool IsTeleporting => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTeleporting : isTeleporting;
-    public bool IsTransitioning => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTransitioning : isTeleporting;
+    public bool IsTransitioning => SoloStageLoader.IsLoading || (UsesCoveredTransitions && prelimTransition != null ? prelimTransition.IsTransitioning : isTeleporting);
     public float FadeAlpha => UsesCoveredTransitions && prelimTransition != null ? prelimTransition.FadeAlpha :
         (fadeCanvasGroup != null ? fadeCanvasGroup.alpha : 0f);
 

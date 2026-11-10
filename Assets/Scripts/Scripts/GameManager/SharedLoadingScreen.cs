@@ -39,6 +39,7 @@ public sealed class SharedLoadingScreen : MonoBehaviour
     private bool showingError;
     private bool smoothSceneProgress;
     private float displayedProgress;
+    private int displayedPercent = -1;
     private System.Action retryAction, cancelAction;
     public bool IsVisible => canvas != null && canvas.enabled;
     public float Progress { get; private set; }
@@ -80,7 +81,7 @@ public sealed class SharedLoadingScreen : MonoBehaviour
     {
         indeterminate = value < 0f;
         Progress = indeterminate ? -1f : Mathf.Clamp01(value);
-        if (indeterminate) progressLabel.text = "";
+        if (indeterminate) { displayedPercent = -1; progressLabel.text = ""; }
         else if (!smoothSceneProgress) RenderProgress(Progress);
     }
 
@@ -94,7 +95,8 @@ public sealed class SharedLoadingScreen : MonoBehaviour
     {
         displayedProgress = value;
         progressFill.fillAmount = value;
-        progressLabel.text = (value >= 1f ? 100 : Mathf.FloorToInt(value * 100f)) + "%";
+        int percent = value >= 1f ? 100 : Mathf.FloorToInt(value * 100f);
+        if (percent != displayedPercent) { displayedPercent = percent; progressLabel.text = percent + "%"; }
     }
 
     public IEnumerator CompleteSceneLoading()
@@ -117,7 +119,6 @@ public sealed class SharedLoadingScreen : MonoBehaviour
         Fit();
         if (showingError) return;
         float elapsed = Time.realtimeSinceStartup - shownAt;
-        statusLabel.text = status + "...";
         // A breathing bar, without a fabricated numeric percentage, for unknown work.
         if (indeterminate) progressFill.fillAmount = 0.3f + 0.18f * Mathf.Sin(elapsed * 2f);
         else if (smoothSceneProgress)

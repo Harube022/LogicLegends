@@ -24,7 +24,7 @@ namespace LogicLegends.Graph
         public Volume bloomVolume;
         static GraphChamberAtmosphere active;
         public static bool WantsBloom(Scene scene)=>active!=null&&active.isActiveAndEnabled&&
-            active.gameObject.scene==scene&&active.bloomVolume!=null&&SoloGameSettings.Current.lightingQuality>0;
+            active.gameObject.scene==scene&&active.bloomVolume!=null&&SoloGameSettings.Current.lightingQuality>0&&SoloGraphicsBudget.PostProcessing(SoloGameSettings.Current);
         [Min(0)] public float torchIntensity=150;
         [Min(1)] public float torchRange=24;
         [Range(0,.15f)] public float torchFlicker=.06f;

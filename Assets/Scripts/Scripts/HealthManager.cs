@@ -45,12 +45,12 @@ public partial class HealthManager : MonoBehaviour
     public void ReturnToMainMenu()
     {
         Time.timeScale = 1f; // Unpause before loading
-        SceneManager.LoadScene("Main Menu"); // Replace with your actual Main Menu scene name
+        TeleportManager.Navigate("Main Menu");
     }
 
     public void GoToLogicGarden()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("LogicGarden"); // Replace with your actual Logic Garden scene name
+        TeleportManager.Navigate("LogicGarden");
     }
 }

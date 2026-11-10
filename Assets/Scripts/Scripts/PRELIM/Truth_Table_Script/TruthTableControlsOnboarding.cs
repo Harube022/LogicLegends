@@ -239,6 +239,7 @@ public sealed class TruthTableControlsOnboarding : MonoBehaviour
         TextMeshProUGUI worldArrow = MakeText("World Arrow", worldHighlight, 72f);
         worldArrow.text = "▼";
         worldArrow.color = new Color(1f, 0.9f, 0.25f);
+        GuidanceArrowGlow.Attach(worldArrow.gameObject);
         worldArrow.rectTransform.anchorMin = worldArrow.rectTransform.anchorMax = new Vector2(0.5f, 1f);
         worldArrow.rectTransform.pivot = new Vector2(0.5f, 0f);
         worldArrow.rectTransform.anchoredPosition = new Vector2(0f, 12f);
