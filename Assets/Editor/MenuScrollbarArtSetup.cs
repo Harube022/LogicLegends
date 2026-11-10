@@ -72,6 +72,35 @@ public static class MenuScrollbarArtSetup
         bar.navigation=new Navigation{mode=Navigation.Mode.None};
     }
 
+    [MenuItem("Logic Legends/UI/Expose Scrollbar Art to Stage Results")]
+    public static void ExposeScrollbarArtToStageResults()
+    {
+        var sprites=ImportSprites();
+        const string prefabPath="Assets/Resources/StageUI/GraphHUDArtwork.prefab";
+        var root=PrefabUtility.LoadPrefabContents(prefabPath);
+        try
+        {
+            AddArt(root.transform,"MenuScrollbarTrack",sprites[0]);
+            AddArt(root.transform,"MenuScrollbarThumb",sprites[1]);
+            PrefabUtility.SaveAsPrefabAsset(root,prefabPath);
+        }
+        finally { PrefabUtility.UnloadPrefabContents(root); }
+    }
+
+    private static void AddArt(Transform root,string name,Sprite sprite)
+    {
+        var existing=root.Find(name);
+        var image=existing!=null?existing.GetComponent<Image>():null;
+        if(image==null)
+        {
+            var child=new GameObject(name,typeof(RectTransform),typeof(CanvasRenderer),typeof(Image));
+            child.transform.SetParent(root,false);
+            image=child.GetComponent<Image>();
+        }
+        image.sprite=sprite;image.type=Image.Type.Sliced;image.color=Color.white;
+        image.raycastTarget=false;image.pixelsPerUnitMultiplier=1;
+    }
+
     [MenuItem("Logic Legends/Main Menu/Apply Reference Scrollbars")]
     public static void Apply()
     {

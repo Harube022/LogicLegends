@@ -113,7 +113,7 @@ function createApp(env = process.env, integrations = {}) {
     await reconcile(order);
     return res.sendStatus(200);
   }));
-  app.use(express.json({ limit: '4kb' }));
+  app.use(express.json({ limit: '8kb' }));
   // Bound per-player load on a single Node process. Scale-out hosts should also
   // enforce a shared/API-gateway rate limit.
   const buckets = new Map();
@@ -163,7 +163,9 @@ function createApp(env = process.env, integrations = {}) {
       if (!economyEnabled && (req.body?.economyVersion >= 2 || req.path === '/trials/quiz-answer')) throw fail('Solo economy v2 is not connected yet.',503);
       const service = economyEnabled ? trials : legacyTrials;
       const operations = { '/trials/start': service.startAttempt, '/trials/retry': service.retryAttempt,
-        '/trials/admin-used': service.markAdmin, '/trials/quiz-answer': economyEnabled ? trials.answerQuiz : null, '/trials/complete': service.finishAttempt };
+        '/trials/admin-used': service.markAdmin, '/trials/quiz-answer': economyEnabled ? trials.answerQuiz : null,
+        '/trials/progress-answer': economyEnabled ? trials.answerQuiz : legacyTrials.recordProgressAnswer,
+        '/trials/complete': service.finishAttempt };
       const operation = operations[req.path];
       if (req.method !== 'POST' || !operation) throw fail('Unknown trial endpoint.', 404);
       if (user.disabled) throw fail('Please sign in again.', 401);

@@ -20,7 +20,7 @@ public sealed class TrialRewardDisplay : MonoBehaviour
             if (display.rewardHeading == null)
                 display.rewardHeading = StageUITheme.Text("CompletionRewardHeading", view.Card, "REWARDS EARNED", 28);
             display.rewardHeading.gameObject.SetActive(true);
-            StageUITheme.Stretch(display.rewardHeading.rectTransform, new Vector2(.08f, .46f), new Vector2(.92f, .50f));
+            StageUITheme.Stretch(display.rewardHeading.rectTransform, new Vector2(.08f, .45f), new Vector2(.92f, .49f));
             display.rewardHeading.color = StageUITheme.ReadingInk;
             display.rewardHeading.enableAutoSizing = true;
             display.rewardHeading.fontSizeMin = 22;
@@ -38,7 +38,7 @@ public sealed class TrialRewardDisplay : MonoBehaviour
                 icon.sizeDelta = new Vector2(64, 64); icon.anchoredPosition = Vector2.zero;
             }
             display.coinRow.gameObject.SetActive(true);
-            display.coinRow.anchorMin = display.coinRow.anchorMax = display.coinRow.pivot = new Vector2(.5f, .395f);
+            display.coinRow.anchorMin = display.coinRow.anchorMax = display.coinRow.pivot = new Vector2(.5f, .385f);
             display.coinRow.sizeDelta = new Vector2(300, 84); display.coinRow.anchoredPosition = Vector2.zero;
             display.label.transform.SetParent(display.coinRow, false);
             StageUITheme.Stretch(display.label.rectTransform, Vector2.zero, Vector2.one);

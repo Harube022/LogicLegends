@@ -401,7 +401,7 @@ public sealed class StageJourneyUI : MonoBehaviour
     public void ShowFailure(int stage, string summary, UnityEngine.Events.UnityAction retry)
     {
         if (resultOpen) return;
-        ShowResult(stage, "TIME TO TRY AGAIN", summary, stage == 1 ? "START OVER" : "RESTART STAGE", retry);
+        ShowResult(stage, "TIME TO TRY AGAIN", "The countdown has ended.", stage == 1 ? "START OVER" : "RESTART STAGE", retry);
         StagePresentation.Failed(modal.gameObject, stage, stage == 1 && propositionalClock != null ? (UnityEngine.Events.UnityAction)propositionalClock.OnMiddleActionClicked : retry);
     }
 

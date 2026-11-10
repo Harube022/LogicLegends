@@ -589,6 +589,19 @@ public partial class QuizManager : MonoBehaviour
             currentDoorOptionOrder[index] == currentQuestion.correctOptionIndex;
     }
 
+    public void RecordTrialAnswer(int padIndex, bool correct)
+    {
+        if (currentQuestion == null) return;
+        int selected = GetOptionIndexForDoor(padIndex);
+        string selectedText = selected >= 0 && selected < currentQuestion.options.Length ? currentQuestion.options[selected] : "No option selected";
+        int questionIndex = currentQuestionOrder.Count > 0 ? currentQuestionOrder[Mathf.Clamp(nextQuestionOrderIndex - 1, 0, currentQuestionOrder.Count - 1)] : 0;
+        TrialRewards.RecordAnswer(1, "pl1-" + System.Guid.NewGuid().ToString("N"),
+            "pl1-c" + currentTopicIndex + "-q" + questionIndex, currentQuestion.questionText,
+            currentQuestion.correctOptionIndex >= 0 && currentQuestion.correctOptionIndex < currentQuestion.options.Length
+                ? currentQuestion.options[currentQuestion.correctOptionIndex] : "Correct logic-gate option",
+            selectedText, correct);
+    }
+
     public int GetOptionIndexForDoor(int doorIndex)
     {
         return doorIndex >= 0 && doorIndex < currentDoorOptionOrder.Length

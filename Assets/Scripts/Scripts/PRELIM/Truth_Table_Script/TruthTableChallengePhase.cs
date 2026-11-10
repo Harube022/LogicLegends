@@ -188,6 +188,15 @@ public sealed partial class TruthTableChallengePhase : IPuzzlePhase
                 correct = false;
         }
 
+        var expression = selected[challengeIndex, columnIndex].Expression;
+        var question = "Challenge " + (challengeIndex + 1) + " (" + DifficultyNames[challengeIndex] + "), Column " +
+            (columnIndex + 1) + ": " + expression + "\nRows: TT, TF, FT, FF";
+        var correctCombination = FormatCombination(currentAnswers);
+        var playerCombination = FormatCombination(placedBlocks);
+        TrialRewards.RecordTableAnswer(2, "tt-table-" + Guid.NewGuid().ToString("N"),
+            "tt-c" + (challengeIndex + 1) + "-col" + (columnIndex + 1), question,
+            correctCombination, playerCombination, correct);
+
         if (!correct)
         {
             // Give back the actual four blocks so the player can retry the same
@@ -240,6 +249,21 @@ public sealed partial class TruthTableChallengePhase : IPuzzlePhase
         for (int row = 0; row < currentAnswers.Length; row++)
             currentAnswers[row] = selected[challengeIndex, columnIndex].EvaluateRow(row);
         puzzle.SpawnBlocksForTruthValues(currentAnswers);
+    }
+
+    private static string FormatCombination(bool[] values)
+    {
+        var valuesText = new string[values.Length];
+        for (int row = 0; row < values.Length; row++) valuesText[row] = values[row] ? "T" : "F";
+        return string.Join(",", valuesText);
+    }
+
+    private static string FormatCombination(TruthBlock[] blocks)
+    {
+        var valuesText = new string[blocks.Length];
+        for (int row = 0; row < blocks.Length; row++)
+            valuesText[row] = blocks[row] == null ? "—" : blocks[row].value ? "T" : "F";
+        return string.Join(",", valuesText);
     }
 
     private void UpdateProgress()

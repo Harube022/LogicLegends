@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -1367,6 +1368,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         }
         PlacementReview review = ReviewIncorrectPlacement();
         bool correct = !review.missingRequired && review.incorrectBlocks.Count == 0;
+        RecordTrialAnswer(correct);
         hintCheckRevision++;
         hintNeedsCorrection = !correct;
         foreach (GrabbableObject block in AnswerBlocks())
@@ -1385,6 +1387,28 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         ClearAllErrorIndicators();
         hud?.Notice.Hide();
         StartCoroutine(Advance());
+    }
+
+    private void RecordTrialAnswer(bool correct)
+    {
+        string expected;
+        if (challengeNumber == 5 && activeComplement != null)
+            expected = "U \\ " + activeComplement.setName + " = {" + string.Join(", ", activeComplement.universe.Except(activeComplement.selected)) + "}";
+        else if (activeCondition != null)
+        {
+            var a = new HashSet<string>(activeCondition.setA);
+            var b = new HashSet<string>(activeCondition.setB);
+            expected = string.Join("; ", a.Union(b).Select(value => value + "=" +
+                (a.Contains(value) && b.Contains(value) ? "A ∩ B" : a.Contains(value) ? "A − B" : "B − A")));
+        }
+        else expected = "Place every element in its correct set region.";
+        string submitted = string.Join("; ", AnswerBlocks().Select(block =>
+        {
+            int value = GetBlockNumber(block);
+            return value + "=" + (TryGetMainVennRegion(PlacementPoint(block), out SetZone zone) ? zone.ToString() : "Outside");
+        }));
+        TrialRewards.RecordAnswer(7, "sets7-" + Guid.NewGuid().ToString("N"),
+            "sets7-c" + challengeNumber + "-q" + conditionIndex, CurrentProblem, expected, submitted, correct);
     }
 
     private IEnumerator Advance()

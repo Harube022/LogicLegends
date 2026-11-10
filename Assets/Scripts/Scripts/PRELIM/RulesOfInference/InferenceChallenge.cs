@@ -407,12 +407,14 @@ namespace LogicLegends.Inference
                     if(gameObject.scene.name=="RulesOfInference")StageJourneyUI.Instance?.DeductInferenceSeconds(10);
                     if (pillarCrystalPrefab != null)
                     {
+                        RecordTrialAnswer(false, "Wrong rule crystal: " + diamond.RuleType);
                         RemoveWrongPillarCrystal();
                         return;
                     }
                     placed.ReturnToOrigin(); placed = null;
                     Stage = InferencePuzzleStage.FindingDiamond; RefreshStageButtons();
                     WorldStageAudio.PlayAnswerFeedback(false);
+                    RecordTrialAnswer(false, "Wrong rule crystal: " + diamond.RuleType);
                     Feedback("Incorrect rule. Collect another Rule Crystal that fits the premises.", false);
                     return;
                 }
@@ -437,6 +439,7 @@ namespace LogicLegends.Inference
                 {
                     if (!dragPuzzle.CheckPremises())
                     {
+                        RecordTrialAnswer(false, "Premises: " + string.Join("; ", fields.Select(f => f.text)));
                         hintFailedPremises = HintPremiseValues;
                         WorldStageAudio.PlayAnswerFeedback(false);
                         Feedback("Some blanks are incorrect.", false);
@@ -460,18 +463,21 @@ namespace LogicLegends.Inference
             }
             if (invalid > 0)
             {
+                RecordTrialAnswer(false, "Premises: " + string.Join("; ", fields.Select(f => f.text)));
                 WorldStageAudio.PlayAnswerFeedback(false);
                 Feedback("Check " + invalid + " highlighted blank(s). Use the word bank and proposition key.", false);
                 return;
             }
             if (placed == null)
             {
+                RecordTrialAnswer(false, "No conclusion crystal selected");
                 WorldStageAudio.PlayAnswerFeedback(false);
                 Feedback("The premises are correct. Explore and bring back a conclusion crystal.", false);
                 return;
             }
             if (placed.QuestionId != Question.Id || placed.Answer != Question.Conclusion)
             {
+                RecordTrialAnswer(false, "Conclusion: " + placed.Answer);
                 WorldStageAudio.PlayAnswerFeedback(false);
                 placed.ReturnToOrigin(); placed = null;
                 conclusionLabel.text = "Therefore, __________________________";
@@ -495,6 +501,7 @@ namespace LogicLegends.Inference
 
         void CompleteRound()
         {
+            RecordTrialAnswer(true, FormatCorrectInferenceAnswer());
             WorldStageAudio.PlayAnswerFeedback(true);
             roundSolved = true; SolvedRounds++;
             foreach (var field in fields) field.readOnly = true;
@@ -519,6 +526,65 @@ namespace LogicLegends.Inference
             if (!IsBoardOpen) { ClearCrystals(); Question = null; roundSolved = false; }
             onRoundCompleted?.Invoke(SolvedRounds);
             ShowBookWaitingPrompt();
+        }
+
+        void RecordTrialAnswer(bool correct, string submitted)
+        {
+            if (Question == null) return;
+            string questionPremises = dragPuzzle != null && dragPuzzle.Puzzle != null
+                ? FormatWordedPremises(true)
+                : string.Join("; ", Question.Form.premises.Select(FormatPromptPremise));
+            string prompt = "Premises: " + questionPremises + " ⟹ ?";
+            string expected = FormatCorrectInferenceAnswer();
+            TrialRewards.RecordAnswer(3, "inference-main-" + Guid.NewGuid().ToString("N"),
+                "inference-main-" + Question.Id, prompt, expected, submitted, correct);
+        }
+
+        string FormatWordedPremises(bool leaveBlanks)
+        {
+            var puzzle = dragPuzzle.Puzzle;
+            int blankIndex = 0;
+            return string.Join("; ", puzzle.Premises.Select(row =>
+            {
+                var words = new List<string>();
+                foreach (var part in row)
+                {
+                    if (part.IsBlank)
+                    {
+                        string value = blankIndex < puzzle.CorrectPlacements.Count
+                            ? puzzle.CorrectPlacements[blankIndex] : "_____";
+                        words.Add(leaveBlanks ? "_____" : value);
+                        blankIndex++;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(part.Text))
+                    {
+                        words.AddRange(part.Text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                    }
+                }
+                return string.Join(" ", words).Trim().TrimEnd('.') + ".";
+            }));
+        }
+
+        string FormatPromptPremise(InferencePremise premise)
+        {
+            return string.Concat(premise.tokens.Select(token => token == "\n" ? " " :
+                InferenceQuestion.IsBlank(token) ? "________" : Question.Resolve(token)));
+        }
+
+        string FormatCorrectPremise(InferencePremise premise)
+        {
+            return string.Concat(premise.tokens.Select(token => token == "\n" ? " " :
+                !InferenceQuestion.IsBlank(token) ? Question.Resolve(token) :
+                token.StartsWith("[") ? token.Trim('[', ']') : Question.Resolve(token)));
+        }
+
+        string FormatCorrectInferenceAnswer()
+        {
+            string premises = dragPuzzle != null && dragPuzzle.Puzzle != null
+                ? FormatWordedPremises(false)
+                : string.Join("; ", Question.Form.premises.Select(FormatCorrectPremise));
+            string rule = Question.Rule != null ? Question.Rule.ruleName : "";
+            return "Premises: " + premises + "; Rule: " + rule + "; Conclusion: " + Question.Conclusion;
         }
 
         void Feedback(string message, bool good)
