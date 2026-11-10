@@ -182,10 +182,6 @@ public static class StageHelpPlayChecks
             yield return Until(() => ActivePage() != null, 18, "first Help opens: " + scene);
             yield return CompleteInitialGuide(scene);
             if(AndroidTrialUiChecks.Enabled&&AndroidTrialUiChecks.Baseline)break;
-            if(scene=="Graph"&&SessionState.GetBool("Graph.AtmosphereOnly",false))
-            {
-                yield return VerifyBookHand(scene);yield return GraphAtmospherePlayChecks.Run();break;
-            }
             if(AndroidTrialUiChecks.Enabled&&AndroidTrialUiChecks.ExtraOnly)
             {
                 yield return VerifyBookHand(scene);
@@ -235,7 +231,6 @@ public static class StageHelpPlayChecks
             // The guide itself was checked at both sizes above.
             if (scene == "Trees") { BookMapMobileChecks.SetSize(6); yield return new WaitForSecondsRealtime(.35f); }
             yield return VerifyBookHand(scene);
-            if(scene=="Graph"&&SessionState.GetBool("Graph.AtmosphereChecks",false))yield return GraphAtmospherePlayChecks.Run();
             yield return Until(()=>HelpButton(scene)!=null&&HelpButton(scene).gameObject.activeInHierarchy&&HelpButton(scene).IsInteractable()&&Time.timeScale>0,12,"active gameplay Help is available: "+scene);
             var activeSnapshot=Snapshot.Capture(scene);
             yield return Tap(HelpButton(scene));yield return Until(()=>ActivePage()!=null,3,"active Help opens: "+scene);
