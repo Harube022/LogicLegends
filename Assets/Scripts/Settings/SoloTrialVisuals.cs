@@ -121,7 +121,7 @@ public sealed class SoloTrialVisuals : MonoBehaviour
             previousDepth = data.requiresDepthTexture; previousShadows = data.renderShadows;
             previousVolumeMask = data.volumeLayerMask;
         }
-        data.renderPostProcessing = settings.motionBlur || previousPost;
+        data.renderPostProcessing = settings.motionBlur || previousPost || LogicLegends.Graph.GraphChamberAtmosphere.WantsBloom(gameObject.scene);
         data.volumeLayerMask = previousPost ? previousVolumeMask.value | (1 << gameObject.layer) : 1 << gameObject.layer;
         data.requiresDepthTexture = settings.motionBlur || previousDepth;
         data.renderShadows = settings.shadowQuality > 0;
