@@ -10,6 +10,7 @@ namespace LogicLegends.OpenArchive.Topics
         public double changedAt, arrivalStartedAt=-1;
         public bool secondaryReleased;
         public int adminPhaseOverride=-1;
+        public bool adminMonstersStopped;
     }
     public sealed partial class ArchiveTopicSession
     {

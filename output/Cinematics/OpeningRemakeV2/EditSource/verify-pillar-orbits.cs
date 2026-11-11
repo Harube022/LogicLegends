@@ -1,0 +1,18 @@
+OpeningRemakeV2.Bind();
+var scene=UnityEngine.SceneManagement.SceneManager.GetSceneByPath(OpeningRemakeV2.ScenePath);
+var sanctuary=scene.GetRootGameObjects().Single(r=>r.name=="Sanctuary").transform;
+var rings=Enumerable.Range(1,10).Select(i=>sanctuary.Find("Text."+i.ToString("D3"))).ToArray();
+var crystal=sanctuary.Find("ALTAR/Cylinder.106");var originalCrystal=crystal.position;
+OpeningRemakeV2.Evaluate(40);var p40=rings.Select(t=>t.rotation).ToArray();var c40=rings.Select(t=>t.GetComponent<UnityEngine.Renderer>().bounds.center).ToArray();
+OpeningRemakeV2.Evaluate(41);var p41=rings.Select(t=>t.rotation).ToArray();
+OpeningRemakeV2.Evaluate(54.7f);var stopped=rings.Select(t=>t.rotation).ToArray();
+OpeningRemakeV2.Evaluate(105);var late=rings.Select(t=>t.rotation).ToArray();var clate=rings.Select(t=>t.GetComponent<UnityEngine.Renderer>().bounds.center).ToArray();
+OpeningRemakeV2.Evaluate(40);var rewind=rings.Select(t=>t.rotation).ToArray();
+float[] moving=p40.Select((q,i)=>UnityEngine.Quaternion.Angle(q,p41[i])).ToArray();
+float stoppedDelta=stopped.Select((q,i)=>UnityEngine.Quaternion.Angle(q,late[i])).Max();
+float pivotDrift=c40.Select((p,i)=>UnityEngine.Vector3.Distance(p,clate[i])).Max();
+float rewindDelta=p40.Select((q,i)=>UnityEngine.Quaternion.Angle(q,rewind[i])).Max();
+if(moving.Min()<5||stoppedDelta>.001f||pivotDrift>.005f||rewindDelta>.001f||UnityEngine.Vector3.Distance(crystal.position,originalCrystal)>.001f)throw new Exception("Pillar orbit verification failed.");
+OpeningRemakeV2.Preview(40,"pillar-orbits-intact",1280,720);OpeningRemakeV2.Preview(55.5f,"pillar-orbits-cracked",1280,720);
+OpeningRemakeV2.Evaluate(0);UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
+return new {rings=rings.Length,movingDegreesPerSecond=moving,maximumPostCrackRotationChange=stoppedDelta,maximumCenterDrift=pivotDrift,seekReproducibilityError=rewindDelta,stopClockEarly=OpeningRemakeV2.PillarSymbolOrbitClock(54.7f),stopClockLate=OpeningRemakeV2.PillarSymbolOrbitClock(105),pillarBodyStationary=true};

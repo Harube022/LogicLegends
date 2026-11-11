@@ -1,0 +1,12 @@
+var active=UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+OpeningRemakeV2.Bind();
+var source=UnityEngine.SceneManagement.SceneManager.GetSceneByPath("Assets/Scenes/CINEMATICS.unity");
+if(!source.isLoaded)source=UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/CINEMATICS.unity",UnityEditor.SceneManagement.OpenSceneMode.Additive);
+var roots=source.GetRootGameObjects();
+var room=roots.FirstOrDefault(r=>r.name=="CLASSROOM");
+var rows=room.GetComponentsInChildren<Renderer>(true).Select(r=>new {name=UnityEditor.AnimationUtility.CalculateTransformPath(r.transform,room.transform),center=r.bounds.center.ToString(),size=r.bounds.size.ToString(),materials=r.sharedMaterials.Select(m=>m==null?"null":m.name+" "+UnityEditor.AssetDatabase.GetAssetPath(m)).ToArray()}).ToArray();
+System.IO.File.WriteAllText("output/Cinematics/OpeningRemakeV2/EditSource/classroom-renderers.json",Newtonsoft.Json.JsonConvert.SerializeObject(rows,Newtonsoft.Json.Formatting.Indented));
+var animations=UnityEditor.AssetDatabase.FindAssets("t:AnimationClip",new[]{"Assets/Characters_NEW/LATEST_SKINS/Wizard/Animations"}).Select(g=>UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.AnimationClip>(UnityEditor.AssetDatabase.GUIDToAssetPath(g))).Where(c=>c.name.Contains("Walk")||c.name.Contains("Idle")).Select(c=>new {name=c.name,path=UnityEditor.AssetDatabase.GetAssetPath(c),length=c.length,curves=UnityEditor.AnimationUtility.GetCurveBindings(c).Where(b=>b.path.EndsWith(":Hips")||b.path=="").Select(b=>new{path=b.path,property=b.propertyName,first=UnityEditor.AnimationUtility.GetEditorCurve(c,b).Evaluate(0),last=UnityEditor.AnimationUtility.GetEditorCurve(c,b).Evaluate(c.length)}).ToArray()}).ToArray();
+System.IO.File.WriteAllText("output/Cinematics/OpeningRemakeV2/EditSource/wizard-motion-source.json",Newtonsoft.Json.JsonConvert.SerializeObject(animations,Newtonsoft.Json.Formatting.Indented));
+UnityEngine.SceneManagement.SceneManager.SetActiveScene(active);
+return "Wrote classroom renderer and Wizard clip audits. Renderers="+rows.Length;

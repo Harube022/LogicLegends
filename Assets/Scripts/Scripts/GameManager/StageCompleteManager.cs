@@ -73,6 +73,7 @@ public class StageCompleteManager : MonoBehaviour
 
         // 6. Push to Google Firebase
         SaveProgressToFirebase(trial);
+        SoloTrialCinematic.PlayClear(trial);
     }
 
     private void SaveProgressToFirebase(int trial)

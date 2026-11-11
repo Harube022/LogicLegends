@@ -174,7 +174,7 @@ namespace LogicLegends.OpenArchive.Topics
         }
         public bool CanRequestHint(int topic) => Ready && topic >= 0 && topic < 10 && State.stations[topic].phase == 1 &&
             CanAct(LocalActor) && Near(LocalActor, topic, Vector3.zero, 14) && HintLevel(topic, LocalActor) < 3 &&
-            TimerRemaining(State.stations[topic]) > 0;
+            (State.stations[topic].timerOvertime || TimerRemaining(State.stations[topic]) > 0);
         public bool RequestLearningHint(int topic)
         {
             if (!CanRequestHint(topic)) return false;
@@ -187,7 +187,7 @@ namespace LogicLegends.OpenArchive.Topics
             var s = State.stations[command.topic];
             if (!CanAct(actor) || !Near(actor, command.topic, Vector3.zero, 14) || s.phase != 1 ||
                 command.a != s.round || command.b != s.subphase || command.captureSerial != s.testResetSerial ||
-                TimerRemaining(s) <= 0 || HintLevel(command.topic, actor) >= 3 || !FreshLearningSequence(actor, command)) return false;
+                !s.timerOvertime && TimerRemaining(s) <= 0 || HintLevel(command.topic, actor) >= 3 || !FreshLearningSequence(actor, command)) return false;
             if (PhotonNetwork.InRoom && PhotonNetwork.CurrentRoom.GetPlayer(actor).IsInactive) return false;
             NormalizeLearning();
             var hint = State.learningHints.FirstOrDefault(h => h.actor == actor && h.topic == s.topic && h.round == s.round && h.subphase == s.subphase && h.resetSerial == s.testResetSerial);

@@ -356,7 +356,9 @@ public partial class Player : MonoBehaviourPun
         isWalking = inputVector != Vector2.zero;
         if (isWalking && moveDir != Vector3.zero)
         {
-            transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * 10f);
+            var archiveItems = LogicLegends.OpenArchive.Topics.ArchiveRewardView.Current;
+            if (archiveItems == null || !archiveItems.LocalGunAimActive(this))
+                transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * 10f);
 
             if (!tutorialMovementDone)
             {

@@ -1,0 +1,28 @@
+{
+  "source": "output\\Cinematics\\LogicLegends_Opening_Story_Remake_v4.mp4",
+  "target": "Assets\\Assets\\Video_Cutscene\\LogicLegends_Opening_V4.mp4",
+  "source_sha256": "8eda9eed2fa7c69f68922f84180b56334824e7bbf748118ecb9e5c02b9c05dd5",
+  "auth_before_sha256": "742467f55aa16b1a6b540e02d70ed12de3f79e59626b0bcd9fc725bd8080c1a4",
+  "main_menu_before_sha256": "fe2eb2fd4f9f165e3951878c5805846f880ea33eeaa3ea0b0e93d7ccbe8fbf30",
+  "auth_script_unchanged": true,
+  "scene_change": "Only the existing intro VideoPlayer clip reference changed.",
+  "changed_scene_lines": [
+    "-  m_VideoClip: {fileID: 32900000, guid: 7bd1b2964304d5349b30b7e6ff7d6545, type: 3}",
+    "+  m_VideoClip: {fileID: 32900000, guid: 3baf2213c3a9b994a809319e5397f918, type: 3}"
+  ],
+  "source_copy_exact": true,
+  "existing_new_user_trigger": "SelectBaseCharacter -> SubmitUsername -> PlayIntroCutscene",
+  "returning_users": "Existing base character and username route directly to mode selection",
+  "build_scene": "Assets/Scenes/Main Menu.unity (enabled)",
+  "new_account_and_android_end_to_end": "Not run; existing routing retained without Firebase writes.",
+  "native_play_mode_video_decoding": {
+    "passed": true,
+    "scope": "Isolated native Unity Play Mode decoding; no authentication or account writes",
+    "error": "",
+    "mapFrame": 600,
+    "pillarFrame": 1800,
+    "mapTime": 20.0,
+    "pillarTime": 60.0
+  },
+  "edit_mode_probe": "Edit Mode preview could not advance video; isolated Play Mode decoding passed instead."
+}

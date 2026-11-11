@@ -12,8 +12,9 @@ namespace LogicLegends.OpenArchive.Topics
         TMP_Text connectionText;
         ArchiveSignalIconGraphic connectionBars;
         float nextConnectionRead;
+        string connectionDescription="";
         public ArchiveConnectionQuality ConnectionQuality {get;private set;}
-        public string ConnectionText=>connectionText!=null?connectionText.text:"";
+        public string ConnectionText=>connectionDescription;
         public RectTransform ConnectionBadge=>connectionBadge;
 
         void BuildConnectionBadge()
@@ -61,9 +62,11 @@ namespace LogicLegends.OpenArchive.Topics
                 default:tint=new Color(.67f,.74f,.72f);bars=0;break;
             }
             connectionBars.bars=bars;connectionBars.color=tint;connectionBars.SetVerticesDirty();connectionText.color=tint;
-            connectionText.text=quality==ArchiveConnectionQuality.Local?"LOCAL TEST  ·  no live latency":
+            connectionDescription=quality==ArchiveConnectionQuality.Local?"LOCAL TEST  ·  no live latency":
                 quality==ArchiveConnectionQuality.Reconnecting?"RECONNECTING…":quality==ArchiveConnectionQuality.Measuring?"MEASURING CONNECTION…":
                 (quality==ArchiveConnectionQuality.Good?"GOOD":quality==ArchiveConnectionQuality.Variable?"VARIABLE":"HIGH DELAY")+"  "+rtt+" ms  ·  ±"+Mathf.Max(0,variation)+" ms";
+            connectionText.text=quality==ArchiveConnectionQuality.Local?"LOCAL":quality==ArchiveConnectionQuality.Reconnecting?"RECONNECTING":
+                quality==ArchiveConnectionQuality.Measuring?"…":rtt+" ms";
         }
     }
 }

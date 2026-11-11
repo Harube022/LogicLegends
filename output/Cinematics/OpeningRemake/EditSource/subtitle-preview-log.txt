@@ -1,0 +1,35 @@
+Input #0, png_pipe, from 'DX11_Preview.png':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgb24(pc, gbr/unknown/unknown), 1280x720, 25 fps, 25 tbr, 25 tbn
+[Parsed_ass_1 @ 0000016d20efb700] libass API version: 0x1703000
+[Parsed_ass_1 @ 0000016d20efb700] libass source: commit: 0.17.3-32-g5298859c298d3c570d8d7e3b883a0d63490659b8
+[Parsed_ass_1 @ 0000016d20efb700] Shaper: FriBidi 1.0.16 (SIMPLE) HarfBuzz-ng 10.0.1 (COMPLEX)
+[Parsed_ass_1 @ 0000016d20efb700] Loading font file 'Fonts\Apache License.txt'
+[Parsed_ass_1 @ 0000016d20efb700] Loading font file 'Fonts\georgiab.ttf'
+[Parsed_ass_1 @ 0000016d20efb700] Loading font file 'Fonts\OpenSans-Semibold.ttf'
+[Parsed_ass_1 @ 0000016d20efb700] Error opening memory font 'Apache License.txt'
+[Parsed_ass_1 @ 0000016d20efb700] Using font provider directwrite (with GDI)
+[Parsed_ass_1 @ 0000016d20efb700] Added subtitle file: 'Captions.ass' (3 styles, 37 events)
+Stream mapping:
+  Stream #0:0 -> #0:0 (png (native) -> png (native))
+Press [q] to stop, [?] for help
+[Parsed_ass_1 @ 0000016d2119d2c0] libass API version: 0x1703000
+[Parsed_ass_1 @ 0000016d2119d2c0] libass source: commit: 0.17.3-32-g5298859c298d3c570d8d7e3b883a0d63490659b8
+[Parsed_ass_1 @ 0000016d2119d2c0] Shaper: FriBidi 1.0.16 (SIMPLE) HarfBuzz-ng 10.0.1 (COMPLEX)
+[Parsed_ass_1 @ 0000016d2119d2c0] Loading font file 'Fonts\Apache License.txt'
+[Parsed_ass_1 @ 0000016d2119d2c0] Loading font file 'Fonts\georgiab.ttf'
+[Parsed_ass_1 @ 0000016d2119d2c0] Loading font file 'Fonts\OpenSans-Semibold.ttf'
+[Parsed_ass_1 @ 0000016d2119d2c0] Error opening memory font 'Apache License.txt'
+[Parsed_ass_1 @ 0000016d2119d2c0] Using font provider directwrite (with GDI)
+[Parsed_ass_1 @ 0000016d2119d2c0] Added subtitle file: 'Captions.ass' (3 styles, 37 events)
+[vf#0:0 @ 0000016d21492640] No information about the input framerate is available. Falling back to a default value of 25fps. Use the -r option if you want a different framerate.
+Output #0, image2, to 'Subtitle-Preview.png':
+  Metadata:
+    encoder         : Lavf61.7.100
+  Stream #0:0: Video: png, rgb24(pc, gbr/unknown/unknown, progressive), 1280x720, q=2-31, 200 kb/s, 25 fps, 25 tbn
+      Metadata:
+        encoder         : Lavc61.19.100 png
+[image2 @ 0000016d20ef1a40] The specified filename 'Subtitle-Preview.png' does not contain an image sequence pattern or a pattern is invalid.
+[image2 @ 0000016d20ef1a40] Use a pattern such as %03d for an image sequence or use the -update option (with -frames:v 1 if needed) to write a single image.
+[out#0/image2 @ 0000016d20ef16c0] video:913KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:24.04 bitrate=N/A speed= 212x    

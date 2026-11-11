@@ -13,6 +13,8 @@ public static class MultiplayerRewardBackendClient
     {
         public string matchId, status, exclusionReason;
         public int coins, gems, reward, gemReward, baseCoins, crystalCoins, participationCoins, consolationCoins, tier;
+        public int version, points, leaderboardReward, correctAnswers;
+        public bool escaped;
     }
     [Serializable] sealed class ErrorReply { public string error; }
     public sealed class BackendException : InvalidOperationException
@@ -92,12 +94,24 @@ public static class MultiplayerRewardBackendClient
             throw new InvalidOperationException("The multiplayer reward response could not be verified. It remains pending.");
         return receipt;
     }
-    internal static bool IsValidReceipt(Receipt receipt, string matchId) =>
-        receipt != null && receipt.matchId == matchId && receipt.status == "completed" &&
-        receipt.coins >= 0 && receipt.gems >= 0 && receipt.reward >= 0 && receipt.reward <= 1000 &&
-        receipt.gemReward >= 0 && receipt.gemReward <= 2 && receipt.tier >= 0 && receipt.tier <= 3 &&
-        receipt.baseCoins >= 0 && receipt.baseCoins <= 600 && receipt.crystalCoins >= 0 && receipt.crystalCoins <= 250 &&
-        receipt.participationCoins >= 0 && receipt.participationCoins <= 150 && receipt.consolationCoins >= 0 && receipt.consolationCoins <= 150 &&
-        (long)receipt.baseCoins + receipt.crystalCoins + receipt.participationCoins + receipt.consolationCoins == receipt.reward &&
-        (string.IsNullOrEmpty(receipt.exclusionReason) || receipt.reward == 0 && receipt.gemReward == 0);
+    internal static bool IsValidReceipt(Receipt receipt, string matchId)
+    {
+        if (receipt == null || receipt.matchId != matchId || receipt.status != "completed" || receipt.coins < 0 || receipt.gems < 0)
+            return false;
+        bool eligible = string.IsNullOrEmpty(receipt.exclusionReason);
+        if (receipt.version == ArchiveMatchRewardPolicy.CurrentVersion)
+            return receipt.gemReward == 0 && receipt.points >= receipt.leaderboardReward &&
+                receipt.correctAnswers >= 0 && receipt.correctAnswers <= 64 &&
+                (eligible
+                    ? receipt.reward == (receipt.escaped ? ArchiveMatchRewardPolicy.EscapeCoins : ArchiveMatchRewardPolicy.FinishCoins) &&
+                        receipt.leaderboardReward >= ArchiveMatchRewardPolicy.MinimumPoints && receipt.leaderboardReward <= ArchiveMatchRewardPolicy.MaximumPoints
+                    : receipt.reward == 0 && receipt.leaderboardReward == 0);
+        return (receipt.version == 0 || receipt.version == 1) &&
+            receipt.reward >= 0 && receipt.reward <= 1000 &&
+            receipt.gemReward >= 0 && receipt.gemReward <= 2 && receipt.tier >= 0 && receipt.tier <= 3 &&
+            receipt.baseCoins >= 0 && receipt.baseCoins <= 600 && receipt.crystalCoins >= 0 && receipt.crystalCoins <= 250 &&
+            receipt.participationCoins >= 0 && receipt.participationCoins <= 150 && receipt.consolationCoins >= 0 && receipt.consolationCoins <= 150 &&
+            (long)receipt.baseCoins + receipt.crystalCoins + receipt.participationCoins + receipt.consolationCoins == receipt.reward &&
+            (eligible || receipt.reward == 0 && receipt.gemReward == 0);
+    }
 }

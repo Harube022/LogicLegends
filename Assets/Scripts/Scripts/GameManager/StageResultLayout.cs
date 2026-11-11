@@ -94,6 +94,7 @@ public sealed class StageResultLayout : MonoBehaviour
             }
         }
         Layout();
+        SoloTrialCinematic.PlayClear(trial);
     }
     void BuildAccuracyAndAnswers(int trial)
     {

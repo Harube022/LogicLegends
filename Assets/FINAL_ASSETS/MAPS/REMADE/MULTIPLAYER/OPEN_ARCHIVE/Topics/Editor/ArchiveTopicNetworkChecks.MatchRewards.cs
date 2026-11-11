@@ -90,18 +90,18 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 int nextRound=round+1;
                 yield return Wait(()=>session.State.stations[0].round==nextRound&&guest.state?.stations[0].round==nextRound,"Accepted guest rune becomes shared solved receipt",8);
             }
-            var guestReport=ArchiveMatchRewardPolicy.Build(session.State,guest.Actor);
-            Check(guestReport.participationKeys.Length==2&&guestReport.participationKeys.All(k=>k.StartsWith("work:0:",StringComparison.Ordinal))&&
-                ArchiveMatchRewardPolicy.Build(session.State,host).participationKeys.Length==0,
+            var guestCredits=ArchiveMatchRewardPolicy.ParticipationKeys(session.State,guest.Actor);
+            Check(guestCredits.Length==2&&guestCredits.All(k=>k.StartsWith("work:0:",StringComparison.Ordinal))&&
+                ArchiveMatchRewardPolicy.ParticipationKeys(session.State,host).Length==0&&session.State.solved.All(s=>s.solver==guest.Actor),
                 "Two actual accepted guest rune answers create two unique work credits without crediting an idle host");
             Packet(guest,lastCommand);yield return .2f;
-            Check(ArchiveMatchRewardPolicy.Build(session.State,guest.Actor).participationKeys.SequenceEqual(guestReport.participationKeys),
+            Check(ArchiveMatchRewardPolicy.ParticipationKeys(session.State,guest.Actor).SequenceEqual(guestCredits),
                 "Replaying a rewarded guest command cannot duplicate participation credit");
             var fake=JsonUtility.FromJson<ArchiveTeamState>(JsonUtility.ToJson(session.State));fake.revision+=1000;
             fake.rewards.support.Add(new ArchiveRewardSupportCredit{actor=guest.Actor,target=host,kind="revive"});
             guest.client.OpRaiseEvent(ArchiveTopicSession.SnapshotEvent,new object[]{ArchiveTopicSession.Channel,JsonUtility.ToJson(fake)},new RaiseEventOptions{Receivers=ReceiverGroup.All},SendOptions.SendReliable);
             yield return .2f;
-            Check(session.State.rewards.support.Count==0&&ArchiveMatchRewardPolicy.Build(session.State,guest.Actor).participationKeys.Length==2,
+            Check(session.State.rewards.support.Count==0&&ArchiveMatchRewardPolicy.ParticipationKeys(session.State,guest.Actor).Length==2,
                 "A non-master snapshot cannot invent teammate-support reward credit");
             string firstMatch=session.State.matchId;
             PhotonNetwork.SetMasterClient(PhotonNetwork.CurrentRoom.GetPlayer(guest.Actor));
@@ -109,7 +109,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             guest.client.CurrentRoom.SetMasterClient(guest.client.CurrentRoom.GetPlayer(host));
             yield return Wait(()=>PhotonNetwork.IsMasterClient,"Rendered reward authority restored");yield return .2f;
             Check(session.State.matchId==firstMatch&&!session.State.rewards.adminUsed&&
-                ArchiveMatchRewardPolicy.Build(session.State,guest.Actor).participationKeys.SequenceEqual(guestReport.participationKeys),
+                ArchiveMatchRewardPolicy.ParticipationKeys(session.State,guest.Actor).SequenceEqual(guestCredits),
                 "Master handoff preserves the reward roster, match ID and accepted work ledger");
 
             Status="Admin exclusion is sticky inside its match";
@@ -131,7 +131,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 var state=session.State.stations[topic];state.phase=2;state.round=ArchiveTopicCatalog.RoundCount(topic);state.timerRunning=false;
                 for(int round=0;round<ArchiveTopicCatalog.RoundCount(topic);round++)
                     for(int subphase=0;subphase<(topic==2?2:1);subphase++)
-                        session.State.solved.Add(new ArchiveSolvedMilestone{topic=topic,round=round,subphase=subphase,resetSerial=state.testResetSerial,
+                        session.State.solved.Add(new ArchiveSolvedMilestone{topic=topic,round=round,subphase=subphase,resetSerial=state.testResetSerial,solver=guest.Actor,
                             contributors=roster.ToArray(),crystalContributors=roster.ToArray()});
                 var crystal=session.State.crystals[topic];crystal.started=crystal.closed=crystal.online=crystal.fullyRestored=true;crystal.adminBypass=false;
             }
@@ -140,16 +140,17 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             for(int damage=0;damage<session.hunting.health.MaximumHealth;damage++)
                 if(!session.hunting.health.DamageAuthoritativeActor(host))break;
             session.State.exit.opened=session.State.exit.won=true;session.State.exit.wonAt=ArchiveTopicSession.Clock;
+            session.State.exit.escaped.Add(new ArchiveEscape{actor=guest.Actor});
             CommitLearningFixture();
             yield return Wait(()=>guest.state?.rewards?.finalReports?.Count==2,"Frozen terminal reward reports replicate",8);
             var hostFinal=session.RewardReport(host);var guestFinal=session.RewardReport(guest.Actor);
             Check(session.State.rewards.finalReports.Count==2&&ArchiveMatchRewardPolicy.Calculate(hostFinal).coins==1000&&
-                ArchiveMatchRewardPolicy.Calculate(guestFinal).coins==1000,
-                "The trusted full-restoration victory freezes separate capped 1000-coin reports for both members");
+                ArchiveMatchRewardPolicy.Calculate(guestFinal).coins==2000&&ArchiveMatchRewardPolicy.Calculate(guestFinal).leaderboardPoints==1000,
+                "The trusted victory freezes separate survivor and non-escapee rewards");
             Check(guest.state.rewards.finalReports.All(r=>r.matchId==session.State.matchId&&r.completedTopics.Length==10&&r.restoredTopics.Length==10),
                 "The independent peer receives the same frozen terminal topic and crystal evidence");
-            Check(session.hunting.health.ActorHearts(host)==0&&ArchiveMatchRewardPolicy.Calculate(hostFinal).tier==3,
-                "A downed teammate retains meaningful work and full team reward eligibility");
+            Check(session.hunting.health.ActorHearts(host)==0&&ArchiveMatchRewardPolicy.Calculate(hostFinal).leaderboardPoints==500,
+                "A connected downed teammate still earns the non-escapee payout and their own leaderboard points");
             Check(rewardRequests==1&&PlayerPrefs.GetString(RewardPreference,"").Contains(session.State.matchId)&&
                 MultiplayerRewardOutbox.GetReceipt(session.State.matchId)==null,
                 "The terminal report is durably queued before a backend reply or party-return cleanup");
@@ -159,13 +160,13 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Check(!session.enabled&&PlayerPrefs.GetString(RewardPreference,"").Contains(session.State.matchId)&&rewardRequests==1,
                 "The actual retained-party freeze preserves the pending same-match reward report");
             var expected=ArchiveMatchRewardPolicy.Calculate(hostFinal);
-            rewardReply.SetResult(JsonUtility.ToJson(new MultiplayerRewardBackendClient.Receipt{matchId=hostFinal.matchId,status="completed",reward=expected.coins,
-                baseCoins=expected.baseCoins,crystalCoins=expected.crystalCoins,participationCoins=expected.participationCoins,
-                consolationCoins=expected.consolationCoins,tier=expected.tier,coins=expected.coins,gems=2,gemReward=2}));
+            rewardReply.SetResult(JsonUtility.ToJson(new MultiplayerRewardBackendClient.Receipt{matchId=hostFinal.matchId,status="completed",
+                version=2,reward=expected.coins,coins=expected.coins,points=expected.leaderboardPoints,
+                leaderboardReward=expected.leaderboardPoints,correctAnswers=expected.correctAnswers,escaped=expected.escaped}));
             yield return Wait(()=>MultiplayerRewardOutbox.GetReceipt(hostFinal.matchId)!=null,"Confirmed fake backend reward arrives",8);
             Check(MultiplayerRewardOutbox.GetReceipt(hostFinal.matchId).reward==1000&&MultiplayerRewardOutbox.Status(hostFinal.matchId).Contains("earned: +"+1000.ToString("N0")),
                 "Only the confirmed backend receipt turns the pending local report into earned currency");
-            var edited=JsonUtility.FromJson<ArchiveMatchRewardReport>(queuedJson);edited.participationKeys=Array.Empty<string>();
+            var edited=JsonUtility.FromJson<ArchiveMatchRewardReport>(queuedJson);edited.correctAnswers=Array.Empty<string>();
             MultiplayerRewardOutbox.Queue(RewardQaUid,edited);session.CaptureMatchReward();yield return .1f;
             Check(rewardRequests==1&&MultiplayerRewardOutbox.GetReceipt(hostFinal.matchId).reward==1000,
                 "Repeated capture or edited same-match reports cannot send a second reward request");

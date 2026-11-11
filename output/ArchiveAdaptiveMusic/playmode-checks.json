@@ -1,0 +1,27 @@
+{
+    "passed": true,
+    "error": "",
+    "scope": "Native isolated Play Mode, streaming audio and world-label rendering; no room or account writes.",
+    "checks": [
+        "PASS Daylight automatically fades into the original exploration score",
+        "PASS Fixed world text is discovered by the existing label presenter",
+        "PASS Near captions are readable; distant captions stop rendering",
+        "PASS Screen HUD is excluded from distance fading",
+        "PASS Afternoon switches to the warmer score",
+        "PASS Evening switches to the uneasy score",
+        "PASS Night switches to the suspense score",
+        "PASS Local pursuit switches to the urgent hunt score",
+        "PASS Ending a pursuit returns to the current world mood without stacking tracks",
+        "PASS Both score voices use the existing Music volume mixer",
+        "PASS Capture/cinematic focus ducks the score for SFX and instructions",
+        "PASS Connection recovery fades the score to silence",
+        "PASS Captions fade smoothly between 55 and 85 units while owners stay active",
+        "PASS Text remains readable at 50 units even in dense night fog",
+        "PASS Approaching restores current text and preserves the owner's moving transform",
+        "PASS Labels created later by challenges are discovered and distance culled",
+        "PASS Disabling the presenter restores owned visual properties",
+        "PASS Music follows the unchanged 3/5/7 completed-topic world phases",
+        "PASS Score recovers to a single background voice"
+    ],
+    "maximumMusicVoices": 2
+}

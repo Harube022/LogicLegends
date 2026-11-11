@@ -186,6 +186,7 @@ public sealed partial class MultiplayerLobbyService
         FindFirstObjectByType<PlayerSpawner>()?.BindRecoveredPlayer(player);
         FindFirstObjectByType<LogicLegends.Tests.Khezu.KhezuMultiplayerTestSession>()?.BindOwnedPlayer(player);
         recovering = restoring = false; Busy = false; deadline = 0; onlineSession = true; committed = RoomState == LobbyRules.Loading;
+        topics.PublishRecoveredRewardEligibility();
         topics.hunting.AuthorityChanged();
         topics.hunting.GetComponent<LogicLegends.OpenArchive.Cinematics.KhezuCaptureEncounterController>()?.SynchronizeBarrierMovement();
         TeleportCameraSync.ResetAfterMove(player.transform, Vector3.zero);

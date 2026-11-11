@@ -66,6 +66,9 @@ namespace LogicLegends.OpenArchive.Topics
         public double timerDeadline;
         public float timerLimit, timerSavedRemaining;
         public bool timerRunning, timerExpired;
+        // Overtime belongs to this same authoritative clock; Book pauses checkpoint its elapsed time.
+        public bool timerOvertime;
+        public float timerSavedOvertime;
         public int timerActor, timerAttempt, timerTimeouts;
         public bool continuous = true, routeSampleValid;
         // Checkpoint the current bridge transaction with the authoritative route.
@@ -107,7 +110,7 @@ namespace LogicLegends.OpenArchive.Topics
     [Serializable] public sealed class ArchiveQualityCredit { public string key; public int actor; }
     [Serializable] public sealed class ArchiveSolvedMilestone
     {
-        public int topic, round, subphase, resetSerial;
+        public int topic, round, subphase, resetSerial, solver;
         public int[] contributors;
         // Actual accepted puzzle work, excluding confirmation-only participation.
         public int[] crystalContributors = Array.Empty<int>();
