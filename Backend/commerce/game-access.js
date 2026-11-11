@@ -11,14 +11,16 @@ function decideAccess(user, moderation, now = Date.now()) {
   if (!user || user.disabled) throw denied('This account is disabled.', 'ACCOUNT_DISABLED');
   const restriction = moderation?.restriction;
   const restrictionActive = restriction?.active === true && (!restriction.expiresAt || restriction.expiresAt > now);
-  if (restrictionActive) throw gameRestricted();
+  const capabilities = restriction?.capabilities;
+  if (restrictionActive && (!Array.isArray(capabilities) || capabilities.length === 0 || capabilities.includes('game')))
+    throw gameRestricted();
   if (user.emailVerified !== true) throw denied('Please verify your email address before logging in.', 'EMAIL_UNVERIFIED');
   const claims = user.customClaims || {};
   const admin = claims.admin === true || claims.super_admin === true;
   const email = typeof user.email === 'string' ? user.email.trim() : '';
   if (!admin && (email.length > 254 || !NCST.test(email)))
     throw denied('Please use your NCST account to continue.', 'DOMAIN_NOT_ALLOWED');
-  const restrictions = restrictionActive && Array.isArray(restriction.capabilities) ? restriction.capabilities : [];
+  const restrictions = restrictionActive && Array.isArray(capabilities) ? capabilities : [];
   return { uid: user.uid, admin, feedbackRestricted: restrictions.includes('feedback'), policyVersion: 2 };
 }
 
@@ -39,3 +41,4 @@ async function authorizeGame({ token, verifyToken, getUser, getModeration, onIde
 }
 
 module.exports = { authorizeGame, decideAccess, NCST };
+
