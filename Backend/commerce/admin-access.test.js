@@ -48,6 +48,8 @@ test('live account policy uses trusted roles and moderation on every protected H
     assert.equal((await call('player'))[1].feedbackRestricted, true);
     moderation.player.restriction.expiresAt = 4999;
     assert.equal((await call('player'))[1].feedbackRestricted, false);
+    moderation.player.restriction = { active: true, expiresAt: 9000, capabilities: ['game'] };
+    assert.equal((await call('player'))[1].code, 'GAME_RESTRICTED');
     moderation.player.ban = { active: true };
     records.player.disabled = true;
     for (const [path, body] of [['/game/access'], ['/wallet'], ['/trials/start', {}], ['/multiplayer/complete', {}]])
