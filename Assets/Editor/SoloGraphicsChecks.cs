@@ -70,10 +70,11 @@ public static class SoloGraphicsChecks
         var report = new System.Text.StringBuilder();
         for (int tier = 0; tier < 3; tier++)
         {
-            var data = new SoloSettingsData { graphicsQuality = tier, lightingQuality = 2, shadowQuality = 3, motionBlur = true };
+            var data = new SoloSettingsData { graphicsQuality = tier, lightingQuality = tier, shadowQuality = 3, motionBlur = true };
             int kept = 0; for (int i = 0; i < 100; i++) if (SoloGraphicsBudget.KeepFoliage(data, i)) kept++;
-            if (SoloGraphicsBudget.LightLimit(data) != new[] { 6, 12, 24 }[tier] || kept != new[] { 50, 75, 100 }[tier]) throw new Exception("Quality budget mismatch.");
-            if (tier == 0 && (SoloGraphicsBudget.Shadows(data) != 0 || SoloGraphicsBudget.PostProcessing(data))) throw new Exception("Low permits an expensive effect.");
+            if (SoloGraphicsBudget.LightLimit(data) != new[] { 4, 6, 8 }[tier] || kept != new[] { 50, 75, 100 }[tier]) throw new Exception("Quality budget mismatch.");
+            if (SoloGraphicsBudget.Shadows(data) != 3) throw new Exception("Graphics quality overrides shadow quality.");
+            if (tier == 0 && SoloGraphicsBudget.PostProcessing(data)) throw new Exception("Low permits post processing.");
             report.AppendLine("PASS tier=" + tier + " lights=" + SoloGraphicsBudget.LightLimit(data) + " grass=" + kept + "% shadows=" + SoloGraphicsBudget.Shadows(data));
         }
         var shader = Resources.Load<Shader>("Settings/SoloFoliage");

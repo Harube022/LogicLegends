@@ -64,6 +64,7 @@ public class TruthTableMinimap : MonoBehaviour
         cameraData.requiresDepthTexture = false;
         minimapCamera.allowHDR = false;
         minimapCamera.allowMSAA = false;
+        minimapCamera.useOcclusionCulling = false;
         expanded.ViewChanged += ChangeView;
         normalZoom = minimapCamera.orthographicSize;
         mapImage = minimapPanel.GetComponentInChildren<RawImage>(true);

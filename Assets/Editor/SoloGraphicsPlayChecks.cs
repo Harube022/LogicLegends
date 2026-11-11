@@ -161,7 +161,7 @@ public static class SoloGraphicsPlayChecks
         yield return EditorSceneManager.LoadSceneAsyncInPlayMode(Fixture, new LoadSceneParameters(LoadSceneMode.Single));
         yield return null; yield return null; yield return null; yield return new WaitForSecondsRealtime(.6f);
         var reloaded = UnityEngine.Object.FindFirstObjectByType<SoloSceneGraphics>();
-        if (SceneManager.GetActiveScene().handle == previousHandle || reloaded == null || SoloGameSettings.Current.graphicsQuality != 2 || reloaded.ActiveLocalLights > 24)
+        if (SceneManager.GetActiveScene().handle == previousHandle || reloaded == null || SoloGameSettings.Current.graphicsQuality != 2 || reloaded.ActiveLocalLights > SoloGraphicsBudget.LightLimit(SoloGameSettings.Current))
             File.AppendAllText(SoloGraphicsChecks.Folder + "/EditorProfile.txt", "FAIL quality reapply after scene reload\n");
         else File.AppendAllText(SoloGraphicsChecks.Folder + "/EditorProfile.txt", "PASS quality reapply after scene reload\n");
         typeof(SoloGameSettings).GetField("current", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).SetValue(null, null);
@@ -198,7 +198,7 @@ public static class SoloGraphicsPlayChecks
                 var data = SoloGameSettings.Current.Copy(); data.graphicsQuality = data.lightingQuality = tier;
                 data.shadowQuality = 3; data.motionBlur = true;
                 SoloGameSettings.Apply(data); yield return new WaitForSecondsRealtime(.35f);
-                if (gate.ActiveLocalLights != new[] { 6, 12, 24 }[tier]) throw new Exception("Trial " + trial + " tier " + tier + " light budget mismatch.");
+                if (gate.ActiveLocalLights != new[] { 4, 6, 8 }[tier]) throw new Exception("Trial " + trial + " tier " + tier + " light budget mismatch.");
                 if (tier == 0 && view.GetUniversalAdditionalCameraData().renderPostProcessing) throw new Exception("Trial " + trial + " Low post-processing override.");
             }
             File.AppendAllText(SoloGraphicsChecks.Folder + "/EditorProfile.txt", "PASS Trial " + trial + " named fixture: Low/Medium/High, active-scene reapply, scene-script light override\n");
