@@ -4,6 +4,7 @@ const BANNED = 'Your Logic Legends account has been banned. Please contact the a
 const NCST = /^[a-z0-9.!#$%&'*+\/=?^_`{|}~-]+@ncst\.edu\.ph$/i;
 const banned = () => Object.assign(fail(BANNED, 403), { code: 'ACCOUNT_BANNED' });
 const denied = (message, code) => Object.assign(fail(message, 403), { code });
+const gameRestricted = () => denied('Your access to Logic Legends has been restricted. Contact the administrator.', 'GAME_RESTRICTED');
 
 function decideAccess(user, moderation, now = Date.now()) {
   if (moderation?.ban?.active === true) throw banned();
@@ -15,9 +16,10 @@ function decideAccess(user, moderation, now = Date.now()) {
   if (!admin && (email.length > 254 || !NCST.test(email)))
     throw denied('Use a verified @ncst.edu.ph account to play Logic Legends.', 'DOMAIN_NOT_ALLOWED');
   const restriction = moderation?.restriction;
-  const restrictions = restriction?.active === true && (!restriction.expiresAt || restriction.expiresAt > now)
-    && Array.isArray(restriction.capabilities) ? restriction.capabilities : [];
-  return { uid: user.uid, admin, feedbackRestricted: restrictions.includes('feedback'), policyVersion: 1 };
+  const restrictionActive = restriction?.active === true && (!restriction.expiresAt || restriction.expiresAt > now);
+  const restrictions = restrictionActive && Array.isArray(restriction.capabilities) ? restriction.capabilities : [];
+  if (restrictionActive) throw gameRestricted();
+  return { uid: user.uid, admin, feedbackRestricted: restrictions.includes('feedback'), policyVersion: 2 };
 }
 
 // One authoritative Auth record read. The signed token determines the UID;

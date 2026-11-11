@@ -42,7 +42,8 @@ public sealed class GameCommunityUI : MonoBehaviour
     System.Collections.IEnumerator BindHomeEntries(RectTransform entries)
     {
         // The existing home panel is initially hidden until Firebase verification.
-        var feedback = HomeButton(entries, "Feedback", "Feedback", new Vector2(28, 24));
+        // Keep both community actions grouped at the lower-right edge of the home menu.
+        var feedback = HomeButton(entries, "Feedback", "Feedback", new Vector2(-24, 24));
         feedback.onClick.AddListener(() => Open(null, null));
         var text = feedback.GetComponentInChildren<TMP_Text>();
         text.rectTransform.offsetMin += new Vector2(44, 0);
@@ -58,7 +59,7 @@ public sealed class GameCommunityUI : MonoBehaviour
         var point = tail.gameObject.AddComponent<UnityEngine.UI.Image>();
         point.color = bubble.color;
         point.raycastTarget = false;
-        var admin = HomeButton(entries, "Admin", "Admin", new Vector2(302, 24));
+        var admin = HomeButton(entries, "Admin", "Admin", new Vector2(-292, 24));
         adminButton = admin.gameObject;
         adminButton.SetActive(false);
         admin.onClick.AddListener(OpenAdmin);
@@ -76,7 +77,8 @@ public sealed class GameCommunityUI : MonoBehaviour
         var button = MultiplayerUIArt.Action(name + "Button", parent, label, 0, 0, 0, 0);
         MultiplayerUIArt.StandardAction(button, 254);
         var rect = (RectTransform)button.transform;
-        rect.pivot = Vector2.zero;
+        rect.anchorMin = rect.anchorMax = new Vector2(1, 0);
+        rect.pivot = new Vector2(1, 0);
         rect.anchoredPosition = position;
         return button;
     }

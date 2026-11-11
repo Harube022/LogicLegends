@@ -19,7 +19,7 @@ public sealed class TrialSessionServices : MonoBehaviour
         if (TrialBackendClient.ValidationTransport != null) return;
 #endif
         acceptedUid = uid;
-        nextCheck = Time.realtimeSinceStartup + 120f;
+        nextCheck = Time.realtimeSinceStartup + 15f;
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Create()

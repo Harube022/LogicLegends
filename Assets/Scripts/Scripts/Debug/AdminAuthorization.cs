@@ -56,7 +56,7 @@ public static class AdminAuthorization
             var result = await TrialBackendClient.LoadAccess();
             if (version != generation || uid != TrialBackendClient.UserId)
                 throw new InvalidOperationException("Your account changed. Please retry.");
-            if (result == null || result.uid != uid || result.policyVersion != 1
+            if (result == null || result.uid != uid || result.policyVersion != 2
 #if UNITY_EDITOR
                 && TrialBackendClient.ValidationTransport == null
 #endif

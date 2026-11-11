@@ -290,9 +290,17 @@ public sealed class FriendsUI : MonoBehaviour
                 }
                 else
                 {
-                    SocialAction(row, "Report Player", .41f, .64f, () => GameCommunityUI.Report(overlay.transform, person.Id, person.Name));
-                    SocialAction(row, "Chat", .65f, .81f, () => OpenChat(person));
-                    if (section != Section.Chats) SocialAction(row, "Remove", .82f, .99f, () => Remove(person), true);
+                    if (section == Section.Chats)
+                    {
+                        SocialAction(row, "Report Player", .58f, .80f, () => GameCommunityUI.Report(overlay.transform, person.Id, person.Name), red: true);
+                        SocialAction(row, "Chat", .82f, .99f, () => OpenChat(person), green: true);
+                    }
+                    else
+                    {
+                        SocialAction(row, "Report Player", .41f, .64f, () => GameCommunityUI.Report(overlay.transform, person.Id, person.Name), red: true);
+                        SocialAction(row, "Chat", .65f, .81f, () => OpenChat(person), green: true);
+                        SocialAction(row, "Remove", .82f, .99f, () => Remove(person), red: true);
+                    }
                 }
             }
         }
@@ -320,8 +328,8 @@ public sealed class FriendsUI : MonoBehaviour
             bool pending = !isFriend && await FriendsRepository.RequestPendingAsync(id);
             if (!Current(version)) return;
             var row = Row(listContent, person.Name + "\nID  " + ShortId(id), 122, .40f);
-            SocialAction(row, "Report Player", .41f, .68f, () => GameCommunityUI.Report(overlay.transform, person.Id, person.Name));
-            if (isFriend) SocialAction(row, "Chat", .71f, .99f, () => OpenChat(person));
+            SocialAction(row, "Report Player", .41f, .68f, () => GameCommunityUI.Report(overlay.transform, person.Id, person.Name), red: true);
+            if (isFriend) SocialAction(row, "Chat", .71f, .99f, () => OpenChat(person), green: true);
             else if (!pending) SocialAction(row, "Add", .71f, .99f, () => Add(person));
             ShowStatus(isFriend ? "Already friends." : pending ? "Friend request already sent." : "Send a friend request?");
         }
@@ -633,9 +641,9 @@ public sealed class FriendsUI : MonoBehaviour
         return rect;
     }
 
-    private static void SocialAction(Transform row, string caption, float left, float right, UnityEngine.Events.UnityAction action, bool red = false)
+    private static void SocialAction(Transform row, string caption, float left, float right, UnityEngine.Events.UnityAction action, bool green = false, bool red = false)
     {
-        var button = MultiplayerUIArt.Action(caption.Replace(" ", "") + "Button", row, caption, left, .13f, right, .87f, red: red);
+        var button = MultiplayerUIArt.Action(caption.Replace(" ", "") + "Button", row, caption, left, .13f, right, .87f, green: green, red: red);
         button.GetComponent<UnityEngine.UI.Image>().pixelsPerUnitMultiplier = 4.5f;
         var label = button.GetComponentInChildren<TMP_Text>();
         label.rectTransform.offsetMin = new Vector2(8, 6);

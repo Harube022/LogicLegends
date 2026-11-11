@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { NCST } = require('./game-access');
 
-const guard = "auth != null && auth.token.email_verified === true && (auth.token.admin === true || auth.token.super_admin === true || (auth.token.email != null && auth.token.email.matches(" + NCST + "))) && root.child('website/moderation').child(auth.uid).child('ban/active').val() !== true && (!root.child('website/moderation').child(auth.uid).child('sessionsRevokedAt').exists() || auth.token.auth_time > root.child('website/moderation').child(auth.uid).child('sessionsRevokedAt').val())";
+const guard = "auth != null && auth.token.email_verified === true && (auth.token.admin === true || auth.token.super_admin === true || (auth.token.email != null && auth.token.email.matches(" + NCST + "))) && root.child('website/moderation').child(auth.uid).child('ban/active').val() !== true && (root.child('website/moderation').child(auth.uid).child('restriction/active').val() !== true || (root.child('website/moderation').child(auth.uid).child('restriction/expiresAt').exists() && root.child('website/moderation').child(auth.uid).child('restriction/expiresAt').val() <= now)) && (!root.child('website/moderation').child(auth.uid).child('sessionsRevokedAt').exists() || auth.token.auth_time > root.child('website/moderation').child(auth.uid).child('sessionsRevokedAt').val())";
 
 function patchGameRules(document) {
   const rules = document.rules;

@@ -85,7 +85,10 @@ public class AuthManager : MonoBehaviour
     private void Update()
     {
         // The Android picker runs in a separate activity. Let its callback own the result.
-        if (accountLoading && !googlePickerPending && Application.internetReachability == NetworkReachability.NotReachable)
+        // Let an in-flight sign-in request return its Firebase error. On Android,
+        // reachability can briefly report NotReachable while the request is active,
+        // which would replace invalid-credential feedback with the connection dialog.
+        if (accountLoading && !signingIn && !googlePickerPending && Application.internetReachability == NetworkReachability.NotReachable)
         {
             ShowConnectionError();
             return;
@@ -206,7 +209,9 @@ public class AuthManager : MonoBehaviour
                 // Older Firebase SDKs report the enumeration-protected backend response as Failure.
                 string detail = error.ToString().ToUpperInvariant();
                 if (detail.Contains("INVALID_LOGIN_CREDENTIALS") || detail.Contains("INVALID_PASSWORD") ||
-                    detail.Contains("EMAIL_NOT_FOUND")) return AuthError.InvalidCredential;
+                    detail.Contains("EMAIL_NOT_FOUND") || detail.Contains("WRONG_PASSWORD") ||
+                    detail.Contains("USER_NOT_FOUND") || detail.Contains("INVALID CREDENTIAL"))
+                    return AuthError.InvalidCredential;
                 if (error is Firebase.FirebaseException firebaseError)
                     return (AuthError)firebaseError.ErrorCode;
             }
@@ -734,6 +739,7 @@ public class AuthManager : MonoBehaviour
             if (task.IsCanceled || task.IsFaulted)
             {
                 var error = ErrorCode(task.Exception);
+                Debug.LogWarning($"Firebase email sign-in failed ({error}).");
                 string message;
                 if (error == AuthError.InvalidEmail || error == AuthError.WrongPassword ||
                     error == AuthError.UserNotFound || error == AuthError.InvalidCredential)
@@ -742,7 +748,9 @@ public class AuthManager : MonoBehaviour
                     message = "Too many attempts. Please wait and try again.";
                 else if (error == AuthError.UserDisabled)
                     message = "This account is disabled or banned. Contact the administrators.";
-                else { ShowConnectionError(); return; }
+                else if (error == AuthError.NetworkRequestFailed)
+                { ShowConnectionError("SIGN-IN SERVICE UNAVAILABLE", "Couldn't reach Firebase to sign in. Check your connection and try again."); return; }
+                else message = "Sign-in failed. Check your email and password, then try again.";
                 CompleteAccountLoading(() => { ShowLoginScreen(); Feedback(message, loginFeedbackDuration); });
                 return;
             }
