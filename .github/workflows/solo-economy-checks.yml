@@ -4,7 +4,16 @@ on:
   pull_request:
     paths:
       - 'Backend/commerce/**'
-      - 'Assets/Scripts/**'
+      - 'Assets/Scripts/Scripts/GameManager/SoloEconomy.cs*'
+      - 'Assets/Scripts/Scripts/GameManager/SoloEconomyConnection.cs*'
+      - 'Assets/Scripts/Scripts/GameManager/TrialRunFlow.cs*'
+      - 'Assets/Scripts/Scripts/GameManager/TrialRewards.cs*'
+      - 'Assets/Scripts/Scripts/GameManager/TrialBackendClient.cs*'
+      - 'Assets/Scripts/Scripts/GameManager/StageHelpContent.cs*'
+      - 'Assets/Scripts/Scripts/Shop_Customization_Manager/CommerceClient.cs*'
+      - 'Assets/Scripts/Scripts/Shop_Customization_Manager/ShopManager.cs*'
+      - 'Assets/Scripts/Scripts/Shop_Customization_Manager/ShopItem.cs*'
+      - 'Assets/Scripts/Scripts/Shop_Customization_Manager/ShopPreviewUI.cs*'
       - 'Assets/Editor/Solo*.cs*'
       - 'Assets/Resources/SoloEconomy.json*'
       - 'Assets/Resources/CommerceSettings.asset*'
@@ -45,3 +54,4 @@ jobs:
         run: node --test
         working-directory: Backend/commerce
       # No credentials, deploy step, commit, push, or production account access.
+

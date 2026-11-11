@@ -37,7 +37,7 @@ test('live account policy uses trusted roles and moderation on every protected H
   };
   try {
     assert.equal((await call('invalid'))[0], 401);
-    assert.deepEqual(await call('player'), [200, { uid: 'player', admin: false, feedbackRestricted: false, policyVersion: 1 }]);
+    assert.deepEqual(await call('player'), [200, { uid: 'player', admin: false, feedbackRestricted: false, policyVersion: 2 }]);
     assert.equal((await call('outsider'))[1].code, 'DOMAIN_NOT_ALLOWED');
     assert.equal((await call('instructor'))[1].code, 'DOMAIN_NOT_ALLOWED');
     for (const uid of ['website', 'game']) assert.equal((await call(uid))[1].admin, true);
@@ -63,3 +63,4 @@ test('live account policy uses trusted roles and moderation on every protected H
     else process.env.FIREBASE_DATABASE_EMULATOR_HOST = previousHost;
   }
 });
+
