@@ -8,6 +8,7 @@ namespace LogicLegends.OpenArchive.Topics
     {
         TMP_Text teamCountCaption,wheelCenter;
         ArchiveSignalIconGraphic teamChevron;
+        ArchiveSignalIconGraphic pingDockIcon;
         ArchiveSignalSectorGraphic pingMedallion;
         ArchiveHoldSignalInput signalHold;
         readonly ArchiveSignalSectorGraphic[] sectors=new ArchiveSignalSectorGraphic[4];
@@ -23,20 +24,18 @@ namespace LogicLegends.OpenArchive.Topics
 
         void StyleTeamDock()
         {
-            Stretch(teamCaption.rectTransform,new Vector2(.29f,.48f),new Vector2(.81f,.86f));
-            teamCaption.rectTransform.offsetMin=teamCaption.rectTransform.offsetMax=Vector2.zero;
-            teamCaption.alignment=TextAlignmentOptions.MidlineLeft;teamCaption.fontSize=teamCaption.fontSizeMax=25;teamCaption.fontSizeMin=22;
-            teamCountCaption=Text("Party_Count",teamToggle.transform,18,false,Cream);
-            Stretch(teamCountCaption.rectTransform,new Vector2(.29f,.18f),new Vector2(.84f,.49f));
-            var badge=Fixed("Party_Emblem",teamToggle.transform,new Vector2(.14f,.5f),new Vector2(.5f,.5f),new Vector2(56,56));
-            var face=badge.gameObject.AddComponent<ArchiveSignalSectorGraphic>();face.raycastTarget=false;
-            Icon("Party_Icon",badge,ArchiveSignalIcon.Team,Vector2.zero,new Vector2(36,36),Cream);
-            teamChevron=Icon("Roster_Arrow",teamToggle.transform,ArchiveSignalIcon.Chevron,new Vector2(.89f,.5f),new Vector2(16,16),Cream,true);
+            teamCaption.gameObject.SetActive(false);teamToggle.GetComponent<Image>().enabled=false;
+            var badge=Fixed("Party_Emblem",teamToggle.transform,new Vector2(.5f,.5f),new Vector2(.5f,.5f),new Vector2(80,80));
+            var face=badge.gameObject.AddComponent<ArchiveSignalSectorGraphic>();teamToggle.targetGraphic=face;
+            Icon("Party_Icon",badge,ArchiveSignalIcon.Team,new Vector2(-3,10),new Vector2(35,35),Cream);
+            teamCountCaption=Text("Party_Count",badge,19,false,Cream);teamCountCaption.fontStyle=FontStyles.Bold;
+            Stretch(teamCountCaption.rectTransform,new Vector2(.14f,.14f),new Vector2(.86f,.40f));teamCountCaption.alignment=TextAlignmentOptions.Center;
+            teamChevron=Icon("Roster_Arrow",badge,ArchiveSignalIcon.Chevron,new Vector2(.78f,.64f),new Vector2(10,10),Cream,true);
 
             pingToggle.GetComponent<Image>().enabled=false;
             var ring=Fixed("Signal_Medallion",pingToggle.transform,new Vector2(.5f,.5f),new Vector2(.5f,.5f),new Vector2(80,80));
             pingMedallion=ring.gameObject.AddComponent<ArchiveSignalSectorGraphic>();pingToggle.targetGraphic=pingMedallion;
-            Icon("Signal_Icon",ring,ArchiveSignalIcon.Signal,new Vector2(0,11),new Vector2(37,37),Cream);
+            pingDockIcon=Icon("Signal_Icon",ring,ArchiveSignalIcon.Signal,Vector2.zero,new Vector2(37,37),Cream);
             pingCaption.transform.SetAsLastSibling();Stretch(pingCaption.rectTransform,new Vector2(.18f,.14f),new Vector2(.82f,.43f));
             pingCaption.rectTransform.offsetMin=pingCaption.rectTransform.offsetMax=Vector2.zero;
             pingCaption.fontSize=pingCaption.fontSizeMax=17;pingCaption.fontSizeMin=15;

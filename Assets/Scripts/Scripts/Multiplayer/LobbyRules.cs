@@ -6,8 +6,8 @@ using NetPlayer = Photon.Realtime.Player;
 public static class LobbyRules
 {
     public const string CodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    // Peers must preserve the same mistake context across checkpoints and handoff.
-    public const string Protocol = "LL-private-lobby-25";
+    // Peers must share authoritative topic overtime and retain work across zero.
+    public const string Protocol = "LL-private-lobby-27";
     public const int RecoverySeatMilliseconds = 45000;
     public const float RecoverySeconds = 30f;
     public const int RecoveryAttempts = 4;

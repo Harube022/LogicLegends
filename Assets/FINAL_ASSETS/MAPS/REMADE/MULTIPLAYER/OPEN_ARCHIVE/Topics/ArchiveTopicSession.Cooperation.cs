@@ -106,7 +106,7 @@ namespace LogicLegends.OpenArchive.Topics
                 .Concat(q.activity==ArchiveActivity.Choice?new[]{actor}:Array.Empty<int>())
                 .Concat(q.graph!=null&&q.graph.type!=LogicLegends.Graph.GraphChallengeType.Degree&&s.routeActor!=0&&s.continuous?new[]{s.routeActor}:Array.Empty<int>())
                 .Where(a=>a!=0).Distinct().ToArray();
-            State.solved.Add(new ArchiveSolvedMilestone{topic=s.topic,round=s.round,subphase=s.subphase,resetSerial=s.testResetSerial,
+            State.solved.Add(new ArchiveSolvedMilestone{topic=s.topic,round=s.round,subphase=s.subphase,resetSerial=s.testResetSerial,solver=actor,
                 contributors=contributors,crystalContributors=crystalContributors});
             foreach(int contributor in contributors)AddQualityCredit(contributor,key);
             s.workCredits.Clear();

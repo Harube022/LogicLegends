@@ -166,6 +166,8 @@ namespace LogicLegends.OpenArchive.Hunting
         public void ApplyCommand(KhezuCommand command)
         {
             if (!IsAuthority || !Initialized) return;
+            if(Topics.ArchiveTopicSession.Current!=null&&Topics.ArchiveTopicSession.Current.AdminMonstersStopped&&
+                command!=KhezuCommand.Sleep&&command!=KhezuCommand.ResetHunt&&command!=KhezuCommand.ResetRotation)return;
             if (IsTranquilized || CarryingRescueActor) return;
             if(EntranceHeld&&command!=KhezuCommand.Sleep&&command!=KhezuCommand.ResetHunt)return;
             if ((State==KhezuHuntState.ReturningToNest || State==KhezuHuntState.NestSleeping || State==KhezuHuntState.AttackRecovery) &&
@@ -223,6 +225,7 @@ namespace LogicLegends.OpenArchive.Hunting
         void Update()
         {
             if (!Initialized) return;
+            if(Topics.ArchiveTopicSession.Current!=null&&Topics.ArchiveTopicSession.Current.AdminMonstersStopped){StopNavigation();return;}
             if(Topics.ArchiveTopicSession.Current!=null&&Topics.ArchiveTopicSession.Current.TeamDefeated){StopNavigation();return;}
             if(EntranceHeld){StopNavigation();return;}
             if(Topics.ArchiveTopicSession.Current!=null&&Topics.ArchiveTopicSession.Current.NightEntranceActive){StopNavigation();return;}

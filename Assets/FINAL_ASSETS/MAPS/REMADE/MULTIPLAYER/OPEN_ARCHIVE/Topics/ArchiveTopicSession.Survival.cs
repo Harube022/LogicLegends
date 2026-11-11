@@ -76,7 +76,7 @@ namespace LogicLegends.OpenArchive.Topics
                     LocalTranquilizerAim(player,Camera.main):Camera.main!=null?Camera.main.transform.forward:player.transform.forward};
             return DispatchCommand(command);
         }
-        public static Vector3 LocalTranquilizerAim(Player player,Camera camera)
+        public static Vector3 LocalTranquilizerAim(Player player, Camera camera, RaycastHit[] buffer = null)
         {
             if(player==null)return Vector3.forward;
             var capsule=player.GetComponent<CharacterController>();
@@ -85,11 +85,23 @@ namespace LogicLegends.OpenArchive.Topics
             var ray=camera.ViewportPointToRay(new Vector3(.5f,.5f,0));
             float reach=TranquilizerRange+Vector3.Distance(camera.transform.position,origin);
             Vector3 target=ray.origin+ray.direction*reach;
-            foreach(var hit in Physics.RaycastAll(ray,reach,~0,QueryTriggerInteraction.Collide).OrderBy(h=>h.distance))
+            int count = buffer == null ? 0 : Physics.RaycastNonAlloc(ray, buffer, reach, ~0, QueryTriggerInteraction.Collide);
+            // The per-frame pose uses a reusable buffer. A full buffer can omit the
+            // closest surface, so fall back to a complete query in that case.
+            if (buffer == null || count == buffer.Length)
             {
+                buffer = Physics.RaycastAll(ray, reach, ~0, QueryTriggerInteraction.Collide);
+                count = buffer.Length;
+            }
+            float nearest = reach;
+            for (int i = 0; i < count; i++)
+            {
+                var hit = buffer[i];
+                if (hit.collider == null || hit.distance >= nearest) continue;
                 if(hit.collider.transform.IsChildOf(player.transform))continue;
                 if(hit.collider.isTrigger&&hit.collider.GetComponentInParent<KhezuHuntingController>()==null)continue;
-                target=hit.point;break;
+                nearest = hit.distance;
+                target = hit.point;
             }
             // Only a direction is sent. The authority still casts from the real actor capsule,
             // so a camera peeking around cover cannot invent a shot origin or bypass a wall.

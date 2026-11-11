@@ -94,11 +94,12 @@ public static class MultiplayerRewardOutbox
             var receipt = entry.receipt;
             if (!string.IsNullOrEmpty(receipt.exclusionReason)) return "Coins earned: 0 — " + ExclusionNotice(receipt.exclusionReason);
             return "Coins earned: +" + receipt.reward.ToString("N0") +
+                (receipt.version == ArchiveMatchRewardPolicy.CurrentVersion ? "  ·  Leaderboard points: +" + receipt.leaderboardReward.ToString("N0") : "") +
                 (receipt.gemReward > 0 ? "  ·  Gems earned: +" + receipt.gemReward : "");
         }
         if (entry.rejected) return "Reward report could not be accepted — " + entry.error;
-        if (entry.error == "service-unavailable") return "Coins pending — reward service unavailable. Your report is saved.";
-        return "Coins pending — reconnect to save. Your report is saved.";
+        if (entry.error == "service-unavailable") return "Rewards pending. Your report is saved until the reward service is available.";
+        return "Rewards pending. Your report will sync when your connection is back.";
     }
     static string ExclusionNotice(string reason)
     {
@@ -107,6 +108,7 @@ public static class MultiplayerRewardOutbox
             case "admin-assisted": return "Admin-assisted match — no permanent rewards.";
             case "offline-preview": return "Offline practice — no permanent rewards.";
             case "no-participation": return "No confirmed puzzle work or teammate support.";
+            case "disconnected": return "Disconnected during the match. No rewards earned.";
             default: return "This match is not eligible for rewards.";
         }
     }

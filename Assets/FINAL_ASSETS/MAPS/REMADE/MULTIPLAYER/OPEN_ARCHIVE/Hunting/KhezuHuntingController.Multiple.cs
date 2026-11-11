@@ -29,12 +29,14 @@ namespace LogicLegends.OpenArchive.Hunting
         {foreach(var monster in ActiveMonsters)if(monster!=this&&string.IsNullOrEmpty(monster.encounterId))monster.SnapshotChanged?.Invoke();}
         public void HoldNightEntrance(float normalizedTime)
         {
+            if(Topics.ArchiveTopicSession.Current!=null&&Topics.ArchiveTopicSession.Current.AdminMonstersStopped)return;
             if(!Initialized)return;EntranceHeld=true;StopNavigation();
             driver.ApplyReplicaCounters(4,4);State=KhezuHuntState.Waking;pending=false;fullyAwake=false;
             animator.speed=0;animator.Play("Base Layer.Full_Awaken",0,Mathf.Clamp01(normalizedTime));
         }
         public void ReleaseNightEntrance()
         {
+            if(Topics.ArchiveTopicSession.Current!=null&&Topics.ArchiveTopicSession.Current.AdminMonstersStopped)return;
             if(!Initialized)return;
             if(!EntranceHeld&&State!=KhezuHuntState.Sleeping&&State!=KhezuHuntState.Waking)return;
             EntranceHeld=false;driver.ApplyReplicaCounters(4,4);animator.speed=1;fullyAwake=true;pending=false;
@@ -42,6 +44,7 @@ namespace LogicLegends.OpenArchive.Hunting
         }
         public void AwakenForNight()
         {
+            if(Topics.ArchiveTopicSession.Current!=null&&Topics.ArchiveTopicSession.Current.AdminMonstersStopped)return;
             // A night transition can arrive between the first three mistake stages.
             // Those partial wakes must join the night hunt too; earned nest sleep and
             // an active encounter still retain their existing state and deadlines.

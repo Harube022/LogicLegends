@@ -156,15 +156,18 @@ namespace LogicLegends.OpenArchive.Topics
         public bool UseSelectedHotbarItem()
         {
             if(!HotbarControlsAllowed()||!SelectedActionReady(out _,out _))return false;
-            if(SelectedHotbarSlot==(int)ArchiveSurvivalItem.Tranquilizer)
-                session.GetComponent<ArchiveEquippedItems>()?.FaceLocalShot(ArchiveTopicSession.LocalTranquilizerAim(Player.LocalInstance,Camera.main));
             // Darts already belong to the gun's authoritative stack. This shortcut equips
             // the existing gun without consuming ammo or introducing a reload system.
             return SelectedHotbarSlot==(int)ArchiveSurvivalItem.TranquilizerAmmo?
                 session.RequestEquipItem((int)ArchiveSurvivalItem.Tranquilizer):session.RequestUseEquippedItem();
         }
         bool CarriesTopicProp()=>session.Ready&&Array.Exists(session.State.stations,s=>s.carries.Exists(c=>c.actor==session.LocalActor));
-        bool CanAimEquippedGun()=>Player.LocalInstance!=null&&(Camera.main==null||Vector3.Dot(Camera.main.transform.forward,Player.LocalInstance.transform.forward)>.15f);
+        public bool LocalGunAimActive(Player player) =>
+            isActiveAndEnabled && player != null && player == Player.LocalInstance &&
+            session != null && session.Ready && session.EquippedItem(session.LocalActor) == (int)ArchiveSurvivalItem.Tranquilizer &&
+            (GameInput.Instance == null || !GameInput.Instance.HasGameplayActionBlock) &&
+            HotbarControlsAllowed() && !session.NightEntranceActive && !ArchiveMatchCinematic.Covers(session) &&
+            !CarriesTopicProp() && Camera.main != null;
         bool SelectedActionReady(out string caption,out string help)
         {
             int actor=session.LocalActor,selected=SelectedHotbarSlot;
@@ -208,9 +211,9 @@ namespace LogicLegends.OpenArchive.Topics
                     else help="Revive "+session.ActorName(nearest.actor)+" with one heart. Uses one Revival Kit.";
                     break;
                 case ArchiveSurvivalItem.Tranquilizer:
-                    caption="FIRE\nTRANQUILIZER";help="Aim at a monster, then tap FIRE. Each shot uses one dart.";
+                    caption="FIRE\nTRANQUILIZER";help="Drag to aim the crosshair, then tap FIRE. Each shot uses one dart.";
                     if(session.CountItem(actor,ArchiveSurvivalItem.TranquilizerAmmo)<=0){ready=false;help="No darts left. Find a tranquilizer ammo drop.";}
-                    else if(!CanAimEquippedGun()){ready=false;caption="TURN TO\nAIM";help="Drag the camera behind your character to aim, then tap FIRE.";}
+                    else if(!LocalGunAimActive(Player.LocalInstance))ready=false;
                     break;
                 case ArchiveSurvivalItem.TranquilizerAmmo:
                     caption="EQUIP\nTRANQUILIZER";help="Ammo loads automatically. Equip the tranquilizer gun, then tap FIRE to use one dart.";
@@ -256,7 +259,7 @@ namespace LogicLegends.OpenArchive.Topics
             var glyphColor=ready?Color.white:new Color(.72f,.77f,.78f,.60f);
             if(glyphImages!=null)foreach(var image in glyphImages)if(image!=useEquipped.image)image.color=glyphColor;
             info.color=ready?Color.white:new Color(.72f,.77f,.78f,.8f);
-            crosshair.gameObject.SetActive(canUse&&!reading&&selected==(int)ArchiveSurvivalItem.Tranquilizer&&CanAimEquippedGun()&&!CarriesTopicProp());
+            crosshair.gameObject.SetActive(canUse&&!reading&&selected==(int)ArchiveSurvivalItem.Tranquilizer&&LocalGunAimActive(Player.LocalInstance));
             RefreshTeamItemActions(canUse&&!reading);
         }
         void TickHotbarInput()

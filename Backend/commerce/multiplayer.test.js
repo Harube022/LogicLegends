@@ -9,6 +9,11 @@ const report = (overrides = {}) => ({ version: 1, matchId: id(), actor: 1, onlin
   outcome: 'victory', participants: [1, 2], completedTopics: Array.from({ length: 10 }, (_, i) => i),
   restoredTopics: Array.from({ length: 10 }, (_, i) => i),
   participationKeys: ['work:0:0:0', 'work:1:0:0', 'support:revive:2'], ...overrides });
+const rankedReport = (overrides = {}) => report({ version: 2, outcome: 'defeat', participants: [1, 2, 3],
+  completedTopics: [], restoredTopics: [], escapedActors: [], disconnectedActors: [], correctAnswers: [], ...overrides });
+const fullAnswers = Array.from({ length: 10 }, (_, topic) =>
+  Array.from({ length: topic === 1 ? 9 : topic === 6 ? 10 : 5 }, (_, round) =>
+    topic === 2 ? [`1:${topic}:${round}:0`, `1:${topic}:${round}:1`] : [`1:${topic}:${round}:0`]).flat()).flat();
 
 test('victory calculation is bounded at 600 team, 250 crystals and 150 participation coins', () => {
   for (let tier = 0; tier <= 3; tier++) {
@@ -142,4 +147,60 @@ test('coin or gem overflow cannot partially alter a wallet, milestone or receipt
     assert.throws(() => finishMatch(account, report()), /balance/);
     assert.deepEqual(account, before);
   }
+});
+
+test('each player gets their own escape payout and disconnected escapees forfeit both rewards', () => {
+  const request = rankedReport({ completedTopics: Array.from({ length: 10 }, (_, i) => i),
+    escapedActors: [1, 3], disconnectedActors: [3], correctAnswers: fullAnswers });
+  assert.deepEqual(calculateReward(request), {
+    reward: 2000, leaderboardReward: 1000, correctAnswers: 64, escaped: true, exclusionReason: ''
+  });
+  assert.deepEqual(calculateReward({ ...request, actor: 2 }), {
+    reward: 1000, leaderboardReward: 500, correctAnswers: 0, escaped: false, exclusionReason: ''
+  });
+  assert.deepEqual(calculateReward({ ...request, actor: 3 }), {
+    reward: 0, leaderboardReward: 0, correctAnswers: 0, escaped: true, exclusionReason: 'disconnected'
+  });
+  assert.equal(calculateReward({ ...request, outcome: 'victory', actor: 2 }).reward, 1000);
+});
+
+test('rank uses accepted answers only and awards full points for a one-answer spread', () => {
+  const answers = ['1:0:0:0', '1:0:1:0', '1:0:2:0', '2:1:0:0', '2:1:1:0', '3:2:0:0'];
+  const points = request => [1, 2, 3].map(actor => calculateReward({ ...request, actor }).leaderboardReward);
+  assert.deepEqual(points(rankedReport({ correctAnswers: answers })), [1000, 750, 500]);
+  assert.deepEqual(points(rankedReport({ correctAnswers: answers.slice(1) })), [1000, 1000, 1000]);
+  assert.deepEqual(points(rankedReport({ correctAnswers: answers, disconnectedActors: [3] })), [1000, 1000, 0]);
+  assert.deepEqual(points(rankedReport()), [1000, 1000, 1000]);
+  assert.deepEqual(points(rankedReport({ adminUsed: true, correctAnswers: answers })), [0, 0, 0]);
+  assert.deepEqual(points(rankedReport({ online: false, correctAnswers: answers })), [0, 0, 0]);
+  assert.deepEqual(points(rankedReport({ correctAnswers: ['1:0:0:0', '1:0:1:0', '2:1:0:0'] })), [1000, 750, 500]);
+});
+
+test('ranked evidence checks reject double credit, nonmembers, and impossible portal entries', () => {
+  for (const overrides of [{ correctAnswers: ['1:0:0:0', '2:0:0:0'] }, { correctAnswers: ['4:0:0:0'] },
+    { correctAnswers: ['1:0:0:1'] }, { correctAnswers: ['1:6:10:0'] }, { correctAnswers: ['1:0:0:0\n'] },
+    { correctAnswers: null }, { disconnectedActors: [1, 1] }, { escapedActors: [4] }, { escapedActors: [1] },
+    { completedTopics: [0] }, { outcome: 'victory', completedTopics: Array.from({ length: 10 }, (_, i) => i), correctAnswers: fullAnswers }])
+    assert.throws(() => calculateReward(rankedReport(overrides)));
+  assert.ok(Buffer.byteLength(JSON.stringify(rankedReport({ correctAnswers: fullAnswers }))) < 4096);
+});
+
+test('points and coins are written once without changing gems or accepting requested payout amounts', () => {
+  const account = { ...profile(), points: 120 };
+  const request = rankedReport({ reward: 1000000, leaderboardReward: 1000000, points: 1000000 });
+  finishMatch(account, request);
+  const saved = structuredClone(account);
+  finishMatch(account, { ...request, actor: 2, disconnectedActors: [1] });
+  assert.deepEqual(account, saved);
+  assert.deepEqual(presentMatch(account, request.matchId), { matchId: request.matchId, status: 'completed',
+    version: 2, coins: 1037, gems: 19, points: 1120, reward: 1000, gemReward: 0, leaderboardReward: 1000,
+    correctAnswers: 0, escaped: false, exclusionReason: '' });
+  const excluded = rankedReport({ disconnectedActors: [1] });
+  finishMatch(account, excluded);
+  assert.equal(account.points, 1120);
+  assert.equal(account.coins, 1037);
+  assert.equal(presentMatch(account, excluded.matchId).exclusionReason, 'disconnected');
+  const overflow = { ...profile(), points: 2147483647 }, before = structuredClone(overflow);
+  assert.throws(() => finishMatch(overflow, rankedReport()), /balance/);
+  assert.deepEqual(overflow, before);
 });

@@ -90,10 +90,10 @@ namespace LogicLegends.OpenArchive.Topics
             var state=session.State.stations[0];
             bool relayPending=session.T1RelayPending;
             float remaining=session.TimerRemaining(state);int seconds=Mathf.CeilToInt(remaining);
-            string timer=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
+            string timer=ArchiveTopicTimerPresentation.Format(session,state);
             objectiveTimer.gameObject.SetActive(!relayPending);readerTimer.gameObject.SetActive(!relayPending);
-            objectiveTimer.text=timer;readerTimer.text="TEAM TIME  "+timer;
-            objectiveTimer.color=readerTimer.color=state.timerExpired||(state.timerRunning&&remaining<=30)?Red:Teal;
+            objectiveTimer.text=timer;readerTimer.text=timer;
+            objectiveTimer.color=readerTimer.color=ArchiveTopicTimerPresentation.Tint(session,state);
             if(revision!=session.State.revision){revision=session.State.revision;Refresh();}
             string lockNotice=session.TopicLockNotice(0);
             if(IsOpen)

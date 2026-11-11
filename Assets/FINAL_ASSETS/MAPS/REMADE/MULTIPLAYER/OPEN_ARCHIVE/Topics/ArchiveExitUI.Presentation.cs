@@ -71,7 +71,7 @@ namespace LogicLegends.OpenArchive.Topics
             topicsValue.text=complete+" / 10";
             survivorsValue.text=session.EscapedSurvivorCount+" / "+session.SurvivorCount;
             crystalsValue.text=restored+" / 10";
-            personalStats.text="YOUR CONTRIBUTIONS  "+session.RewardContributionCount(session.LocalActor)+" / 3"+
+            personalStats.text="YOUR CORRECT ANSWERS  "+(session.State.actors?.FirstOrDefault(a=>a.actor==session.LocalActor)?.correctAnswers??0)+
                 "     ·     TEAM MISTAKES  "+(session.State.mistakes?.Count??0);
             rewardStatus.text=won||defeated?session.MatchRewardSummary:"Your escape is recorded. Waiting for every surviving teammate.";
             var report=session.RewardReport(session.LocalActor);

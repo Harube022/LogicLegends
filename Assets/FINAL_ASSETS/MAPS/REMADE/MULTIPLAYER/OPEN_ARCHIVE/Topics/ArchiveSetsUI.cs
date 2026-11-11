@@ -15,6 +15,7 @@ namespace LogicLegends.OpenArchive.Topics
         readonly List<Button> entries=new List<Button>();readonly List<TMP_Text> entryLabels=new List<TMP_Text>();
         readonly Image[] progress=new Image[5];
         int revision=-1,selected=-1;string readingKey="";Vector2 screen;Rect safe;float canvasScale;
+        internal bool IsReadingDetail => selected >= 0;
         static readonly Color Ink=new Color(.16f,.11f,.07f),Teal=new Color(.08f,.36f,.35f),Red=new Color(.75f,.13f,.10f);
         public bool IsOpen=>reader!=null&&reader.gameObject.activeSelf;
         public bool IsObjectiveVisible=>objective!=null&&objective.gameObject.activeSelf;
@@ -67,8 +68,8 @@ namespace LogicLegends.OpenArchive.Topics
             owner.SetObjectiveVisible(6,near&&owner.ReadingStation==null);if(!near){if(IsOpen)owner.Close();return;}
             if(screen!=new Vector2(Screen.width,Screen.height)||safe!=Screen.safeArea||!Mathf.Approximately(canvasScale,owner.GetComponent<Canvas>().scaleFactor))PositionObjective();
             if(revision!=session.State.revision){revision=session.State.revision;Refresh();}
-            var s=session.State.stations[6];var q=session.Question(6);int seconds=Mathf.CeilToInt(session.TimerRemaining(s));string value=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
-            timer.text=value;readerTimer.text="TEAM TIME  "+value;timer.color=readerTimer.color=s.timerExpired||s.timerRunning&&seconds<=30?Red:Teal;
+            var s=session.State.stations[6];var q=session.Question(6);int seconds=Mathf.CeilToInt(session.TimerRemaining(s));string value=ArchiveTopicTimerPresentation.Format(session,s);
+            timer.text=value;readerTimer.text=value;timer.color=readerTimer.color=ArchiveTopicTimerPresentation.Tint(session,s);
             bool start=session.CanStartTopic(6)&&session.Near(session.LocalActor,6,ArchiveTopicStation.BookPosition,ArchiveTopicSession.BookUseRadius);bool filled=ArchiveSetsPresentation.ReadyToCheck(q,s);
             primary.interactable=s.phase==2||s.phase==0&&start||filled;checkButton.interactable=filled;returnButton.gameObject.SetActive(s.carries.Any(c=>c.actor==session.LocalActor));
             if(!string.IsNullOrEmpty(session.TopicLockNotice(6))){cue.text="Another topic is active";primary.interactable=checkButton.interactable=false;return;}

@@ -81,8 +81,8 @@ namespace LogicLegends.OpenArchive.Topics
             if(!near){if(IsOpen)owner.Close();return;}
             if(screen!=new Vector2(Screen.width,Screen.height)||safe!=Screen.safeArea||!Mathf.Approximately(canvasScale,owner.GetComponent<Canvas>().scaleFactor))PositionObjective();
             if(revision!=session.State.revision){revision=session.State.revision;Refresh();}
-            var state=session.State.stations[1];int seconds=Mathf.CeilToInt(session.TimerRemaining(state));string value=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
-            timer.text=value;readerTimer.text="TEAM TIME  "+value;timer.color=readerTimer.color=state.timerExpired||(state.timerRunning&&seconds<=30)?Red:Teal;
+            var state=session.State.stations[1];int seconds=Mathf.CeilToInt(session.TimerRemaining(state));string value=ArchiveTopicTimerPresentation.Format(session,state);
+            timer.text=value;readerTimer.text=value;timer.color=readerTimer.color=ArchiveTopicTimerPresentation.Tint(session,state);
             bool canStart=session.CanStartTopic(1)&&session.Near(session.LocalActor,1,ArchiveTopicStation.BookPosition,ArchiveTopicSession.BookUseRadius);
             primary.interactable=state.phase==2||state.phase==0&&canStart||Filled(state);
             checkButton.interactable=Filled(state);returnButton.gameObject.SetActive(state.carries.Any(c=>c.actor==session.LocalActor));

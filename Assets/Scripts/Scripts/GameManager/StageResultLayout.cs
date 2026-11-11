@@ -87,6 +87,7 @@ public sealed class StageResultLayout : MonoBehaviour
             }
         }
         Layout();
+        SoloTrialCinematic.PlayClear(trial);
     }
     static void Label(TMP_Text label, Vector2 min, Vector2 max, float low, float high, bool reading)
     {

@@ -13,7 +13,7 @@ namespace LogicLegends.OpenArchive.Topics
     }
     /// <summary>Local sound presentation of accepted encounter and inventory state. Sends no gameplay commands.</summary>
     [DefaultExecutionOrder(12010), DisallowMultipleComponent]
-    public sealed class ArchiveAudioLandscape : MonoBehaviour
+    public sealed partial class ArchiveAudioLandscape : MonoBehaviour
     {
         public ArchiveTopicSession session;
         public AudioClip dayBed, nightBed;
@@ -35,6 +35,7 @@ namespace LogicLegends.OpenArchive.Topics
             public AudioClip[] original; public ArchiveMonsterSoundSet profile;
             public AudioSource breath, motion, vocal; public Vector3 position;
             public float distance, nextStep, nextGrowl; public KhezuHuntState state;
+            public double attackContact;
         }
         sealed class InventoryView
         {
@@ -57,7 +58,9 @@ namespace LogicLegends.OpenArchive.Topics
             if (!Application.isPlaying) return;
             day = Voice("Archive_Daylight_Background", transform, dayBed, true, false, GameAudioChannel.Music);
             night = Voice("Archive_Night_Background", transform, nightBed, true, false, GameAudioChannel.Music);
+            ResetBackgroundMusic();
             localItem = Voice("Archive_Local_Item_Feedback", transform, null, false, false);
+            EnableIndicators();
             spatialItems = new AudioSource[3];
             for (int i = 0; i < spatialItems.Length; i++) spatialItems[i] = Voice("Archive_Item_World_" + i, transform, null, false, true);
             nextScan = 0; match = ""; itemRevision = -1; MusicDuck = 1;
@@ -82,6 +85,7 @@ namespace LogicLegends.OpenArchive.Topics
                 if (!monsters.TryGetValue(monster, out var track))
                 {
                     track = new MonsterVoice { monster = monster, cinematic = cinematic, position = monster.transform.position, state = monster.State,
+                        attackContact = monster.FailureHitApplied ? monster.AttackHitAt : 0,
                         original = new[] { cinematic.captureImpact, cinematic.lowBreathing, cinematic.tenseGrowl, cinematic.monsterRoar, cinematic.impactAccent, cinematic.barrierActivation } };
                     track.breath = Voice("Archive_Guardian_Breath", monster.transform, profile.breathing, true, true);
                     track.motion = Voice("Archive_Guardian_Footsteps", monster.transform, null, false, true);
@@ -96,7 +100,9 @@ namespace LogicLegends.OpenArchive.Topics
         }
         void LateUpdate()
         {
-            if (day == null || session == null || !session.Ready) return;
+            if (day == null || session == null) return;
+            PresentIndicators();
+            if (!session.Ready) return;
             if (dartVisual == null)
             {
                 dartVisual = session.GetComponent<ArchiveTranquilizerVfx>();
@@ -108,16 +114,14 @@ namespace LogicLegends.OpenArchive.Topics
                 foreach (var monster in KhezuHuntingController.ActiveMonsters) if (monster.gameObject.scene == gameObject.scene) ApplyMonsterProfile(monster);
                 foreach (var source in FindObjectsByType<AudioSource>(FindObjectsSortMode.None))
                     if (source.name == "MainMenuMusic" && !legacyMusic.ContainsKey(source)) { legacyMusic[source] = source.mute; source.mute = true; }
+                ScanIndicatorButtons();
             }
             if (match != session.State.matchId)
             {
                 match = session.State.matchId; inventories.Clear(); hearts.Clear(); itemRevision = -1;
+                ResetBackgroundMusic();
             }
-            bool focus = session.NightEntranceActive || ArchiveMatchCinematic.Covers(session) || session.IsLocalBarrierQuestion ||
-                monsters.Values.Any(m => m.cinematic != null && m.cinematic.IsPlaying) || session.TeamWon || session.TeamDefeated;
-            MusicDuck = Mathf.MoveTowards(MusicDuck, focus ? encounterDuck : 1, Time.unscaledDeltaTime * 2);
-            float blend = session.worldProgression != null ? session.worldProgression.NightFogBlend : 0;
-            Loop(day, dayVolume * (1 - blend) * MusicDuck); Loop(night, nightVolume * blend * MusicDuck);
+            PresentBackgroundMusic();
             PresentMonsters();
             if (itemRevision != session.State.revision) { itemRevision = session.State.revision; PresentItems(); }
         }
@@ -154,8 +158,13 @@ namespace LogicLegends.OpenArchive.Topics
                     track.nextGrowl = Time.unscaledTime + 10;
                     MonsterCue(track.vocal, track.profile.growl, monsterVolume * .85f);
                 }
-                if (!quiet && monster.State == KhezuHuntState.AttackRecovery && track.state != monster.State)
-                    MonsterCue(track.vocal, track.profile.attack, monsterVolume);
+                if (monster.FailureHitApplied && monster.AttackHitAt > track.attackContact)
+                {
+                    track.attackContact = monster.AttackHitAt;
+                    double age = KhezuHuntingController.EncounterClock - track.attackContact;
+                    if (!quiet && age >= 0 && age < 1.25)
+                        MonsterCue(track.vocal, track.profile.attack, monsterVolume);
+                }
                 track.state = monster.State;
             }
         }
@@ -209,6 +218,7 @@ namespace LogicLegends.OpenArchive.Topics
         }
         void OnDisable()
         {
+            DisableIndicators();
             if (dartVisual != null) dartVisual.ImpactPresented -= OnDartImpact;
             dartVisual = null;
             foreach (var pair in legacyMusic) if (pair.Key != null) pair.Key.mute = pair.Value; legacyMusic.Clear();

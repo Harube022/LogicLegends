@@ -19,6 +19,8 @@ namespace LogicLegends.OpenArchive.Topics
         [Tooltip("Moves the existing follow camera beside the avatar so the reticle and dart flight remain visible.")]
         public Vector3 gunShoulderOffset = new Vector3(1.6f, .25f, 0);
         [Min(1)] public float gunShoulderBlendSpeed = 10;
+        [Range(0, 10)] public float flashlightDownwardAngle = 2.5f;
+        [Min(1)] public float gunFacingSpeed = 15;
 
         sealed class Equipment
         {
@@ -35,6 +37,7 @@ namespace LogicLegends.OpenArchive.Topics
 
         readonly Dictionary<int, Equipment> equipment = new Dictionary<int, Equipment>();
         readonly HashSet<int> observedActors = new HashSet<int>();
+        readonly RaycastHit[] reticleHits = new RaycastHit[64];
         CinemachineCamera gunCamera;
         CinemachineThirdPersonFollow gunFollow;
         Transform gunCameraTarget;
@@ -91,25 +94,36 @@ namespace LogicLegends.OpenArchive.Topics
                     RemoveInteractionComponents(e.model);
                 }
                 e.model.SetActive(true);
+                bool flashlight = item == (int)ArchiveSurvivalItem.Flashlight;
+                bool gun = item == (int)ArchiveSurvivalItem.Tranquilizer;
+                var aimCamera = gun && actor == session.LocalActor && view.LocalGunAimActive(player) ? Camera.main : null;
+                if (aimCamera != null) FaceReticle(player, aimCamera);
                 PoseArm(e);
                 float size = ExplorerSize(player);
                 Vector3 grip = e.wrist != null ? e.wrist.position :
                     player.HoldPoint != null ? player.HoldPoint.position : player.transform.TransformPoint(explorerGripPoint * size);
                 float worldScale = size * Mathf.Max(.01f, Mathf.Abs(player.transform.lossyScale.y));
-                var orientation=Quaternion.LookRotation(player.transform.forward,player.transform.up);
-                if(e.wrist!=null)
+                var orientation = Quaternion.LookRotation(player.transform.forward, player.transform.up);
+                if (flashlight) orientation = FlashlightRotation(player);
+                else if (gun && aimCamera != null)
+                    orientation = Quaternion.LookRotation(ArchiveTopicSession.LocalTranquilizerAim(player, aimCamera, reticleHits), Vector3.up);
+                if (e.wrist != null)
                 {
-                    // Calibrate once on the posed rig. Free camera orbit must never spin a
-                    // prop independently inside an otherwise stationary hand.
-                    if(!e.gripCalibrated){e.wristToItem=Quaternion.Inverse(e.wrist.rotation)*orientation;e.gripCalibrated=true;}
-                    orientation=e.wrist.rotation*e.wristToItem;
+                    if (!e.gripCalibrated)
+                    {
+                        var neutral = Quaternion.LookRotation(player.transform.forward, player.transform.up);
+                        e.wristToItem = Quaternion.Inverse(e.wrist.rotation) * neutral;
+                        e.gripCalibrated = true;
+                    }
+                    // Keep the grip attached while compensating for animated wrist twist.
+                    if (flashlight || gun) e.wrist.rotation = orientation * Quaternion.Inverse(e.wristToItem);
+                    else orientation = e.wrist.rotation * e.wristToItem;
                 }
-                if(item==(int)ArchiveSurvivalItem.Flashlight)orientation*=Quaternion.Euler(12,0,0);
                 // The prefab origin is not its handle. Place the authored grip in the palm.
                 grip+=orientation*Vector3.forward*(.22f*worldScale);
                 e.model.transform.SetPositionAndRotation(grip-orientation*(ItemGrip(item)*worldScale),orientation);
                 e.model.transform.localScale = Vector3.one * worldScale / Mathf.Max(.001f, Mathf.Abs(transform.lossyScale.y));
-                if (actor == session.LocalActor && item == (int)ArchiveSurvivalItem.Tranquilizer)
+                if (aimCamera != null)
                     localGunOwner = player;
             }
             foreach (int actor in equipment.Keys.Where(a => !observedActors.Contains(a)).ToArray())
@@ -129,16 +143,23 @@ namespace LogicLegends.OpenArchive.Topics
             }
         }
 
-        public void FaceLocalShot(Vector3 aim)
+        public Quaternion FlashlightRotation(Player player)
         {
-            var local=Player.LocalInstance;
-            if(local==null||session==null||!session.CanAct(session.LocalActor)||VisibleItem(session.LocalActor)!=(int)ArchiveSurvivalItem.Tranquilizer)return;
-            var horizontal=Vector3.ProjectOnPlane(aim,local.transform.up);
-            if(horizontal.sqrMagnitude<.001f)return;
-            var target=local.GetComponentInChildren<CameraTargetController>();
-            var look=target!=null?target.transform.rotation:Quaternion.identity;
-            local.transform.rotation=Quaternion.LookRotation(horizontal,local.transform.up);
-            if(target!=null)target.transform.rotation=look;
+            var forward = Vector3.ProjectOnPlane(player.transform.forward, Vector3.up);
+            if (forward.sqrMagnitude < .001f) forward = Vector3.forward;
+            return Quaternion.LookRotation(forward, Vector3.up) * Quaternion.Euler(flashlightDownwardAngle, 0, 0);
+        }
+
+        void FaceReticle(Player player, Camera camera)
+        {
+            var horizontal = Vector3.ProjectOnPlane(camera.transform.forward, Vector3.up);
+            if (horizontal.sqrMagnitude < .001f) return;
+            var target = player.GetComponentInChildren<CameraTargetController>();
+            var viewRotation = target != null ? target.transform.rotation : Quaternion.identity;
+            var desired = Quaternion.LookRotation(horizontal, Vector3.up);
+            var body = player.transform;
+            body.rotation = Quaternion.Slerp(body.rotation, desired, 1 - Mathf.Exp(-gunFacingSpeed * Time.deltaTime));
+            if (target != null) target.transform.rotation = viewRotation;
         }
 
         void UpdateGunShoulder(Player local)

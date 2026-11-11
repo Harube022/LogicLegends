@@ -21,6 +21,7 @@ namespace LogicLegends.OpenArchive.Topics
         public RectTransform Objective=>objective;
         public Button CheckButton=>checkButton;
         public TMP_Text ReadingText=>body;
+        internal bool IsReadingDetail => selected >= 0;
         public void Initialize(ArchiveTopicUI ui){owner=ui;Build();}
         void Build(){
             objective=Box("T6_Compact_Proof_Objective",transform,Vector2.one,new Vector2(440,248),owner.statusArt);objective.pivot=Vector2.one;
@@ -67,8 +68,8 @@ namespace LogicLegends.OpenArchive.Topics
             owner.SetObjectiveVisible(5,near&&owner.ReadingStation==null);if(!near){if(IsOpen)owner.Close();return;}
             if(screen!=new Vector2(Screen.width,Screen.height)||safe!=Screen.safeArea||!Mathf.Approximately(canvasScale,owner.GetComponent<Canvas>().scaleFactor))PositionObjective();
             if(revision!=session.State.revision){revision=session.State.revision;Refresh();}
-            var s=session.State.stations[5];var q=session.Question(5);int seconds=Mathf.CeilToInt(session.TimerRemaining(s));string value=(seconds/60).ToString("00")+":"+(seconds%60).ToString("00");
-            timer.text=value;readerTimer.text="TEAM TIME  "+value;timer.color=readerTimer.color=s.timerExpired||s.timerRunning&&seconds<=30?Red:Teal;
+            var s=session.State.stations[5];var q=session.Question(5);int seconds=Mathf.CeilToInt(session.TimerRemaining(s));string value=ArchiveTopicTimerPresentation.Format(session,s);
+            timer.text=value;readerTimer.text=value;timer.color=readerTimer.color=ArchiveTopicTimerPresentation.Tint(session,s);
             bool start=session.CanStartTopic(5)&&session.Near(session.LocalActor,5,ArchiveTopicStation.BookPosition,ArchiveTopicSession.BookUseRadius);bool filled=ArchiveInductionPresentation.Filled(s,q);
             primary.interactable=s.phase==2||s.phase==0&&start||filled;checkButton.interactable=filled;returnButton.gameObject.SetActive(s.carries.Any(c=>c.actor==session.LocalActor));
             if(!string.IsNullOrEmpty(session.TopicLockNotice(5))){cue.text="Another topic is active";primary.interactable=checkButton.interactable=false;return;}

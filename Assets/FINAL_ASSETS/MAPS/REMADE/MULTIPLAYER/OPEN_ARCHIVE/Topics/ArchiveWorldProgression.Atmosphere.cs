@@ -5,12 +5,12 @@ namespace LogicLegends.OpenArchive.Topics
     public sealed partial class ArchiveWorldProgression
     {
         [Header("Night distance fog - lightweight URP scene fog")]
-        public Color nightFogColor=new Color(.16f,.19f,.24f);
+        public Color nightFogColor=new Color(.105f,.13f,.18f);
         [Range(.004f,.04f)] public float nightFogDensity=.023f;
         public Shader nightFogSkyboxShader;
         [Header("Moon key and night visibility")]
-        [Range(.1f,.8f)] public float moonKeyIntensity=.35f;
-        public Color nightAmbientSky=new Color(.14f,.19f,.30f),nightAmbientEquator=new Color(.11f,.14f,.20f),nightAmbientGround=new Color(.075f,.09f,.13f);
+        [Range(.1f,.8f)] public float moonKeyIntensity=.20f;
+        public Color nightAmbientSky=new Color(.105f,.14f,.22f),nightAmbientEquator=new Color(.08f,.105f,.16f),nightAmbientGround=new Color(.06f,.075f,.11f);
         [Header("Night ambience - uses the existing SFX mixer")]
         [Range(0,.5f)] public float nightWindVolume=.22f;
         [Range(0,.5f)] public float nightDetailVolume=.24f;

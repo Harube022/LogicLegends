@@ -25,7 +25,8 @@ namespace LogicLegends.OpenArchive.Topics
         Canvas canvas;
         RectTransform root,card,noticeCard,teamBanner,portalBanner;
         TMP_Text phase,clock,notice;
-        Image clockFace,accent;
+        Image clockFace;
+        ArchiveSignalIconGraphic clockIcon;
         KhezuCinematicJumpscareController primaryFilm,secondaryFilm;
         ArchiveTopicTestControls testTools;
         Vector2 screen;
@@ -52,14 +53,14 @@ namespace LogicLegends.OpenArchive.Topics
             card=Rect("Shared_Match_Clock",root,Vector2.zero,Vector2.one);
             card.anchorMin=card.anchorMax=new Vector2(.5f,1);card.pivot=new Vector2(.5f,1);
             card.gameObject.AddComponent<ArchiveHudCardGraphic>().raycastTarget=false;
-            var clockPlate=Rect("Teal_Clock_Face",card,new Vector2(.685f,.14f),new Vector2(.965f,.86f));
-            clockFace=clockPlate.gameObject.AddComponent<Image>();clockFace.color=new Color(.05f,.22f,.23f);clockFace.raycastTarget=false;
-            phase=Text("Shared_Clock_Phase",card,17,StageUITheme.ReadingFont,Cream);phase.fontStyle=FontStyles.Bold;
-            Stretch(phase.rectTransform,new Vector2(.065f,.21f),new Vector2(.665f,.80f));phase.alignment=TextAlignmentOptions.MidlineLeft;
-            clock=Text("Shared_Time_Remaining",clockPlate,29,StageUITheme.ReadingFont,Cream);
+            var symbol=Rect("Match_Clock_Icon",card,new Vector2(.065f,.20f),new Vector2(.255f,.80f));
+            clockIcon=symbol.gameObject.AddComponent<ArchiveSignalIconGraphic>();clockIcon.icon=ArchiveSignalIcon.Clock;clockIcon.color=Cream;clockIcon.raycastTarget=false;
+            var clockPlate=Rect("Teal_Clock_Face",card,new Vector2(.29f,0),new Vector2(.98f,1));
+            clockFace=clockPlate.gameObject.AddComponent<Image>();clockFace.color=Color.clear;clockFace.raycastTarget=false;
+            phase=Text("Shared_Clock_Phase",card,13,StageUITheme.ReadingFont,Cream);phase.fontStyle=FontStyles.Bold;
+            Stretch(phase.rectTransform,new Vector2(.30f,.055f),new Vector2(.95f,.31f));phase.alignment=TextAlignmentOptions.Center;
+            clock=Text("Shared_Time_Remaining",clockPlate,32,StageUITheme.ReadingFont,Cream);
             Stretch(clock.rectTransform,new Vector2(.08f,.08f),new Vector2(.92f,.92f));clock.alignment=TextAlignmentOptions.Center;
-            var bar=Rect("Clock_State_Accent",card,new Vector2(.025f,.24f),new Vector2(.034f,.76f));
-            accent=bar.gameObject.AddComponent<Image>();accent.color=Teal;accent.raycastTarget=false;
             noticeCard=Rect("Shared_Clock_Notice",card,Vector2.zero,Vector2.one);
             noticeCard.anchorMin=noticeCard.anchorMax=new Vector2(.5f,0);noticeCard.pivot=new Vector2(.5f,1);
             noticeCard.anchoredPosition=new Vector2(0,-5);
@@ -90,17 +91,22 @@ namespace LogicLegends.OpenArchive.Topics
             bool show=!SuppressHud();card.gameObject.SetActive(show);if(!show)return;
             if(current==ArchiveMatchTimePhase.WaitingForPlayers)
             {
-                phase.text="TEAM PREPARATION";clock.text=FormatTime(session.MatchTimeReadinessRemaining);SetAccent(Teal);
+                phase.text="READY";clock.text=FormatTime(session.MatchTimeReadinessRemaining);SetAccent(Teal);
             }
             else if(current==ArchiveMatchTimePhase.Countdown)
             {
-                phase.text="MATCH STARTS IN";clock.text=Mathf.Max(0,Mathf.CeilToInt(session.MatchTimeCountdownRemaining)).ToString("00");SetAccent(Teal);
+                phase.text="STARTING";clock.text=Mathf.Max(0,Mathf.CeilToInt(session.MatchTimeCountdownRemaining)).ToString("00");SetAccent(Teal);
             }
             else
             {
-                phase.text=escape?"ESCAPE · ALL SURVIVORS":"SHARED MATCH TIME";clock.text=FormatTime(remaining);
+                phase.text=escape?"ESCAPE":"";clock.text=FormatTime(remaining);
                 SetAccent(remaining<=60?Red:escape||remaining<=300?Amber:Teal);
             }
+            phase.gameObject.SetActive(!active);
+            var timeInset=new Vector2(.04f,active ? .08f : .28f);
+            if(clock.rectTransform.anchorMin!=timeInset)Stretch(clock.rectTransform,timeInset,new Vector2(.94f,.94f));
+            var symbol=escape?ArchiveSignalIcon.Portal:ArchiveSignalIcon.Clock;
+            if(clockIcon.icon!=symbol){clockIcon.icon=symbol;clockIcon.SetVerticesDirty();}
             bool hasNotice=Time.unscaledTime<noticeUntil&&!string.IsNullOrEmpty(noticeValue);
             // Persist the escape objective after the brief transition notice. The
             // clock stays shared; this view never changes who must reach the portal.
@@ -155,7 +161,7 @@ namespace LogicLegends.OpenArchive.Topics
             noticeValue=value;noticePriority=priority;noticeUntil=Time.unscaledTime+noticeSeconds;
         }
         void SetAccent(Color tint)
-        {var visible=tint==Red?new Color(1,.55f,.50f):tint==Amber?new Color(1,.81f,.46f):new Color(.51f,.88f,.79f);phase.color=Cream;accent.color=visible;clock.color=visible;}
+        {var visible=tint==Red?new Color(1,.55f,.50f):tint==Amber?new Color(1,.81f,.46f):new Color(.51f,.88f,.79f);phase.color=Cream;clockIcon.color=visible;clock.color=visible;}
         bool SuppressHud()
         {
             if(ArchiveMatchCinematic.Covers(session))return true;
@@ -190,10 +196,10 @@ namespace LogicLegends.OpenArchive.Topics
                     if(candidate.session==session){exit=candidate;break;}
                 if(exit!=null)portalBanner=exit.transform.Find("PortalOpenNotice") as RectTransform;
             }
-            float width=340;
+            float width=186;
             float top=(Screen.height-safe.yMax)/scale+96;
             top=Mathf.Max(top,BottomInset(teamBanner,scale)+8,BottomInset(portalBanner,scale)+8);
-            card.sizeDelta=new Vector2(Mathf.Min(width,safe.width/scale-30),56);
+            card.sizeDelta=new Vector2(Mathf.Min(width,safe.width/scale-30),60);
             noticeCard.sizeDelta=new Vector2(Mathf.Min(520,safe.width/scale*.58f),44);
             float centerX=(safe.center.x-Screen.width*.5f)/scale;
             card.anchoredPosition=new Vector2(centerX,-top);

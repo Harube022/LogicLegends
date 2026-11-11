@@ -158,7 +158,7 @@ public sealed class MultiplayerMatchBriefing : MonoBehaviour
             case 0: return "RESTORE THE OPEN ARCHIVE";
             case 1: return "COOPERATE AND PREPARE";
             case 2: return "SURVIVE THE NIGHT";
-            default: return "RESCUE YOUR TEAM AND ESCAPE";
+            default: return "ESCAPE, REWARDS AND RANKINGS";
         }
     }
     public static string PageBody(int index)
@@ -168,14 +168,13 @@ public sealed class MultiplayerMatchBriefing : MonoBehaviour
             case 0:
                 return "<b>ONE TEAM, TEN TOPICS</b>\nComplete all 10 Discrete Mathematics topics. Only one topic can run at a time. Read its Book to begin or continue; your team's solved challenges are shared.\n\n" +
                     "<b>ONE SHARED MATCH CLOCK</b>\nYour team starts with " + (ArchiveTopicSession.MatchBaseSeconds / 60).ToString("0") + " minutes. Completing a whole topic earns +" + (ArchiveTopicSession.MatchTopicBonusSeconds / 60).ToString("0") + " minutes, once per topic.\n\n" +
-                    "The match clock keeps running while you read, use menus or face a monster challenge. Topic challenge clocks are separate. Keep moving and help one another.";
+                    "The match clock keeps running while you read, use menus or face a monster challenge. It is your team's final deadline.\n\n" +
+                    "<b>TOPIC OVERTIME</b>\nA topic clock warns at 60 and 30 seconds. At zero, one team mistake is recorded and OVERTIME begins. Keep solving: your work stays, hints remain available, and the same timeout never charges again. Finish the active topic before starting another.";
             case 1:
                 return "<b>RESTORE EVERY CRYSTAL</b>\nAccepted topic work rebuilds the crystal. Meaningful contributions from every eligible teammate light the remaining team runes. Share the solving work; pressing Confirm repeatedly is not cooperation.\n\n" +
                     "<b>TEAM SIGNALS</b>\nOpen TEAM to check teammates' hearts and status. Use PING for Help Here, Need Medkit, Revive Teammate or Go to Portal. Follow the direction arrow and ground marker; signals last 12 seconds.\n\n" +
                     "<b>SHARE YOUR SUPPLIES</b>\nChoose an inventory item, then use its action button. You can give items to a nearby teammate or use supported items on them.\n\n" +
-                    "A medkit restores one missing heart. A revival kit rescues a downed teammate. Flashlights help at night; spare batteries refill them. Tranquilizer darts can put a guardian to sleep briefly.\n\n"+
-                    "<b>TEAM COIN REWARDS</b>\nEarn up to 1,000 coins: 600 for team victory, 25 per fully restored crystal (up to 250), and up to 150 for participation. Three distinct confirmed puzzle contributions or useful teammate-support actions unlock your full share; fewer contributions earn a smaller share. Repeated button presses do not count.\n\n"+
-                    "Being downed does not erase your work. Defeat awards up to 150 consolation coins for completed topics. Admin-assisted and offline practice matches earn no permanent currency. Gems are reserved for the first full-participation victory and first all-crystal victory, once per account. Rewards are earned only after the account service confirms them.";
+                    "A medkit restores one missing heart. A revival kit rescues a downed teammate. Flashlights help at night; spare batteries refill them. Tranquilizer darts can put a guardian to sleep briefly.";
             case 2:
                 return "<b>MISTAKES WAKE A GUARDIAN</b>\nFour mistakes fully awaken the first guardian. Incorrect answers and challenge timeouts have consequences, so discuss the reason for your answer before confirming.\n\n" +
                     "<b>THE WORLD CHANGES WITH YOUR PROGRESS</b>\nAt seven completed topics, night arrives and a second guardian enters. After the entrance warning, guardians can hunt even if your team has fewer than four mistakes.\n\n" +
@@ -185,7 +184,13 @@ public sealed class MultiplayerMatchBriefing : MonoBehaviour
                     "The Primal Axiom's orange tell warns of a short rush. The Proof Devourer's crimson tell marks the route it is reading. Change direction rather than running straight through the warning.\n\n"+
                     "<b>RESONANCE BEACONS</b>\nTap the hand button beside a ready teal beacon to draw one nearby hunting guardian toward it after a rising chime. Use those few seconds to help a solver or rescue a teammate. Sleeping guardians ignore beacons. Every beacon shares a long recharge, so plan the distraction together.";
             default:
-                return "<b>CAPTURED DOES NOT MEAN DEFEATED</b>\nA captured player has " + (KhezuHuntingController.BarrierChallengeSeconds / 60).ToString("0") + " minutes to solve a Discrete Mathematics barrier challenge. A wrong answer or timeout costs one heart and briefly stuns the player. The other teammates can keep moving.\n\n" +
+                return System.FormattableString.Invariant(
+                    $"<b>LEADERBOARD POINTS</b>\nEarn {ArchiveMatchRewardPolicy.MinimumPoints:N0} to {ArchiveMatchRewardPolicy.MaximumPoints:N0} points per eligible multiplayer match, based on your correct topic answers. The top solver earns {ArchiveMatchRewardPolicy.MaximumPoints:N0}. If the top and bottom counts differ by {ArchiveMatchRewardPolicy.NearTieGap} or fewer, everyone eligible earns {ArchiveMatchRewardPolicy.MaximumPoints:N0}.\n\n") +
+                    "Your points add to your account total. Sign in on the Logic Legends website and open Leaderboard to see the rankings.\n\n" +
+                    System.FormattableString.Invariant(
+                        $"<b>MATCH COINS</b>\nEscape to earn {ArchiveMatchRewardPolicy.EscapeCoins:N0} Coins. Stay connected until match end without escaping to earn {ArchiveMatchRewardPolicy.FinishCoins:N0} Coins.\n\n") +
+                    "Disconnecting during a match forfeits both rewards, even if you rejoin. Admin-assisted and offline practice matches earn no permanent rewards.\n\n" +
+                    "<b>CAPTURED DOES NOT MEAN DEFEATED</b>\nA captured player has " + (KhezuHuntingController.BarrierChallengeSeconds / 60).ToString("0") + " minutes to solve a Discrete Mathematics barrier challenge. A wrong answer or timeout costs one heart and briefly stuns the player. The other teammates can keep moving.\n\n" +
                     "<b>REVIVE AT THE NEST</b>\nA player with zero hearts is carried to the monster nest and spectates until revived. Bring a revival kit to rescue them. If every teammate is down, the team loses.\n\n" +
                     "<b>EVERY SURVIVOR MUST ESCAPE</b>\nAfter all 10 topics are complete, the northern portal opens and a separate " + (ArchiveTopicSession.MatchEscapeSeconds / 60).ToString("0") + "-minute escape countdown begins. Every surviving teammate must enter before it ends. Running out of match or escape time means team defeat.";
         }

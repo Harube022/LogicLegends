@@ -1,21 +1,43 @@
 # Open Archive multiplayer rewards
 
-The multiplayer build uses the existing authenticated commerce service and the
-existing `users/<uid>/coins` and `gems` wallet. It does not invoke solo trial
-endpoints, alter solo retries, change shop prices, or create a second balance.
+The multiplayer build uses the existing authenticated commerce service and
+credits `users/<uid>/coins` and `users/<uid>/points` at match end.
 
-Deploy this version of **Backend/commerce** together with the matching Unity
-build. Keep the existing CommerceSettings backend URL and Firebase service
-identity. Repository edits do not redeploy the live Render service. Old servers
-return 404 for the new endpoint; the client retains its pending report for retry
-instead of inventing a local wallet credit.
+Deploy this version of **Backend/commerce** before distributing the matching
+Unity build. Set `LEADERBOARD_POINTS_FIELD=points` for LL_Website and deploy the
+Firebase rules with the `users` index on `points`. The website reads that
+numeric field to rank accounts. Only the backend has write access to it.
 
-## Request and receipt
+## Current match policy
+
+Version 2 credits 2,000 Coins to each player with a recorded portal escape and
+1,000 Coins to other players still eligible at match end. Disconnecting during
+the match forfeits Coins and leaderboard points even after rejoining. Admin
+and offline practice matches award zero. An escape recorded before a team
+defeat still earns the escape payout.
+
+The host freezes the roster and three lists with the terminal result.
+`escapedActors` and `disconnectedActors` contain actor IDs. `correctAnswers`
+contains one `ACTOR:TOPIC:ROUND:SUBPHASE` key per accepted graded submission,
+including separately graded problems and subphases. Only the submitting solver
+receives answer credit. The backend derives every player's count from these keys.
+
+The highest eligible count earns 1,000 leaderboard points, the lowest earns
+500, and intermediate scores scale linearly between them, rounded to the
+nearest integer. If the highest and lowest eligible counts differ by at most
+one, each eligible player earns 1,000 points.
+
+The response contains `version: 2`, `matchId`, `status`, `coins`, `gems`,
+`points`, `reward`, `gemReward` (zero), `leaderboardReward`, `correctAnswers`,
+`escaped`, and `exclusionReason`. The wallet increment, points increment and
+immutable receipt are committed in the same account transaction.
+
+## Legacy version 1 reports
 
 `POST /multiplayer/complete` requires the player's Firebase ID token in the
 existing Bearer authorization header. The authenticated UID selects the wallet;
-request-body UIDs, coin totals and gem totals never select an account or amount.
-Disabled accounts cannot claim. The JSON body is:
+the backend calculates all amounts. Disabled accounts cannot claim. The
+following version 1 format remains valid for earlier clients and queued reports.
 
 ```json
 {

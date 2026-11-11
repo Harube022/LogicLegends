@@ -50,7 +50,7 @@ namespace LogicLegends.OpenArchive.Topics
         }
     }
 
-    public enum ArchiveSignalIcon { Team,Signal,Help,Medkit,Revive,Portal,Chevron,Bars }
+    public enum ArchiveSignalIcon { Team,Signal,Help,Medkit,Revive,Portal,Chevron,Bars,Clock,Book,Check,Close }
     [RequireComponent(typeof(CanvasRenderer))]
     public sealed class ArchiveSignalIconGraphic : MaskableGraphic
     {
@@ -75,6 +75,18 @@ namespace LogicLegends.OpenArchive.Topics
                 case ArchiveSignalIcon.Portal:
                     Arc(.45f,.49f,.33f,.065f,0,360);Line(.36f,.49f,.90f,.49f,.08f);Line(.90f,.49f,.74f,.66f,.08f);Line(.90f,.49f,.74f,.32f,.08f);break;
                 case ArchiveSignalIcon.Chevron:Line(.15f,.65f,.5f,.30f,.12f);Line(.5f,.30f,.85f,.65f,.12f);break;
+                case ArchiveSignalIcon.Clock:
+                    Arc(.5f,.5f,.42f,.06f,0,360);Line(.5f,.5f,.5f,.77f,.07f);Line(.5f,.5f,.72f,.38f,.07f);Disc(.5f,.5f,.045f);break;
+                case ArchiveSignalIcon.Check:
+                    Line(.16f,.49f,.40f,.24f,.105f);Line(.40f,.24f,.87f,.78f,.105f);break;
+                case ArchiveSignalIcon.Close:
+                    Line(.22f,.22f,.78f,.78f,.09f);Line(.22f,.78f,.78f,.22f,.09f);break;
+                case ArchiveSignalIcon.Book:
+                    Line(.08f,.78f,.5f,.66f,.06f);Line(.5f,.66f,.92f,.78f,.06f);
+                    Line(.08f,.78f,.08f,.24f,.06f);Line(.92f,.78f,.92f,.24f,.06f);
+                    Line(.08f,.24f,.5f,.12f,.06f);Line(.5f,.12f,.92f,.24f,.06f);Line(.5f,.12f,.5f,.66f,.055f);
+                    Line(.18f,.61f,.39f,.55f,.035f);Line(.18f,.46f,.39f,.40f,.035f);
+                    Line(.61f,.55f,.82f,.61f,.035f);Line(.61f,.40f,.82f,.46f,.035f);break;
                 default:
                     for(int i=0;i<3;i++){float x=.16f+i*.28f,y=.28f+i*.23f;Quad(x,.12f,x+.16f,y,i<bars?color:new Color(.26f,.31f,.30f));}break;
             }

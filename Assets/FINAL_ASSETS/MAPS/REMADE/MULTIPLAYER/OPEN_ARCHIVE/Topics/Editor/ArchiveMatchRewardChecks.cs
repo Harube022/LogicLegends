@@ -46,11 +46,11 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 stations=Enumerable.Range(0,10).Select(t=>new ArchiveStationState{topic=t,phase=2,round=ArchiveTopicCatalog.RoundCount(t)}).ToArray(),
                 rewards=new ArchiveMatchRewardState{online=true,participants=new List<int>{1,2}},
                 crystals=Enumerable.Range(0,10).Select(t=>new ArchiveCrystalState{topic=t,started=true,online=true,closed=true,fullyRestored=true}).ToList(),
-                exit=new ArchiveExitState{opened=true,won=true}
+                exit=new ArchiveExitState{opened=true,won=true,escaped=new List<ArchiveEscape>{new ArchiveEscape{actor=2}}}
             };
             for(int topic=0;topic<10;topic++)for(int round=0;round<ArchiveTopicCatalog.RoundCount(topic);round++)
                 for(int sub=0;sub<(topic==2?2:1);sub++)
-                    team.solved.Add(new ArchiveSolvedMilestone{topic=topic,round=round,subphase=sub,resetSerial=0,
+                    team.solved.Add(new ArchiveSolvedMilestone{topic=topic,round=round,subphase=sub,resetSerial=0,solver=2,
                         contributors=new[]{1,2},crystalContributors=new[]{1,2}});
             return team;
         }
@@ -151,28 +151,50 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         static void Evidence()
         {
             var team=Team();var built=ArchiveMatchRewardPolicy.Build(team,1);
-            Check(built.completedTopics.Length==10&&built.restoredTopics.Length==10&&Coins(built).coins==1000,
-                "The reward builder derives a full reward from existing solved and crystal receipts");
+            Check(built.version==2&&built.completedTopics.Length==10&&built.correctAnswers.Length==64&&Coins(built).coins==1000&&Coins(built).leaderboardPoints==500,
+                "A connected non-escapee earns 1000 coins and the lowest score earns 500 points");
+            var escaped=Coins(ArchiveMatchRewardPolicy.Build(team,2));
+            Check(escaped.coins==2000&&escaped.leaderboardPoints==1000&&escaped.correctAnswers==64,
+                "The escaping MVP earns 2000 coins and 1000 points");
             team.survival.downed.Add(new ArchiveDownedActor{actor=1,phase=2});
             Check(Coins(ArchiveMatchRewardPolicy.Build(team,1)).coins==1000,
                 "Becoming downed does not erase work already earned for the team");
             team.survival.defeated=true;
-            Check(ArchiveMatchRewardPolicy.Build(team,1).outcome=="defeat"&&Coins(ArchiveMatchRewardPolicy.Build(team,1)).coins==150,
-                "A shared defeat takes precedence over an accompanying stale victory flag");
-            team=Team();team.solved.Add(team.solved[0]);var count=ArchiveMatchRewardPolicy.Build(team,1).participationKeys.Length;
-            Check(count==Team().solved.Count,"Duplicate milestone receipts do not multiply reward work keys");
+            Check(ArchiveMatchRewardPolicy.Build(team,1).outcome=="defeat"&&Coins(ArchiveMatchRewardPolicy.Build(team,2)).coins==2000,
+                "A team defeat preserves an individual escape");
+            team.rewards.disconnectedActors.Add(2);
+            var reconnect=JsonUtility.FromJson<ArchiveTeamState>(JsonUtility.ToJson(team));
+            Check(Coins(ArchiveMatchRewardPolicy.Build(reconnect,2)).coins==0&&Coins(ArchiveMatchRewardPolicy.Build(reconnect,2)).leaderboardPoints==0&&
+                Coins(ArchiveMatchRewardPolicy.Build(reconnect,1)).leaderboardPoints==1000,
+                "Disconnect is sticky across checkpoints and the departed solver is excluded from ranking");
+            team=Team();team.solved.Add(team.solved[0]);var count=ArchiveMatchRewardPolicy.Build(team,1).correctAnswers.Length;
+            Check(count==Team().solved.Count,"Duplicate milestone receipts do not multiply correct-answer credit");
             foreach(var solved in team.solved)solved.crystalContributors=new[]{2};
             team.actors.Add(new ArchiveActor{actor=1,contributions=int.MaxValue,correctAnswers=int.MaxValue,qualityMilestones=int.MaxValue});
             built=ArchiveMatchRewardPolicy.Build(team,1);
-            Check(built.participationKeys.Length==0&&Coins(built).coins==0,
-                "Raw edit/answer counters and confirmation-only participation cannot substitute for accepted puzzle work");
+            Check(ArchiveMatchRewardPolicy.ParticipationKeys(team,1).Length==0&&Coins(built).correctAnswers==0&&Coins(built).leaderboardPoints==500,
+                "Only the recorded solver earns answer credit even when the HUD counters or crystal contributors differ");
             team.rewards.support.Add(new ArchiveRewardSupportCredit{actor=1,target=2,kind="revive"});
             team.rewards.support.Add(new ArchiveRewardSupportCredit{actor=1,target=2,kind="revive"});
-            built=ArchiveMatchRewardPolicy.Build(team,1);
-            Check(built.participationKeys.SequenceEqual(new[]{"support:revive:2"})&&Coins(built).tier==1,
-                "The reward builder deduplicates persisted support receipts");
+            Check(ArchiveMatchRewardPolicy.ParticipationKeys(team,1).SequenceEqual(new[]{"support:revive:2"})&&
+                Coins(ArchiveMatchRewardPolicy.Build(team,1)).correctAnswers==0,
+                "A support action remains a team contribution without adding a correct answer");
+            for(int i=0;i<32;i++)team.solved[i].solver=1;
+            Check(team.rewards.participants.All(actor=>Coins(ArchiveMatchRewardPolicy.Build(team,actor)).leaderboardPoints==1000),
+                "Equal correct-answer counts award both teammates 1000 points");
+            team.rewards.participants.Add(3);
+            for(int i=0;i<team.solved.Count;i++)team.solved[i].solver=i%3+1;
+            Check(team.rewards.participants.All(actor=>Coins(ArchiveMatchRewardPolicy.Build(team,actor)).leaderboardPoints==1000),
+                "A one-answer spread also awards all eligible teammates 1000 points");
+            team.exit=new ArchiveExitState();team.survival.defeated=true;
+            foreach(var station in team.stations)station.phase=0;
+            team.solved.RemoveRange(6,team.solved.Count-6);
+            int[] solvers={1,3,3,2,2,2};
+            for(int i=0;i<solvers.Length;i++)team.solved[i].solver=solvers[i];
+            Check(Coins(ArchiveMatchRewardPolicy.Build(team,3)).leaderboardPoints==750,
+                "A teammate halfway between the top and bottom answer counts earns 750 points");
             team=Team();team.stations[0].testResetSerial=1;built=ArchiveMatchRewardPolicy.Build(team,1);
-            Check(!built.completedTopics.Contains(0)&&!built.restoredTopics.Contains(0)&&!built.participationKeys.Any(k=>k.StartsWith("work:0:",StringComparison.Ordinal)),
+            Check(!built.completedTopics.Contains(0)&&!built.restoredTopics.Contains(0)&&built.correctAnswers.Length==59,
                 "Old reset-era receipts cannot restore a new topic or preserve its old reward work");
             team=Team();team.crystals[0].adminBypass=true;
             Check(Coins(ArchiveMatchRewardPolicy.Build(team,1)).coins==0,
@@ -269,9 +291,11 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 Check(fixture.rewards.finalReports.Count==2&&Coins(frozen).coins==1000,
                     "Terminal finalization freezes one report for every recorded participant");
                 fixture.solved.Clear();fixture.crystals.Clear();fixture.rewards.support.Clear();
+                var disconnect=typeof(ArchiveTopicSession).GetMethod("RecordRewardDisconnect",BindingFlags.Instance|BindingFlags.NonPublic);
+                disconnect.Invoke(session,new object[]{1});
                 finalize.Invoke(session,null);
-                Check(JsonUtility.ToJson(session.RewardReport(1))==evidence&&Coins(session.RewardReport(1)).coins==1000,
-                    "Later gameplay-list cleanup cannot recalculate or erase a frozen terminal reward");
+                Check(fixture.rewards.disconnectedActors.Count==0&&JsonUtility.ToJson(session.RewardReport(1))==evidence&&Coins(session.RewardReport(1)).coins==1000,
+                    "Later cleanup and disconnects cannot change a frozen terminal reward");
                 session.MarkRewardsAdminUsed();
                 Check(!fixture.rewards.adminUsed&&!frozen.adminUsed&&JsonUtility.ToJson(session.RewardReport(1))==evidence,
                     "Post-terminal debug use cannot retroactively rewrite an already sealed payout report");

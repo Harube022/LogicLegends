@@ -77,11 +77,11 @@ namespace LogicLegends.OpenArchive.Topics
             canvas.renderMode=RenderMode.ScreenSpaceOverlay;canvas.sortingOrder=141;
             var scaler=go.GetComponent<CanvasScaler>();scaler.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution=new Vector2(1920,1080);scaler.matchWidthOrHeight=.5f;
-            dock=Fixed("Team_Dock",root,new Vector2(0,1),new Vector2(0,1),new Vector2(370,84));
+            dock=Fixed("Team_Dock",root,new Vector2(0,1),new Vector2(0,1),new Vector2(184,84));
             header=Rect("Team_Header",dock,Vector2.zero,Vector2.one);
-            teamToggle=Button("Toggle_Team_Roster",header,"TEAM",new Vector2(0,0),new Vector2(.73f,1),TogglePartyPanel);
+            teamToggle=Button("Toggle_Team_Roster",header,"",new Vector2(0,0),new Vector2(.44f,1),TogglePartyPanel);
             teamCaption=teamToggle.GetComponentInChildren<TMP_Text>();
-            pingToggle=Button("Toggle_Quick_Team_Signals",header,"PING",new Vector2(.76f,0),Vector2.one,()=>{});
+            pingToggle=Button("Toggle_Quick_Team_Signals",header,"",new Vector2(.56f,0),Vector2.one,()=>{});
             pingCaption=pingToggle.GetComponentInChildren<TMP_Text>();
             StyleTeamDock();
             roster=Fixed("Compact_Party_Status",dock,new Vector2(0,1),new Vector2(0,1),new Vector2(370,244));roster.anchoredPosition=new Vector2(0,-126);
@@ -162,8 +162,10 @@ namespace LogicLegends.OpenArchive.Topics
             if(!session.Ready){ShownRowCount=0;objective=null;return;}
             if(match!=session.State.matchId){CancelSignalInteraction();match=session.State.matchId;seenPings.Clear();toastValue="";toastUntil=0;localFeedbackUntil=0;partyOpen=pingOpen=false;RefreshPanels();}
             var rosterData=session.GetTeamRoster();ShownRowCount=Mathf.Min(4,rosterData.Length);
-            teamCaption.text="TEAM";teamCountCaption.text=ShownRowCount+" / 4 PLAYERS";
-            float cooldown=session.TeamPingCooldownRemaining(session.LocalActor);pingCaption.text=cooldown>0?Mathf.CeilToInt(cooldown)+"s":"HOLD";
+            teamCountCaption.text=ShownRowCount+"/4";
+            float cooldown=session.TeamPingCooldownRemaining(session.LocalActor);pingCaption.text=cooldown>0?Mathf.CeilToInt(cooldown)+"s":"";
+            pingCaption.gameObject.SetActive(cooldown>0);
+            pingDockIcon.rectTransform.anchoredPosition=new Vector2(0,cooldown>0?11:0);
             for(int i=0;i<rows.Length;i++)
             {
                 rows[i].root.gameObject.SetActive(i<ShownRowCount);if(i>=ShownRowCount)continue;var data=rosterData[i];var row=rows[i];
@@ -232,9 +234,9 @@ namespace LogicLegends.OpenArchive.Topics
             }
             if(clockCard==null){var clock=session.GetComponent<ArchiveMatchClockView>();if(clock!=null)clockCard=clock.Card;}
             if(portalBanner==null){var exit=FindObjectsByType<ArchiveExitUI>(FindObjectsInactive.Include,FindObjectsSortMode.None).FirstOrDefault(v=>v.session==session);if(exit!=null)portalBanner=exit.transform.Find("PortalOpenNotice") as RectTransform;}
-            float width=Mathf.Min(370,safe.width/scale*.30f),left=safe.xMin/scale+22,top=(Screen.height-safe.yMax)/scale+160;
+            float width=Mathf.Min(184,safe.width/scale*.30f),left=safe.xMin/scale+22,top=(Screen.height-safe.yMax)/scale+160;
             top=Mathf.Max(top,BottomInset(testHeader)+12);dock.sizeDelta=new Vector2(width,84);dock.anchoredPosition=new Vector2(left,-top);
-            roster.sizeDelta=new Vector2(width,20+Mathf.Max(1,ShownRowCount)*56);PlaceSignalWheel();
+            roster.sizeDelta=new Vector2(Mathf.Min(370,safe.width/scale*.42f),20+Mathf.Max(1,ShownRowCount)*56);PlaceSignalWheel();
             PlaceObjective();PlaceSignalToast();
         }
         void PlaceObjective()

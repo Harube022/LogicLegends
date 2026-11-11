@@ -49,6 +49,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             var sounds = GetOrAdd<ArchiveAudioLandscape>(root.gameObject);
             sounds.session = session;
             sounds.dayBed = Clip("Archive_Day_Archive_Bed"); sounds.nightBed = Clip("Archive_Night_Suspense_Bed");
+            ArchiveAdaptiveMusicSetup.AssignIfAvailable(sounds);
             sounds.proofDevourer = SoundSet("Proof"); sounds.primalAxiom = SoundSet("Primal");
             sounds.equip = Clip("Archive_Item_Equip"); sounds.flashlightOn = Clip("Archive_Item_Flashlight_On"); sounds.flashlightOff = Clip("Archive_Item_Flashlight_Off");
             sounds.battery = Clip("Archive_Item_Battery"); sounds.medkit = Clip("Archive_Item_Medkit"); sounds.revival = Clip("Archive_Item_Revival");
@@ -86,7 +87,11 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             var world = session.worldProgression;
             foreach (var key in new[] { world.sun, world.moon }) if (key != null)
             { key.shadowBias = .05f; key.shadowNormalBias = .35f; key.shadowStrength = .8f; EditorUtility.SetDirty(key); }
-            world.moonKeyIntensity = .35f; world.nightAmbientSky = new Color(.14f, .19f, .30f); world.nightAmbientEquator = new Color(.11f, .14f, .20f); world.nightAmbientGround = new Color(.075f, .09f, .13f);
+            world.moonKeyIntensity = .20f;
+            world.nightAmbientSky = new Color(.105f, .14f, .22f);
+            world.nightAmbientEquator = new Color(.08f, .105f, .16f);
+            world.nightAmbientGround = new Color(.06f, .075f, .11f);
+            world.nightFogColor = new Color(.105f, .13f, .18f);
             foreach (var monster in scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<KhezuHuntingController>(true)))
             { sounds.ApplyMonsterProfile(monster); EditorUtility.SetDirty(monster.GetComponent<KhezuCinematicJumpscareController>()); }
             // Main directional shadows follow the same low-poly silhouettes already

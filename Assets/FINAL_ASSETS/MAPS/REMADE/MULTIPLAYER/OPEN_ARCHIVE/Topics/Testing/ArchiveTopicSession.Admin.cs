@@ -45,6 +45,8 @@ namespace LogicLegends.OpenArchive.Topics
                 round=complete?ArchiveTopicCatalog.RoundCount(command.topic):0,phase=complete?2:0,
                 timerLimit=complete?previous.timerLimit:0,
                 timerSavedRemaining=complete?TimerRemaining(previous):0,
+                timerOvertime=complete&&previous.timerOvertime,timerSavedOvertime=complete?TopicOvertimeSeconds(previous):0,
+                timerTimeouts=complete?previous.timerTimeouts:0,
                 timerAttempt=complete?previous.timerAttempt:0,timerActor=complete?previous.timerActor:0,
                 feedback=complete?"Completed by Admin for testing.":"Reset by Admin. Read the Book to restart this topic."
             };

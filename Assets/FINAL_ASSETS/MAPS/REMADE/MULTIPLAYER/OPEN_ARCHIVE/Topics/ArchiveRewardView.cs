@@ -176,15 +176,15 @@ namespace LogicLegends.OpenArchive.Topics
                 v.observed=true;
             }
             ShowDart();
+            var held = GetComponent<ArchiveEquippedItems>();
             foreach(var pair in lights)
             {
                 if(pair.Value==null||!pair.Value.enabled)continue;
                 var player=session.ActorPlayer(pair.Key);if(player==null)continue;
-                var direction=pair.Key==session.LocalActor&&Camera.main!=null?Camera.main.transform.forward:player.transform.forward;
+                var direction = held != null ? held.FlashlightRotation(player) * Vector3.forward : player.transform.forward;
                 var origin=player.transform.position+Vector3.up*2.8f+player.transform.forward*.35f;
                 // Run after hand posing (10040), so the beam follows the real lens even
                 // when the free-orbit camera faces back toward the character.
-                var held=GetComponent<ArchiveEquippedItems>();
                 if(held!=null&&held.TryGetMuzzle(pair.Key,out var lens,out var barrel)){origin=lens;direction=barrel;}
                 pair.Value.transform.SetPositionAndRotation(origin,Quaternion.LookRotation(direction,Vector3.up));
             }

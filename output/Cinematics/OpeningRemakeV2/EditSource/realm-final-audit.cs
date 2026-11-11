@@ -1,0 +1,13 @@
+OpeningRemakeV2.BuildRealm3D(true);
+OpeningRemakeV2.Preview(19,"realm3d-approved-wide",1280,720);
+OpeningRemakeV2.Preview(29.5f,"realm3d-approved-close",1280,720);
+OpeningRemakeV2.Preview(32.3f,"realm3d-approved-match-dissolve",1280,720);
+var scene=UnityEngine.SceneManagement.SceneManager.GetSceneByPath("Assets/Cinematics/OpeningRemakeV2/LogicLegends_Opening_Remake.unity");
+var roots=scene.GetRootGameObjects();
+var realm=roots.Single(r=>r.name=="Logic Realm - Sculpted 3D World");
+var sprites=roots.Single(r=>r.name=="Cinematic World Map").GetComponentsInChildren<UnityEngine.SpriteRenderer>(true);
+var meshes=realm.GetComponentsInChildren<UnityEngine.MeshFilter>(true);
+var shaders=new[]{UnityEngine.Shader.Find("LogicLegends/Cinematics/RealmTerrain"),UnityEngine.Shader.Find("LogicLegends/Cinematics/RealmOcean")};
+var audit=new {oldMapSpritesEnabled=sprites.Count(s=>s.enabled),realmMeshObjects=meshes.Length,realmVertices=meshes.Sum(m=>m.sharedMesh.vertexCount),shaderErrors=shaders.Any(s=>UnityEditor.ShaderUtil.ShaderHasError(s)),oldMapTextureUsed=realm.GetComponentsInChildren<UnityEngine.Renderer>(true).Any(r=>r.sharedMaterials.Any(m=>m!=null&&m.mainTexture!=null&&UnityEditor.AssetDatabase.GetAssetPath(m.mainTexture).Contains("LOGICREALM3"))),allReviewLayers=realm.GetComponentsInChildren<UnityEngine.Transform>(true).All(t=>t.gameObject.layer==31)};
+UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
+return audit;

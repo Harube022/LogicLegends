@@ -77,21 +77,19 @@ namespace LogicLegends.OpenArchive.Topics
             if(state.timerRunning)return;
             state.timerLimit=TopicTimeLimit(state.topic);
             float remaining=(state.topic==7||state.topic==8||state.topic==9)&&state.timerAttempt>0&&!state.timerExpired?Mathf.Clamp(state.timerSavedRemaining,0,state.timerLimit):state.timerLimit;
-            state.timerSavedRemaining=remaining;state.timerDeadline=TimerClock+remaining;
+            state.timerSavedRemaining=remaining;
+            state.timerDeadline=state.timerOvertime?TimerClock-Math.Max(0,state.timerSavedOvertime):TimerClock+remaining;
             state.timerRunning=true;state.timerExpired=false;state.timerAttempt++;
         }
         bool ExpireTopicTimer(ArchiveStationState state,bool chargeMistake=true)
         {
-            if(!HasTopicTimer(state.topic)||!state.timerRunning||state.phase==2||TimerClock<state.timerDeadline)return false;
-            if(state.topic==6)foreach(int actor in state.carries.Select(c=>c.actor).Distinct().ToArray())ReleaseCarried(actor);
-            state.timerRunning=false;state.timerExpired=true;state.timerSavedRemaining=0;state.timerTimeouts++;
-            state.phase=0;if(state.topic!=4&&state.topic!=7&&state.topic!=8&&state.topic!=9)state.selection=-1;state.channelActor=0;state.channelChoice=-1;state.carries.Clear();
-            if(state.topic==7)ClearMappingInputs();
-            if(state.topic==9)ClearTreeInputs();
-            if(state.topic==8){state.routeActor=0;state.routeSampleValid=false;if(Question(8).graph.type!=LogicLegends.Graph.GraphChallengeType.Degree)ArchiveGraphTraversal.Invalidate(state,"Time up. Your route is kept for review; retry from the start after Book activation.");}
+            if(!IsAuthority||!HasTopicTimer(state.topic)||!state.timerRunning||state.timerOvertime||state.phase==2||TimerClock<state.timerDeadline)return false;
+            state.timerOvertime=true;state.timerExpired=false;state.timerSavedRemaining=0;state.timerSavedOvertime=0;state.timerTimeouts++;
             if(chargeMistake)RecordMistake(0,0,state,"timeout");
-            state.feedback=chargeMistake?"Time up. One TEAM timeout recorded; no player is blamed for a shared clock. Solved challenges kept. Return to the Book Statue to retry this challenge.":"Time up after the incorrect submission. One mistake recorded; your work is kept. Return to the Book to retry.";
-            Touch(state);return true;
+            state.feedback=chargeMistake?"OVERTIME · One team mistake recorded. Keep solving; your work is kept. Shared match time still runs.":"OVERTIME · Your incorrect answer already recorded one mistake. Keep solving; your work is kept.";
+            // Timing out changes no puzzle revision: an authenticated in-flight answer or
+            // held rune remains valid across zero. The snapshot still advances its revision.
+            if(chargeMistake)Commit();else Touch(state);return true;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void ResetStatic() { Current = null; }
@@ -182,7 +180,7 @@ namespace LogicLegends.OpenArchive.Topics
             if (cmd.action == ArchiveAction.ClaimChest || cmd.action == ArchiveAction.UseSurvivalItem || cmd.action == ArchiveAction.EquipSurvivalItem || cmd.action == ArchiveAction.GiveSurvivalItem) return AcceptSurvival(actor, cmd);
             if (cmd.action == ArchiveAction.SetT1Input || cmd.action == ArchiveAction.ConfirmT1Input) return AcceptT1Input(actor,cmd);
             if (cmd.action == ArchiveAction.BonusInteract) return AcceptBonusInteraction(actor,cmd);
-            if(ExpireTopicTimer(State.stations[cmd.topic]))return false;
+            ExpireTopicTimer(State.stations[cmd.topic]);
             if (!CanAct(actor) || !Near(actor, cmd.topic, Vector3.zero, 14)) return false;
             var record = State.actors.FirstOrDefault(p => p.actor == actor);
             if (record == null) { record = new ArchiveActor { actor = actor, displayName = actor==-1?"Local explorer":PhotonNetwork.CurrentRoom.GetPlayer(actor).NickName }; State.actors.Add(record); }
@@ -335,8 +333,8 @@ namespace LogicLegends.OpenArchive.Topics
                     string accepted=ArchiveTopicQuestions.SetsReveal(q);s.round++;s.carries.Clear();s.subphase=0;
                     s.phase=s.round>=ArchiveTopicCatalog.RoundCount(6)?2:s.round%ArchiveTopicCatalog.SetProblemsPerChallenge==0?0:1;
                     if(s.phase==1){ArchiveTopicQuestions.Prepare(Question(6),s);s.feedback="Correct! Problem 2 / 2 is active; the same challenge clock continues.";}
-                    else if(s.phase==0){s.placements=Array.Empty<int>();s.setGrades=Array.Empty<int>();s.timerRunning=false;s.timerSavedRemaining=TopicTimeLimit(6);s.feedback="Two problems accepted. Read the Book to start the next Sets challenge.";}
-                    else{s.timerSavedRemaining=TimerRemaining(s);s.timerRunning=false;s.feedback="All five Sets challenges complete for the team!";}
+                    else if(s.phase==0){s.placements=Array.Empty<int>();s.setGrades=Array.Empty<int>();s.timerRunning=false;s.timerOvertime=false;s.timerSavedOvertime=0;s.timerSavedRemaining=TopicTimeLimit(6);s.feedback="Two problems accepted. Read the Book to start the next Sets challenge.";}
+                    else{PauseTopicTimer(s);s.feedback="All five Sets challenges complete for the team!";}
                     s.reveal=accepted;
                 }
                 else
@@ -345,9 +343,9 @@ namespace LogicLegends.OpenArchive.Topics
                     if(s.topic==3)s.reveal=ArchiveTopicQuestions.ProofReveal(q,s);
                     if(s.topic==4)s.reveal=ArchiveTopicQuestions.MethodReveal(q,s);
                     if(s.topic==5)s.reveal=ArchiveTopicQuestions.InductionReveal(q,s);
-                    if(s.topic==7){s.reveal=ArchiveTopicQuestions.MappingReveal(q,s);s.timerSavedRemaining=TimerRemaining(s);s.timerRunning=false;ClearMappingInputs();}
-                    if(s.topic==8){s.reveal=ArchiveTopicQuestions.GraphReveal(q,s);s.timerSavedRemaining=TimerRemaining(s);s.timerRunning=false;s.routeActor=0;s.routeSampleValid=false;}
-                    if(s.topic==9){s.reveal=ArchiveTreeRules.Reveal(q,s);s.timerSavedRemaining=TimerRemaining(s);s.timerRunning=false;ClearTreeInputs();}
+                    if(s.topic==7){s.reveal=ArchiveTopicQuestions.MappingReveal(q,s);PauseTopicTimer(s);ClearMappingInputs();}
+                    if(s.topic==8){s.reveal=ArchiveTopicQuestions.GraphReveal(q,s);PauseTopicTimer(s);s.routeActor=0;s.routeSampleValid=false;}
+                    if(s.topic==9){s.reveal=ArchiveTreeRules.Reveal(q,s);PauseTopicTimer(s);ClearTreeInputs();}
                     if(s.topic==1)s.placements=Enumerable.Repeat(-1,4).ToArray();
                     s.round++;s.subphase=0;s.phase=s.round>=ArchiveTopicCatalog.RoundCount(s.topic)?2:0;
                     // A timeout at a Book gate must not carry the previous solved tablet IDs into a new proof.
@@ -358,7 +356,7 @@ namespace LogicLegends.OpenArchive.Topics
                     if(s.topic==9&&s.phase==0){s.links.Clear();s.selection=-1;s.flags=-1;}
                     s.feedback=s.phase==2?crystalRestoration?"Topic complete! The crystal records your team's solved challenges and contributors.":"Topic complete for the team! Optional relay is now closed.":"Correct! Use the book to start the next challenge.";
                     s.carries.Clear();
-                    if(HasTopicTimer(s.topic)&&s.phase==2){s.timerSavedRemaining=TimerRemaining(s);s.timerRunning=false;}
+                    if(HasTopicTimer(s.topic)&&s.phase==2)PauseTopicTimer(s);
                 }
                 if(s.phase==2){AwardMatchTimeForTopic(s.topic,actor);CloseTopicRelay(s.topic);CreateTopicReward(s,actor);}
             }
@@ -367,7 +365,7 @@ namespace LogicLegends.OpenArchive.Topics
                 feedback=ArchiveLearningFeedback.Diagnose(q,s,feedback);
                 RecordMistake(actor,sequence,s,"answer",feedback);
                 s.feedback="Incorrect — "+ActorName(actor)+" recorded one mistake. "+feedback;
-                if(s.topic==6||s.topic==7||s.topic==8||s.topic==9)
+                if(!s.timerOvertime&&(s.topic==6||s.topic==7||s.topic==8||s.topic==9))
                 {
                     double now=TimerClock,remaining=Math.Max(0,s.timerDeadline-now),penalty=Math.Min(Math.Max(0,s.topic==9?treeIncorrectPenaltySeconds:s.topic==8?graphIncorrectPenaltySeconds:s.topic==7?mappingIncorrectPenaltySeconds:setsIncorrectPenaltySeconds),remaining);
                     s.feedback+=(s.topic==9?" Your branches and answer are kept. −":s.topic==8?" Your route or degree choice is kept. −":s.topic==7?" Your connections and choices are kept. −":" Red blocks need correction; green blocks can stay. −")+penalty.ToString("0.#")+"s.";
@@ -505,7 +503,7 @@ namespace LogicLegends.OpenArchive.Topics
             }
             catch(Exception e){Debug.LogWarning("Ignored malformed topic snapshot: "+e.GetType().Name);}
         }
-        public override void OnPlayerLeftRoom(Photon.Realtime.Player other){if(IsAuthority&&Ready){ReleaseCarried(other.ActorNumber);var departed=State.actors.FirstOrDefault(a=>a.actor==other.ActorNumber);if(departed!=null)departed.treeFirst=departed.treeSecond=departed.treeRound=-1;foreach(var s in State.stations)if(s.routeActor==other.ActorNumber){s.routeActor=0;s.routeSampleValid=false;if(s.topic==8)ArchiveGraphTraversal.Invalidate(s,"Runner left. A teammate can restart at the green start rune.");}Commit();}}
+        public override void OnPlayerLeftRoom(Photon.Realtime.Player other){if(IsAuthority&&Ready){RecordRewardDisconnect(other.ActorNumber);ReleaseCarried(other.ActorNumber);var departed=State.actors.FirstOrDefault(a=>a.actor==other.ActorNumber);if(departed!=null)departed.treeFirst=departed.treeSecond=departed.treeRound=-1;foreach(var s in State.stations)if(s.routeActor==other.ActorNumber){s.routeActor=0;s.routeSampleValid=false;if(s.topic==8)ArchiveGraphTraversal.Invalidate(s,"Runner left. A teammate can restart at the green start rune.");}Commit();}}
         public override void OnPlayerEnteredRoom(Photon.Realtime.Player other){if(IsAuthority&&Ready)Commit();}
         public override void OnMasterClientSwitched(Photon.Realtime.Player master)
         {

@@ -77,10 +77,10 @@ namespace LogicLegends.OpenArchive.Topics
             onboardingBookMarker=Rect("Control_Tip_Book_Marker",safe,Vector2.one*.5f,Vector2.one*.5f);onboardingBookMarker.pivot=Vector2.one*.5f;onboardingBookMarker.sizeDelta=new Vector2(70,38);
             var marker=onboardingBookMarker.gameObject.AddComponent<Image>();marker.sprite=StageUITheme.ButtonArt;marker.type=Image.Type.Sliced;marker.color=new Color(.04f,.24f,.22f,.95f);marker.raycastTarget=false;
             var caption=Label("Marked_Book",onboardingBookMarker,"BOOK",20,true);caption.color=new Color(1,.90f,.58f);caption.alignment=TextAlignmentOptions.Center;
-            // Reuse the existing guide and its scroll rather than creating another menu.
-            guideScroll.GetComponent<RectTransform>().anchorMin=new Vector2(.05f,.34f);
+            // The replay action shares the guide's fixed footer without shrinking its reading area.
             onboardingReplay=Button("Replay_First_Use_Control_Tips",guide,"Replay control tips",ReplayOnboarding);
-            Stretch((RectTransform)onboardingReplay.transform,new Vector2(.05f,.205f),new Vector2(.95f,.325f));onboardingReplay.GetComponentInChildren<TMP_Text>().fontSize=22;
+            Stretch((RectTransform)onboardingReplay.transform,new Vector2(.045f,.055f),new Vector2(.32f,.165f));
+            StyleGuideButton(onboardingReplay,"Replay control tips",22);
             HideOnboarding();
         }
 

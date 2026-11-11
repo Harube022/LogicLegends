@@ -79,6 +79,7 @@ namespace LogicLegends.OpenArchive.Topics
                     }
                     if (hunting.health.IsActorAlive(fallen.actor)) { fallen.phase = 3; dirty = true; continue; }
                     if (fallen.phase == 2) continue;
+                    if (AdminMonstersStopped) continue;
                     // A loading secondary is still the carrier. Keep its checkpoint anchor until it resumes.
                     if(fallen.carrierAssigned&&(carrier==null||!carrier.Initialized))continue;
                     if (carrier == null && victim != null)

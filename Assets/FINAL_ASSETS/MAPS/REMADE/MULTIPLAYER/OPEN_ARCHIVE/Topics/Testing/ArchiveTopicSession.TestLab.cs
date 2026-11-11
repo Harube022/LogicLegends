@@ -11,11 +11,23 @@ namespace LogicLegends.OpenArchive.Topics
         VisitTopic,StartTopic,CompleteTopic,ResetTopic,CompleteAllTopics,ResetMatch,SpawnChest,GrantItem,GrantAllItems,ClearInventory,
         SetHearts,DamageHeart,ReviveAtNest,DownAtNest,SpawnTeammate,RemoveTeammate,TeleportToNest,AwakenMonster,SleepMonster,StartHunt,
         PreviewJumpscare,PreviewBarrier,ReleaseCapture,PreviewNight,ReplayEntrance,ReturnDaylight,OpenPortal,RecallTeammate,BarrierSuccess,BarrierFail,
-        StartMatchClock,MatchClockOneMinute,ExpireMatchClock,PreviewFieldEvent,VisitFieldSite,VisitBeacon,RechargeBeacons,ClearFieldEffects
+        StartMatchClock,MatchClockOneMinute,ExpireMatchClock,PreviewFieldEvent,VisitFieldSite,VisitBeacon,RechargeBeacons,ClearFieldEffects,
+        StopMonsters,ResumeMonsters,SetWorldPhase,AddMatchMinutes,ReturnToSpawn,AddMonsterMistake,SwapMonster,ResetMonsterRotation
     }
     public sealed partial class ArchiveTopicSession
     {
         public string AdminTestNotice {get;private set;}="Practice fixtures only · no academic credit or rewards outside this match.";
+        public bool AdminMonstersStopped
+        {
+            get
+            {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                return Ready && State.worldTime != null && State.worldTime.adminMonstersStopped;
+#else
+                return false;
+#endif
+            }
+        }
         public bool RequestAdminTest(ArchiveAdminTestAction action,int target=0,int value=0)
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -27,6 +39,49 @@ namespace LogicLegends.OpenArchive.Topics
             var monster=target==1&&worldProgression!=null?worldProgression.secondary:hunting;
             switch(action)
             {
+                case ArchiveAdminTestAction.StopMonsters:
+                    NormalizeWorldTime();State.worldTime.adminMonstersStopped=true;
+                    State.survival.sedations.Clear();
+                    foreach(var guardian in KhezuHuntingController.ActiveMonsters)
+                    {
+                        guardian.GetComponent<KhezuCinematicJumpscareController>()?.Cancel();
+                        guardian.HoldTranquilized(false);
+                        if(!guardian.CarryingRescueActor)guardian.Request(KhezuCommand.Sleep);
+                    }
+                    ok=true;break;
+                case ArchiveAdminTestAction.ResumeMonsters:
+                    NormalizeWorldTime();State.worldTime.adminMonstersStopped=false;
+                    foreach(var guardian in KhezuHuntingController.ActiveMonsters)
+                        if(!guardian.CarryingRescueActor)guardian.Request(KhezuCommand.StartHunting);
+                    ok=true;break;
+                case ArchiveAdminTestAction.SetWorldPhase:
+                    if(worldProgression==null||target< -1||target>3)break;
+                    NormalizeWorldTime();var world=State.worldTime;
+                    world.adminPhaseOverride=target;world.previousPhase=world.phase;
+                    world.phase=target<0?WorldPhaseForTopics(State.stations.Count(t=>t.phase==2)):target;
+                    world.changedAt=Clock;world.serial++;
+                    // Manual time previews change lighting only. The dedicated entrance
+                    // button tests the night event; Automatic restores normal progression.
+                    world.arrivalStartedAt=target<0&&world.phase==3?Clock:-1;
+                    world.secondaryReleased=false;ok=true;break;
+                case ArchiveAdminTestAction.AddMatchMinutes:
+                    if(!MatchTimeAllowsGameplay||value==0||Math.Abs(value)>30)break;
+                    var timer=State.matchTime;
+                    if(timer.phase==ArchiveMatchTimePhase.Escape)timer.escapeDeadline=Math.Max(Clock,timer.escapeDeadline+value*60);
+                    else timer.deadline=Math.Max(Clock,timer.deadline+value*60);
+                    TickMatchTime();ok=true;break;
+                case ArchiveAdminTestAction.ReturnToSpawn:
+                    var exploration=UnityEngine.Object.FindFirstObjectByType<LogicLegends.OpenArchiveTesting.OpenArchiveExplorationSession>();
+                    if(exploration?.SpawnPoint!=null)ok=AdminMove(LocalActor,exploration.SpawnPoint.position);break;
+                case ArchiveAdminTestAction.AddMonsterMistake:
+                    if(monster!=null&&monster.Initialized&&monster.gameObject.activeInHierarchy&&!AdminMonstersStopped&&!monster.IsTranquilized&&!monster.CarryingRescueActor)
+                    {monster.Request(KhezuCommand.AddMistake);ok=true;}break;
+                case ArchiveAdminTestAction.SwapMonster:
+                    var selection=UnityEngine.Object.FindFirstObjectByType<LogicLegends.Tests.Monsters.DevelopmentMonsterSelection>();
+                    if(selection!=null&&selection.CanSwap){selection.SwapMonster();ok=true;}break;
+                case ArchiveAdminTestAction.ResetMonsterRotation:
+                    if(monster!=null&&monster.Initialized&&monster.gameObject.activeInHierarchy&&!monster.IsTranquilized&&!monster.CarryingRescueActor)
+                    {monster.Request(KhezuCommand.ResetRotation);ok=true;}break;
                 case ArchiveAdminTestAction.PreviewFieldEvent:
                     if(fieldEvents==null||fieldEvents.hazards.Length==0)break;
                     var site=fieldEvents.hazards.Where(v=>v!=null).OrderBy(v=>(v.transform.position-Player.LocalInstance.transform.position).sqrMagnitude).FirstOrDefault();
@@ -65,18 +120,18 @@ namespace LogicLegends.OpenArchive.Topics
                     if(target<0||target>=10)break;
                     var state=State.stations[target];
                     if(action==ArchiveAdminTestAction.CompleteTopic)
-                    {state.phase=2;state.round=ArchiveTopicCatalog.RoundCount(target);state.timerRunning=false;state.channelActor=0;state.carries.Clear();ResetTopicCrystal(target,true);CloseTopicRelay(target);state.feedback="Admin completed: no academic credit.";}
+                    {PauseTopicTimer(state);state.phase=2;state.round=ArchiveTopicCatalog.RoundCount(target);state.channelActor=0;state.carries.Clear();ResetTopicCrystal(target,true);CloseTopicRelay(target);state.feedback="Admin completed: no academic credit.";}
                     else {State.stations[target]=new ArchiveStationState{topic=target,revision=state.revision+1,testResetSerial=state.testResetSerial+1};ResetTopicCrystal(target,false);ResetTopicRelay(target,false);State.survival.chests.RemoveAll(c=>c.topic==target);}
                     questions.Clear();ok=true;break;
                 case ArchiveAdminTestAction.CompleteAllTopics:case ArchiveAdminTestAction.OpenPortal:
-                    for(int i=0;i<10;i++){var t=State.stations[i];t.phase=2;t.round=ArchiveTopicCatalog.RoundCount(i);t.timerRunning=false;t.channelActor=0;t.carries.Clear();ResetTopicCrystal(i,true);CloseTopicRelay(i);}ok=true;break;
+                    for(int i=0;i<10;i++){var t=State.stations[i];PauseTopicTimer(t);t.phase=2;t.round=ArchiveTopicCatalog.RoundCount(i);t.channelActor=0;t.carries.Clear();ResetTopicCrystal(i,true);CloseTopicRelay(i);}ok=true;break;
                 case ArchiveAdminTestAction.ResetMatch:
                     foreach(var m in KhezuHuntingController.ActiveMonsters){m.GetComponent<KhezuCinematicJumpscareController>()?.Cancel();m.EndRescueCarry(m.RescueActor);m.HoldTranquilized(false);m.Request(KhezuCommand.Sleep);}
                     CleanupRescue();Initialize(Guid.NewGuid().GetHashCode());
                     foreach(int actor in AdminTestActors)AdminSetHearts(actor,hunting.health.MaximumHealth);ok=true;break;
                 case ArchiveAdminTestAction.SpawnChest:
                     if(target<0||target>=10||value< -1||value>5)break;
-                    var topic=State.stations[target];topic.phase=2;topic.round=ArchiveTopicCatalog.RoundCount(target);topic.timerRunning=false;topic.channelActor=0;topic.carries.Clear();ResetTopicCrystal(target,true);CloseTopicRelay(target);
+                    var topic=State.stations[target];PauseTopicTimer(topic);topic.phase=2;topic.round=ArchiveTopicCatalog.RoundCount(target);topic.channelActor=0;topic.carries.Clear();ResetTopicCrystal(target,true);CloseTopicRelay(target);
                     State.survival.chests.RemoveAll(c=>c.topic==target);CreateTopicReward(topic,LocalActor);var chest=Chest(target);
                     if(value>=0)chest.item=(ArchiveSurvivalItem)value;chest.completedAt=Clock;AdminMove(LocalActor,stations[target].transform.TransformPoint(ArchiveRewardView.ChestLocalPosition+Vector3.forward*2));ok=true;break;
                 case ArchiveAdminTestAction.GrantItem:
@@ -99,28 +154,48 @@ namespace LogicLegends.OpenArchive.Topics
                     if(Downed(target)!=null){ok=AdminSetHearts(target,1);ReleaseRescueBody(target);State.survival.downed.RemoveAll(d=>d.actor==target);}break;
                 case ArchiveAdminTestAction.PreviewNight:case ArchiveAdminTestAction.ReplayEntrance:
                     if(worldProgression==null)break;
+                    State.worldTime.adminMonstersStopped=false;
                     State.worldTime.adminPhaseOverride=3;State.worldTime.previousPhase=State.worldTime.phase;State.worldTime.phase=3;State.worldTime.changedAt=Clock;State.worldTime.arrivalStartedAt=Clock;State.worldTime.secondaryReleased=false;State.worldTime.serial++;
                     foreach(var m in KhezuHuntingController.ActiveMonsters){m.GetComponent<KhezuCinematicJumpscareController>()?.Cancel();m.Request(KhezuCommand.Sleep);}ok=true;break;
                 case ArchiveAdminTestAction.ReturnDaylight:
                     State.worldTime.adminPhaseOverride=0;foreach(var m in KhezuHuntingController.ActiveMonsters)m.Request(KhezuCommand.Sleep);ok=true;break;
                 case ArchiveAdminTestAction.AwakenMonster:case ArchiveAdminTestAction.StartHunt:
-                    if(monster!=null&&monster.gameObject.activeInHierarchy){monster.Request(KhezuCommand.StartHunting);ok=true;}break;
+                    if(monster!=null&&monster.Initialized&&monster.gameObject.activeInHierarchy&&!monster.IsTranquilized&&!monster.CarryingRescueActor)
+                    {State.worldTime.adminMonstersStopped=false;monster.Request(KhezuCommand.StartHunting);ok=true;}break;
                 case ArchiveAdminTestAction.SleepMonster:
                     if(monster!=null&&monster.gameObject.activeInHierarchy){monster.Request(KhezuCommand.Sleep);ok=true;}break;
                 case ArchiveAdminTestAction.PreviewJumpscare:
-                    if(monster!=null&&!Photon.Pun.PhotonNetwork.InRoom){monster.GetComponent<KhezuCinematicJumpscareController>().PreviewLocal();ok=true;}break;
+                    if(monster!=null&&!Photon.Pun.PhotonNetwork.InRoom){State.worldTime.adminMonstersStopped=false;monster.GetComponent<KhezuCinematicJumpscareController>().PreviewLocal();ok=true;}break;
                 case ArchiveAdminTestAction.PreviewBarrier:
-                    if(monster!=null&&monster.Initialized&&!NightEntranceActive&&CanAct(LocalActor)){monster.AdminPreviewCapture(LocalActor,true);ok=true;}break;
+                    if(monster!=null&&monster.Initialized&&!NightEntranceActive&&CanAct(LocalActor)){State.worldTime.adminMonstersStopped=false;monster.AdminPreviewCapture(LocalActor,true);ok=true;}break;
                 case ArchiveAdminTestAction.ReleaseCapture:
                     if(monster!=null){monster.GetComponent<KhezuCinematicJumpscareController>()?.Cancel();monster.Request(KhezuCommand.ResetHunt);ok=true;}break;
                 case ArchiveAdminTestAction.BarrierSuccess:case ArchiveAdminTestAction.BarrierFail:
                     if(monster!=null)ok=monster.ResolveBarrierOutcome(monster.CaughtPlayerId,monster.CaptureSerial,action==ArchiveAdminTestAction.BarrierSuccess,.9f);break;
             }
-            AdminTestNotice=ok?"TEST: "+action+" applied. Practice fixture; no academic credit.":"Cannot apply "+action+" now. Check target, active capture/intro, hearts or topic lock. Test teammate is offline only.";
+            AdminTestNotice=ok?AdminActionMessage(action,target,value):"Action unavailable. Check the selected target, topic lock, or active cinematic. Practice teammates are offline only.";
             if(ok){MarkRewardsAdminUsed();Commit();}return ok;
 #else
             return false;
 #endif
+        }
+        static string AdminActionMessage(ArchiveAdminTestAction action,int target,int value)
+        {
+            switch(action)
+            {
+                case ArchiveAdminTestAction.StopMonsters:return "Monsters stopped. They will not chase or wake until you resume them. A carry in progress is held safely.";
+                case ArchiveAdminTestAction.ResumeMonsters:return "Monsters resumed. Active monsters wake and begin hunting; any paused carry continues.";
+                case ArchiveAdminTestAction.SetWorldPhase:return target<0?"Automatic time restored: lighting follows completed topics.":new[]{"Daylight","Afternoon","Evening","Night"}[target]+" lighting selected. No night entrance was started.";
+                case ArchiveAdminTestAction.AddMatchMinutes:return (value>0?"Added ":"Removed ")+Math.Abs(value)+" minutes from the shared match clock.";
+                case ArchiveAdminTestAction.ReturnToSpawn:return "Returned to the player spawn.";
+                case ArchiveAdminTestAction.CompleteTopic:return "T"+(target+1)+" completed for testing. No earned credit or permanent rewards.";
+                case ArchiveAdminTestAction.ResetTopic:return "T"+(target+1)+" reset. Read its Book to begin again.";
+                case ArchiveAdminTestAction.GrantItem:return "Gave "+ArchiveRewardView.ItemName((ArchiveSurvivalItem)value)+" to the selected player.";
+                case ArchiveAdminTestAction.GrantAllItems:return "All six supplies added to the selected player's real inventory.";
+                case ArchiveAdminTestAction.SpawnTeammate:return "Practice teammate spawned. Select them in Players to test health, carry and revival.";
+                case ArchiveAdminTestAction.PreviewNight:case ArchiveAdminTestAction.ReplayEntrance:return "Night entrance started. Both guardians resume after the warning.";
+                default:return "Test action completed. Check the world or selected player's status.";
+            }
         }
         bool AdminSetHearts(int actor,int value)
         {

@@ -35,6 +35,7 @@
       }
     },
     "users": {
+      ".indexOn": ["points"],
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         "username": { ".read": "auth != null", ".write": "auth != null && auth.uid === $uid", ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },

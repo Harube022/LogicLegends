@@ -34,7 +34,7 @@ namespace LogicLegends.OpenArchive.Topics
         public string SecondaryDisplayName=>SecondaryName=="Second guardian"?SecondaryName:ArchiveMonsterNames.ForPrimalAxiom(SecondaryName=="Rajang");
         static readonly Color[] SkyColors={Color.white,new Color(1,.74f,.49f),new Color(.45f,.29f,.51f),new Color(.10f,.17f,.33f)};
         static readonly Color[] SunColors={Color.white,new Color(1,.69f,.40f),new Color(1,.43f,.30f),new Color(.48f,.62f,1)};
-        static readonly float[] SunStrength={1, .84f,.34f,.10f},SkyExposure={1,.8f,.45f,.19f};
+        static readonly float[] SunStrength={1, .84f,.34f,.065f},SkyExposure={1,.8f,.45f,.14f};
         Material originalSky,runtimeSky;Color originalFog,originalSkyAmbient,originalEquator,originalGround,originalSun,originalSkyTint;
         Quaternion originalSunRotation;float originalSunIntensity,originalFogDensity,originalExposure;bool originalFogEnabled;
         bool initialized,ambientDiscovered;AmbientMode originalAmbientMode;
@@ -120,7 +120,7 @@ namespace LogicLegends.OpenArchive.Topics
             bool entering=w.phase==3&&w.arrivalStartedAt>=0&&!session.TeamWon&&!session.TeamDefeated;float elapsed=entering?(float)(ArchiveTopicSession.Clock-w.arrivalStartedAt):-1;
             bool captured=Player.LocalInstance!=null&&Player.LocalInstance.IsMovementLocked&&!introPlayers.Contains(Player.LocalInstance);
             RefreshEntranceToken(w.arrivalStartedAt);
-            bool showFilm=entering&&elapsed<entranceSeconds&&!captured&&!suppressThreatsForVerification;
+            bool showFilm=entering&&elapsed<entranceSeconds&&!captured&&!suppressThreatsForVerification&&!session.AdminMonstersStopped;
             if(entering&&!suppressThreatsForVerification)
             {
                 if(!profileReady)ApplyProfile();
@@ -133,7 +133,7 @@ namespace LogicLegends.OpenArchive.Topics
                 }
                 if(!closedReader){closedReader=true;if(!captured)ArchiveTopicUI.Current?.Close();}
                 UpdateEntranceSound(elapsed);
-                if(secondary!=null&&secondary.Initialized)
+                if(secondary!=null&&secondary.Initialized&&!session.AdminMonstersStopped)
                 {
                     if(!w.secondaryReleased)secondary.HoldNightEntrance(Mathf.Clamp01(elapsed/entranceSeconds));
                     else if(!releasedOnce){secondary.ReleaseNightEntrance();releasedOnce=true;}
@@ -147,8 +147,8 @@ namespace LogicLegends.OpenArchive.Topics
             frame.gameObject.SetActive(showFilm);
             if(showFilm){EnsureFilmCamera();UpdateFilmCamera(Mathf.Clamp01(elapsed/entranceSeconds));}
             else {RestoreGameplayCameraRendering();if(filmCamera!=null)filmCamera.enabled=false;if(entranceKey!=null)entranceKey.enabled=false;if(entranceRim!=null)entranceRim.enabled=false;}
-            PresentEntranceEffects(entering&&!captured&&!suppressThreatsForVerification&&elapsed<entranceSeconds,elapsed);
-            bool warning=entering&&elapsed<entranceSeconds+warningSeconds+3;
+            PresentEntranceEffects(entering&&!captured&&!suppressThreatsForVerification&&!session.AdminMonstersStopped&&elapsed<entranceSeconds,elapsed);
+            bool warning=entering&&!session.AdminMonstersStopped&&elapsed<entranceSeconds+warningSeconds+3;
             UpdateNightAmbience(night,warning||captured||session.TeamWon||session.TeamDefeated);
             bool transition=w.serial>0&&ArchiveTopicSession.Clock-w.changedAt<lightingTransitionSeconds;
             banner.transform.parent.gameObject.SetActive((warning||transition)&&!captured);

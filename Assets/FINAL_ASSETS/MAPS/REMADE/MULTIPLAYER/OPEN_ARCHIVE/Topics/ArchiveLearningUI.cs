@@ -43,41 +43,34 @@ namespace LogicLegends.OpenArchive.Topics
             scale.referenceResolution = new Vector2(1920, 1080); scale.matchWidthOrHeight = .5f;
             gameObject.AddComponent<GraphicRaycaster>();
             safe = Rect("Safe_Area", transform, Vector2.zero, Vector2.one);
-            entry = Button("Learn_And_Hints", safe, "LEARN / HINTS", () => OpenGuide(NearestTopic()));
+            entry = Button("Learn_And_Hints", safe, "LEARN / HINTS", () =>
+            {
+                bool overtime=ArchiveTopicTimerPresentation.HintCue(session);
+                OpenGuide(overtime?session.ActiveTopic:NearestTopic());
+                if(overtime)SelectGuideSection(1);
+            });
             var entryRect = (RectTransform)entry.transform; entryRect.anchorMin = entryRect.anchorMax = new Vector2(.5f, 0);
-            entryRect.pivot = new Vector2(.5f, 0); entryRect.anchoredPosition = new Vector2(0, 24); entryRect.sizeDelta = new Vector2(290, 66);
+            entryRect.pivot = new Vector2(.5f, 0); entryRect.anchoredPosition = new Vector2(0, 24); entryRect.sizeDelta = new Vector2(72, 72);
             entryText = entry.GetComponentInChildren<TMP_Text>();
+            StyleGuideEntry();
             BuildGuide(); BuildBarrier(); BuildOnboarding();
             ArchiveReadingScrollbars.Install(transform);
         }
         void BuildGuide()
         {
-            guide = Panel("Learning_Guide", new Vector2(.26f, .47f), new Vector2(.74f, .88f));
-            guideTitle = Label("Guide_Title", guide, "", 30, true); Stretch(guideTitle.rectTransform, new Vector2(.045f, .85f), new Vector2(.77f, .95f));
-            var close = Button("Close_Learning_Guide", guide, "Got it", DismissGuide); Stretch((RectTransform)close.transform, new Vector2(.80f, .85f), new Vector2(.96f, .96f));
-            guideScroll = Scroll("Guide_Reading", guide, new Vector2(.05f, .22f), new Vector2(.95f, .82f), out var content);
-            guideBody = Paragraph("Guide_Text", content, "", 26); guideBody.richText = true;
-            var previous = Button("Previous_Topic_Guide", guide, "< Topic", () => OpenGuide((guideTopic + 9) % 10));
-            Stretch((RectTransform)previous.transform, new Vector2(.05f, .055f), new Vector2(.22f, .17f));
-            var next = Button("Next_Topic_Guide", guide, "Topic >", () => OpenGuide((guideTopic + 1) % 10));
-            Stretch((RectTransform)next.transform, new Vector2(.23f, .055f), new Vector2(.40f, .17f));
-            var auto = Button("Toggle_First_Visit_Tips", guide, "", () => { PlayerPrefs.SetInt(PreferencePrefix + "AutoTips", AutoTips ? 0 : 1); PlayerPrefs.Save(); UpdateAutoCaption(); });
-            Stretch((RectTransform)auto.transform, new Vector2(.41f, .055f), new Vector2(.67f, .17f)); autoCaption = auto.GetComponentInChildren<TMP_Text>();
-            hintButton = Button("Next_Learning_Hint", guide, "", () => { if (session != null) session.RequestLearningHint(guideTopic); });
-            Stretch((RectTransform)hintButton.transform, new Vector2(.68f, .055f), new Vector2(.95f, .17f)); hintCaption = hintButton.GetComponentInChildren<TMP_Text>();
-            UpdateAutoCaption(); guide.gameObject.SetActive(false);
+            BuildGuidePresentation();
         }
         void BuildBarrier()
         {
             BuildBarrierPresentation();
         }
-        void UpdateAutoCaption() { autoCaption.text = "First-visit tips: " + (AutoTips ? "ON" : "OFF"); }
+        void UpdateAutoCaption() { autoCaption.text = "Auto tips: " + (AutoTips ? "ON" : "OFF"); }
         public void OpenGuide(int topic)
         {
             if (session == null || !session.Ready || !session.CanAct(session.LocalActor)) return;
             if (topicUI != null && topicUI.ReadingStation != null) topicUI.Close();
             guideTopic = Mathf.Clamp(topic, 0, 9); guideOpen = true; shownRevision = -1; guide.gameObject.SetActive(true);
-            RefreshGuide(); guideScroll.verticalNormalizedPosition = 1;
+            RefreshGuide(); guideScroll.StopMovement(); guideScroll.verticalNormalizedPosition = 1;
         }
         public void DismissGuide()
         {
@@ -109,6 +102,7 @@ namespace LogicLegends.OpenArchive.Topics
             {
                 MultiplayerSafeArea.Apply(safe);
             }
+            FitGuideEntryBelowInventory();
             bool ready = session != null && session.Ready && Player.LocalInstance != null && Time.timeScale > 0;
             bool captive = ready && session.IsLocalBarrierQuestion;
             prison.gameObject.SetActive(captive);
@@ -130,32 +124,13 @@ namespace LogicLegends.OpenArchive.Topics
                 session.State.stations[topic].phase == 0 && session.Near(session.LocalActor, topic, Vector3.zero, 14);
             bool review = session.State.barrier.actor == session.LocalActor && session.State.barrier.outcome != 0 && reviewedCapture != session.State.barrier.captureSerial;
             entryText.text = first ? "FIRST VISIT · T" + (topic + 1) + "\nLearn how to play" : review ? "BARRIER REVIEW\nLearn / Hints" : "LEARN / HINTS";
+            bool overtime=ArchiveTopicTimerPresentation.HintCue(session);
+            learningMedallion.State(first || review || overtime, true, overtime?.70f+.25f*Mathf.Sin(Time.unscaledTime*2):0);
             if (guideOpen) RefreshGuide();
         }
         void RefreshGuide()
         {
-            var s = session.State.stations[guideTopic]; int level = session.HintLevel(guideTopic, session.LocalActor);
-            hintButton.interactable = session.CanRequestHint(guideTopic); hintCaption.text = level >= 3 ? "All hints shown" : "Next hint " + (level + 1) + " / 3";
-            if (shownRevision == session.State.revision && shownHintLevel == level && shownReset == s.testResetSerial) return;
-            bool newHint = shownRevision >= 0 && level > shownHintLevel;
-            shownRevision = session.State.revision; shownHintLevel = level; shownReset = s.testResetSerial;
-            guideTitle.text = "T" + (guideTopic + 1) + " · " + ArchiveTopicCatalog.Names[guideTopic];
-            string lesson = ArchiveLearningFeedback.Guide(guideTopic, session.Question(guideTopic));
-            string body = "";
-            if (s.phase == 1)
-            {
-                body += "<b>YOUR HINTS · " + level + " / 3</b>\n";
-                if (level == 0) body += ArchiveLearningFeedback.Hint(guideTopic, session.Question(guideTopic), s, 0);
-                for (int i = level; i >= 1; i--) body += session.LearningHintText(guideTopic,session.LocalActor,i) + "\n\n";
-                if (!session.Near(session.LocalActor, guideTopic, Vector3.zero, 14)) body += "\nReturn to this topic's arena to request another hint.";
-                body += "\n\n<b>TEAM FEEDBACK</b>\n" + s.feedback + "\n\n";
-            }
-            else body += "Hints become available after Book activation in this topic. You can read these examples anytime.\n\n";
-            var b = session.State.barrier;
-            if (b.actor == session.LocalActor && b.outcome != 0)
-                body = "<b>LAST BARRIER REVIEW</b>\n" + session.BarrierProblem().prompt + "\n\n" + b.feedback + "\n\n" + body;
-            body += "<b>COOPERATIVE PLAY</b>\n" + session.CooperationGuide(guideTopic) + "\n\n";
-            float position = newHint ? 1 : guideScroll.verticalNormalizedPosition; guideBody.text = body + lesson; Canvas.ForceUpdateCanvases(); guideScroll.verticalNormalizedPosition = position;
+            RefreshGuidePresentation();
         }
         void RefreshBarrier()
         {

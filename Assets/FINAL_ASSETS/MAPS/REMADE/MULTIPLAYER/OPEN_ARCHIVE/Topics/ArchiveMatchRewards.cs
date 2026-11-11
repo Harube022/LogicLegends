@@ -14,6 +14,8 @@ namespace LogicLegends.OpenArchive.Topics
         public bool online,adminUsed;
         public int[] participants=Array.Empty<int>(),completedTopics=Array.Empty<int>(),restoredTopics=Array.Empty<int>();
         public string[] participationKeys=Array.Empty<string>();
+        public int[] escapedActors=Array.Empty<int>(),disconnectedActors=Array.Empty<int>();
+        public string[] correctAnswers=Array.Empty<string>();
     }
     [Serializable] public sealed class ArchiveRewardSupportCredit
     { public int actor,target; public string kind; }
@@ -24,6 +26,7 @@ namespace LogicLegends.OpenArchive.Topics
         public int version=1;
         public bool online,adminUsed;
         public List<int> participants=new List<int>();
+        public List<int> disconnectedActors=new List<int>();
         public List<ArchiveRewardSupportCredit> support=new List<ArchiveRewardSupportCredit>();
         public List<ArchiveRewardGift> gifts=new List<ArchiveRewardGift>();
         public List<ArchiveMatchRewardReport> finalReports=new List<ArchiveMatchRewardReport>();
@@ -31,12 +34,16 @@ namespace LogicLegends.OpenArchive.Topics
     public sealed class ArchiveMatchRewardBreakdown
     {
         public int coins,baseCoins,crystalCoins,participationCoins,consolationCoins,tier;
+        public int leaderboardPoints,correctAnswers;
+        public bool escaped;
         public string exclusionReason="";
     }
     /// <summary>Preview only. The authenticated backend recomputes and grants the wallet receipt.</summary>
     public static class ArchiveMatchRewardPolicy
     {
         public const int MaximumCoins=1000,FullParticipationCredits=3;
+        public const int CurrentVersion=2, EscapeCoins=2000, FinishCoins=1000;
+        public const int MinimumPoints=500, MaximumPoints=1000, NearTieGap=1;
         public static bool ValidKey(string key,int actor,int[] roster)
         {
             if(string.IsNullOrEmpty(key)||key.Length>64)return false;
@@ -53,12 +60,14 @@ namespace LogicLegends.OpenArchive.Topics
             if(report.adminUsed){result.exclusionReason="Admin-assisted match — no permanent rewards.";return result;}
             if(!report.online){result.exclusionReason="Offline practice — no permanent rewards.";return result;}
             var roster=report.participants;var completed=report.completedTopics;var restored=report.restoredTopics;var keys=report.participationKeys;
-            if(report.version!=1||!Regex.IsMatch(report.matchId??"","^[a-f0-9]{32}$")||report.actor<=0||
+            if((report.version!=1&&report.version!=CurrentVersion)||!Regex.IsMatch(report.matchId??"","^[a-f0-9]{32}$")||report.actor<=0||
                 roster==null||roster.Length<2||roster.Length>4||roster.Any(a=>a<=0)||roster.Distinct().Count()!=roster.Length||!roster.Contains(report.actor)||
                 completed==null||completed.Any(t=>t<0||t>=10)||completed.Distinct().Count()!=completed.Length||
                 restored==null||restored.Any(t=>!completed.Contains(t))||restored.Distinct().Count()!=restored.Length||
-                (report.outcome!="victory"&&report.outcome!="defeat")||report.outcome=="victory"&&completed.Length!=10||
-                keys==null||keys.Length>128||keys.Any(key=>!ValidKey(key,report.actor,roster)))
+                (report.outcome!="victory"&&report.outcome!="defeat")||report.outcome=="victory"&&completed.Length!=10)
+            {result.exclusionReason="Match reward evidence is incomplete.";return result;}
+            if(report.version==CurrentVersion)return CalculateCurrent(report);
+            if(keys==null||keys.Length>128||keys.Any(key=>!ValidKey(key,report.actor,roster)))
             {result.exclusionReason="Match reward evidence is incomplete.";return result;}
             result.tier=Math.Min(FullParticipationCredits,keys.Distinct().Count());
             if(result.tier==0){result.exclusionReason="No confirmed puzzle work or teammate support.";return result;}
@@ -72,19 +81,70 @@ namespace LogicLegends.OpenArchive.Topics
             result.coins=result.baseCoins+result.crystalCoins+result.participationCoins+result.consolationCoins;
             return result;
         }
+        static ArchiveMatchRewardBreakdown CalculateCurrent(ArchiveMatchRewardReport report)
+        {
+            var result=new ArchiveMatchRewardBreakdown{exclusionReason="Match reward evidence is incomplete."};
+            var roster=report.participants;
+            if(!ValidActorSubset(report.escapedActors,roster)||!ValidActorSubset(report.disconnectedActors,roster)||
+                report.correctAnswers==null||report.correctAnswers.Length>64||
+                (report.escapedActors.Length>0&&report.completedTopics.Length!=10)||
+                (report.outcome=="victory"&&report.escapedActors.Length==0))return result;
+
+            var counts=roster.ToDictionary(actor=>actor,_=>0);
+            var solved=new HashSet<string>();
+            var solvedPerTopic=new int[10];
+            foreach(string answer in report.correctAnswers)
+            {
+                if(string.IsNullOrEmpty(answer)||answer.Length>32)return result;
+                var parts=answer.Split(':');
+                if(parts.Length!=4||!int.TryParse(parts[0],out int actor)||!counts.ContainsKey(actor)||
+                    !ValidKey("work:"+parts[1]+":"+parts[2]+":"+parts[3],actor,roster)||
+                    answer!=actor+":"+parts[1]+":"+parts[2]+":"+parts[3]||
+                    !solved.Add(parts[1]+":"+parts[2]+":"+parts[3]))return result;
+                counts[actor]++;
+                solvedPerTopic[int.Parse(parts[1])]++;
+            }
+            if(report.completedTopics.Any(topic=>solvedPerTopic[topic]!=ArchiveCrystalProgress.Total(topic)))return result;
+            result.correctAnswers=counts[report.actor];
+            result.escaped=report.escapedActors.Contains(report.actor);
+            if(report.disconnectedActors.Contains(report.actor))
+            {
+                result.exclusionReason="Disconnected during the match. No rewards earned.";
+                return result;
+            }
+            var eligible=roster.Where(actor=>!report.disconnectedActors.Contains(actor)).Select(actor=>counts[actor]).ToArray();
+            int lowest=eligible.Min(),gap=eligible.Max()-lowest;
+            result.coins=result.escaped?EscapeCoins:FinishCoins;
+            result.leaderboardPoints=gap<=NearTieGap?MaximumPoints:
+                MinimumPoints+((result.correctAnswers-lowest)*(MaximumPoints-MinimumPoints)+gap/2)/gap;
+            result.exclusionReason="";
+            return result;
+        }
+        static bool ValidActorSubset(int[] actors,int[] roster) =>
+            actors!=null&&actors.Length<=roster.Length&&actors.Distinct().Count()==actors.Length&&actors.All(roster.Contains);
+
         public static ArchiveMatchRewardReport Build(ArchiveTeamState team,int actor)
         {
-            var report=new ArchiveMatchRewardReport{matchId=team?.matchId,actor=actor,outcome=team?.survival?.defeated==true?"defeat":team?.exit?.won==true?"victory":""};
+            var report=new ArchiveMatchRewardReport{version=CurrentVersion,matchId=team?.matchId,actor=actor,
+                outcome=team?.survival?.defeated==true?"defeat":team?.exit?.won==true?"victory":""};
             if(team?.rewards==null||team.stations==null||team.stations.Length!=10)return report;
             report.online=team.rewards.online;report.adminUsed=team.rewards.adminUsed||team.crystals?.Any(c=>c.adminBypass)==true;
             report.participants=team.rewards.participants.Distinct().OrderBy(a=>a).ToArray();
             report.completedTopics=Enumerable.Range(0,10).Where(t=>team.stations[t].phase==2&&ArchiveCrystalProgress.Solved(team,t)==ArchiveCrystalProgress.Total(t)).ToArray();
             report.restoredTopics=(team.crystals??new List<ArchiveCrystalState>()).Where(c=>c.fullyRestored&&!c.adminBypass&&report.completedTopics.Contains(c.topic)).Select(c=>c.topic).Distinct().OrderBy(t=>t).ToArray();
+            report.escapedActors=team.exit?.escaped?.Select(e=>e.actor).Where(report.participants.Contains).Distinct().OrderBy(a=>a).ToArray()??Array.Empty<int>();
+            report.disconnectedActors=team.rewards.disconnectedActors?.Where(report.participants.Contains).Distinct().OrderBy(a=>a).ToArray()??Array.Empty<int>();
+            if(report.online&&!report.adminUsed&&!string.IsNullOrEmpty(report.outcome))
+                report.correctAnswers=Enumerable.Range(0,10).SelectMany(t=>ArchiveCrystalProgress.Receipts(team,t))
+                    .Where(r=>report.participants.Contains(r.solver)).Select(r=>r.solver+":"+r.topic+":"+r.round+":"+r.subphase).ToArray();
+            return report;
+        }
+        public static string[] ParticipationKeys(ArchiveTeamState team,int actor)
+        {
             var work=Enumerable.Range(0,10).SelectMany(t=>ArchiveCrystalProgress.Receipts(team,t))
                 .Where(r=>(r.crystalContributors??Array.Empty<int>()).Contains(actor)).Select(r=>"work:"+r.topic+":"+r.round+":"+r.subphase);
-            var support=team.rewards.support.Where(r=>r.actor==actor).Select(r=>"support:"+r.kind+":"+r.target);
-            report.participationKeys=work.Concat(support).Distinct().OrderBy(k=>k).Take(128).ToArray();
-            return report;
+            var support=team.rewards?.support?.Where(r=>r.actor==actor).Select(r=>"support:"+r.kind+":"+r.target)??Enumerable.Empty<string>();
+            return work.Concat(support).Distinct().OrderBy(k=>k).Take(128).ToArray();
         }
     }
     public sealed partial class ArchiveTopicSession
@@ -102,8 +162,7 @@ namespace LogicLegends.OpenArchive.Topics
             {rewardCountState=State;rewardCountRevision=State.revision;rewardCounts.Clear();}
             if(!rewardCounts.TryGetValue(actor,out int count))
             {
-                var report=RewardReport(actor);
-                count=report==null?0:Math.Min(3,report.participationKeys.Distinct().Count());
+                count=Math.Min(3,ArchiveMatchRewardPolicy.ParticipationKeys(State,actor).Length);
                 rewardCounts[actor]=count;
             }
             return count;
@@ -119,12 +178,34 @@ namespace LogicLegends.OpenArchive.Topics
             if(State==null)return;
             if(State.rewards==null)State.rewards=new ArchiveMatchRewardState{online=PhotonNetwork.InRoom&&!PhotonNetwork.OfflineMode};
             if(State.rewards.participants==null)State.rewards.participants=new List<int>();
+            if(State.rewards.disconnectedActors==null)State.rewards.disconnectedActors=new List<int>();
             if(State.rewards.support==null)State.rewards.support=new List<ArchiveRewardSupportCredit>();
             if(State.rewards.gifts==null)State.rewards.gifts=new List<ArchiveRewardGift>();
             if(State.rewards.finalReports==null)State.rewards.finalReports=new List<ArchiveMatchRewardReport>();
             if(IsAuthority&&State.rewards.finalReports.Count==0&&PhotonNetwork.InRoom)
+            {
                 foreach(var member in PhotonNetwork.PlayerList)
                     if(!State.rewards.participants.Contains(member.ActorNumber))State.rewards.participants.Add(member.ActorNumber);
+                foreach(int actor in State.rewards.participants)
+                {
+                    var member=PhotonNetwork.CurrentRoom.GetPlayer(actor);
+                    if(member==null||member.IsInactive)RecordRewardDisconnect(actor);
+                }
+            }
+        }
+        void RecordRewardDisconnect(int actor)
+        {
+            var rewards=State.rewards;
+            if(rewards==null||!rewards.online||rewards.finalReports.Count>0||!rewards.participants.Contains(actor))return;
+            if(!rewards.disconnectedActors.Contains(actor))rewards.disconnectedActors.Add(actor);
+        }
+        internal void PublishRecoveredRewardEligibility()
+        {
+            // Recovery suppresses authority until the local avatar is restored.
+            // A returning host can be the only peer left to record its own drop.
+            if(!Ready||!IsAuthority||!PhotonNetwork.InRoom||TeamWon||TeamDefeated)return;
+            RecordRewardDisconnect(PhotonNetwork.LocalPlayer.ActorNumber);
+            Commit();
         }
         public void MarkRewardsAdminUsed()
         {
@@ -192,9 +273,11 @@ namespace LogicLegends.OpenArchive.Topics
                 var preview=ArchiveMatchRewardPolicy.Calculate(report);
                 if(!string.IsNullOrEmpty(preview.exclusionReason))return preview.exclusionReason;
                 if(rewardOwnerUid!=MultiplayerRewardBackendClient.UserId)return "Account changed — this match cannot credit another account.";
+                string status=string.IsNullOrEmpty(rewardOwnerUid)?"Sign in before starting a match to save rewards.":MultiplayerRewardOutbox.Status(State.matchId);
+                if(report.version==ArchiveMatchRewardPolicy.CurrentVersion)
+                    return (preview.escaped?"Escaped":"Did not escape")+" · "+preview.correctAnswers+" correct\n"+status;
                 string breakdown=report.outcome=="victory"?"Victory +"+preview.baseCoins+" · Crystals +"+preview.crystalCoins+" · Participation +"+preview.participationCoins:
                     "Completed topics: "+report.completedTopics.Length+" / 10 · Consolation +"+preview.consolationCoins;
-                string status=string.IsNullOrEmpty(rewardOwnerUid)?"Sign in before starting a match to save coins.":MultiplayerRewardOutbox.Status(State.matchId);
                 return breakdown+"\nContribution "+preview.tier+" / 3 · "+status;
             }
         }

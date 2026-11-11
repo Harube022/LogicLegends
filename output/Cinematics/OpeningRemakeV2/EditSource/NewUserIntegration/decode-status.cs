@@ -1,0 +1,1 @@
+return UnityEngine.Resources.FindObjectsOfTypeAll<UnityEngine.Video.VideoPlayer>().Where(v=>v.name=="Temporary V4 Video Decode Check").Select(v=>new{v.isPrepared,v.isPlaying,v.frame,v.time,clip=v.clip.name,texture=v.texture==null?"null":v.texture.width+"x"+v.texture.height}).ToArray();

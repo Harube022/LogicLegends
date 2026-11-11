@@ -553,10 +553,13 @@ public sealed class FriendsUI : MonoBehaviour
         if (MultiplayerLobbyService.Instance != null && MultiplayerLobbyService.Instance.InLobby)
         { ShowStatus("Leave your current lobby before joining another."); return; }
         Close();
-        multiplayerMenu.OnClickMultiplayerButton();
-        lobby.ShowJoin();
-        lobby.InviteInput.text = code;
-        MultiplayerLobbyService.Instance.Notify("Invite code ready. Tap JOIN LOBBY.");
+        multiplayerMenu.EnterMultiplayer(() =>
+        {
+            if (this == null) return;
+            lobby.ShowJoin();
+            lobby.InviteInput.text = code;
+            MultiplayerLobbyService.Instance.Notify("Invite code ready. Tap JOIN LOBBY.");
+        });
     }
 
     private bool Current(int version) => this != null && overlay.activeSelf && version == viewVersion;

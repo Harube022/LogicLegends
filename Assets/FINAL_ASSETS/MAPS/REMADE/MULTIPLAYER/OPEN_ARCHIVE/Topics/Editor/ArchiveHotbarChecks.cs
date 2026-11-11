@@ -22,7 +22,7 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         static void Check(bool test,string label){report.checks.Add((test?"PASS ":"FAIL ")+label);Save();if(!test)throw new Exception(label);}
         static void Log(string text,string stack,LogType type){if(report.errors.Count<8&&(type==LogType.Error||type==LogType.Exception||type==LogType.Assert))report.errors.Add(text+"\n"+stack);}
         static void Tick(){if(flow==null)return;EditorApplication.QueuePlayerLoopUpdate();try{if(EditorApplication.timeSinceStartup<next)return;if(!Application.isPlaying)throw new Exception("Play stopped");if(!flow.MoveNext()){Finish(true);return;}next=EditorApplication.timeSinceStartup+(flow.Current is float seconds?seconds:0);}catch(Exception e){report.errors.Add(Status+": "+e);Finish(false);}}
-        static void Finish(bool success){EditorApplication.update-=Tick;Application.logMessageReceived-=Log;flow=null;if(testKeyboard!=null){InputSystem.RemoveDevice(testKeyboard);testKeyboard=null;}if(originalKeyboard!=null&&originalKeyboard.added)originalKeyboard.MakeCurrent();if(GameInput.Instance!=null)GameInput.Instance.SetGameplayInputBlocked(originalInputBlock);report.passed=success&&report.errors.Count==0;Status=report.passed?"Passed":"Failed";Save();}
+        static void Finish(bool success){EditorApplication.update-=Tick;Application.logMessageReceived-=Log;flow=null;if(testKeyboard!=null){InputSystem.RemoveDevice(testKeyboard);testKeyboard=null;}if(originalKeyboard!=null&&originalKeyboard.added)originalKeyboard.MakeCurrent();if(GameInput.Instance!=null){GameInput.Instance.SetMobileMovement(Vector2.zero);GameInput.Instance.SetGameplayInputBlocked(originalInputBlock);}report.passed=success&&report.errors.Count==0;Status=report.passed?"Passed":"Failed";Save();}
         static void Click(Button b)
         {
             Check(b!=null&&b.isActiveAndEnabled&&b.interactable,"Hotbar target is active and interactable");
@@ -36,15 +36,23 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Status="Collected models and real slot selection";s.Initialize(128871);s.hunting.Request(Hunting.KhezuCommand.Sleep);ArchiveTopicUI.Current.Close();
             var view=ArchiveRewardView.Current;var held=s.GetComponent<ArchiveEquippedItems>();
             yield return .25f;
+            double introDeadline=EditorApplication.timeSinceStartup+30;
+            while(ArchiveMatchCinematic.Covers(s)||!s.CanAct(s.LocalActor))
+            {
+                if(EditorApplication.timeSinceStartup>=introDeadline)
+                    throw new TimeoutException("Match intro did not release gameplay input.");
+                yield return .25f;
+            }
             Check(!view.RequestVisibleForQA()&&Enumerable.Range(0,6).All(n=>!view.HotbarButton(n).gameObject.activeSelf),
                 "A new empty inventory displays no holders or inventory backplates");
             Check(view.itemPrefabs.Length==6&&view.itemPrefabs.All(p=>p!=null)&&view.itemIcons.All(p=>p!=null),"All six supplies have saved reusable 3D models and matching inventory icons");
             Check(view.itemPrefabs.All(p=>p.GetComponentsInChildren<Collider>(true).Length==0&&p.GetComponentsInChildren<Rigidbody>(true).Length==0),"Held previews cannot collide with or push gameplay objects");
             s.RequestAdminTest(ArchiveAdminTestAction.GrantAllItems,-1);yield return .25f;
-            var counts=s.Inventory(-1).items.ToArray();var player=Player.LocalInstance;var original=player.transform.rotation;
+            var counts=s.Inventory(-1).items.ToArray();var player=Player.LocalInstance;
             Check(s.EquippedItem(-1)==-1&&held.VisibleModelCount==0,"Collected supplies enter the bottom bar without being consumed or used");
             for(int i=0;i<6;i++)
             {
+                var original=player.transform.rotation;
                 Click(view.HotbarButton(i));yield return .25f;
                 Check(s.EquippedItem(-1)==i&&held.VisibleItem(-1)==i&&held.VisibleModelCount==1,"Slot "+(i+1)+" selects exactly one matching 3D hand item");
                 Check(Enumerable.Range(0,6).All(n=>view.HotbarSelectionBorder(n).gameObject.activeSelf==(n==i))&&
@@ -53,7 +61,8 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                 Canvas.ForceUpdateCanvases();var borderMesh=view.HotbarSelectionBorder(i).GetComponent<CanvasRenderer>()?.GetMesh();
                 Check(borderMesh!=null&&borderMesh.vertexCount>20,"Slot "+(i+1)+" actually renders its hollow highlighted border mesh");
                 Check(s.Inventory(-1).items.SequenceEqual(counts),"Selecting "+((ArchiveSurvivalItem)i)+" preserves every inventory stack");
-                Check(Quaternion.Angle(player.transform.rotation,original)<.1f&&player.GetHeldObject()==null,"Equipping supplies preserves the player root and academic pickup channel");
+                Check((i==4||Quaternion.Angle(player.transform.rotation,original)<.1f)&&player.GetHeldObject()==null,
+                    "Only the equipped gun can turn the avatar and the academic pickup channel is preserved");
                 if(i==0||i==4)
                 {
                     var wrist=player.GetComponentsInChildren<Transform>(true).First(t=>t.name=="Bone.006.R_end");
@@ -64,6 +73,13 @@ namespace LogicLegends.OpenArchive.Topics.Editor
                         lookControl.SetViewAngles(22,player.transform.eulerAngles.y+yaw);yield return .3f;
                         Check(Quaternion.Angle(wristRotation,Quaternion.Inverse(wrist.rotation)*model.rotation)<.2f,
                             ((ArchiveSurvivalItem)i)+" stays rigid in the hand during camera orbit "+yaw);
+                        if(i==4)
+                        {
+                            var forward=Vector3.ProjectOnPlane(Camera.main.transform.forward,Vector3.up).normalized;
+                            Check(Vector3.Dot(player.transform.forward,forward)>.98f&&
+                                Vector3.Dot(model.forward,ArchiveTopicSession.LocalTranquilizerAim(player,Camera.main))>.99f,
+                                "Gun body yaw and barrel direction follow the crosshair after turning");
+                        }
                     }
                     lookControl.SetViewAngles(Mathf.DeltaAngle(0,before.x),before.y);yield return .2f;
                     ScreenCapture.CaptureScreenshot("Temp/ArchiveHotbar/Stable_Hand_"+((ArchiveSurvivalItem)i)+".png");yield return .15f;
@@ -100,9 +116,24 @@ namespace LogicLegends.OpenArchive.Topics.Editor
             Check(Vector3.Dot(Camera.main.transform.forward,torch.forward)<-.5f&&Vector3.Dot(lamp.transform.forward,torch.forward)>.999f&&
                 Vector3.Distance(lamp.transform.position,torch.TransformPoint(new Vector3(0,0,.72f)))<.05f,
                 "Front-orbit camera keeps the actual light beam aligned to the visible flashlight lens");
+            look.SetViewAngles(12,originalAngles.y);
+            var beforeMove=player.transform.position;
+            GameInput.Instance.SetMobileMovement(Vector2.up);yield return .42f;
+            GameInput.Instance.SetMobileMovement(Vector2.zero);
+            float pitch=-Mathf.Asin(lamp.transform.forward.y)*Mathf.Rad2Deg;
+            Check(Vector3.Distance(beforeMove,player.transform.position)>.3f&&
+                Vector3.Dot(Vector3.ProjectOnPlane(lamp.transform.forward,Vector3.up).normalized,player.transform.forward)>.999f&&
+                Mathf.Abs(pitch-held.flashlightDownwardAngle)<.1f,
+                "Forward movement keeps the light centered on the avatar heading and slightly below level");
             look.SetViewAngles(originalAngles.x,originalAngles.y);yield return .2f;
             Click(view.HotbarButton(4));yield return .25f;
             Check(!s.Inventory(-1).flashlightOn&&held.VisibleItem(-1)==4,"Switching to the gun puts away and turns off the flashlight");
+            var strafeStart=player.transform.position;
+            GameInput.Instance.SetMobileMovement(Vector2.right);yield return .4f;
+            GameInput.Instance.SetMobileMovement(Vector2.zero);
+            Check(Vector3.Dot(player.transform.position-strafeStart,Camera.main.transform.right)>.3f&&
+                Vector3.Dot(player.transform.forward,Vector3.ProjectOnPlane(Camera.main.transform.forward,Vector3.up).normalized)>.98f,
+                "Strafing moves sideways while the avatar stays aimed at the crosshair");
             ScreenCapture.CaptureScreenshot("Temp/ArchiveHotbar/Hotbar_Equipped_Gun.png");yield return .15f;
             Status="Actual item preview above the chest";
             Check(s.RequestAdminTest(ArchiveAdminTestAction.SpawnChest,0,(int)ArchiveSurvivalItem.RevivalKit),"Admin exposes a known chest reward fixture for visual inspection");yield return 2.1f;
