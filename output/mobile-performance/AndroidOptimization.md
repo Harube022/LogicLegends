@@ -230,3 +230,14 @@ Acceptance checks:
 - Benchmark remaining large geometry, UI/progress-string allocations, NPC ground/path queries, particles/transparency, asset integration and GPU skinning on the actual device before broader changes.
 
 No stable 30 FPS, Android illumination repair, production-wide bake or successful device build is claimed without these checks.
+
+
+## Shared solo Graphics menu and Open Archive quality
+
+The highest solo preset uses the actual Open Archive Mobile URP asset and volume profile. Solo trials use runtime copies of those assets with the multiplayer 2× MSAA, HDR, directional shadow limits, six-light ceiling and quarter-resolution Bloom. Trial scenes, materials and skyboxes remain authored separately. The active solo settings controller reapplies the saved choices on trial entry and releases its graphics state outside the trials.
+
+- Resolution targets 720 or 1080 pixels on the short edge of the 3D view, capped at native resolution. It preserves the device aspect ratio, screen dimensions, UI anchors and touch coordinates.
+- Texture Quality selects the mipmap limit on eligible textures. Low, Medium and High use limits of 3, 2 and 1 respectively, with High matching Open Archive Mobile.
+- Special Effects scales approved decorative lamps, grass, cloud and book-mote effects. Bloom is an independent switch. Low also reduces antialiasing and disables real-time shadows by default. Lighting Quality and Motion Blur were removed from the menu.
+- Low and High both passed settings application, transition persistence and pause exit in Unity Editor Play Mode across Trials 1–10. At a 1920 × 1080 display size, the observed URP scales were 0.667 and 1.0. The new controls fit the 1920 × 1080, 720 × 1280 and 2960 × 1440 Game View sizes. Truth Table also retained a custom mix of settings through a same-scene reload. The Android build configuration check confirmed the shared pipeline is registered for shader variant stripping.
+- ADB reported no connected device. The editor checks do not establish physical-device rendering behavior, frame pacing or FPS. Compare High and Low on the same Truth Table route, with identical build, device and FPS cap, before claiming a performance gain.
