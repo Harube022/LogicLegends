@@ -16,6 +16,7 @@ test('HTTP checkout, signed fulfillment, wallet, purchase and equip work togethe
       PAYMONGO_SECRET_KEY: 'sk_test_fixture', PAYMONGO_WEBHOOK_SECRET: secret };
     const app = createApp(env, {
       verifyIdToken: async token => { if (!token) throw Error(); return { uid: token === 'fixture' ? uid : uid + '-other' }; },
+      getUser: async uid => ({ uid, email: 'buyer@ncst.edu.ph', emailVerified: true }),
       paymongo: async (path, body) => {
         if (path.endsWith('/expire')) {
           const session = sessions.get(path.split('/').at(-2));

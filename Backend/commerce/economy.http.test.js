@@ -12,7 +12,7 @@ test('authenticated HTTP: quiz bonus receipts and both purchase currencies remai
     const prefix = 'solo-economy-http-' + crypto.randomBytes(6).toString('hex'), ids = [];
     const app = createApp({ SOLO_ECONOMY_V2_ENABLED:'true',STORAGE_MODE:'emulator',PAYMENT_MODE:'test',FIREBASE_DATABASE_EMULATOR_HOST:'127.0.0.1:9000',FIREBASE_PROJECT_ID:'demo-logic-legends' }, {
       verifyIdToken: async uid => { if (!uid.startsWith(prefix)) throw Error('Invalid test identity'); return {uid}; },
-      getUser: async uid => ({uid,email:'ordinary@example.test',disabled:false})
+      getUser: async uid => ({uid,email:'ordinary@ncst.edu.ph',emailVerified:true,disabled:false})
     });
     const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
     const base='http://127.0.0.1:'+server.address().port, db=getDatabase(getApp('commerce-data'));

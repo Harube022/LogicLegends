@@ -32,7 +32,8 @@ public static class TrialInteractionChecks
         int trial=TrialCatalog.ForScene(scene).Number;
         string uid="interaction-qa-"+Guid.NewGuid().ToString("N");
         var previous=typeof(TrialBackendClient).GetField("ValidationTransport",Static).GetValue(null);
-        SetBackend("ValidationTransport",(Func<string,string,Task<string>>)((path,json)=>Task.FromResult(path=="/trials/access"?JsonUtility.ToJson(new TrialBackendClient.Access{uid=uid,admin=true}):"{}")));
+        bool fixtureAdmin=false;
+        SetBackend("ValidationTransport",(Func<string,string,Task<string>>)((path,json)=>Task.FromResult(path=="/trials/access"?JsonUtility.ToJson(new TrialBackendClient.Access{uid=uid,admin=fixtureAdmin}):"{}")));
         SetBackend("ValidationUid",uid);SetBackend("ValidationEmail","ordinary@example.test");
         AdminAuthorization.Refresh();TrialRewards.SceneLoaded();
         var previousInputSettings=InputSystem.settings;
@@ -50,7 +51,7 @@ public static class TrialInteractionChecks
             Check(!hints.Suspended,scene+": Help and tutorial restore active hint input");
             hints.State.Clear();hints.AdvanceForValidation(0);
             Check(!hints.ShowCurrentForAdmin()&&!hints.State.Visible,scene+": ordinary account cannot force a hint");
-            SetBackend("ValidationEmail","sngbdsa137@gmail.com");AdminAuthorization.Refresh();AdminAuthorization.Tick();yield return null;
+            fixtureAdmin=true;AdminAuthorization.Refresh();AdminAuthorization.Tick();yield return null;
             Check(AdminAuthorization.IsAuthorized,scene+": authenticated backend-confirmed Admin");
             var admin=Find<AdminDebugController>();Check(admin!=null,scene+": existing Admin panel reused");
             admin.AdminButtonOn();yield return null;

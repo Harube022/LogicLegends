@@ -27,13 +27,13 @@ test('all ten trials: authenticated Admin policy and atomic reward receipts use 
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}) });
     const ok = async response => { const body = await response.json(); assert.equal(response.status, 200, JSON.stringify(body)); return body; };
     async function account(name, email) {
-      const uid = prefix + '-' + name; uids.add(uid); records.set(name, { uid, email, disabled: false, emailVerified: true });
+      const uid = prefix + '-' + name; uids.add(uid); records.set(name, { uid, email, disabled: false, emailVerified: true, customClaims: { admin: name.startsWith('admin-') } });
       await db.ref('users/' + uid).set({ coins: 37, gems: 19, unlockedStage: 8, base_character: 'Male_Character', inventory: { Common_Skin: true } });
       return db.ref('users/' + uid);
     }
     try {
       assert.equal((await call('missing', 'access')).status, 401);
-      await account('ordinary', 'ordinary@example.test');
+      await account('ordinary', 'ordinary@ncst.edu.ph');
       assert.equal((await ok(await call('ordinary', 'access'))).admin, false);
       for (const [i, email] of ['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabarrameda@gmail.com', 'gravata.joshuaharvey@ncst.edu.ph', 'cayangyang.jhayfel@ncst.edu.ph'].entries()) {
         const token = 'admin-' + i; await account(token, '  ' + email.toUpperCase() + '  ');
@@ -47,7 +47,7 @@ test('all ten trials: authenticated Admin policy and atomic reward receipts use 
       }
       for (let trial = 1; trial <= 10; trial++) {
         for (let retries = 0; retries <= 2; retries++) {
-          const token = 'player-' + trial + '-' + retries, ref = await account(token, 'ordinary@example.test');
+          const token = 'player-' + trial + '-' + retries, ref = await account(token, 'ordinary@ncst.edu.ph');
           const request = { trial, attemptId: id(), newAttempt: true, email: 'sngbdsa137@gmail.com', reward: 999999 };
           await ok(await call(token, 'start', request));
           assert.equal((await call(token, 'admin-used', request)).status, 403);
@@ -64,7 +64,7 @@ test('all ten trials: authenticated Admin policy and atomic reward receipts use 
           assert.equal(saved.gems, 19); assert.equal(saved.unlockedStage, 8); assert.equal(saved.inventory.Common_Skin, true);
         }
       }
-      const token = 'concurrent', ref = await account(token, 'ordinary@example.test');
+      const token = 'concurrent', ref = await account(token, 'ordinary@ncst.edu.ph');
       const request = { trial: 9, attemptId: id(), newAttempt: true };
       await ok(await call(token, 'start', request));
       await Promise.all([ref.child('coins').transaction(value => value + 12),
@@ -73,8 +73,9 @@ test('all ten trials: authenticated Admin policy and atomic reward receipts use 
       // Logout/account switch, an ordinary account, and a disabled allowed account cannot inherit Admin.
       assert.equal((await ok(await call('ordinary', 'access'))).admin, false);
       records.get('admin-0').disabled = true;
-      assert.equal((await ok(await call('admin-0', 'access'))).admin, false);
-      records.get('admin-1').email = 'ordinary@example.test';
+      assert.equal((await call('admin-0', 'access')).status, 403);
+      records.get('admin-1').email = 'ordinary@ncst.edu.ph';
+      records.get('admin-1').customClaims = {};
       assert.equal((await ok(await call('admin-1', 'access'))).admin, false);
     } finally {
       await new Promise(resolve => server.close(resolve));

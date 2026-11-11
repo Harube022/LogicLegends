@@ -63,9 +63,9 @@ public sealed class MainMenuLoadingScreen : MonoBehaviour
         screen.Show("Loading");
     }
 
-    public void ShowConnectionError(System.Action retry)
+    public void ShowConnectionError(System.Action retry, string title = null, string message = null)
     {
-        screen.ShowConnectionError(retry, CancelApplication);
+        screen.ShowConnectionError(retry, CancelApplication, title, message);
     }
 
     public static void CancelApplication()

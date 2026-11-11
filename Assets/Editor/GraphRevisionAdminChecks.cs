@@ -103,7 +103,7 @@ public static class GraphRevisionAdminChecks
     }
     static Task<string> Transport(string path,string json)
     {
-        if(path=="/trials/access")return Task.FromResult(JsonUtility.ToJson(new TrialBackendClient.Access{uid=Uid,admin=true}));
+        if(path=="/trials/access")return Task.FromResult(JsonUtility.ToJson(new TrialBackendClient.Access{uid=Uid,admin=TrialBackendClient.Email!="ordinary@example.test"}));
         var request=JsonUtility.FromJson<TrialBackendClient.Request>(json);
         return Task.FromResult(JsonUtility.ToJson(new TrialBackendClient.Attempt{economyVersion=2,trial=9,attemptId=request.attemptId,status="active",adminUsed=true,coins=0,baseReward=1000,maxRetries=2,retryReductionPercent=25}));
     }

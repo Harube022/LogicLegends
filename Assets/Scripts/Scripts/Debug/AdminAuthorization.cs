@@ -2,80 +2,96 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine;
 
-/// <summary>Authenticated identity plus a short-lived backend decision. UI toggles cannot grant access.</summary>
+/// <summary>One backend decision shared by login, scene entry and the existing Admin UI.</summary>
 public static class AdminAuthorization
 {
-    static string observedUid, observedEmail, verifiedUid, verifiedEmail;
-    static bool verified, loading;
-    static float refreshAt, expiresAt;
-    static int version;
+    static TrialBackendClient.Access access;
+    static Task<TrialBackendClient.Access> pending;
+    static string pendingUid;
+    static int generation;
+    static float expiresAt;
+    internal static string DenialMessage { get; private set; }
     public static string ConnectionStatus { get; private set; } = "";
     public static string Normalize(string email) => (email ?? "").Trim().ToLowerInvariant();
-    public static bool IsAllowedEmail(string email)
-    {
-        switch (Normalize(email))
-        {
-            case "sngbdsa137@gmail.com":
-            case "russelbarrameda593@gmail.com":
-            case "famatigabarrameda@gmail.com": 
-            case "gravata.joshuaharvey@ncst.edu.ph":
-            case "cayangyang.jhayfel@ncst.edu.ph": 
-            return true;
-            default: return false;
-        }
-    }
-    public static bool IsAuthorized => verified && Time.realtimeSinceStartup < expiresAt &&
-        !string.IsNullOrEmpty(TrialBackendClient.UserId) && TrialBackendClient.UserId == verifiedUid &&
-        Normalize(TrialBackendClient.Email) == verifiedEmail && IsAllowedEmail(TrialBackendClient.Email);
+    public static bool IsAuthorized => IsCurrent && access.admin;
+    internal static bool IsCurrent => access != null && access.uid == TrialBackendClient.UserId &&
+        Time.realtimeSinceStartup < expiresAt;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    static void Reset()
-    {
-        observedUid = observedEmail = verifiedUid = verifiedEmail = null;
-        verified = loading = false; refreshAt = expiresAt = 0; version++;
-        ConnectionStatus = "";
-    }
+    static void Reset() { Refresh(); DenialMessage = null; }
+
     public static void Refresh()
     {
-        verified = false; verifiedUid = verifiedEmail = null;
-        refreshAt = expiresAt = 0; loading = false; version++;
+        generation++;
+        access = null;
+        pending = null;
+        pendingUid = null;
+        expiresAt = 0;
         ConnectionStatus = "";
     }
-    public static void Tick()
+
+    internal static void RememberDenial(string message) { Refresh(); DenialMessage = message; }
+    internal static string TakeDenial()
     {
-        string uid = TrialBackendClient.UserId, email = Normalize(TrialBackendClient.Email);
-        if (uid != observedUid || email != observedEmail)
-        { Refresh(); observedUid = uid; observedEmail = email; }
-        if (!loading && uid != null && IsAllowedEmail(email) && Time.realtimeSinceStartup >= refreshAt)
-            _ = Verify(uid, email, version);
+        string message = DenialMessage;
+        DenialMessage = null;
+        return message;
     }
-    static async Task Verify(string uid, string email, int generation)
+
+    internal static Task<TrialBackendClient.Access> Verify()
     {
-        loading = true; refreshAt = Time.realtimeSinceStartup + 15;
-        ConnectionStatus = "Checking admin access...";
+        string uid = TrialBackendClient.UserId;
+        if (string.IsNullOrEmpty(uid))
+            return Task.FromException<TrialBackendClient.Access>(new TrialBackendClient.AccountException(401, "Please sign in again."));
+        if (pendingUid == uid && pending != null && !pending.IsCompleted) return pending;
+        pendingUid = uid;
+        pending = Check(uid, ++generation);
+        return pending;
+    }
+
+    static async Task<TrialBackendClient.Access> Check(string uid, int version)
+    {
         try
         {
-            var access = await TrialBackendClient.LoadAccess();
-            if (generation != version || TrialBackendClient.UserId != uid || Normalize(TrialBackendClient.Email) != email) return;
-            verified = access != null && access.admin && access.uid == uid;
-            verifiedUid = uid; verifiedEmail = email;
-            ConnectionStatus = verified ? "Admin access confirmed." : "This account does not have verified admin access.";
-            expiresAt = Time.realtimeSinceStartup + 90; refreshAt = Time.realtimeSinceStartup + 60;
+            var result = await TrialBackendClient.LoadAccess();
+            if (version != generation || uid != TrialBackendClient.UserId)
+                throw new InvalidOperationException("Your account changed. Please retry.");
+            if (result == null || result.uid != uid || result.policyVersion != 1
+#if UNITY_EDITOR
+                && TrialBackendClient.ValidationTransport == null
+#endif
+               ) throw new InvalidOperationException("The account service is not ready. Please retry.");
+            access = result;
+            expiresAt = Time.realtimeSinceStartup + 150f;
+            ConnectionStatus = result.admin ? "Admin access confirmed." : "This account does not have verified admin access.";
+            return result;
         }
-        catch (Exception)
+        catch
         {
-            if (generation != version) return;
-            verified = false;
-            refreshAt = Time.realtimeSinceStartup + 15;
-            ConnectionStatus = "Admin access could not be confirmed. Check the backend connection or sign in again. Retrying in 15 seconds.";
-            Debug.LogWarning(ConnectionStatus);
+            if (version == generation)
+            {
+                access = null;
+                ConnectionStatus = "Account access could not be confirmed.";
+            }
+            throw;
         }
-        finally { if (generation == version) loading = false; }
     }
+
+    // Retain the explicit opt-in offline test hook; the player uses the session service.
+    public static async void Tick()
+    {
+#if UNITY_EDITOR
+        if (TrialBackendClient.ValidationTransport == null || IsCurrent || pending?.IsCompleted == false) return;
+        try { await Verify(); } catch (Exception) { }
+#endif
+        await Task.CompletedTask;
+    }
+
     public static bool TryUseGameplayAdmin()
     {
         if (!IsAuthorized) return false;
         if (TrialRewards.AdminExclusionConfirmed) return true;
         _ = TrialRewards.PrepareAdminAction();
-        return false; // No clear/skip until its exclusion has been saved by the backend.
+        return false;
     }
 }

@@ -99,9 +99,19 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
         Begin(Request.Join, code);
     }
     public void StartSolo() { Begin(Request.Solo, null); }
-    private void Begin(Request request, string code)
+    private async void Begin(Request request, string code)
     {
         if (Busy || PhotonNetwork.InRoom) return;
+        Busy = true;
+        int version = ++requestVersion;
+        Notify("Checking account access...");
+        try { await TrialSessionServices.RequireAccess(); }
+        catch (System.Exception error)
+        {
+            if (this != null && version == requestVersion) Fail(error.Message);
+            return;
+        }
+        if (this == null || version != requestVersion) return;
         ClearRecoverySession();
         Busy = true; leaving = false; committed = false; disconnectNotice = null;
         pending = request; pendingCode = code; createAttempts = 0;
@@ -231,7 +241,8 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
         if (!InLobby || Starting || leaving) return;
         PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey] = !LobbyRules.IsReady(PhotonNetwork.LocalPlayer),[ReadyEpochKey]=PartyReturnEpoch });
     }
-    public void StartGame()
+    private bool checkingStartAccess;
+    public async void StartGame()
     {
         if (!CanStart || startRoutine != null || committed)
         { Notify(WaitingForReconnect ? "A teammate is reconnecting. Wait for their return or for their reserved slot to expire." : "The host can start when 2–4 players are all ready."); return; }
@@ -239,6 +250,13 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
         if (string.IsNullOrEmpty(target) || !Application.CanStreamedLevelBeLoaded(target)) { Notify("The multiplayer scene is unavailable in this build."); return; }
         if (!MultiplayerMonsterRotation.TryRead(PhotonNetwork.CurrentRoom.CustomProperties, out _))
         { Notify("The lobby's monster selection is unavailable. Please host a new party."); return; }
+        if (checkingStartAccess) return;
+        var room = PhotonNetwork.CurrentRoom;
+        checkingStartAccess = true;
+        try { await TrialSessionServices.RequireAccess(); }
+        catch (System.Exception error) { if (this != null) Notify(error.Message); return; }
+        finally { checkingStartAccess = false; }
+        if (this == null || PhotonNetwork.CurrentRoom != room || !CanStart || startRoutine != null || committed) return;
         Busy = true; deadline = 0;
         PhotonNetwork.CurrentRoom.IsOpen = false;
         PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { [LobbyRules.StateKey] = LobbyRules.Locking },

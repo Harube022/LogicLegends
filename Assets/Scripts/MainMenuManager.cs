@@ -73,6 +73,7 @@ public class MainMenuManager : MonoBehaviour
 
     private void Start()
     {
+        GameCommunityUI.Install(mainMenuPanel);
         RefreshStageSelectionUI();
     }
 
@@ -217,7 +218,7 @@ public class MainMenuManager : MonoBehaviour
     public void SelectStage2() => SelectStage(2);
     public void SelectStage3() => SelectStage(3);
 
-    public void SelectStage(int stageNumber)
+    public async void SelectStage(int stageNumber)
     {
         if (isLoadingStage || stageNumber < StageSelectionState.FirstStage ||
             stageNumber > StageSelectionState.LastStage)
@@ -235,9 +236,16 @@ public class MainMenuManager : MonoBehaviour
             return;
         }
 
-        TrialRewards.PrepareNewAttempt(stageNumber);
         isLoadingStage = true;
         RefreshStageSelectionUI();
+        try { await TrialSessionServices.RequireAccess(); }
+        catch (System.Exception error)
+        {
+            if (this != null) { isLoadingStage = false; progressMessage = error.Message; RefreshStageSelectionUI(); }
+            return;
+        }
+        if (this == null || !stageSelectionPanel.activeInHierarchy) return;
+        TrialRewards.PrepareNewAttempt(stageNumber);
         StageSelectionState.Select(stageNumber);
 
         TeleportManager.Navigate(targetScene);
@@ -306,9 +314,11 @@ public class MainMenuManager : MonoBehaviour
         if (stageSelectionPanel != null) stageSelectionPanel.SetActive(visible);
     }
 
-    public void LoadLogicGarden()
+    public async void LoadLogicGarden()
     {
-        TeleportManager.Navigate("LogicGarden");
+        try { await TrialSessionServices.RequireAccess(); }
+        catch (System.Exception) { return; }
+        if (this != null && FirebaseAuth.DefaultInstance.CurrentUser != null) TeleportManager.Navigate("LogicGarden");
     }
 
     public void QuitGame()
