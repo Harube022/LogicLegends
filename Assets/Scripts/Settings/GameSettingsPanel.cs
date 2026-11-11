@@ -198,8 +198,24 @@ public sealed class GameSettingsPanel : MonoBehaviour
     public void Apply()
     {
         if (draft == null) return;
-        SoloGameSettings.Apply(draft); draft = SoloGameSettings.Current.Copy(); RefreshControls();
-        if (feedback != null) feedback.text = "Changes Saved";
+        // Keep the graphics choices available in the menu while the trials use the baseline.
+        var saved = SoloGameSettings.Current;
+        bool graphicsChanged = draft.graphicsQuality != saved.graphicsQuality ||
+            draft.frameRate != saved.frameRate || draft.shadowQuality != saved.shadowQuality ||
+            draft.lightingQuality != saved.lightingQuality || draft.fog != saved.fog ||
+            draft.motionBlur != saved.motionBlur;
+        draft.graphicsQuality = saved.graphicsQuality;
+        draft.frameRate = saved.frameRate;
+        draft.shadowQuality = saved.shadowQuality;
+        draft.lightingQuality = saved.lightingQuality;
+        draft.fog = saved.fog;
+        draft.motionBlur = saved.motionBlur;
+
+        SoloGameSettings.Apply(draft);
+        draft = SoloGameSettings.Current.Copy();
+        RefreshControls();
+        if (feedback != null)
+            feedback.text = graphicsChanged ? "Graphics options temporarily paused" : "Changes Saved";
     }
     void ClearFeedback() { if (feedback != null) feedback.text = ""; }
     public void ResetDraft()
