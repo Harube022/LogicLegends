@@ -212,8 +212,8 @@ public sealed class ShopPreviewUI : MonoBehaviour
     }
     void SetCurrencyEnabled(bool enabled)
     {
-        if (payCoins != null) payCoins.interactable = enabled && item != null && item.CurrencyType != ShopItem.Currency.Coins;
-        if (payGems != null) payGems.interactable = enabled && item != null && item.CurrencyType != ShopItem.Currency.Gems;
+        if (payCoins != null) payCoins.interactable = enabled && item != null && item.CanBuyWith(ShopItem.Currency.Coins) && item.CurrencyType != ShopItem.Currency.Coins;
+        if (payGems != null) payGems.interactable = enabled && item != null && item.CanBuyWith(ShopItem.Currency.Gems) && item.CurrencyType != ShopItem.Currency.Gems;
     }
     public void ShowCurrency(int currentBalance)
     {

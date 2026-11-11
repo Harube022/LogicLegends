@@ -24,6 +24,22 @@ public static class TrialBackendClient
         public int choice, bonus;
         public bool correct;
     }
+    [Serializable] public sealed class AchievementList
+    {
+        public int coins, gems;
+        public Achievement[] items;
+    }
+    [Serializable] public sealed class Achievement
+    {
+        public string id, title, objective, unit;
+        public int progress, target, coins, gems;
+        public bool eligible, claimed;
+    }
+    [Serializable] public sealed class AchievementClaim
+    {
+        public string achievementId;
+        public AchievementClaim(string id) { achievementId = id; }
+    }
     [Serializable] public sealed class Request
     {
         public int economyVersion = 2;
@@ -68,6 +84,8 @@ public static class TrialBackendClient
     }
     public static Task<Access> LoadAccess() => Send<Access>("/game/access", null);
     public static Task<Attempt> SendAttempt(string action, Request request) => Send<Attempt>("/trials/" + action, JsonUtility.ToJson(request));
+    public static Task<AchievementList> LoadAchievements() => Send<AchievementList>("/achievements", null);
+    public static Task<AchievementList> ClaimAchievement(string id) => Send<AchievementList>("/achievements", JsonUtility.ToJson(new AchievementClaim(id)));
     static async Task<T> Send<T>(string path, string json) where T : class
     {
 #if UNITY_EDITOR
@@ -83,7 +101,7 @@ public static class TrialBackendClient
         string uid = user.UserId;
         // Share the shop's bounded host wake-up. Only this read waits/retries;
         // never replay trial mutations after an uncertain response.
-        if (path == "/game/access" && !await CommerceClient.EnsureReady())
+        if ((path == "/game/access" || path == "/achievements") && !await CommerceClient.EnsureReady())
             throw new InvalidOperationException("Couldn't connect to account services. Please retry.");
         if (UserId != uid) throw new InvalidOperationException("Your account changed.");
         string token = await CommerceClient.WithTimeout(user.TokenAsync(false));

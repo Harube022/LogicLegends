@@ -141,6 +141,16 @@ function createApp(env = process.env, integrations = {}) {
     const { uid, admin } = access;
     if (req.method === 'GET' && ['/game/access', '/trials/access'].includes(req.path)) return res.json(access);
     const userRef = users.child(uid);
+    if (req.path === '/achievements') {
+      const achievements = require('./achievements');
+      if (req.method === 'GET') return res.json(achievements.present((await userRef.get()).val()));
+      if (req.method === 'POST' && req.body?.achievementId) {
+        const result = await mutate(userRef, account => achievements.claim(account, req.body.achievementId));
+        if (!result.committed) throw fail('Could not save this achievement reward. Please retry.', 409);
+        return res.json(achievements.present(result.snapshot.val()));
+      }
+      throw fail('Unknown achievements request.', 404);
+    }
     if (req.method === 'GET' && req.path === '/economy') {
       if (!economyEnabled) throw fail('Solo economy v2 is not connected yet.',503);
       const economy = require('./economy');
