@@ -2,8 +2,6 @@ const { fail, balance } = require('./wallet');
 const { config, trialPolicy, baseAfterRetries } = require('./economy');
 const quizBank = require('./quiz-questions.json');
 
-const adminEmails = new Set(['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabarrameda@gmail.com', 'gravata.joshuaharvey@ncst.edu.ph', 'cayangyang.jhayfel@ncst.edu.ph']);
-const isAdminEmail = email => typeof email === 'string' && adminEmails.has(email.trim().toLowerCase());
 const trialNumber = value => { if (!Number.isInteger(value) || value < 1 || value > 10) throw fail('Invalid trial.'); return String(value); };
 const operationId = value => { if (!/^[a-f0-9]{32}$/.test(value || '')) throw fail('Invalid attempt request.'); return value; };
 function rewardForRetries(retries, trial = 1) {
@@ -135,4 +133,4 @@ function presentAttempt(account, trial, requestedId) {
     quizAnswers: Object.values(run.quizAnswers || {}),
     status: run.status, reward: run.reward || 0, coins: balance(account.coins) };
 }
-module.exports = { isAdminEmail, rewardForRetries, startAttempt, retryAttempt, answerQuiz, markAdmin, finishAttempt, presentAttempt };
+module.exports = { rewardForRetries, startAttempt, retryAttempt, answerQuiz, markAdmin, finishAttempt, presentAttempt };

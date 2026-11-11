@@ -6,7 +6,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>Authors a visual-only achievement list. No progress or reward callbacks are installed.</summary>
+/// <summary>Authors the achievement list visuals; runtime progress and claims are handled by MainMenuAchievementsReveal.</summary>
 public static class MainMenuAchievementsUISetup
 {
     private const string Art = "Assets/Assets/Interface_Sprites/achievements_interface/";
@@ -53,14 +53,14 @@ public static class MainMenuAchievementsUISetup
         scroll.content = content;
 
         // Proposed rewards are editable scene labels only. All cards start unclaimed.
-        Card(content,"FirstTrial","FIRST STEPS","Complete your first trial.","0 / 1 TRIAL",50,0);
-        Card(content,"TruthTable","TRUTH SEEKER","Complete the Truth Table trial.","0 / 1 TRIAL",75,0);
-        Card(content,"RulesOfInference","INFERENCE ADEPT","Complete the Rules of Inference trial.","0 / 1 TRIAL",100,0);
-        Card(content,"TheAwakening","THE AWAKENING","Conquer Trials 1–3.","0 / 3 TRIALS",150,5);
-        Card(content,"TheAscent","THE ASCENT","Conquer Trials 4–5.","0 / 2 TRIALS",200,5);
-        Card(content,"TheReckoning","THE RECKONING","Conquer Trials 6–8.","0 / 3 TRIALS",250,10);
-        Card(content,"TheLegendsRise","THE LEGEND'S RISE","Conquer Trials 9–10.","0 / 2 TRIALS",300,10);
-        Card(content,"AllTrials","LOGIC LEGEND","Conquer all ten trials.","0 / 10 TRIALS",500,20);
+        Card(content,"FirstTrial","FIRST STEPS","Complete your first trial.","0 / 1 TRIAL",500,0);
+        Card(content,"TruthTable","TRUTH SEEKER","Complete the Truth Table trial.","0 / 1 TRIAL",750,0);
+        Card(content,"RulesOfInference","INFERENCE ADEPT","Complete the Rules of Inference trial.","0 / 1 TRIAL",1000,0);
+        Card(content,"TheAwakening","THE AWAKENING","Conquer Trials 1–3.","0 / 3 TRIALS",100,5);
+        Card(content,"TheAscent","THE ASCENT","Conquer Trials 4–5.","0 / 2 TRIALS",2000,5);
+        Card(content,"TheReckoning","THE RECKONING","Conquer Trials 6–8.","0 / 3 TRIALS",2000,10);
+        Card(content,"TheLegendsRise","THE LEGEND'S RISE","Conquer Trials 9–10.","0 / 2 TRIALS",2000,10);
+        Card(content,"AllTrials","LOGIC LEGEND","Conquer all ten trials.","0 / 10 TRIALS",3000,25);
 
         ApplyApprovedLayout();
         Canvas.ForceUpdateCanvases();

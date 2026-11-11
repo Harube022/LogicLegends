@@ -24,21 +24,20 @@ public static class AdminAuthorizationChecks
         try
         {
             uid.SetValue(null, "admin-fixture");
-            foreach (var address in new[] { "sngbdsa137@gmail.com", "russelbarrameda593@gmail.com", "famatigabarrameda@gmail.com", "gravata.joshuaharvey@ncst.edu.ph", "cayangyang.jhayfel@ncst.edu.ph" })
+            foreach (var address in new[] { "website-admin@example.test", "game-admin@ncst.edu.ph" })
             {
                 email.SetValue(null, " " + address.ToUpperInvariant() + " ");
                 transport.SetValue(null, (Func<string, string, Task<string>>)((p, j) => Task.FromResult("{\"admin\":true,\"uid\":\"admin-fixture\"}")));
                 AdminAuthorization.Refresh(); AdminAuthorization.Tick();
-                check(AdminAuthorization.IsAuthorized, "normalized admin " + address);
+                check(AdminAuthorization.IsAuthorized, "backend-verified admin " + address);
             }
             transport.SetValue(null, (Func<string, string, Task<string>>)((p, j) => Task.FromResult("{\"admin\":false,\"uid\":\"admin-fixture\"}")));
             AdminAuthorization.Refresh(); AdminAuthorization.Tick();
-            check(!AdminAuthorization.IsAuthorized, "backend denial overrides allowlisted email");
+            check(!AdminAuthorization.IsAuthorized, "backend role change removes Admin access");
             transport.SetValue(null, (Func<string, string, Task<string>>)((p, j) => Task.FromException<string>(new Exception("fixture offline"))));
             AdminAuthorization.Refresh(); AdminAuthorization.Tick();
-            check(!AdminAuthorization.IsAuthorized && AdminAuthorization.ConnectionStatus.Contains("Retrying"), "connection failure stays denied and explains recovery");
+            check(!AdminAuthorization.IsAuthorized && AdminAuthorization.ConnectionStatus.Contains("could not"), "connection failure stays denied");
             transport.SetValue(null, (Func<string, string, Task<string>>)((p, j) => Task.FromResult("{\"admin\":true,\"uid\":\"admin-fixture\"}")));
-            typeof(AdminAuthorization).GetField("refreshAt", flags).SetValue(null, 0f);
             AdminAuthorization.Tick();
             check(AdminAuthorization.IsAuthorized && AdminAuthorization.ConnectionStatus.Contains("confirmed"), "retry recovers after connection failure");
             var pending = new TaskCompletionSource<string>();

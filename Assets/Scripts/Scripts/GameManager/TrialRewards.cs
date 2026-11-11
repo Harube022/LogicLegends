@@ -237,6 +237,8 @@ public static class TrialRewards
     public static async Task<bool> PrepareAdminAction()
     {
         if (!AdminAuthorization.IsAuthorized) return false;
+        try { if (!(await TrialSessionServices.RequireAccess()).admin) return false; }
+        catch (System.Exception) { return false; }
         int trial = CurrentTrial;
         var store = Store(trial); if (store == null) return false;
         var run = Current(store);

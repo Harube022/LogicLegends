@@ -171,7 +171,7 @@ public sealed class SharedLoadingScreen : MonoBehaviour
         if (canvas != null) canvas.enabled = false;
     }
 
-    public void ShowConnectionError(System.Action retry, System.Action cancel)
+    public void ShowConnectionError(System.Action retry, System.Action cancel, string title = null, string message = null)
     {
         Show("Loading");
         showingError = true;
@@ -183,7 +183,15 @@ public sealed class SharedLoadingScreen : MonoBehaviour
         progressFill.transform.parent.gameObject.SetActive(false);
         progressLabel.gameObject.SetActive(false);
         tipLabel.transform.parent.gameObject.SetActive(false);
-        if (errorPanel != null) errorPanel.SetActive(true);
+        if (errorPanel != null)
+        {
+            var errorHeading = errorPanel.transform.Find("ErrorHeading")?.GetComponent<TMP_Text>();
+            var errorMessage = errorPanel.transform.Find("ErrorMessage")?.GetComponent<TMP_Text>();
+            if (errorHeading != null) errorHeading.text = title ?? "CONNECTION PROBLEM";
+            if (errorMessage != null)
+                errorMessage.text = (message ?? "Check your internet connection, then try again.") + "\nCancelling will close the app.";
+            errorPanel.SetActive(true);
+        }
         visibility.interactable = true;
         retryButton.interactable = cancelButton.interactable = true;
     }

@@ -293,6 +293,7 @@ namespace LogicLegends.Induction
             if (State == InductionState.GameOver || State == InductionState.StageComplete) return;
             State = InductionState.GameOver; timer.Pause();
             Player.LocalInstance?.ToggleControl(false); GameInput.Instance?.SetGameplayInputBlocked(true);
+            TrialTimeoutAudio.Play();
             ui.ShowResult(false);
         }
         public void OpenReading(string kind)

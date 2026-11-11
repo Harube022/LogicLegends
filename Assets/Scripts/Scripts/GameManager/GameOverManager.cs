@@ -18,7 +18,7 @@ public class GameOverManager : MonoBehaviourPun
     [SerializeField, Range(0f, 1f)] private float gameOverVolume = 1f;
 
     // Called by LevelManager when hearts hit 0
-    public void ShowGameOver()
+    public void ShowGameOver(bool timerExpired = false)
     {
         retryProcessed = false;
         Debug.Log("Game Over! Showing panel and hiding controls.");
@@ -32,7 +32,7 @@ public class GameOverManager : MonoBehaviourPun
                 GameInput.Instance?.SetGameplayInputBlocked(false);
                 StageSelectionState.Select(3);
                 TeleportManager.Navigate("RulesOfInference");
-            });
+            }, playTimeoutSound: false);
         else if (gameOverPanel != null) gameOverPanel.SetActive(true);
         if (gameplayInterfacePanel != null) gameplayInterfacePanel.SetActive(false);
 
@@ -43,12 +43,19 @@ public class GameOverManager : MonoBehaviourPun
         }
 
         // NEW (Play sound when game over appears)
-        PlayGameOverSound();
+        PlayGameOverSound(timerExpired);
     }
 
     // NEW (Same audio pattern as your other systems)
-    private void PlayGameOverSound()
+    private void PlayGameOverSound(bool timerExpired)
     {
+        // Timed failures always use the shared timeout cue. Do not fall back to
+        // the legacy GAMEOVER1 clip if the new asset is unavailable.
+        if (timerExpired)
+        {
+            TrialTimeoutAudio.Play(gameOverVolume);
+            return;
+        }
         if (gameOverSound == null) return;
 
         Vector3 soundPosition = transform.position;

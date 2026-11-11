@@ -18,7 +18,15 @@ public class ShopItem : MonoBehaviour
     [SerializeField] private Currency currencyType;
     private Currency selectedCurrency = Currency.Coins;
     public Currency CurrencyType => SoloEconomy.Price(itemID) != null ? selectedCurrency : currencyType;
-    public void SelectCurrency(Currency currency) { selectedCurrency = currency; }
+    public bool CanBuyWith(Currency currency)
+    {
+        var quote = SoloEconomy.Price(itemID);
+        return quote == null || (currency == Currency.Coins ? quote.coins : quote.gems) > 0;
+    }
+    public void SelectCurrency(Currency currency)
+    {
+        if (CanBuyWith(currency)) selectedCurrency = currency;
+    }
     public string Rarity => SoloEconomy.Price(itemID)?.rarity ?? "";
     [SerializeField] private TargetCharacter targetCharacter; // NEW: Tell Unity who can wear this
     public TargetCharacter Target => targetCharacter;
@@ -40,13 +48,18 @@ public class ShopItem : MonoBehaviour
         var quote = SoloEconomy.Price(itemID);
         if (label != null && quote != null)
         {
-            label.text = quote.coins.ToString("N0") + " Coins\n" + quote.gems.ToString("N0") + " Gems";
+            if (!CanBuyWith(selectedCurrency))
+                selectedCurrency = quote.coins > 0 ? Currency.Coins : Currency.Gems;
+            var lines = new System.Collections.Generic.List<string>(2);
+            if (quote.coins > 0) lines.Add(quote.coins.ToString("N0") + " Coins");
+            if (quote.gems > 0) lines.Add(quote.gems.ToString("N0") + " Gems");
+            label.text = string.Join("\n", lines);
             label.alignment = TMPro.TextAlignmentOptions.MidlineLeft; label.enableAutoSizing = true; label.fontSizeMin = 22; label.fontSizeMax = 24;
             label.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
             label.rectTransform.anchoredPosition = new Vector2(20,-67); label.rectTransform.sizeDelta = new Vector2(172,56);
             label.ForceMeshUpdate(true);
-            PlacePriceIcon(coinPriceIcon, label, 0);
-            PlacePriceIcon(gemPriceIcon, label, 1);
+            PlacePriceIcon(coinPriceIcon, label, quote.coins > 0 ? 0 : -1);
+            PlacePriceIcon(gemPriceIcon, label, quote.gems > 0 ? (quote.coins > 0 ? 1 : 0) : -1);
             ((RectTransform)buyButton.transform).anchoredPosition = new Vector2(0,-144);
             var oldIcon = transform.Find("Coin_Img"); if (oldIcon != null) oldIcon.gameObject.SetActive(false);
         }
@@ -66,6 +79,7 @@ public class ShopItem : MonoBehaviour
     private static void PlacePriceIcon(Image icon, TMPro.TMP_Text label, int line)
     {
         if (icon == null) return;
+        if (line < 0) { icon.gameObject.SetActive(false); return; }
         icon.gameObject.SetActive(true);
         var rect = icon.rectTransform;
         rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.one * .5f;

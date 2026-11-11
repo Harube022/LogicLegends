@@ -7,6 +7,7 @@ const legacyCatalog = require('./legacy-catalog.json');
 const { lifecycle, CHECKOUT_LIFETIME_MS, terminal } = require('./order-lifecycle');
 const { attachChatCleanup } = require('./chat-retention');
 const multiplayer = require('./multiplayer');
+const { authorizeGame } = require('./game-access');
 
 function createApp(env = process.env, integrations = {}) {
   // Let a new hosting service obtain its HTTPS URL before private credentials
@@ -117,17 +118,47 @@ function createApp(env = process.env, integrations = {}) {
   // Bound per-player load on a single Node process. Scale-out hosts should also
   // enforce a shared/API-gateway rate limit.
   const buckets = new Map();
-  app.use(asyncRoute(async (req, res) => {
-    const token = /^Bearer (.+)$/.exec(req.get('Authorization') || '')?.[1];
-    let uid;
-    try { uid = (await (integrations.verifyIdToken || (t => auth.verifyIdToken(t, true)))(token || '')).uid; } catch { throw fail('Please sign in again.', 401); }
-    if (!uid) throw fail('Please sign in again.', 401);
+  function limitAccount(uid) {
     const now = Date.now();
     for (const [key, value] of buckets) if (value.until < now) buckets.delete(key);
     const bucket = buckets.get(uid) || { until: now + 60000, count: 0 };
     if (++bucket.count > 90) throw fail('Please wait before trying again.', 429);
     buckets.set(uid, bucket);
+  }
+  app.use(asyncRoute(async (req, res) => {
+    const token = /^Bearer (.+)$/.exec(req.get('Authorization') || '')?.[1];
+    const access = await authorizeGame({
+      token: token || '',
+      verifyToken: integrations.verifyIdToken || (t => auth.verifyIdToken(t)),
+      getUser: integrations.getUser || (async id => {
+        try { return await auth.getUser(id); }
+        catch (error) { if (error.code === 'auth/user-not-found') return null; throw error; }
+      }),
+      getModeration: integrations.getModeration || (async id => (await db.ref('website/moderation').child(id).get()).val()),
+      onIdentity: limitAccount,
+      now: integrations.now?.() ?? Date.now()
+    });
+    const { uid, admin } = access;
+    if (req.method === 'GET' && ['/game/access', '/trials/access'].includes(req.path)) return res.json(access);
     const userRef = users.child(uid);
+    if (req.path === '/achievements') {
+      const achievements = require('./achievements');
+      if (req.method === 'GET') return res.json(achievements.present((await userRef.get()).val()));
+      if (req.method === 'POST' && req.body?.achievementId) {
+        // Prime and retain the full user snapshot before the root transaction.
+        // Without this listener, the Admin SDK may first invoke the updater with
+        // null from its local cache, which would incorrectly reject a real account.
+        const retainSnapshot = () => {};
+        userRef.on('value', retainSnapshot);
+        try {
+          await userRef.once('value');
+          const result = await mutate(userRef, account => achievements.claim(account, req.body.achievementId));
+          if (!result.committed) throw fail('Could not save this achievement reward. Please retry.', 409);
+          return res.json(achievements.present(result.snapshot.val()));
+        } finally { userRef.off('value', retainSnapshot); }
+      }
+      throw fail('Unknown achievements request.', 404);
+    }
     if (req.method === 'GET' && req.path === '/economy') {
       if (!economyEnabled) throw fail('Solo economy v2 is not connected yet.',503);
       const economy = require('./economy');
@@ -137,8 +168,6 @@ function createApp(env = process.env, integrations = {}) {
     }
     if (req.path.startsWith('/multiplayer/')) {
       if (req.method !== 'POST' || req.path !== '/multiplayer/complete') throw fail('Unknown multiplayer endpoint.', 404);
-      const user = await (integrations.getUser || (id => auth.getUser(id)))(uid);
-      if (!user || user.disabled) throw fail('Please sign in again.', 401);
       // The authenticated UID chooses the wallet. Request-body identities and
       // totals cannot redirect the grant or choose a coin/gem amount.
       // A concurrent legacy coin-child transaction can leave only that child in
@@ -155,11 +184,6 @@ function createApp(env = process.env, integrations = {}) {
       } finally { userRef.off('value', retainSnapshot); }
     }
     if (req.path.startsWith('/trials/')) {
-      // Email comes from Firebase's account record, never request fields or profile text.
-      const user = await (integrations.getUser || (id => auth.getUser(id)))(uid);
-      const admin = !user.disabled && user.emailVerified === true && trials.isAdminEmail(user.email);
-      if (req.method === 'GET' && req.path === '/trials/access')
-        return res.json({ admin, uid });
       if (!economyEnabled && (req.body?.economyVersion >= 2 || req.path === '/trials/quiz-answer')) throw fail('Solo economy v2 is not connected yet.',503);
       const service = economyEnabled ? trials : legacyTrials;
       const operations = { '/trials/start': service.startAttempt, '/trials/retry': service.retryAttempt,
@@ -168,7 +192,6 @@ function createApp(env = process.env, integrations = {}) {
         '/trials/complete': service.finishAttempt };
       const operation = operations[req.path];
       if (req.method !== 'POST' || !operation) throw fail('Unknown trial endpoint.', 404);
-      if (user.disabled) throw fail('Please sign in again.', 401);
       if (req.path === '/trials/admin-used' && !admin) throw fail('Admin access is required.', 403);
       // The SDK may first invoke a transaction with an empty local cache.
       // Preserve that value so it can fetch the server account and retry.
@@ -269,7 +292,10 @@ function createApp(env = process.env, integrations = {}) {
   }));
   app.use((error, req, res, next) => {
     console.error('Commerce request failed:', error.status || error.code || error.name);
-    res.status(error.status || 500).json({ error: error.status ? error.message : 'Could not reach the shop. Please retry.' });
+    res.status(error.status || 500).json({
+      error: error.status ? error.message : 'Could not reach account services. Please retry.',
+      ...(error.status && error.code ? { code: error.code } : {})
+    });
   });
   return app;
 }

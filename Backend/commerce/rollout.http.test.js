@@ -8,7 +8,7 @@ test('merge rollout defaults off: old clients keep their wallet/shop/rewards; v2
     const {createApp}=require('./app'), {getApp,deleteApp}=require('firebase-admin/app'), {getDatabase}=require('firebase-admin/database');
     const uid='economy-rollout-'+crypto.randomBytes(6).toString('hex'), id=()=>crypto.randomBytes(16).toString('hex');
     const env={STORAGE_MODE:'emulator',PAYMENT_MODE:'test',FIREBASE_DATABASE_EMULATOR_HOST:'127.0.0.1:9000',FIREBASE_PROJECT_ID:'demo-logic-legends'};
-    const integrations={verifyIdToken:async()=>({uid}),getUser:async()=>({uid,email:'ordinary@example.test',disabled:false})};
+    const integrations={verifyIdToken:async()=>({uid}),getUser:async()=>({uid,email:'ordinary@ncst.edu.ph',emailVerified:true,disabled:false})};
     const server=createApp(env,integrations).listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
     const db=getDatabase(getApp('commerce-data')),ref=db.ref('users/'+uid),base='http://127.0.0.1:'+server.address().port;
     const call=(path,body)=>fetch(base+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer fixture','Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});

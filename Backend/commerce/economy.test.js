@@ -70,22 +70,26 @@ for (const trial of [2,3]) {
     assert.equal(account.coins,37);assert.equal(trials.presentAttempt(account,trial).reward,0);assert.equal(trials.presentAttempt(account,trial).quizBonus,0);
   });
 }
-test('each existing outfit supports both server-priced currencies; ownership is never charged twice',()=>{
-  for(const item of catalog.items) for(const currency of ['coins','gems']) {
+test('each existing outfit uses its configured currency; ownership is never charged twice',()=>{
+  for(const item of catalog.items) {
+    const prices=pricesFor(item),currency=prices.coins>0?'coins':'gems',other=currency==='coins'?'gems':'coins',price=prices[currency];
+    assert.ok(price>0);assert.equal(prices[other],0);
     const account={base_character:item.character,coins:200000,gems:2000,inventory:{legacy_outfit:true}};
-    const old=structuredClone(account),price=pricesFor(item)[currency];
+    const old=structuredClone(account);
     buy(account,item.id,currency);const after=structuredClone(account);
-    buy(account,item.id,currency==='coins'?'gems':'coins');
+    buy(account,item.id,other);
     assert.deepEqual(account,after);assert.equal(account[currency],old[currency]-price);
-    assert.equal(account[currency==='coins'?'gems':'coins'],old[currency==='coins'?'gems':'coins']);
+    assert.equal(account[other],old[other]);
     assert.equal(account.inventory.legacy_outfit,true);assert.equal(account.inventory[item.id],true);
     assert.equal(present(account,false,true).catalog.find(p=>p.id===item.id)[currency],price);
     assert.throws(()=>buy({base_character:item.character,coins:0,gems:0},item.id,currency),/Not enough/);
+    assert.throws(()=>buy({base_character:item.character,coins:200000,gems:2000},item.id,other),/cannot be purchased/);
   }
 });
 test('rarities increase meaningfully; no wallet migration or default balance grant',()=>{
   assert.deepEqual(config.rarities.map(r=>r.name),['Common','Rare','Elite','Special','Epic']);
-  assert.deepEqual(config.rarities.map(r=>r.coins),[3000,12000,28000,50000,80000]);
+  assert.deepEqual(config.rarities.map(r=>r.coins),[10000,40000,0,0,0]);
+  assert.deepEqual(config.rarities.map(r=>r.gems),[0,0,150,250,400]);
   assert.equal(present(null,false,true).coins,0);assert.equal(present(null,false,true).gems,0);
   assert.throws(()=>buy({base_character:'Male_Character'},'Common_Skin','usd'),/Coins or Gems/);
 });
@@ -94,3 +98,4 @@ test('an active run freezes its configured reward policy while historical receip
   try {p.baseReward=9999;trials.retryAttempt(account,{...request,operationId:id()});trials.finishAttempt(account,request);assert.equal(trials.presentAttempt(account,1).reward,750);}
   finally {p.baseReward=old;}
 });
+

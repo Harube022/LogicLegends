@@ -92,7 +92,7 @@ public class TermStageSelectionUI : MonoBehaviour
         topicsView.SetActive(true);
         for (int i = 0; i < terms.Length; i++) terms[i].topics.SetActive(i == index);
         if (heading != null) heading.text = terms[index].title;
-        if (subtitle != null) subtitle.text = "Choose any trial. More adventures are coming soon.";
+        if (subtitle != null) subtitle.text = "Choose a trial, solve the puzzles, and earn your place among the legends!";
     }
 
     public void Back()
@@ -124,7 +124,7 @@ public class TermStageSelectionUI : MonoBehaviour
             foreach (StageCard stage in stages)
                 if (stage.stageNumber >= term.firstStage && stage.stageNumber <= term.lastStage &&
                     !string.IsNullOrWhiteSpace(stage.sceneName) && Application.CanStreamedLevelBeLoaded(stage.sceneName)) playable++;
-            term.status.text = playable > 0 ? playable + " / " + (term.lastStage - term.firstStage + 1) + " trials playable" : "COMING SOON";
+            term.status.text = playable > 0 ? playable + " / " + (term.lastStage - term.firstStage + 1) + " trials playable" : "ON THE WAY";
             term.status.color = playable > 0 ? ReadyInk : MutedInk;
         }
 
@@ -134,9 +134,9 @@ public class TermStageSelectionUI : MonoBehaviour
                 Application.CanStreamedLevelBeLoaded(stage.sceneName);
             stage.button.interactable = !loading;
             if (stage.status == null) continue;
-            if (!ready) stage.status.text = "COMING SOON";
+            if (!ready) stage.status.text = "ON THE WAY";
             else stage.status.text = stage.stageNumber < highestUnlockedStage
-                ? "COMPLETED - Replay" : "READY - Start trial";
+                ? "MASTERED · REPLAY" : "READY · BEGIN";
             stage.status.color = ready ? ReadyInk : MutedInk;
         }
     }

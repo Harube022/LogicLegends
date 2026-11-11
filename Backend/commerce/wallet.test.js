@@ -13,20 +13,20 @@ test('verified top-ups can buy an outfit without duplicate credits or spending',
   grant(account, order, payment);
   grant(account, order, payment);
   assert.equal(account.gems, 5);
-  assert.throws(() => buy(account, 'Common_Skin'), /Not enough/);
-  for (let n = 2; n <= 6; n++) grant(account, { ...order, id: 'order' + n }, { id: 'pay_' + n });
-  buy(account, 'Common_Skin');
-  buy(account, 'Common_Skin');
+  assert.throws(() => buy(account, 'Elite_Skin'), /Not enough/);
+  for (let n = 2; n <= 30; n++) grant(account, { ...order, id: 'order' + n }, { id: 'pay_' + n });
+  buy(account, 'Elite_Skin');
+  buy(account, 'Elite_Skin');
   assert.equal(account.gems, 0);
-  assert.equal(account.inventory.Common_Skin, true);
-  assert.deepEqual(present(account, true, false).inventory, ['Common_Skin']);
+  assert.equal(account.inventory.Elite_Skin, true);
+  assert.deepEqual(present(account, true, false).inventory, ['Elite_Skin']);
 });
 test('price and eligibility come from server catalog', () => {
-  const account = { base_character: 'Male_Character', gems: 100 };
+  const account = { base_character: 'Male_Character', gems: 150 };
   assert.throws(() => buy(account, 'unknown'), /unavailable/);
   assert.throws(() => buy(account, 'Common_Costume'), /character/);
-  buy(account, 'Rare_Skin');
-  assert.equal(account.gems, 25);
+  buy(account, 'Elite_Skin');
+  assert.equal(account.gems, 0);
 });
 test('invalid balances and overflow cannot be granted or spent', () => {
   for (const value of [-1, '100', 1.5, 2147483648]) {
@@ -55,3 +55,4 @@ test('live payment validates only against live order and live runtime', () => {
   assert.equal(validatePayment(value, order, true), null);
   assert.equal(validatePayment(value, { ...order, live: true }, false), null);
 });
+

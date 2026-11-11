@@ -369,7 +369,7 @@ namespace LogicLegends.Graph
             timer.Pause();
             LocalPlayer?.ToggleControl(false);
             input?.SetGameplayInputBlocked(true);
-            gameOver.ShowGameOver();
+            gameOver.ShowGameOver(timerExpired: true);
             ui.ShowResult(false);
         }
         public void SetLesson(bool open)

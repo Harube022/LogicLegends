@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 /// <summary>Uses the existing authenticated account service and wallet, never a second currency balance.</summary>
 public static class TrialBackendClient
 {
-    [Serializable] public sealed class Access { public bool admin; public string uid; }
+    [Serializable] public sealed class Access { public bool admin, feedbackRestricted; public string uid; public int policyVersion; }
     [Serializable] public sealed class Attempt
     {
         public string attemptId, status;
@@ -24,6 +24,22 @@ public static class TrialBackendClient
         public int choice, bonus;
         public bool correct;
     }
+    [Serializable] public sealed class AchievementList
+    {
+        public int coins, gems;
+        public Achievement[] items;
+    }
+    [Serializable] public sealed class Achievement
+    {
+        public string id, title, objective, unit;
+        public int progress, target, coins, gems;
+        public bool eligible, claimed;
+    }
+    [Serializable] public sealed class AchievementClaim
+    {
+        public string achievementId;
+        public AchievementClaim(string id) { achievementId = id; }
+    }
     [Serializable] public sealed class Request
     {
         public int economyVersion = 2;
@@ -33,6 +49,12 @@ public static class TrialBackendClient
         public bool newAttempt, correct;
     }
     [Serializable] sealed class Error { public string error; }
+    public sealed class AccountException : InvalidOperationException
+    {
+        public long Status { get; }
+        public AccountException(long status, string message) : base(message) { Status = status; }
+        public bool AccessDenied => Status == 401 || Status == 403;
+    }
 #if UNITY_EDITOR
     // Only the opt-in offline checks use this transport. It is absent from player builds.
     internal static Func<string, string, Task<string>> ValidationTransport;
@@ -60,12 +82,14 @@ public static class TrialBackendClient
             return FirebaseManager.IsReady ? FirebaseAuth.DefaultInstance.CurrentUser?.Email : null;
         }
     }
-    public static Task<Access> LoadAccess() => Send<Access>("/trials/access", null);
+    public static Task<Access> LoadAccess() => Send<Access>("/game/access", null);
     public static Task<Attempt> SendAttempt(string action, Request request) => Send<Attempt>("/trials/" + action, JsonUtility.ToJson(request));
+    public static Task<AchievementList> LoadAchievements() => Send<AchievementList>("/achievements", null);
+    public static Task<AchievementList> ClaimAchievement(string id) => Send<AchievementList>("/achievements", JsonUtility.ToJson(new AchievementClaim(id)));
     static async Task<T> Send<T>(string path, string json) where T : class
     {
 #if UNITY_EDITOR
-        if (ValidationTransport != null) return JsonUtility.FromJson<T>(await ValidationTransport(path, json));
+        if (ValidationTransport != null) return JsonUtility.FromJson<T>(await ValidationTransport(path == "/game/access" ? "/trials/access" : path, json));
 #endif
         var settings = CommerceClient.Settings;
         if (settings == null || !Uri.TryCreate(settings.backendUrl, UriKind.Absolute, out var endpoint) ||
@@ -77,14 +101,14 @@ public static class TrialBackendClient
         string uid = user.UserId;
         // Share the shop's bounded host wake-up. Only this read waits/retries;
         // never replay trial mutations after an uncertain response.
-        if (path == "/trials/access" && !await CommerceClient.EnsureReady())
+        if ((path == "/game/access" || path == "/achievements") && !await CommerceClient.EnsureReady())
             throw new InvalidOperationException("Couldn't connect to account services. Please retry.");
         if (UserId != uid) throw new InvalidOperationException("Your account changed.");
         string token = await CommerceClient.WithTimeout(user.TokenAsync(false));
         if (UserId != uid) throw new InvalidOperationException("Your account changed.");
         using (var request = new UnityWebRequest(settings.backendUrl.TrimEnd('/') + path, json == null ? "GET" : "POST"))
         {
-            request.downloadHandler = new DownloadHandlerBuffer(); request.timeout = 25;
+            request.downloadHandler = new DownloadHandlerBuffer(); request.timeout = 25; request.redirectLimit = 0;
             request.SetRequestHeader("Authorization", "Bearer " + token);
             if (json != null)
             {
@@ -96,10 +120,13 @@ public static class TrialBackendClient
             if (UserId != uid) throw new InvalidOperationException("Your account changed.");
             if (request.result != UnityWebRequest.Result.Success)
             {
-                if (path != "/trials/access" && (request.responseCode == 401 || request.responseCode == 403)) AdminAuthorization.Refresh();
+                if (path == "/game/access" && request.responseCode == 404)
+                    throw new AccountException(404, "This game build needs the latest account service update. Try again after the server is deployed.");
+                if (path != "/game/access" && (request.responseCode == 401 || request.responseCode == 403)) AdminAuthorization.Refresh();
                 Error error = null;
                 try { error = JsonUtility.FromJson<Error>(request.downloadHandler.text); } catch (Exception) { }
-                throw new InvalidOperationException(error != null && !string.IsNullOrEmpty(error.error) ? error.error : "Reward save pending. Check your connection.");
+                throw new AccountException(request.responseCode, error != null && !string.IsNullOrEmpty(error.error) ? error.error :
+                    path == "/game/access" ? "Couldn't verify account access. Check your connection and retry." : "Reward save pending. Check your connection.");
             }
             return JsonUtility.FromJson<T>(request.downloadHandler.text);
         }
