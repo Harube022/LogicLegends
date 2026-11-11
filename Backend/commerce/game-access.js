@@ -4,21 +4,21 @@ const BANNED = 'Your Logic Legends account has been banned. Please contact the a
 const NCST = /^[a-z0-9.!#$%&'*+\/=?^_`{|}~-]+@ncst\.edu\.ph$/i;
 const banned = () => Object.assign(fail(BANNED, 403), { code: 'ACCOUNT_BANNED' });
 const denied = (message, code) => Object.assign(fail(message, 403), { code });
-const gameRestricted = () => denied('Your access to Logic Legends has been restricted. Contact the administrator.', 'GAME_RESTRICTED');
+const gameRestricted = () => denied('Your access to Logic Legends is restricted. Contact an administrator for assistance.', 'GAME_RESTRICTED');
 
 function decideAccess(user, moderation, now = Date.now()) {
   if (moderation?.ban?.active === true) throw banned();
   if (!user || user.disabled) throw denied('This account is disabled.', 'ACCOUNT_DISABLED');
+  const restriction = moderation?.restriction;
+  const restrictionActive = restriction?.active === true && (!restriction.expiresAt || restriction.expiresAt > now);
+  if (restrictionActive) throw gameRestricted();
   if (user.emailVerified !== true) throw denied('Please verify your email address before logging in.', 'EMAIL_UNVERIFIED');
   const claims = user.customClaims || {};
   const admin = claims.admin === true || claims.super_admin === true;
   const email = typeof user.email === 'string' ? user.email.trim() : '';
   if (!admin && (email.length > 254 || !NCST.test(email)))
-    throw denied('Use a verified @ncst.edu.ph account to play Logic Legends.', 'DOMAIN_NOT_ALLOWED');
-  const restriction = moderation?.restriction;
-  const restrictionActive = restriction?.active === true && (!restriction.expiresAt || restriction.expiresAt > now);
+    throw denied('Please use your NCST account to continue.', 'DOMAIN_NOT_ALLOWED');
   const restrictions = restrictionActive && Array.isArray(restriction.capabilities) ? restriction.capabilities : [];
-  if (restrictionActive) throw gameRestricted();
   return { uid: user.uid, admin, feedbackRestricted: restrictions.includes('feedback'), policyVersion: 2 };
 }
 

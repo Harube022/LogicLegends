@@ -72,7 +72,7 @@ public class AuthManager : MonoBehaviour
     private volatile bool authStateChanged;
 
     [Header("Feedback Timing")]
-    [SerializeField] private float loginFeedbackDuration = 1f;
+    [SerializeField] private float loginFeedbackDuration = 5f;
     [SerializeField] private float logoutFeedbackDuration = 1.5f;
     private Coroutine feedbackTimer;
 
@@ -305,14 +305,9 @@ public class AuthManager : MonoBehaviour
                 }
                 else
                 {
-                    if (!auth.CurrentUser.IsEmailVerified && HasPasswordProvider(auth.CurrentUser))
-                    {
-                        sessionVersion++;
-                        observedUserId = null;
-                        auth.SignOut();
-                        CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Please verify the email address before logging in."); });
-                    }
-                    else CheckFirstTimeSetup();
+                    // Let the account service check moderation before verification status,
+                    // so a restricted account receives the restriction reason.
+                    CheckFirstTimeSetup();
                 }
             });
         }
@@ -755,13 +750,6 @@ public class AuthManager : MonoBehaviour
                 return;
             }
 
-            if (!auth.CurrentUser.IsEmailVerified)
-            {
-                Debug.LogWarning("Access Denied: Please verify your email address first!");
-                auth.SignOut();
-                CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Please verify the email address before logging in.", loginFeedbackDuration); });
-                return;
-            }
             CheckFirstTimeSetup();
         });
     }
@@ -903,10 +891,4 @@ public class AuthManager : MonoBehaviour
         if (passwordSignUpInput != null) passwordSignUpInput.text = "";
     }
 
-    private static bool HasPasswordProvider(FirebaseUser user)
-    {
-        foreach (var provider in user.ProviderData)
-            if (provider.ProviderId == "password") return true;
-        return false;
-    }
 }
