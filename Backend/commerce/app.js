@@ -145,9 +145,17 @@ function createApp(env = process.env, integrations = {}) {
       const achievements = require('./achievements');
       if (req.method === 'GET') return res.json(achievements.present((await userRef.get()).val()));
       if (req.method === 'POST' && req.body?.achievementId) {
-        const result = await mutate(userRef, account => achievements.claim(account, req.body.achievementId));
-        if (!result.committed) throw fail('Could not save this achievement reward. Please retry.', 409);
-        return res.json(achievements.present(result.snapshot.val()));
+        // Prime and retain the full user snapshot before the root transaction.
+        // Without this listener, the Admin SDK may first invoke the updater with
+        // null from its local cache, which would incorrectly reject a real account.
+        const retainSnapshot = () => {};
+        userRef.on('value', retainSnapshot);
+        try {
+          await userRef.once('value');
+          const result = await mutate(userRef, account => achievements.claim(account, req.body.achievementId));
+          if (!result.committed) throw fail('Could not save this achievement reward. Please retry.', 409);
+          return res.json(achievements.present(result.snapshot.val()));
+        } finally { userRef.off('value', retainSnapshot); }
       }
       throw fail('Unknown achievements request.', 404);
     }

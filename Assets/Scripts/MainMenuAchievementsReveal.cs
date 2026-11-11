@@ -16,6 +16,9 @@ public sealed class MainMenuAchievementsReveal : MonoBehaviour
     private readonly Dictionary<Button, UnityAction> handlers = new Dictionary<Button, UnityAction>();
     private readonly HashSet<string> claiming = new HashSet<string>();
     private int loadVersion;
+    private GameObject rewardPopup;
+    private TMP_Text rewardHeading, rewardSubtitle, coinAmount, gemAmount;
+    private GameObject gemRewardLine;
 
     private static readonly Dictionary<string, string> RowNames = new Dictionary<string, string>
     {
@@ -120,8 +123,8 @@ public sealed class MainMenuAchievementsReveal : MonoBehaviour
             var claimed = Array.Find(data.items, item => item.id == id);
             if (claimed != null)
             {
-                string reward = claimed.coins.ToString("N0") + " coins" + (claimed.gems > 0 ? " and " + claimed.gems.ToString("N0") + " gems" : string.Empty);
-                presentation.ShowTransient("Achievement claimed! You received " + reward + ".");
+                presentation.HideFeedback();
+                ShowRewardPopup(claimed);
             }
             layout.RefreshLayout();
         }
@@ -136,6 +139,104 @@ public sealed class MainMenuAchievementsReveal : MonoBehaviour
             }
         }
         finally { if (version == loadVersion) claiming.Remove(id); }
+    }
+
+    private void ShowRewardPopup(TrialBackendClient.Achievement achievement)
+    {
+        EnsureRewardPopup();
+        rewardHeading.text = "REWARD CLAIMED!";
+        rewardSubtitle.text = achievement.title;
+        coinAmount.text = "+" + achievement.coins.ToString("N0") + " COINS";
+        gemAmount.text = "+" + achievement.gems.ToString("N0") + " GEMS";
+        gemRewardLine.SetActive(achievement.gems > 0);
+        rewardPopup.transform.SetAsLastSibling();
+        rewardPopup.SetActive(true);
+    }
+
+    private void EnsureRewardPopup()
+    {
+        if (rewardPopup != null) return;
+        var canvas = GetComponentInParent<Canvas>();
+        if (canvas == null) throw new InvalidOperationException("The achievements canvas is unavailable.");
+
+        var overlayRect = StageUITheme.Rect("AchievementRewardPopup", canvas.transform);
+        StageUITheme.Stretch(overlayRect, Vector2.zero, Vector2.one);
+        rewardPopup = overlayRect.gameObject;
+        var shade = rewardPopup.AddComponent<Image>();
+        shade.color = new Color(.015f, .025f, .04f, .78f);
+        shade.raycastTarget = true;
+
+        var card = StageUITheme.Rect("RewardCard", overlayRect);
+        card.anchorMin = card.anchorMax = card.pivot = Vector2.one * .5f;
+        card.sizeDelta = new Vector2(760, 500);
+        var canvasRect = canvas.transform as RectTransform;
+        if (canvasRect != null)
+        {
+            float scale = Mathf.Min(1f, (canvasRect.rect.width - 40f) / card.sizeDelta.x,
+                (canvasRect.rect.height - 40f) / card.sizeDelta.y);
+            card.localScale = Vector3.one * Mathf.Max(.1f, scale);
+        }
+        var cardImage = card.gameObject.AddComponent<Image>();
+        StagePresentation.Frame(cardImage, true);
+
+        rewardHeading = PopupText("Heading", card, "REWARD CLAIMED!", new Vector2(.12f,.74f), new Vector2(.88f,.91f), 44, false);
+        rewardHeading.color = StageUITheme.ReadingInk;
+        rewardSubtitle = PopupText("Achievement", card, "FIRST STEPS", new Vector2(.12f,.62f), new Vector2(.88f,.74f), 32, false);
+        rewardSubtitle.color = StageUITheme.ReadingInk;
+        var message = PopupText("Message", card, "You earned:", new Vector2(.15f,.49f), new Vector2(.85f,.60f), 26, true);
+        message.color = StageUITheme.ReadingInk;
+
+        var coinSprite = scroll.content.Find("FirstTrial_Achievement/RewardPreview/Coins/Icon")?.GetComponent<Image>()?.sprite;
+        var gemSprite = scroll.content.Find("TheAwakening_Achievement/RewardPreview/Gems/Icon")?.GetComponent<Image>()?.sprite;
+        AddRewardLine(card, "CoinsReward", coinSprite, new Vector2(.25f,.35f), new Vector2(.75f,.47f), out coinAmount);
+        AddRewardLine(card, "GemsReward", gemSprite, new Vector2(.25f,.21f), new Vector2(.75f,.33f), out gemAmount, out gemRewardLine);
+
+        var close = MultiplayerUIArt.CloseAction("CloseRewardPopup", card, .92f, .90f);
+        close.onClick.AddListener(CloseRewardPopup);
+        rewardPopup.SetActive(false);
+    }
+
+    private static TMP_Text PopupText(string name, Transform parent, string value, Vector2 min, Vector2 max, float size, bool reading)
+    {
+        var label = StageUITheme.Text(name, parent, value, size, reading);
+        StageUITheme.Stretch(label.rectTransform, min, max);
+        label.alignment = TextAlignmentOptions.Center;
+        label.richText = false;
+        label.raycastTarget = false;
+        return label;
+    }
+
+    private static void AddRewardLine(Transform parent, string name, Sprite sprite, Vector2 min, Vector2 max,
+        out TMP_Text amount, out GameObject lineObject)
+    {
+        var line = StageUITheme.Rect(name, parent);
+        StageUITheme.Stretch(line, min, max);
+        lineObject = line.gameObject;
+
+        var iconRect = StageUITheme.Rect("Icon", line);
+        iconRect.anchorMin = iconRect.anchorMax = iconRect.pivot = new Vector2(.12f,.5f);
+        iconRect.sizeDelta = new Vector2(64,64);
+        var icon = iconRect.gameObject.AddComponent<Image>();
+        icon.sprite = sprite;
+        icon.preserveAspect = true;
+        icon.raycastTarget = false;
+
+        amount = PopupText("Amount", line, string.Empty, new Vector2(.25f,.05f), new Vector2(.98f,.95f), 32, false);
+        amount.color = StageUITheme.ReadingInk;
+        amount.enableAutoSizing = true;
+        amount.fontSizeMin = 26;
+        amount.fontSizeMax = 32;
+    }
+
+    private static void AddRewardLine(Transform parent, string name, Sprite sprite, Vector2 min, Vector2 max,
+        out TMP_Text amount)
+    {
+        AddRewardLine(parent, name, sprite, min, max, out amount, out _);
+    }
+
+    private void CloseRewardPopup()
+    {
+        if (rewardPopup != null) rewardPopup.SetActive(false);
     }
 
     private IEnumerator Prepare()
@@ -153,6 +254,7 @@ public sealed class MainMenuAchievementsReveal : MonoBehaviour
     {
         ++loadVersion;
         StopAllCoroutines();
+        CloseRewardPopup();
         foreach (var entry in handlers) if (entry.Key != null) entry.Key.onClick.RemoveListener(entry.Value);
         handlers.Clear();
         claiming.Clear();
