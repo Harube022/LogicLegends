@@ -41,12 +41,14 @@ public sealed class GameSettingsPanel : MonoBehaviour
         if (wired) return;
         frame = transform.Find("SettingsFrame"); if (frame == null) return;
         wired = true;
-        Segments("GRAPHICSPage/Display/GRAPHICSQUALITY/Control", new[] { "LOW", "MEDIUM", "HIGH" }, () => draft.graphicsQuality, value => draft.graphicsQuality = value);
+        Segments("GRAPHICSPage/Display/GRAPHICSQUALITY/Control", new[] { "LOW", "MEDIUM", "HIGH" }, () => draft.graphicsQuality, value => draft.SelectGraphicsPreset(value));
         Segments("GRAPHICSPage/Display/FRAMERATE/Control", new[] { "30 FPS", "60 FPS" }, () => draft.frameRate == 60 ? 1 : 0, value => draft.frameRate = value == 1 ? 60 : 30);
         Choice("GRAPHICSPage/Display/SHADOWQUALITY/Control", new[] { "OFF", "LOW", "MEDIUM", "HIGH" }, () => draft.shadowQuality, value => draft.shadowQuality = value);
-        Choice("GRAPHICSPage/Effects/LIGHTINGQUALITY/Control", new[] { "LOW", "MEDIUM", "HIGH" }, () => draft.lightingQuality, value => draft.lightingQuality = value);
+        Choice("GRAPHICSPage/Display/RESOLUTION/Control", new[] { "720p", "1080p" }, () => draft.resolution == 1080 ? 1 : 0, value => draft.resolution = value == 1 ? 1080 : 720);
+        Choice("GRAPHICSPage/Display/TEXTUREQUALITY/Control", new[] { "LOW", "MEDIUM", "HIGH" }, () => draft.textureQuality, value => draft.textureQuality = value);
+        Choice("GRAPHICSPage/Effects/SPECIALEFFECTS/Control", new[] { "LOW", "MEDIUM", "HIGH" }, () => draft.specialEffects, value => draft.specialEffects = value);
         Switch("GRAPHICSPage/Effects/FOG/Control", () => draft.fog, value => draft.fog = value);
-        Switch("GRAPHICSPage/Effects/MOTIONBLUR/Control", () => draft.motionBlur, value => draft.motionBlur = value);
+        Switch("GRAPHICSPage/Effects/BLOOM/Control", () => draft.bloom, value => draft.bloom = value);
         Slider("CONTROLSPage/Camera/HORIZONTALSENSITIVITY/Control", .25f, 2, () => draft.horizontalSensitivity, value => draft.horizontalSensitivity = value, value => value.ToString("0.0") + "X");
         Slider("CONTROLSPage/Camera/VERTICALSENSITIVITY/Control", .25f, 2, () => draft.verticalSensitivity, value => draft.verticalSensitivity = value, value => value.ToString("0.0") + "X");
         Slider("CONTROLSPage/Camera/PINCHZOOMSENSITIVITY/Control", .25f, 2, () => draft.zoomSensitivity, value => draft.zoomSensitivity = value, value => value.ToString("0.0") + "X");
@@ -151,6 +153,8 @@ public sealed class GameSettingsPanel : MonoBehaviour
             dropdown.itemText = label; dropdown.template = template; scroll.viewport = viewport; scroll.content = content;
             template.gameObject.SetActive(false);
         }
+        var templateRect = dropdown.template;
+        templateRect.sizeDelta = new Vector2(templateRect.sizeDelta.x, choices.Length * 64 + 16);
         dropdown.ClearOptions(); dropdown.AddOptions(new List<string>(choices)); dropdown.SetValueWithoutNotify(0); dropdown.RefreshShownValue();
     }
 #endif
@@ -198,24 +202,10 @@ public sealed class GameSettingsPanel : MonoBehaviour
     public void Apply()
     {
         if (draft == null) return;
-        // Keep the graphics choices available in the menu while the trials use the baseline.
-        var saved = SoloGameSettings.Current;
-        bool graphicsChanged = draft.graphicsQuality != saved.graphicsQuality ||
-            draft.frameRate != saved.frameRate || draft.shadowQuality != saved.shadowQuality ||
-            draft.lightingQuality != saved.lightingQuality || draft.fog != saved.fog ||
-            draft.motionBlur != saved.motionBlur;
-        draft.graphicsQuality = saved.graphicsQuality;
-        draft.frameRate = saved.frameRate;
-        draft.shadowQuality = saved.shadowQuality;
-        draft.lightingQuality = saved.lightingQuality;
-        draft.fog = saved.fog;
-        draft.motionBlur = saved.motionBlur;
-
         SoloGameSettings.Apply(draft);
         draft = SoloGameSettings.Current.Copy();
         RefreshControls();
-        if (feedback != null)
-            feedback.text = graphicsChanged ? "Graphics options temporarily paused" : "Changes Saved";
+        if (feedback != null) feedback.text = "Changes Saved";
     }
     void ClearFeedback() { if (feedback != null) feedback.text = ""; }
     public void ResetDraft()

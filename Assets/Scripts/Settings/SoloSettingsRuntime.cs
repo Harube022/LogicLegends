@@ -2,12 +2,14 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>Initializes the existing audio, touch and accessibility settings for solo trials.</summary>
+/// <summary>Initializes the graphics, audio, touch and accessibility settings for solo trials.</summary>
 [DefaultExecutionOrder(31900)]
 public sealed class SoloSettingsRuntime : MonoBehaviour
 {
     static SoloSettingsRuntime instance;
     Coroutine pending;
+    SoloTrialGraphics graphics;
+    SoloGraphicsProfile graphicsAssets;
     int appliedSceneHandle = -1;
 
     public static bool IsReady(Scene scene) => instance != null && instance.appliedSceneHandle == scene.handle;
@@ -24,6 +26,7 @@ public sealed class SoloSettingsRuntime : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
         SceneManager.sceneLoaded += SceneLoaded;
+        SoloGameSettings.Changed += SettingsChanged;
         SceneManager.activeSceneChanged += ActiveSceneChanged;
     }
 
@@ -40,6 +43,7 @@ public sealed class SoloSettingsRuntime : MonoBehaviour
     void QueueScene(Scene scene)
     {
         if (!scene.IsValid() || !scene.isLoaded) return;
+        if (!SoloGameSettings.IsTrial(scene.name)) ReleaseGraphics();
         if (SoloGameSettings.IsTrial(scene.name))
             foreach (var root in scene.GetRootGameObjects())
                 DisableUnusedTrialCounters(root);
@@ -71,14 +75,43 @@ public sealed class SoloSettingsRuntime : MonoBehaviour
             settings.AddComponent<SoloAccessibility>();
         }
 
+        if (trial)
+        {
+            if (graphicsAssets == null) graphicsAssets = Resources.Load<SoloGraphicsProfile>("Settings/SoloGraphicsProfile");
+            if (graphicsAssets != null && graphicsAssets.pipeline != null && graphicsAssets.atmosphere != null)
+            {
+                if (graphics == null) graphics = new SoloTrialGraphics(graphicsAssets);
+                graphics.Enter(scene, SoloGameSettings.Current);
+            }
+            else Debug.LogError("Missing solo graphics profile for " + scene.name);
+        }
+
         if (trial || scene.name == "Main Menu")
             AudioListener.volume = SoloGameSettings.Current.mute ? 0 : 1;
         appliedSceneHandle = scene.handle;
     }
 
+    void SettingsChanged()
+    {
+        if (SoloGameSettings.InTrial) graphics?.Apply(SoloGameSettings.Current);
+    }
+
+    void LateUpdate() => graphics?.Refresh();
+
+    // Multiplayer acquires its own profile in OnEnable, which can run before
+    // sceneLoaded. Restore the app defaults before it captures them.
+    public static void ReleaseGraphics()
+    {
+        if (instance == null) return;
+        instance.graphics?.Dispose();
+        instance.graphics = null;
+    }
+
     void OnDestroy()
     {
         if (instance != this) return;
+        ReleaseGraphics();
+        SoloGameSettings.Changed -= SettingsChanged;
         SceneManager.sceneLoaded -= SceneLoaded;
         SceneManager.activeSceneChanged -= ActiveSceneChanged;
         instance = null;
