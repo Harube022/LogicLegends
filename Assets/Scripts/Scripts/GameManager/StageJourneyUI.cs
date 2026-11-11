@@ -398,11 +398,11 @@ public sealed class StageJourneyUI : MonoBehaviour
         WorldStageAudio.PlayStageCompletion();
     }
 
-    public void ShowFailure(int stage, string summary, UnityEngine.Events.UnityAction retry)
+    public void ShowFailure(int stage, string summary, UnityEngine.Events.UnityAction retry, bool playTimeoutSound = true)
     {
         if (resultOpen) return;
         ShowResult(stage, "TIME TO TRY AGAIN", "The countdown has ended.", stage == 1 ? "START OVER" : "RESTART STAGE", retry);
-        StagePresentation.Failed(modal.gameObject, stage, stage == 1 && propositionalClock != null ? (UnityEngine.Events.UnityAction)propositionalClock.OnMiddleActionClicked : retry);
+        StagePresentation.Failed(modal.gameObject, stage, stage == 1 && propositionalClock != null ? (UnityEngine.Events.UnityAction)propositionalClock.OnMiddleActionClicked : retry, playTimeoutSound);
     }
 
     private void ShowResult(int stage, string title, string summary, string action, UnityEngine.Events.UnityAction callback)

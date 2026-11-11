@@ -43,7 +43,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     private Request pending;
     private string pendingCode, disconnectNotice;
     private int createAttempts, requestVersion;
-    private bool profileReady, leaving, committed, onlineSession;
+    private bool profileReady, leaving, committed, onlineSession, kickedFromLobby;
     private float deadline, lastSent = -100f;
     private Coroutine startRoutine;
 
@@ -241,6 +241,20 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
         if (!InLobby || Starting || leaving) return;
         PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey] = !LobbyRules.IsReady(PhotonNetwork.LocalPlayer),[ReadyEpochKey]=PartyReturnEpoch });
     }
+    public bool KickPlayer(int actorNumber)
+    {
+        if (!InLobby || !PhotonNetwork.IsMasterClient || RoomState != LobbyRules.Waiting || Busy || leaving)
+        { Notify("Only the host can remove players while the lobby is waiting."); return false; }
+        var target = PhotonNetwork.CurrentRoom.GetPlayer(actorNumber);
+        if (target == null || target.IsLocal || target.IsInactive)
+        { Notify("That player is no longer available to remove."); return false; }
+        var options = new RaiseEventOptions { TargetActors = new[] { actorNumber } };
+        if (!PhotonNetwork.RaiseEvent(LobbyRules.KickEvent, true, options, SendOptions.SendReliable))
+        { Notify("Couldn't remove that player. Please try again."); return false; }
+        AddSystem(LobbyRules.DisplayName(target) + " was removed from the lobby by the host.");
+        Notify(LobbyRules.DisplayName(target) + " was removed from the lobby.");
+        return true;
+    }
     private bool checkingStartAccess;
     public async void StartGame()
     {
@@ -324,6 +338,7 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     }
     public override void OnLeftRoom()
     {
+        if (kickedFromLobby) { FinishLeaving(); return; }
         // Some SDK transports deliver this before OnDisconnected. Only an
         // explicit leave should discard a live gameplay session here.
         if (!leaving && onlineSession) return;
@@ -334,8 +349,9 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
         Busy = false; deadline = 0; committed = false; pending = Request.None; onlineSession = false;
         messages.Clear(); chatMessages.Clear(); lastReceived.Clear();
         PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { [LobbyRules.ReadyKey] = false });
-        bool requested = leaving; leaving = false;
+        bool requested = leaving, wasKicked = kickedFromLobby; leaving = false; kickedFromLobby = false;
         if (!string.IsNullOrEmpty(recoveryTerminalNotice)) Status = recoveryTerminalNotice;
+        else if (wasKicked) Status = "The host removed you from the lobby.";
         else if (requested && !Status.Contains("incompatible") && !Status.Contains("already starting")) Status = "You left the lobby. Host or join another game.";
         Changed?.Invoke();
         if (SceneManager.GetActiveScene().name != "Main Menu") SceneManager.LoadScene("Main Menu");
@@ -406,6 +422,23 @@ public sealed partial class MultiplayerLobbyService : MonoBehaviourPunCallbacks,
     }
     public void OnEvent(EventData data)
     {
+        if (data.Code == LobbyRules.KickEvent)
+        {
+            var master = PhotonNetwork.MasterClient;
+            if (!InLobby || leaving || PhotonNetwork.IsMasterClient || RoomState != LobbyRules.Waiting || master == null || data.Sender != master.ActorNumber)
+                return;
+            kickedFromLobby = true; leaving = true; onlineSession = false; pending = Request.None; requestVersion++;
+            if (startRoutine != null) { StopCoroutine(startRoutine); startRoutine = null; }
+            Busy = true; deadline = 0;
+            ResetPartyReturnPresentation(); EndRecoveryPresentation(); ClearRecoverySession();
+            Notify("The host removed you from the lobby.");
+            if (!PhotonNetwork.LeaveRoom(false))
+            {
+                kickedFromLobby = false; leaving = false; Busy = false;
+                Notify("The host asked you to leave, but the connection did not close. Please leave the lobby and rejoin.");
+            }
+            return;
+        }
         if(HandlePartyReturnEvent(data))return;
         if (!InLobby || data.Code != LobbyRules.ChatEvent || !(data.CustomData is string text)) return;
         var sender = PhotonNetwork.CurrentRoom.GetPlayer(data.Sender);

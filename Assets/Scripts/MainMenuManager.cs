@@ -68,7 +68,7 @@ public class MainMenuManager : MonoBehaviour
     private int highestUnlockedStage = 1; 
     private bool isLoadingStage;
     private bool isLoadingProgress;
-    private string progressMessage = "Choose any trial. More adventures are coming soon.";
+    private string progressMessage = "Your next challenge awaits—choose a trial and test your logic!";
     private int progressRequestVersion;
 
     private void Start()
@@ -208,7 +208,7 @@ public class MainMenuManager : MonoBehaviour
         highestUnlockedStage = StageSelectionState.FirstStage;
         isLoadingStage = false;
         isLoadingProgress = true;
-        progressMessage = "Checking progress...";
+        progressMessage = "Preparing your adventure...";
         if (termStageSelection != null) termStageSelection.ShowTerms();
         RefreshStageSelectionUI();
         LoadUnlockedStage();
@@ -231,7 +231,7 @@ public class MainMenuManager : MonoBehaviour
             : stageNumber == 4 ? "Setssss" : stageNumber == 3 ? "RulesOfInference" : stageNumber == 2 ? "TruthTable" : stageNumber == 1 ? prelimSceneName : string.Empty;
         if (string.IsNullOrWhiteSpace(targetScene) || !Application.CanStreamedLevelBeLoaded(targetScene))
         {
-            progressMessage = "This trial is coming soon. Choose Propositional Logic, Truth Table, Rules of Inference, or Sets.";
+            progressMessage = "That trial is still being prepared. Choose another challenge and keep your adventure going!";
             RefreshStageSelectionUI();
             return;
         }
@@ -259,7 +259,7 @@ public class MainMenuManager : MonoBehaviour
         {
             Debug.LogWarning("No signed-in Firebase user. All trials remain selectable; progress is not saved.");
             isLoadingProgress = false;
-            progressMessage = "Sign in to save trial progress.";
+            progressMessage = "Sign in to save your progress and keep your rewards.";
             RefreshStageSelectionUI();
             return;
         }
@@ -278,7 +278,7 @@ public class MainMenuManager : MonoBehaviour
                 if (task.IsFaulted || task.IsCanceled)
                 {
                     Debug.LogWarning("Could not load unlockedStage. All trials remain selectable.");
-                    progressMessage = "Progress unavailable. You can still choose any trial.";
+                    progressMessage = "We couldn't load your progress, but available trials are ready to explore!";
                     RefreshStageSelectionUI();
                     return;
                 }
@@ -292,7 +292,7 @@ public class MainMenuManager : MonoBehaviour
                         StageSelectionState.LastStage);
                 }
 
-                progressMessage = "Choose any trial. More adventures are coming soon.";
+                progressMessage = "Your next challenge awaits—choose a trial and test your logic!";
                 RefreshStageSelectionUI();
             });
     }

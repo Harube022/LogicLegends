@@ -7,13 +7,13 @@ public static class LobbyRules
 {
     public const string CodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     // Peers must preserve the same mistake context across checkpoints and handoff.
-    public const string Protocol = "LL-private-lobby-25";
+    public const string Protocol = "LL-private-lobby-26";
     public const int RecoverySeatMilliseconds = 45000;
     public const float RecoverySeconds = 30f;
     public const int RecoveryAttempts = 4;
     public const string ReadyKey = "ll.ready", VersionKey = "ll.version", StateKey = "ll.state", SceneKey = "ll.scene";
     public const string Waiting = "waiting", Locking = "locking", Loading = "loading";
-    public const byte ChatEvent = 74;
+    public const byte ChatEvent = 74, KickEvent = 78;
     public const int Capacity = 4, ChatLimit = 200, HistoryLimit = 60;
     public const float ChatCooldown = 1f;
     public static string NormalizeCode(string value) => (value ?? "").Trim().ToUpperInvariant();

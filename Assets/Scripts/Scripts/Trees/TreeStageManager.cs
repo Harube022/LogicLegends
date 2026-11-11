@@ -183,7 +183,7 @@ namespace LogicLegends.Trees
         {
             Introductions?.CancelImmediate();
             if(State==TreeStageState.STAGE_COMPLETE||State==TreeStageState.GAME_OVER)return;
-            CloseBoard(false);LessonOpen=false;State=TreeStageState.GAME_OVER;timer.Pause();LocalPlayer?.ToggleControl(false);input?.SetGameplayInputBlocked(true);gameOver.ShowGameOver();ui.ShowResult(false);
+            CloseBoard(false);LessonOpen=false;State=TreeStageState.GAME_OVER;timer.Pause();LocalPlayer?.ToggleControl(false);input?.SetGameplayInputBlocked(true);gameOver.ShowGameOver(timerExpired:true);ui.ShowResult(false);
         }
         public void SetLesson(bool open)
         {

@@ -174,7 +174,9 @@ public partial class QuizManager : MonoBehaviour
 
     public void PlayGameOverSound()
     {
-        PlayGameplaySound(gameOverSound, gameOverVolume);
+        // This method is called when the trial timer expires. Use the shared
+        // timeout cue rather than the legacy GAMEOVER1 clip assigned in scenes.
+        TrialTimeoutAudio.Play(gameOverVolume);
     }
 
     private void PlayGameplaySound(AudioClip clip, float volume)

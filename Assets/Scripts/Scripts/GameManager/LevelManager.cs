@@ -241,7 +241,8 @@ public class LevelManager : MonoBehaviourPun
             timeRemaining = 0f;
             isStageActive = false;
             UpdateTimerUI();
-            if (gameOverManager != null) gameOverManager.ShowGameOver();
+            if (gameOverManager != null) gameOverManager.ShowGameOver(timerExpired: true);
+            else TrialTimeoutAudio.Play();
             SetsStageManager setsStageManager = FindFirstObjectByType<SetsStageManager>();
             if (setsStageManager != null) setsStageManager.HandleSetsGameOver();
             return;
