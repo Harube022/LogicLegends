@@ -27,7 +27,6 @@ public sealed class SoloSettingsRuntime : MonoBehaviour
     static readonly float[] RenderScale = { .8f, .9f, 1f };
     static readonly float[] ShadowDistance = { 0f, 20f, 35f, 55f };
     static readonly int[] ShadowResolution = { 512, 512, 1024, 1024 };
-    static readonly int[] LightCount = { 4, 6, 8 };
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void Reset() { instance = null; }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -101,7 +100,7 @@ public sealed class SoloSettingsRuntime : MonoBehaviour
             QualitySettings.meshLodThreshold = MeshLodThreshold[data.graphicsQuality];
         AudioListener.volume = data.mute ? 0 : 1;
         int shadows = SoloGraphicsBudget.Shadows(data);
-        int lighting = Mathf.Min(data.graphicsQuality, data.lightingQuality);
+        int lighting = SoloGraphicsBudget.LightingTier(data);
         int key = data.graphicsQuality * 100 + lighting * 10 + shadows;
         if (runtimePipeline == null || pipelineKey != key)
         {
@@ -115,7 +114,7 @@ public sealed class SoloSettingsRuntime : MonoBehaviour
                 runtimePipeline.shadowDistance = ShadowDistance[shadows];
                 runtimePipeline.mainLightShadowmapResolution = ShadowResolution[shadows];
                 runtimePipeline.shadowCascadeCount = 1; runtimePipeline.cascadeBorder = .25f;
-                runtimePipeline.maxAdditionalLightsCount = LightCount[lighting];
+                runtimePipeline.maxAdditionalLightsCount = SoloGraphicsBudget.LightLimit(data);
                 runtimePipeline.renderScale = Application.platform == RuntimePlatform.Android && data.graphicsQuality == 0
                     ? .7f : RenderScale[data.graphicsQuality];
                 runtimePipeline.msaaSampleCount = data.graphicsQuality == 2 ? 2 : 1;
