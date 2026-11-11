@@ -294,7 +294,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         if (input == null) BindInput();
         if (player == null) player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
         if (GameplayPaused) { RefreshTimer(); return; }
-        if (timerStarted && state == FunctionsRelationsState.ACTIVE)
+        if (timerStarted && state == FunctionsRelationsState.ACTIVE && !SoloStageLoader.IsLoading)
         {
             float elapsed = Time.deltaTime;
             activePlaySeconds += elapsed;
@@ -686,6 +686,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     private IEnumerator WrongSubmission()
     {
+        RecordTrialAnswer(false);
         hintRejectedMapping = HintMappingArrangement;
         mistakeCount++;
         remaining = Mathf.Max(0f, remaining - wrongAnswerPenalty);
@@ -711,6 +712,7 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
 
     private IEnumerator CorrectSubmission()
     {
+        RecordTrialAnswer(true);
         correctCount++;
         state = FunctionsRelationsState.CHALLENGE_COMPLETE;
         if (audioSource != null && correctSound != null) audioSource.PlayOneShot(correctSound);
@@ -738,6 +740,25 @@ public sealed partial class FunctionsRelationsStageManager : MonoBehaviour
         SetFeedback(questionIndex == 1 ? "Use the hand at the book for Question 2." :
             "Challenge " + challengeIndex + " completed! Interact with the book statue to start Challenge " + (challengeIndex + 1) + ".");
         RefreshUI();
+    }
+
+    private void RecordTrialAnswer(bool correct)
+    {
+        var challenge = CurrentChallenge;
+        if (challenge == null) return;
+        string expected = challenge.questionKind == MappingQuestionKind.BuildExactRelation
+            ? string.Join(", ", challenge.requiredPairs)
+            : challenge.questionKind == MappingQuestionKind.ClassifyFunction
+                ? (challenge.correctFunctionAnswer ? "Function" : "Not a function")
+                : challenge.correctProperties.ToString();
+        string submitted = challenge.questionKind == MappingQuestionKind.BuildExactRelation
+            ? string.Join(", ", mapping.Pairs)
+            : challenge.questionKind == MappingQuestionKind.ClassifyFunction
+                ? (classificationAnswer.HasValue ? "Classification choice " + classificationAnswer.Value : "No classification selected")
+                : chosenProperties.ToString();
+        TrialRewards.RecordAnswer(8, "fr8-" + Guid.NewGuid().ToString("N"),
+            "fr8-c" + challengeIndex + "-q" + questionIndex, challenge.title + "\n" + challenge.instruction,
+            expected, submitted, correct);
     }
 
     private void FlashBookStatue(bool red)

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Rendering.Universal;
 using System.Linq;
 
 /// <summary>
@@ -35,6 +36,13 @@ public class TruthTableMinimap : MonoBehaviour
     private RawImage mapImage;
     private Vector2 markerPosition;
     private Vector3 markerScale;
+    private bool wasVisible;
+    private bool needsRender = true;
+    private float nextRender;
+    private float nextIdleRender;
+    private Vector3 lastRenderPosition;
+    private const float RenderInterval = .16f;
+    private const float IdleRenderInterval = 1f;
     private readonly Vector3[] hudCorners = new Vector3[4];
 
     private void Awake()
@@ -49,6 +57,14 @@ public class TruthTableMinimap : MonoBehaviour
         }
 
         expanded = ExpandableMinimap.Attach(minimapPanel);
+        var cameraData = minimapCamera.GetUniversalAdditionalCameraData();
+        cameraData.renderShadows = false;
+        cameraData.renderPostProcessing = false;
+        cameraData.requiresColorTexture = false;
+        cameraData.requiresDepthTexture = false;
+        minimapCamera.allowHDR = false;
+        minimapCamera.allowMSAA = false;
+        minimapCamera.useOcclusionCulling = false;
         expanded.ViewChanged += ChangeView;
         normalZoom = minimapCamera.orthographicSize;
         mapImage = minimapPanel.GetComponentInChildren<RawImage>(true);
@@ -58,7 +74,7 @@ public class TruthTableMinimap : MonoBehaviour
                              StageSelectionState.SelectedStage == 2) ||
                             SceneManager.GetActiveScene().name == "RulesOfInference";
         minimapPanel.gameObject.SetActive(inTruthTable);
-        minimapCamera.enabled = inTruthTable;
+        minimapCamera.enabled = false;
         if (inTruthTable) UpdatePanelLayout();
     }
 
@@ -79,21 +95,25 @@ public class TruthTableMinimap : MonoBehaviour
             if (stageClock == null) stageClock = FindFirstObjectByType<TruthTableStageClock>(FindObjectsInactive.Include);
             if (stageClock != null && stageClock.IsPlayerAtBoard) inTruthTable = false;
         }
-        bool wasVisible = minimapPanel.gameObject.activeSelf && minimapCamera.enabled;
         if (minimapPanel.gameObject.activeSelf != inTruthTable)
             minimapPanel.gameObject.SetActive(inTruthTable);
-        if (minimapCamera.enabled != inTruthTable)
-            minimapCamera.enabled = inTruthTable;
         if (!inTruthTable)
         {
+            minimapCamera.enabled = false;
+            wasVisible = false;
+            needsRender = true;
             playerTarget = null;
             return;
         }
 
-        Player player = Player.LocalInstance;
-        if (player == null || !player.gameObject.activeInHierarchy)
-            player = FindFirstObjectByType<Player>();
-        playerTarget = player != null ? player.transform : null;
+        var localPlayer = Player.LocalInstance;
+        if (localPlayer != null && localPlayer.gameObject.activeInHierarchy)
+            playerTarget = localPlayer.transform;
+        else if (playerTarget == null || !playerTarget.gameObject.activeInHierarchy)
+        {
+            var fallback = FindFirstObjectByType<Player>();
+            playerTarget = fallback != null ? fallback.transform : null;
+        }
 
         if (playerTarget != null)
         {
@@ -120,6 +140,22 @@ public class TruthTableMinimap : MonoBehaviour
         }
 
         if (!expanded.IsOpen && (!wasVisible || lastSafeAreaSize != safeArea.rect.size)) UpdatePanelLayout();
+        wasVisible = true;
+
+        // The map art can stay in its texture while the UI marker rotates every frame.
+        Vector3 cameraPosition = minimapCamera.transform.position;
+        bool moved = (cameraPosition - lastRenderPosition).sqrMagnitude >= .25f;
+        float now = Time.unscaledTime;
+        bool render = needsRender || (!expanded.IsOpen &&
+            (now >= nextIdleRender || (moved && now >= nextRender)));
+        minimapCamera.enabled = render;
+        if (render)
+        {
+            needsRender = false;
+            lastRenderPosition = cameraPosition;
+            nextRender = now + RenderInterval;
+            nextIdleRender = now + IdleRenderInterval;
+        }
     }
 
     private void UpdatePanelLayout()
@@ -141,6 +177,7 @@ public class TruthTableMinimap : MonoBehaviour
 
     void ChangeView(bool open)
     {
+        needsRender = true;
         if (open)
         {
             // Both camera-map stages use this named collision floor. Background ocean
@@ -151,7 +188,9 @@ public class TruthTableMinimap : MonoBehaviour
                 .OrderByDescending(c => c.bounds.size.x*c.bounds.size.z).FirstOrDefault();
             playableBounds = floor != null ? floor.bounds : new Bounds(playerTarget != null ? playerTarget.position : transform.position,new Vector3(300,20,300));
             originalTexture = minimapCamera.targetTexture;
-            overviewTexture = new RenderTexture(1024,1024,16);overviewTexture.name="Expanded Map Overview";overviewTexture.Create();
+            int resolution = Application.platform == RuntimePlatform.Android ? 512 : 1024;
+            overviewTexture = new RenderTexture(resolution, resolution, 16) { name = "Expanded Map Overview" };
+            overviewTexture.Create();
             minimapCamera.targetTexture=overviewTexture;if(mapImage!=null)mapImage.texture=overviewTexture;
         }
         else
@@ -165,8 +204,15 @@ public class TruthTableMinimap : MonoBehaviour
         }
     }
 
+    private void OnApplicationPause(bool paused)
+    {
+        if (!paused) needsRender = true;
+    }
+
     private void OnDisable()
     {
+        wasVisible = false;
+        needsRender = true;
         if (expanded != null && expanded.IsOpen) expanded.Close();
         if (minimapCamera != null) minimapCamera.enabled = false;
         if (minimapPanel != null) minimapPanel.gameObject.SetActive(false);

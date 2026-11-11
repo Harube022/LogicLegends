@@ -39,6 +39,7 @@ public sealed class SharedLoadingScreen : MonoBehaviour
     private bool showingError;
     private bool smoothSceneProgress;
     private float displayedProgress;
+    private int displayedPercent = -1;
     private System.Action retryAction, cancelAction;
     public bool IsVisible => canvas != null && canvas.enabled;
     public float Progress { get; private set; }
@@ -80,7 +81,7 @@ public sealed class SharedLoadingScreen : MonoBehaviour
     {
         indeterminate = value < 0f;
         Progress = indeterminate ? -1f : Mathf.Clamp01(value);
-        if (indeterminate) progressLabel.text = "";
+        if (indeterminate) { displayedPercent = -1; progressLabel.text = ""; }
         else if (!smoothSceneProgress) RenderProgress(Progress);
     }
 
@@ -94,7 +95,8 @@ public sealed class SharedLoadingScreen : MonoBehaviour
     {
         displayedProgress = value;
         progressFill.fillAmount = value;
-        progressLabel.text = (value >= 1f ? 100 : Mathf.FloorToInt(value * 100f)) + "%";
+        int percent = value >= 1f ? 100 : Mathf.FloorToInt(value * 100f);
+        if (percent != displayedPercent) { displayedPercent = percent; progressLabel.text = percent + "%"; }
     }
 
     public IEnumerator CompleteSceneLoading()
@@ -117,7 +119,6 @@ public sealed class SharedLoadingScreen : MonoBehaviour
         Fit();
         if (showingError) return;
         float elapsed = Time.realtimeSinceStartup - shownAt;
-        statusLabel.text = status + "...";
         // A breathing bar, without a fabricated numeric percentage, for unknown work.
         if (indeterminate) progressFill.fillAmount = 0.3f + 0.18f * Mathf.Sin(elapsed * 2f);
         else if (smoothSceneProgress)
@@ -170,7 +171,7 @@ public sealed class SharedLoadingScreen : MonoBehaviour
         if (canvas != null) canvas.enabled = false;
     }
 
-    public void ShowConnectionError(System.Action retry, System.Action cancel)
+    public void ShowConnectionError(System.Action retry, System.Action cancel, string title = null, string message = null)
     {
         Show("Loading");
         showingError = true;
@@ -182,7 +183,15 @@ public sealed class SharedLoadingScreen : MonoBehaviour
         progressFill.transform.parent.gameObject.SetActive(false);
         progressLabel.gameObject.SetActive(false);
         tipLabel.transform.parent.gameObject.SetActive(false);
-        if (errorPanel != null) errorPanel.SetActive(true);
+        if (errorPanel != null)
+        {
+            var errorHeading = errorPanel.transform.Find("ErrorHeading")?.GetComponent<TMP_Text>();
+            var errorMessage = errorPanel.transform.Find("ErrorMessage")?.GetComponent<TMP_Text>();
+            if (errorHeading != null) errorHeading.text = title ?? "CONNECTION PROBLEM";
+            if (errorMessage != null)
+                errorMessage.text = (message ?? "Check your internet connection, then try again.") + "\nCancelling will close the app.";
+            errorPanel.SetActive(true);
+        }
         visibility.interactable = true;
         retryButton.interactable = cancelButton.interactable = true;
     }

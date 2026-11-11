@@ -18,7 +18,7 @@ public sealed class FunctionsRelationsGuidance : MonoBehaviour
         mesh.vertices = new[] {new Vector3(-.16f,.65f,0),new Vector3(.16f,.65f,0),new Vector3(.16f,0,0),
             new Vector3(.5f,0,0),new Vector3(0,-.6f,0),new Vector3(-.5f,0,0),new Vector3(-.16f,0,0)};
         mesh.triangles = new[]{0,1,2,0,2,6,5,3,4}; mesh.RecalculateBounds(); mesh.RecalculateNormals();
-        yellow = new Material(Shader.Find("Universal Render Pipeline/Unlit")); yellow.SetColor("_BaseColor",new Color(1,.86f,.08f));
+        yellow = GuidanceArrowGlow.NewYellowMaterial("Mapping Guidance Yellow");
         shadow = new Material(yellow); shadow.SetColor("_BaseColor",new Color(.13f,.09f,.015f));
         arrow = new GameObject("Domain First Guidance Arrow").transform;
         Shape("Outline",shadow,1.16f,.025f); Shape("Yellow Down Arrow",yellow,1,0);
@@ -32,6 +32,7 @@ public sealed class FunctionsRelationsGuidance : MonoBehaviour
         var shape = new GameObject(name,typeof(MeshFilter),typeof(MeshRenderer)); shape.transform.SetParent(arrow,false);
         shape.transform.localScale = Vector3.one*scale; shape.transform.localPosition = Vector3.forward*depth;
         shape.GetComponent<MeshFilter>().sharedMesh = mesh; shape.GetComponent<Renderer>().sharedMaterial = mat;
+        if (mat == yellow) GuidanceArrowGlow.Attach(shape);
     }
     void LateUpdate()
     {

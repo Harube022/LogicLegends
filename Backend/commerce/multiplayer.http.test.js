@@ -27,7 +27,7 @@ test('authenticated multiplayer HTTP grants use atomic existing-wallet receipts 
       restoredTopics: Array.from({ length: 10 }, (_, i) => i),
       participationKeys: ['work:0:0:0', 'work:1:0:0', 'support:revive:2'], ...overrides });
     async function account(token, create = true) {
-      const uid = prefix + '-' + token; uids.add(uid); records.set(token, { uid, disabled: false });
+      const uid = prefix + '-' + token; uids.add(uid); records.set(token, { uid, disabled: false, email: 'player@ncst.edu.ph', emailVerified: true });
       const ref = db.ref('users/' + uid);
       if (create) await ref.set({ coins: 37, gems: 19, unlockedStage: 8, base_character: 'Male_Character',
         inventory: { Common_Skin: true }, trialRuns: { fixture: { keep: true } } });
@@ -80,7 +80,7 @@ test('authenticated multiplayer HTTP grants use atomic existing-wallet receipts 
         { participationKeys: ['support:revive:1'] }, { restoredTopics: [0, 0] }])
         assert.ok([400, 409].includes((await call('excluded', report(bad))).status));
       records.get('second').disabled = true;
-      assert.equal((await call('second', report())).status, 401);
+      assert.equal((await call('second', report())).status, 403);
       await account('uninitialized', false);
       assert.equal((await call('uninitialized', report())).status, 409);
       assert.equal((await call('first', {}, 'unknown')).status, 404);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using LogicLegends.Graph;
 using UnityEngine;
 namespace LogicLegends.Trees
@@ -110,6 +111,7 @@ namespace LogicLegends.Trees
             if(!CanSolve)return;
             State=TreeStageState.VALIDATING;
             bool valid=TreeAnswerValidator.Validate(Challenge,board.Edges,board.First,Answer,out var reason);
+            RecordTrialAnswer(valid);
             foreach(var node in board.Nodes)node.ShowFeedback(valid);
             var clip=valid?correctSound:wrongSound;if(clip!=null)audioSource.PlayOneShot(clip);
             if(!valid)
@@ -119,6 +121,31 @@ namespace LogicLegends.Trees
                 if(State!=TreeStageState.GAME_OVER)StartCoroutine(Wrong());return;
             }
             Correct++;timer.Pause();State=TreeStageState.CHALLENGE_COMPLETE;Feedback=QuestionIndex==0?"Question 1 complete. A harder question is next.":"Challenge complete.";StartCoroutine(Advance());
+        }
+        void RecordTrialAnswer(bool correct)
+        {
+            string expected;
+            switch (Challenge.type)
+            {
+                case TreeChallengeType.Depth: expected = TreeAnswerValidator.Depth(Challenge, Challenge.required, Challenge.target).ToString(); break;
+                case TreeChallengeType.Height: expected = TreeAnswerValidator.Height(Challenge, Challenge.required).ToString(); break;
+                case TreeChallengeType.Identify:
+                    var targetEdges = Challenge.required;
+                    expected = Challenge.identification == TreeIdentification.Root ? Challenge.root :
+                        Challenge.identification == TreeIdentification.Parent ? (targetEdges.FirstOrDefault(e => e.destination == Challenge.target)?.source ?? "No parent") :
+                        Challenge.identification == TreeIdentification.Child ? (targetEdges.FirstOrDefault(e => e.source == Challenge.target)?.destination ?? "No child") :
+                        (Challenge.nodes.FirstOrDefault(n => !targetEdges.Any(e => e.source == n.id))?.id ?? "No leaf");
+                    break;
+                case TreeChallengeType.Spanning: expected = "A connected, acyclic tree with " + (Challenge.nodes.Count - 1) + " edges."; break;
+                default: expected = string.Join(", ", Challenge.required.Select(e => e.source + " → " + e.destination)); break;
+            }
+            string submitted = Challenge.type == TreeChallengeType.Depth || Challenge.type == TreeChallengeType.Height
+                ? (Answer.HasValue ? Answer.Value.ToString() : "No number selected")
+                : Challenge.type == TreeChallengeType.Identify ? (board.First ?? "No node selected")
+                : string.Join(", ", board.Edges.Select(e => e.source + " → " + e.destination));
+            TrialRewards.RecordAnswer(10, "trees10-" + Guid.NewGuid().ToString("N"),
+                "trees10-c" + ChallengeIndex + "-q" + QuestionIndex, Challenge.title + "\n" + Challenge.objective,
+                expected, submitted, correct);
         }
         public bool CanDebugClearChallenge => CanAct && State == TreeStageState.ACTIVE;
         public void DebugClearCurrentChallenge()
@@ -156,7 +183,7 @@ namespace LogicLegends.Trees
         {
             Introductions?.CancelImmediate();
             if(State==TreeStageState.STAGE_COMPLETE||State==TreeStageState.GAME_OVER)return;
-            CloseBoard(false);LessonOpen=false;State=TreeStageState.GAME_OVER;timer.Pause();LocalPlayer?.ToggleControl(false);input?.SetGameplayInputBlocked(true);gameOver.ShowGameOver();ui.ShowResult(false);
+            CloseBoard(false);LessonOpen=false;State=TreeStageState.GAME_OVER;timer.Pause();LocalPlayer?.ToggleControl(false);input?.SetGameplayInputBlocked(true);gameOver.ShowGameOver(timerExpired:true);ui.ShowResult(false);
         }
         public void SetLesson(bool open)
         {

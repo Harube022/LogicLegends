@@ -51,6 +51,7 @@ namespace LogicLegends.OpenArchive.Topics
         void OnEnable()
         {
             if (!Application.isPlaying || initialized) return;
+            SoloSettingsRuntime.ReleaseGraphics();
             oldQuality = QualitySettings.GetQualityLevel(); oldQualityName = QualitySettings.names[oldQuality];
             oldOverride = QualitySettings.renderPipeline;
             int quality = Array.IndexOf(QualitySettings.names, QualityProfile);

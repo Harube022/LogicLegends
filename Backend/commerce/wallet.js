@@ -40,6 +40,7 @@ function buy(account, itemId, currency = 'gems') {
   if (account.inventory[itemId] === true) return account;
   if (!['coins', 'gems'].includes(currency)) throw fail('Choose Coins or Gems.');
   const price = economy.pricesFor(item)[currency], current = balance(account[currency]);
+  if (price <= 0) throw fail('This item cannot be purchased with ' + currency + '.', 409);
   if (current < price) throw fail('Not enough ' + currency + '.', 409);
   account[currency] = current - price;
   account.inventory[itemId] = true;

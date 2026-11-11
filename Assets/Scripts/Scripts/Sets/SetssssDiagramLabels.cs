@@ -9,6 +9,7 @@ public sealed class SetssssDiagramLabels : MonoBehaviour
     private GameObject root;
     private readonly TextMeshPro[] labels = new TextMeshPro[6];
     private readonly Material[] materials = new Material[6];
+    private readonly Vector3[] anchors = new Vector3[6];
     private readonly System.Collections.Generic.List<Rect> occupied = new System.Collections.Generic.List<Rect>();
     private readonly System.Collections.Generic.Dictionary<Mesh,Mesh> captionFreeVisuals = new System.Collections.Generic.Dictionary<Mesh,Mesh>();
     private readonly string[] captions = { "A", "A ∩ B", "B", "U — Universal Set", "A − B", "B − A" };
@@ -47,7 +48,9 @@ public sealed class SetssssDiagramLabels : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (stage == null || root == null || Camera.main == null) return;
+        if (stage == null || root == null) return;
+        Camera camera = Camera.main;
+        if (camera == null) return;
         var visual=stage.DiagramVisual;
         if(visual!=null&&visual.sharedMesh!=null&&!captionFreeVisuals.ContainsValue(visual.sharedMesh))
         {
@@ -72,14 +75,13 @@ public sealed class SetssssDiagramLabels : MonoBehaviour
         Bounds u = stage.IntroductionBounds(SetssssChallengeIntroductions.Focus.Universe);
         Bounds differenceA = stage.DifferenceRegion(true).GetComponent<Renderer>().bounds;
         Bounds differenceB = stage.DifferenceRegion(false).GetComponent<Renderer>().bounds;
-        Vector3[] anchors = {
-            new Vector3(a.center.x, a.max.y + 3.5f, Mathf.Lerp(a.center.z, a.max.z, .55f)),
-            new Vector3((Mathf.Max(a.min.x,b.min.x)+Mathf.Min(a.max.x,b.max.x))*.5f, Mathf.Max(a.max.y,b.max.y)+3.5f, Mathf.Lerp(a.center.z,a.max.z,.35f)),
-            new Vector3(b.center.x, b.max.y + 3.5f, Mathf.Lerp(b.center.z, b.max.z, .55f)),
-            new Vector3(u.center.x, u.max.y + 3.5f, u.max.z - 1.5f),
-            new Vector3(differenceA.center.x, differenceA.max.y+3.5f, differenceA.center.z),
-            new Vector3(differenceB.center.x, differenceB.max.y+3.5f, differenceB.center.z)
-        };
+        anchors[0] = new Vector3(a.center.x, a.max.y + 3.5f, Mathf.Lerp(a.center.z, a.max.z, .55f));
+        anchors[1] = new Vector3((Mathf.Max(a.min.x, b.min.x) + Mathf.Min(a.max.x, b.max.x)) * .5f,
+            Mathf.Max(a.max.y, b.max.y) + 3.5f, Mathf.Lerp(a.center.z, a.max.z, .35f));
+        anchors[2] = new Vector3(b.center.x, b.max.y + 3.5f, Mathf.Lerp(b.center.z, b.max.z, .55f));
+        anchors[3] = new Vector3(u.center.x, u.max.y + 3.5f, u.max.z - 1.5f);
+        anchors[4] = new Vector3(differenceA.center.x, differenceA.max.y + 3.5f, differenceA.center.z);
+        anchors[5] = new Vector3(differenceB.center.x, differenceB.max.y + 3.5f, differenceB.center.z);
         string singleSet = stage.DisplayedComplementSet;
         occupied.Clear();
         // Avoid covering the readable numbers on nearby element blocks.
@@ -87,8 +89,8 @@ public sealed class SetssssDiagramLabels : MonoBehaviour
         {
             var number=block!=null?block.GetComponent<SetssssNumberedBlock>():null;
             var label=number!=null?number.NumberLabel:null;
-            if(label!=null&&label.gameObject.activeInHierarchy&&Camera.main.WorldToScreenPoint(label.transform.position).z>0)
-                occupied.Add(ScreenBounds(label));
+            if(label!=null&&label.gameObject.activeInHierarchy&&camera.WorldToScreenPoint(label.transform.position).z>0)
+                occupied.Add(ScreenBounds(label, camera));
         }
         for (int i = 0; i < labels.Length; i++)
         {
@@ -98,7 +100,7 @@ public sealed class SetssssDiagramLabels : MonoBehaviour
             if(!showingIntro)
             {
                 var player=Player.LocalInstance;
-                var point=player!=null?player.transform.position:Camera.main.transform.position;
+                var point=player!=null?player.transform.position:camera.transform.position;
                 point.y=region.center.y;
                 active &= Vector3.Distance(point,region.ClosestPoint(point))<=24f&&!stage.IsViewingDiagramBoard;
             }
@@ -113,29 +115,39 @@ public sealed class SetssssDiagramLabels : MonoBehaviour
                     focus == SetssssChallengeIntroductions.Focus.AMinusB && i == 4 ||
                     focus == SetssssChallengeIntroductions.Focus.BMinusA && i == 5;
             }
-            labels[i].gameObject.SetActive(active);
+            bool visibilityChanged = labels[i].gameObject.activeSelf != active;
+            if (visibilityChanged) labels[i].gameObject.SetActive(active);
             if (!active) continue;
             labels[i].transform.position = anchors[i];
-            labels[i].transform.localScale = Vector3.one * Mathf.Clamp(Vector3.Distance(anchors[i], Camera.main.transform.position) * .025f, .3f, 10f);
-            labels[i].transform.rotation = Camera.main.transform.rotation;
+            labels[i].transform.localScale = Vector3.one * Mathf.Clamp(Vector3.Distance(anchors[i], camera.transform.position) * .025f, .3f, 10f);
+            labels[i].transform.rotation = camera.transform.rotation;
             // Looking along the circles can project separate world anchors onto
             // the same pixels. Lift a caption without changing its region's X/Z.
-            labels[i].ForceMeshUpdate();
-            Rect screen=ScreenBounds(labels[i]);
-            for(int attempt=0;attempt<5&&occupied.Exists(other=>other.Overlaps(screen));attempt++)
+            if (visibilityChanged || labels[i].havePropertiesChanged) labels[i].ForceMeshUpdate();
+            Rect screen = ScreenBounds(labels[i], camera);
+            for (int attempt = 0; attempt < 5 && OverlapsCaption(screen); attempt++)
             {
-                labels[i].transform.position+=Vector3.up*(labels[i].preferredHeight*labels[i].transform.lossyScale.y+.5f);
-                screen=ScreenBounds(labels[i]);
+                labels[i].transform.position += Vector3.up * (labels[i].preferredHeight * labels[i].transform.lossyScale.y + .5f);
+                screen = ScreenBounds(labels[i], camera);
             }
             occupied.Add(screen);
         }
     }
-    private static Rect ScreenBounds(TMP_Text label)
+    private bool OverlapsCaption(Rect bounds)
+    {
+        foreach (Rect caption in occupied)
+            if (caption.Overlaps(bounds)) return true;
+        return false;
+    }
+
+    private static Rect ScreenBounds(TMP_Text label, Camera camera)
     {
         Bounds bounds=label.textBounds;Vector2 min=Vector2.positiveInfinity,max=Vector2.negativeInfinity;
-        foreach(float x in new[]{bounds.min.x,bounds.max.x})foreach(float y in new[]{bounds.min.y,bounds.max.y})
+        for (int i = 0; i < 4; i++)
         {
-            Vector2 p=Camera.main.WorldToScreenPoint(label.transform.TransformPoint(new Vector3(x,y,0)));
+            float x = i < 2 ? bounds.min.x : bounds.max.x;
+            float y = i % 2 == 0 ? bounds.min.y : bounds.max.y;
+            Vector2 p = camera.WorldToScreenPoint(label.transform.TransformPoint(new Vector3(x, y, 0)));
             min=Vector2.Min(min,p);max=Vector2.Max(max,p);
         }
         return Rect.MinMaxRect(min.x-4,min.y-4,max.x+4,max.y+4);

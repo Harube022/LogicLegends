@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-/// <summary>Neutral placement guidance: every empty altar, never the answer classification.</summary>
+/// <summary>Neutral placement guidance for available destinations, never the answer classification.</summary>
 [DisallowMultipleComponent]
 public sealed class ProofsPedestalIndicators : MonoBehaviour
 {
@@ -22,7 +22,7 @@ public sealed class ProofsPedestalIndicators : MonoBehaviour
             new Vector3(.5f,0,0), new Vector3(0,-.6f,0), new Vector3(-.5f,0,0), new Vector3(-.16f,0,0) };
         mesh.triangles = new[] { 0,1,2,0,2,6,5,3,4 }; mesh.RecalculateNormals(); mesh.RecalculateBounds();
         var shader = Shader.Find("Universal Render Pipeline/Unlit");
-        yellow = new Material(shader) { name = "Proof Placement Yellow" }; yellow.SetColor("_BaseColor", new Color(1, .86f, .08f));
+        yellow = GuidanceArrowGlow.NewYellowMaterial("Proof Placement Yellow");
         outline = new Material(shader) { name = "Proof Placement Outline" }; outline.SetColor("_BaseColor", new Color(.12f, .085f, .02f));
         Arrows = new Transform[stage.AltarTargets.Length];
         for (int i = 0; i < Arrows.Length; i++)
@@ -43,6 +43,7 @@ public sealed class ProofsPedestalIndicators : MonoBehaviour
         shape.GetComponent<MeshFilter>().sharedMesh = mesh;
         var renderer = shape.GetComponent<MeshRenderer>(); renderer.sharedMaterial = material;
         renderer.shadowCastingMode = ShadowCastingMode.Off; renderer.receiveShadows = false;
+        if (material == yellow) GuidanceArrowGlow.Attach(shape);
     }
     private void LateUpdate() { Refresh(); }
     public void Refresh()
@@ -54,7 +55,10 @@ public sealed class ProofsPedestalIndicators : MonoBehaviour
         for (int i = 0; i < Arrows.Length; i++)
         {
             var altar = stage.AltarTargets[i]; var arrow = Arrows[i];
-            bool visible = carrying && altar.gameObject.activeInHierarchy && stage.IsPedestalEmpty(i);
+            // Challenge 2 permits several scrolls on either altar. Occupancy must
+            // not eliminate a valid destination for the next collected scroll.
+            bool available = stage.ChallengeNumber == 2 || stage.IsPedestalEmpty(i);
+            bool visible = carrying && altar != null && altar.gameObject.activeInHierarchy && available;
             arrow.gameObject.SetActive(visible); if (!visible) continue;
             var bounds=ProofsWorldInteractionIndicators.VisualBounds(altar);
             float top = Mathf.Max(altar.position.y + 3,bounds.max.y);

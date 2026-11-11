@@ -295,8 +295,9 @@ public static class ProofsOnboardingPlayChecks
         guide.Refresh();
         for (int i = 0; i < 2; i++)
         {
-            bool expected = stage.Started && !stage.Finished && stage.CarriedScroll >= 0 && !stage.InputSuppressed && !stage.HasReaderOpen && stage.IsPedestalEmpty(i);
-            Check(guide.Arrows[i].gameObject.activeSelf == expected, "arrow follows carrying/occupancy, independent of answer classification");
+            bool expected = stage.Started && !stage.Finished && stage.CarriedScroll >= 0 && !stage.InputSuppressed && !stage.HasReaderOpen &&
+                (stage.ChallengeNumber == 2 || stage.IsPedestalEmpty(i));
+            Check(guide.Arrows[i].gameObject.activeSelf == expected, "arrow follows available carrying destinations, independent of answer classification");
             if (expected)
             {
                 var yellow = guide.Arrows[i].Find("Yellow Arrow").GetComponent<Renderer>();

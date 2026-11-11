@@ -4,7 +4,7 @@ const whole = value => Number.isSafeInteger(value) && value >= 0 && value <= 214
 if (config.version < 2 || config.maxRetries !== 2 || !whole(config.retryReductionPercent) || config.retryReductionPercent > 50 ||
     config.trials.length !== 10 || new Set(config.trials.map(p => p.trial)).size !== 10 ||
     config.trials.some(p => !whole(p.baseReward) || !whole(p.quizReward) || !whole(p.quizBonusLimit) || p.trial < 1 || p.trial > 10) ||
-    config.rarities.some(p => !whole(p.coins) || !whole(p.gems) || p.coins === 0 || p.gems === 0)) throw new Error('Invalid solo economy configuration.');
+    config.rarities.some(p => !whole(p.coins) || !whole(p.gems) || (p.coins === 0 && p.gems === 0))) throw new Error('Invalid solo economy configuration.');
 function trialPolicy(trial) {
   const policy = config.trials.find(t => t.trial === trial);
   if (!policy) throw fail('Invalid trial.');

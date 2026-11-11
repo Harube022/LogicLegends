@@ -6,10 +6,10 @@ OcclusionCullingSettings:
   serializedVersion: 2
   m_OcclusionBakeSettings:
     smallestOccluder: 5
-    smallestHole: 0.25
+    smallestHole: 0.5
     backfaceThreshold: 100
-  m_SceneGUID: 00000000000000000000000000000000
-  m_OcclusionCullingData: {fileID: 0}
+  m_SceneGUID: 91a7ceab6966fe64680ca7d5163966aa
+  m_OcclusionCullingData: {fileID: 36300000, guid: b65d8fa342ca1df43b3a8e60856cba64, type: 2}
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
@@ -20,11 +20,11 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.42, g: 0.52, b: 0.65, a: 1}
+  m_AmbientSkyColor: {r: 0.51, g: 0.51, b: 0.51, a: 1}
   m_AmbientEquatorColor: {r: 0.34, g: 0.39, b: 0.36, a: 1}
   m_AmbientGroundColor: {r: 0.2, g: 0.23, b: 0.24, a: 1}
-  m_AmbientIntensity: 0.9
-  m_AmbientMode: 1
+  m_AmbientIntensity: 1
+  m_AmbientMode: 3
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
@@ -35,9 +35,9 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 0.6
+  m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
-  m_Sun: {fileID: 0}
+  m_Sun: {fileID: 2069802260}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -667,6 +667,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 24_0
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -750,6 +770,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 34_1
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -772,6 +812,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.0426712
@@ -824,13 +868,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 17_0
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1094,6 +1154,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 8.100322
@@ -1150,6 +1214,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 1_1
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1223,6 +1303,26 @@ PrefabInstance:
     - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Name
       value: Border Tree 4_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
@@ -1387,6 +1487,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 8.385697
@@ -1443,6 +1547,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 11_1
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1461,6 +1581,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.5533395
@@ -1513,13 +1637,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 37_1
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1595,9 +1735,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 10_1
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1757,7 +1917,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 105906257}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.77, b: 0.47, a: 1}
@@ -1823,10 +1983,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 5.6773453
@@ -1882,6 +2058,10 @@ PrefabInstance:
     - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Name
       value: Border Tree 38_0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1960,6 +2140,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
       propertyPath: m_Name
       value: STREETLAMP2
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2087,6 +2271,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 7.5840597
@@ -2143,6 +2331,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 16_1
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2340,6 +2544,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 7.7068415
@@ -2396,6 +2604,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 21_0
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2457,6 +2681,14 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: b2cd4335bffab3f48809165185941cdf, type: 3}
       propertyPath: m_Name
       value: Vines
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: b2cd4335bffab3f48809165185941cdf, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: b2cd4335bffab3f48809165185941cdf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2668,6 +2900,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: fir tree tilted (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9c9c052014ed57146bc86830599c1c2b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2681,10 +2917,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 4.2743983
@@ -2740,6 +2992,10 @@ PrefabInstance:
     - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Name
       value: Border Tree 23_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2819,6 +3075,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: STREETLAMP2 (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2876,6 +3136,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LAMP
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ab080fc0ff8e134fb7c5e5690071465, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2893,6 +3157,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 6.279906
@@ -2949,6 +3217,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 26_0
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2967,6 +3251,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.794797
@@ -3019,13 +3307,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 32_1
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3238,9 +3542,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 35_0
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3315,6 +3639,26 @@ PrefabInstance:
     - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Name
       value: Border Tree 29_0
+      objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
@@ -3394,6 +3738,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 11
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -3472,9 +3824,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 40_1
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3498,9 +3870,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 38
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -3572,6 +3952,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.1297274
@@ -3624,13 +4008,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 32_0
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3706,6 +4106,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 33
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -3728,6 +4136,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.6914892
@@ -3780,13 +4192,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 12_0
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3919,6 +4347,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bench (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_LocalScale.x
       value: 3
@@ -3992,9 +4424,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -4126,6 +4566,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: fir tree small (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: b36ccd9f3174c544e8c27e18082c54b6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4139,6 +4583,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.057441
@@ -4191,13 +4639,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 17_1
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4221,9 +4685,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -4489,10 +4961,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 5.115985
@@ -4548,6 +5036,10 @@ PrefabInstance:
     - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Name
       value: Border Tree 28_0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4627,6 +5119,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: STREETLAMP2 (4)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4696,9 +5192,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 0_1
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5091,6 +5607,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 6.2444787
@@ -5147,6 +5667,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 6_0
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5169,6 +5705,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 6.5422144
@@ -5225,6 +5765,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 1_0
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5247,9 +5803,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 36
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -5430,6 +5994,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.2604866
@@ -5482,13 +6050,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 22_0
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5539,7 +6123,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 361670426}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.77, b: 0.47, a: 1}
@@ -5790,6 +6374,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 7.99186
@@ -5846,6 +6434,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 16_0
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5920,9 +6524,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 15_1
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5945,6 +6569,10 @@ PrefabInstance:
     - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_Name
       value: Bench (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_LocalScale.x
@@ -6018,6 +6646,10 @@ PrefabInstance:
     - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_Name
       value: Bench (7)
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_LocalScale.x
@@ -6263,10 +6895,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 4.7601995
@@ -6322,6 +6970,10 @@ PrefabInstance:
     - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Name
       value: Border Tree 3_0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6526,6 +7178,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 6.6984653
@@ -6582,6 +7238,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 26_1
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6902,6 +7574,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 41
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -6929,6 +7609,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.0475624
@@ -6981,13 +7665,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 27_1
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7063,6 +7763,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 23
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -7146,6 +7854,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 6.4035125
@@ -7202,6 +7914,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 36_0
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7276,9 +8004,57 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -8100772765557826894, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: -7513965878599408678, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: -7351293661281760453, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: -4606425439140408490, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: -3831989005111416346, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: -1332125347528066578, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 672c72085abeb84439317cf70679570b, type: 3}
       propertyPath: m_Name
       value: Logic_Garden_Terrain_Border
+      objectReference: {fileID: 0}
+    - target: {fileID: 1375790542372635003, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 1962330834853489604, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 2058309462583448581, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 4539759134526679296, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8109117590179466525, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8148553535022056044, guid: 672c72085abeb84439317cf70679570b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7336,6 +8112,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 2ab080fc0ff8e134fb7c5e5690071465, type: 3}
       propertyPath: m_Name
       value: LAMP (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ab080fc0ff8e134fb7c5e5690071465, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7406,9 +8186,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 40_0
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7459,7 +8259,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 591380771}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.77, b: 0.47, a: 1}
@@ -7776,6 +8576,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.1325068
@@ -7828,13 +8632,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 2_0
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8190,9 +9010,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 20_0
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8216,6 +9056,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 6.95761
@@ -8272,6 +9116,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 41_1
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8350,6 +9210,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: STREETLAMP2 (7)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8363,6 +9227,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.6925912
@@ -8415,13 +9283,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 37_0
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8616,6 +9500,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: STREETLAMP2 (9)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8685,6 +9573,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 21
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -8707,10 +9603,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 5.182335
@@ -8766,6 +9678,10 @@ PrefabInstance:
     - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Name
       value: Border Tree 13_0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8898,9 +9814,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 28
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -8987,6 +9911,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 7.0930724
@@ -9043,6 +9971,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 31_1
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9120,6 +10064,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 8dfe8ba8125e1414fa9f1ccc24537640, type: 3}
       propertyPath: m_Name
       value: japanese lantern
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8dfe8ba8125e1414fa9f1ccc24537640, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9199,6 +10147,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: japanese lantern (4)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8dfe8ba8125e1414fa9f1ccc24537640, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9216,6 +10168,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 7.042985
@@ -9272,6 +10228,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 21_1
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9400,10 +10372,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 4.2713246
@@ -9459,6 +10447,10 @@ PrefabInstance:
     - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Name
       value: Border Tree 8_0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9534,9 +10526,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 30_0
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9556,6 +10568,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.0326545
@@ -9608,13 +10624,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 2_1
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9677,6 +10709,14 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 306a42e90f9ee834b9661999ebb26c9c, type: 3}
       propertyPath: m_Name
       value: Puno
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 306a42e90f9ee834b9661999ebb26c9c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 306a42e90f9ee834b9661999ebb26c9c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9747,6 +10787,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 25
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -9769,6 +10817,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.0324888
@@ -9821,13 +10873,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 22_1
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9850,6 +10918,10 @@ PrefabInstance:
     - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_Name
       value: Bench (6)
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_LocalScale.x
@@ -10114,10 +11186,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 4.273852
@@ -10174,6 +11262,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 18_0
       objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10196,9 +11288,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -10270,10 +11370,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 4.5117164
@@ -10329,6 +11445,10 @@ PrefabInstance:
     - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Name
       value: Border Tree 18_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10513,6 +11633,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 17
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -10591,6 +11719,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 31
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -10669,6 +11805,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 39_0
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -10691,10 +11847,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 4.984362
@@ -10751,6 +11923,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 28_1
       objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10773,9 +11949,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -10903,6 +12087,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 15
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -10981,6 +12173,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 9
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -11063,6 +12263,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: fir tree tilted
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9c9c052014ed57146bc86830599c1c2b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11076,6 +12280,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.8203902
@@ -11128,13 +12336,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 12_1
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11385,9 +12609,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 30_1
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11638,9 +12882,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 10_0
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11664,9 +12928,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -11934,9 +13206,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 25_0
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12149,9 +13441,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 0_0
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12487,6 +13799,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bench (4)
       objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_LocalScale.x
       value: 3
@@ -12616,6 +13932,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: fir tree large (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a94c5038ae32d9a4497fcd9c01cc0901, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12633,6 +13953,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 7.3195906
@@ -12689,6 +14013,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 36_1
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12820,6 +14160,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 39
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -12898,6 +14246,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 9_0
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -12920,10 +14288,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 4.479148
@@ -12980,6 +14364,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 38_1
       objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13002,9 +14390,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -13132,6 +14528,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 35
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -13158,9 +14562,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -13292,6 +14704,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: fir tree tilted (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9c9c052014ed57146bc86830599c1c2b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13309,9 +14725,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 34
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -13414,7 +14838,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1097133832}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.77, b: 0.47, a: 1}
@@ -13536,6 +14960,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 29
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -13562,9 +14994,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -13636,10 +15076,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 4.51175
@@ -13695,6 +15151,10 @@ PrefabInstance:
     - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Name
       value: Border Tree 33_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13774,6 +15234,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: STREETLAMP2 (8)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13791,6 +15255,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 6.669986
@@ -13847,6 +15315,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 31_0
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13869,6 +15353,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 6.4473443
@@ -13925,6 +15413,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 41_0
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13943,6 +15447,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.5000734
@@ -13995,13 +15503,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 27_0
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14080,6 +15604,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: a94c5038ae32d9a4497fcd9c01cc0901, type: 3}
       propertyPath: m_Name
       value: fir tree large
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a94c5038ae32d9a4497fcd9c01cc0901, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14274,6 +15802,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 2ab080fc0ff8e134fb7c5e5690071465, type: 3}
       propertyPath: m_Name
       value: LAMP (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ab080fc0ff8e134fb7c5e5690071465, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14612,6 +16144,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 14_0
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -14638,9 +16190,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -15249,7 +16809,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1222984188}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.77, b: 0.47, a: 1}
@@ -15358,6 +16918,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 2ab080fc0ff8e134fb7c5e5690071465, type: 3}
       propertyPath: m_Name
       value: LAMP (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ab080fc0ff8e134fb7c5e5690071465, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15518,9 +17082,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -15705,6 +17277,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 6.385175
@@ -15761,6 +17337,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 6_1
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15835,6 +17427,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 37
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -15861,9 +17461,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 32
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -15991,6 +17599,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 39_1
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -16017,9 +17645,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 26
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -16147,6 +17783,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -16229,6 +17873,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: fir tree small
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: b36ccd9f3174c544e8c27e18082c54b6, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16298,9 +17946,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 15_0
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16380,6 +18048,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: STREETLAMP2 (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16393,10 +18065,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 5.234015
@@ -16452,6 +18140,10 @@ PrefabInstance:
     - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Name
       value: Border Tree 8_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16708,6 +18400,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 4_0
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -16860,9 +18572,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 5_1
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16886,9 +18618,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -17008,6 +18748,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.1072576
@@ -17060,13 +18804,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 7_0
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -17089,6 +18849,10 @@ PrefabInstance:
     - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_Name
       value: Bench (9)
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_LocalScale.x
@@ -17288,6 +19052,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 3
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -17313,6 +19085,10 @@ PrefabInstance:
     - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_Name
       value: Bench (5)
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_LocalScale.x
@@ -17442,6 +19218,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: a94c5038ae32d9a4497fcd9c01cc0901, type: 3}
       propertyPath: m_Name
       value: fir tree large (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a94c5038ae32d9a4497fcd9c01cc0901, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -17611,10 +19391,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 5.401277
@@ -17671,6 +19467,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 23_0
       objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17720,7 +19520,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1476353336}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.77, b: 0.47, a: 1}
@@ -17974,6 +19774,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2629902024739654562, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 2941071227879976597, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
       propertyPath: m_LocalScale.x
       value: 7.115824
@@ -18030,6 +19834,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 11_0
       objectReference: {fileID: 0}
+    - target: {fileID: 2941071227880469173, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5923851035085940646, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7564856122918731585, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8137237385783612343, guid: 20965ea25ef258d44b5eed61e5c1a7b8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18113,10 +19933,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 6.5732827
@@ -18172,6 +20008,10 @@ PrefabInstance:
     - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Name
       value: Border Tree 13_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18359,6 +20199,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
       propertyPath: m_Name
       value: STREETLAMP2 (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18696,96 +20540,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -12}
   m_SizeDelta: {x: 1320, y: 85}
   m_Pivot: {x: 0.5, y: 1}
---- !u!1 &1537705933
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1537705934}
-  - component: {fileID: 1537705936}
-  - component: {fileID: 1537705935}
-  m_Layer: 0
-  m_Name: Distant Grass Apron
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1537705934
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1537705933}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 97.91707, y: -14.8, z: 921.6846}
-  m_LocalScale: {x: 69.148926, y: 15, z: 62.499992}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1753394217}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!23 &1537705935
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1537705933}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 3830618465663986954, guid: 672c72085abeb84439317cf70679570b, type: 3}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &1537705936
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1537705933}
-  m_Mesh: {fileID: -8778310977420565659, guid: 672c72085abeb84439317cf70679570b, type: 3}
 --- !u!1001 &1542161907
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18850,6 +20604,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 13
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -19065,9 +20827,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 20_1
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19147,11 +20929,58 @@ PrefabInstance:
       propertyPath: m_Name
       value: STREETLAMP2 (6)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
+--- !u!1 &1599024702
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1599024704}
+  - component: {fileID: 1599024703}
+  m_Layer: 0
+  m_Name: Solo Trial Occlusion Area
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!192 &1599024703
+OcclusionArea:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1599024702}
+  serializedVersion: 2
+  m_Size: {x: 125.15195, y: 80, z: 178.33057}
+  m_Center: {x: 0, y: 0, z: 0}
+  m_IsViewVolume: 1
+--- !u!4 &1599024704
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1599024702}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 97.91707, y: 28.527447, z: 921.6846}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1604174282
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19216,9 +21045,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 35_1
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19539,6 +21388,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Trees
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7f908c32e42bc7f44a8201829e586ac4, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -19552,6 +21405,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 4029887219182917838, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 4046684142817560231, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.2353907
@@ -19604,13 +21461,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566184146384376249, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5083985733957845314, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Name
       value: Border Tree 7_1
       objectReference: {fileID: 0}
+    - target: {fileID: 6072956214950664835, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7303704840832129976, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7660826848714439689, guid: 1ab6b9b74dcf4c34b90329100d582e6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19661,7 +21534,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1691895703}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.77, b: 0.47, a: 1}
@@ -19925,9 +21798,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -20055,6 +21936,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 27
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -20330,7 +22219,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1734897352}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.77, b: 0.47, a: 1}
@@ -20417,7 +22306,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1537705934}
   - {fileID: 1451531797}
   - {fileID: 666899340}
   - {fileID: 1720107511}
@@ -20491,6 +22379,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: japanese lantern (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8dfe8ba8125e1414fa9f1ccc24537640, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -20559,6 +22451,26 @@ PrefabInstance:
     - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Name
       value: Border Tree 9_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
@@ -20872,6 +22784,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 5
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -21285,6 +23205,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: fir tree large (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a94c5038ae32d9a4497fcd9c01cc0901, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -21302,9 +23226,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 22
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -21436,6 +23368,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: japanese lantern (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8dfe8ba8125e1414fa9f1ccc24537640, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -21453,9 +23389,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -21558,7 +23502,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1826585729}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.77, b: 0.47, a: 1}
@@ -21680,6 +23624,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 24_1
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -21758,9 +23722,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 5_0
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -22176,6 +24160,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 19_1
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -22254,6 +24258,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 7
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -22332,6 +24344,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 34_0
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -22376,9 +24408,17 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4916306448701294331, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_Name
       value: Perimeter Cliff 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535716867881152586, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8604203660003155464, guid: 1c95224b3c900c1459e92ac961278690, type: 3}
       propertyPath: m_LocalScale.x
@@ -22486,7 +24526,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1936987660}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.77, b: 0.47, a: 1}
@@ -22717,6 +24757,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 29_1
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -22747,6 +24807,10 @@ PrefabInstance:
     - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_Name
       value: Bench
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_LocalScale.x
@@ -22873,9 +24937,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 25_1
       objectReference: {fileID: 0}
+    - target: {fileID: 969320280518034961, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1768838173839713111, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 2053374336467364542, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 5198061859388516664, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6670582498932469159, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 8136064507083560233, guid: 11564fdc8e67203468d223fd0845d3ea, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -22895,10 +24979,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 4.616727
@@ -22954,6 +25054,10 @@ PrefabInstance:
     - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Name
       value: Border Tree 33_0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -23032,6 +25136,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
       propertyPath: m_Name
       value: STREETLAMP2 (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2ff1e76419e921b49a4596e7823f50fd, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -23458,6 +25566,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Perimeter Cliff 19
       objectReference: {fileID: 0}
+    - target: {fileID: 2594155211225295438, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8405342680234011212, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7fc0c28c862fb2e4dbef4cdc7fa66c12, type: 2}
     - target: {fileID: 8659375804371040940, guid: 4b32f1bb6a6e07c40afb683b71d7653c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -23483,6 +25599,10 @@ PrefabInstance:
     - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_Name
       value: Bench (10)
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_LocalScale.x
@@ -23597,6 +25717,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Stage
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 1e6fbe876b1038e4e8dedd8fbb0e4af5, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -23702,10 +25826,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 666899340}
     m_Modifications:
+    - target: {fileID: 3981477440131801201, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 4958114242099363698, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5063052740132671226, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7682909955220376273, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7696711149768453402, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
     - target: {fileID: 8948467639623187966, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
       propertyPath: m_LocalScale.x
       value: 5.167576
@@ -23762,6 +25902,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 3_1
       objectReference: {fileID: 0}
+    - target: {fileID: 8948467639623541214, guid: c91f703cc263e464dbc46e906110a12b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -23799,14 +25943,14 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 1
-  m_Color: {r: 1, g: 0.95, b: 0.86, a: 1}
-  m_Intensity: 1.05
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 0.9
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 0.65
@@ -23933,6 +26077,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Border Tree 14_1
       objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -23958,6 +26122,10 @@ PrefabInstance:
     - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_Name
       value: Bench (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_LocalScale.x
@@ -24088,6 +26256,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: japanese lantern (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8dfe8ba8125e1414fa9f1ccc24537640, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -24109,6 +26281,10 @@ PrefabInstance:
     - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_Name
       value: Bench (8)
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: aa574de3686174c48a61ce1af575a075, type: 3}
       propertyPath: m_LocalScale.x
@@ -24546,6 +26722,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LogicGarden_VioletPlant
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: b945bb05646e7ed46ba5d98b4ee2b8b7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -24619,6 +26799,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: fir tree tilted (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9c9c052014ed57146bc86830599c1c2b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -24687,6 +26871,26 @@ PrefabInstance:
     - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Name
       value: Border Tree 19_0
+      objectReference: {fileID: 0}
+    - target: {fileID: 237646713509614689, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 441714165118407145, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 4050234096848689910, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417674769762789171, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1e2c157a7613e404188bf3a17d29aee8, type: 2}
+    - target: {fileID: 7489374709991920723, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 8676806595699830026, guid: 1290b971a167f994796c4a0a73fa97b9, type: 3}
       propertyPath: m_Enabled
@@ -24944,3 +27148,4 @@ SceneRoots:
   - {fileID: 973981545}
   - {fileID: 526278542}
   - {fileID: 1753394217}
+  - {fileID: 1599024704}

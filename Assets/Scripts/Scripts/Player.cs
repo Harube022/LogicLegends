@@ -74,6 +74,8 @@ public partial class Player : MonoBehaviourPun
 
     private void Awake()
     {
+        // Late database/player spawns must not revive broken legacy demo UI in solo trials.
+        SoloSettingsRuntime.DisableUnusedTrialCounters(gameObject);
         controller = GetComponent<CharacterController>();
         if (gameInput == null) gameInput = FindFirstObjectByType<GameInput>();
 

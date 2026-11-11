@@ -11,6 +11,7 @@ public sealed class SetssssStageResultUI : MonoBehaviour
     public static void ShowFailure(UnityEngine.Events.UnityAction retry)
     {
         if (current != null) return;
+        TrialTimeoutAudio.Play();
         var root = new GameObject("Sets Game Over", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
         current = root.AddComponent<SetssssStageResultUI>();
         root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;

@@ -29,11 +29,17 @@ public sealed class MainMenuMobileInput : MonoBehaviour
         foreach (var root in gameObject.scene.GetRootGameObjects())
             foreach (var input in root.GetComponentsInChildren<TMP_InputField>(true))
             {
-                inputs.Add(input);
-                input.onSelect.AddListener(OnSelect);
-                input.onFocusSelectAll = false;
-                input.resetOnDeActivation = false;
+                Register(input);
             }
+    }
+
+    internal void Register(TMP_InputField input)
+    {
+        if (input == null || inputs.Contains(input)) return;
+        inputs.Add(input);
+        input.onSelect.AddListener(OnSelect);
+        input.onFocusSelectAll = false;
+        input.resetOnDeActivation = false;
     }
 
     private void OnSelect(string unused)

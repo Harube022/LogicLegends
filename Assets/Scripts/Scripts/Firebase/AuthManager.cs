@@ -59,6 +59,7 @@ public class AuthManager : MonoBehaviour
     [Header("Login Feedback")]
     [SerializeField] private TMP_Text authenticationMessage;
     private bool signingIn;
+    private bool googlePickerPending;
     private bool playIntroAfterUsername;
     private bool resumeMenuMusicAfterIntro;
     private bool finishingIntro;
@@ -71,7 +72,7 @@ public class AuthManager : MonoBehaviour
     private volatile bool authStateChanged;
 
     [Header("Feedback Timing")]
-    [SerializeField] private float loginFeedbackDuration = 1f;
+    [SerializeField] private float loginFeedbackDuration = 5f;
     [SerializeField] private float logoutFeedbackDuration = 1.5f;
     private Coroutine feedbackTimer;
 
@@ -83,7 +84,11 @@ public class AuthManager : MonoBehaviour
 
     private void Update()
     {
-        if (accountLoading && Application.internetReachability == NetworkReachability.NotReachable)
+        // The Android picker runs in a separate activity. Let its callback own the result.
+        // Let an in-flight sign-in request return its Firebase error. On Android,
+        // reachability can briefly report NotReachable while the request is active,
+        // which would replace invalid-credential feedback with the connection dialog.
+        if (accountLoading && !signingIn && !googlePickerPending && Application.internetReachability == NetworkReachability.NotReachable)
         {
             ShowConnectionError();
             return;
@@ -99,7 +104,7 @@ public class AuthManager : MonoBehaviour
         if (currentId != null) CheckLoginState();
         else
         {
-            CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Session ended. Please log in again."); });
+            CompleteAccountLoading(() => { ShowLoginScreen(); Feedback(AdminAuthorization.TakeDenial() ?? "Session ended. Please log in again."); });
         }
     }
 
@@ -178,7 +183,7 @@ public class AuthManager : MonoBehaviour
         finally { accountReveal = false; }
     }
 
-    private void ShowConnectionError()
+    private void ShowConnectionError(string title = null, string message = null)
     {
         accountLoading = false;
         connectionErrorVisible = true;
@@ -186,7 +191,7 @@ public class AuthManager : MonoBehaviour
         sessionVersion++; // Ignore late replies from the failed attempt.
         ClearFeedback();
         var retry = accountRetry ?? (System.Action)CheckLoginState;
-        LoadingScreen?.ShowConnectionError(() => { signingIn = false; connectionErrorVisible = false; retry(); });
+        LoadingScreen?.ShowConnectionError(() => { signingIn = false; connectionErrorVisible = false; retry(); }, title, message);
     }
 
     private void RetryInitialization()
@@ -204,7 +209,9 @@ public class AuthManager : MonoBehaviour
                 // Older Firebase SDKs report the enumeration-protected backend response as Failure.
                 string detail = error.ToString().ToUpperInvariant();
                 if (detail.Contains("INVALID_LOGIN_CREDENTIALS") || detail.Contains("INVALID_PASSWORD") ||
-                    detail.Contains("EMAIL_NOT_FOUND")) return AuthError.InvalidCredential;
+                    detail.Contains("EMAIL_NOT_FOUND") || detail.Contains("WRONG_PASSWORD") ||
+                    detail.Contains("USER_NOT_FOUND") || detail.Contains("INVALID CREDENTIAL"))
+                    return AuthError.InvalidCredential;
                 if (error is Firebase.FirebaseException firebaseError)
                     return (AuthError)firebaseError.ErrorCode;
             }
@@ -291,38 +298,67 @@ public class AuthManager : MonoBehaviour
                         sessionVersion++;
                         observedUserId = null;
                         auth.SignOut();
-                        CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Session expired. Please log in again."); });
+                        CompleteAccountLoading(() => { ShowLoginScreen(); Feedback(error == AuthError.UserDisabled
+                            ? "This account is disabled or banned. Contact the administrators." : "Session expired. Please log in again."); });
                     }
                     else ShowConnectionError();
                 }
                 else
                 {
-                    if (!auth.CurrentUser.IsEmailVerified && HasPasswordProvider(auth.CurrentUser))
-                    {
-                        sessionVersion++;
-                        observedUserId = null;
-                        auth.SignOut();
-                        CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Please verify the email address before logging in."); });
-                    }
-                    else CheckFirstTimeSetup();
+                    // Let the account service check moderation before verification status,
+                    // so a restricted account receives the restriction reason.
+                    CheckFirstTimeSetup();
                 }
             });
         }
         else
         {
             Debug.Log("No user found. Please log in.");
-            CompleteAccountLoading(ShowLoginScreen);
+            CompleteAccountLoading(() => { ShowLoginScreen(); Feedback(AdminAuthorization.TakeDenial() ?? ""); });
         }
     }
 
     // --- FIREBASE DATABASE INTERCEPTOR ---
 
-    private void CheckFirstTimeSetup()
+    private async void CheckFirstTimeSetup()
     {
         if (this == null || auth == null || auth.CurrentUser == null) return;
         string userId = auth.CurrentUser.UserId;
         observedUserId = userId;
         int version = BeginAccountLoading(CheckFirstTimeSetup);
+        try
+        {
+            var decision = await AdminAuthorization.Verify();
+            // A saved session may have received a new role since its ID token was minted.
+            if (decision.admin && IsCurrentSession(version, userId))
+                await CommerceClient.WithTimeout(auth.CurrentUser.TokenAsync(true));
+            if (!IsCurrentSession(version, userId)) return;
+            TrialSessionServices.AcceptAccount(userId);
+        }
+        catch (TrialBackendClient.AccountException error) when (error.AccessDenied)
+        {
+            if (!IsCurrentSession(version, userId)) return;
+            observedUserId = null;
+            AdminAuthorization.Refresh();
+            auth.SignOut();
+            CompleteAccountLoading(() => { ShowLoginScreen(); Feedback(error.Message); });
+            return;
+        }
+        catch (System.Exception error)
+        {
+            if (IsCurrentSession(version, userId))
+            {
+                var requestError = error as TrialBackendClient.AccountException;
+                Debug.LogWarning(requestError != null
+                    ? $"Game account access failed (HTTP {requestError.Status})."
+                    : $"Game account verification failed ({error.GetType().Name}).");
+                if (requestError?.Status == 404)
+                    ShowConnectionError("ACCOUNT UPDATE NEEDED", requestError.Message);
+                else
+                    ShowConnectionError("ACCOUNT SERVICE UNAVAILABLE", "Couldn't verify your game account. Try again shortly.");
+            }
+            return;
+        }
         playIntroAfterUsername = false;
         if (usernameSetup != null) usernameSetup.Hide();
         DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
@@ -562,6 +598,7 @@ public class AuthManager : MonoBehaviour
             return;
         }
         signingIn = true;
+        googlePickerPending = true;
         int version = BeginAccountLoading(OnClickGoogleSignIn);
         StartCoroutine(BeginGoogleSignIn(version));
     }
@@ -592,6 +629,7 @@ public class AuthManager : MonoBehaviour
         }
         catch (System.Exception exception)
         {
+            googlePickerPending = false;
             signingIn = false;
             Debug.LogError("Google sign-in could not start.");
             Debug.LogException(exception);
@@ -601,11 +639,34 @@ public class AuthManager : MonoBehaviour
 
     private void OnGoogleSignInFinished(Task<GoogleSignInUser> task)
     {
+        googlePickerPending = false;
         if (task.IsFaulted || task.IsCanceled)
         {
             signingIn = false;
-            Debug.LogError("Google Sign-In failed or was canceled.");
-            CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Google sign-in was canceled or failed. Please try again.", loginFeedbackDuration); });
+            string message = "Google sign-in failed. Please try again.";
+            if (task.IsCanceled)
+                message = "Google sign-in was canceled. Please try again.";
+            else
+            {
+                var error = task.Exception?.GetBaseException() as GoogleSignIn.SignInException;
+                Debug.LogWarning(error != null
+                    ? $"Android Google sign-in failed ({error.Status}, {(int)error.Status})."
+                    : "Android Google sign-in failed before returning a credential.");
+                switch (error?.Status)
+                {
+                    case GoogleSignInStatusCode.DeveloperError:
+                        message = "Google sign-in is not configured for this Android build. Contact support.";
+                        break;
+                    case GoogleSignInStatusCode.NetworkError:
+                    case GoogleSignInStatusCode.Timeout:
+                        message = "Couldn't reach Google sign-in. Check your connection and try again.";
+                        break;
+                    case GoogleSignInStatusCode.ApiNotConnected:
+                        message = "Couldn't connect to Google Play services. Please try again.";
+                        break;
+                }
+            }
+            CompleteAccountLoading(() => { ShowLoginScreen(); Feedback(message); });
             return;
         }
 
@@ -626,8 +687,14 @@ public class AuthManager : MonoBehaviour
             signingIn = false;
             if (authTask.IsCanceled || authTask.IsFaulted)
             {
-                Debug.LogError("Firebase failed to authenticate Google credential.");
-                ShowConnectionError();
+                var error = ErrorCode(authTask.Exception);
+                Debug.LogWarning($"Firebase Google credential exchange failed ({error}).");
+                if (error == AuthError.UserDisabled)
+                    CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("This account is disabled or banned. Contact the administrators."); });
+                else if (error == AuthError.NetworkRequestFailed)
+                    ShowConnectionError("SIGN-IN SERVICE UNAVAILABLE", "Couldn't reach Firebase to finish Google sign-in. Try again.");
+                else
+                    CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Firebase couldn't complete Google sign-in. Please try again."); });
                 return;
             }
 
@@ -667,6 +734,7 @@ public class AuthManager : MonoBehaviour
             if (task.IsCanceled || task.IsFaulted)
             {
                 var error = ErrorCode(task.Exception);
+                Debug.LogWarning($"Firebase email sign-in failed ({error}).");
                 string message;
                 if (error == AuthError.InvalidEmail || error == AuthError.WrongPassword ||
                     error == AuthError.UserNotFound || error == AuthError.InvalidCredential)
@@ -674,19 +742,14 @@ public class AuthManager : MonoBehaviour
                 else if (error == AuthError.TooManyRequests)
                     message = "Too many attempts. Please wait and try again.";
                 else if (error == AuthError.UserDisabled)
-                    message = "This account is disabled.";
-                else { ShowConnectionError(); return; }
+                    message = "This account is disabled or banned. Contact the administrators.";
+                else if (error == AuthError.NetworkRequestFailed)
+                { ShowConnectionError("SIGN-IN SERVICE UNAVAILABLE", "Couldn't reach Firebase to sign in. Check your connection and try again."); return; }
+                else message = "Sign-in failed. Check your email and password, then try again.";
                 CompleteAccountLoading(() => { ShowLoginScreen(); Feedback(message, loginFeedbackDuration); });
                 return;
             }
 
-            if (!auth.CurrentUser.IsEmailVerified)
-            {
-                Debug.LogWarning("Access Denied: Please verify your email address first!");
-                auth.SignOut();
-                CompleteAccountLoading(() => { ShowLoginScreen(); Feedback("Please verify the email address before logging in.", loginFeedbackDuration); });
-                return;
-            }
             CheckFirstTimeSetup();
         });
     }
@@ -745,6 +808,7 @@ public class AuthManager : MonoBehaviour
 
     public void OnClickLogout()
     {
+        AdminAuthorization.Refresh();
         accountLoading = false;
         accountRetry = null;
         sessionVersion++;
@@ -827,10 +891,4 @@ public class AuthManager : MonoBehaviour
         if (passwordSignUpInput != null) passwordSignUpInput.text = "";
     }
 
-    private static bool HasPasswordProvider(FirebaseUser user)
-    {
-        foreach (var provider in user.ProviderData)
-            if (provider.ProviderId == "password") return true;
-        return false;
-    }
 }

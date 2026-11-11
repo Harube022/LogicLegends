@@ -178,7 +178,7 @@ public sealed class StageJourneyUI : MonoBehaviour
         }
         else if (stage == 3)
         {
-            if (inference != null && inference.HasStarted && !inferenceFinished && !resultOpen && !tutorialOpen &&
+            if (!SoloStageLoader.IsLoading && inference != null && inference.HasStarted && !inferenceFinished && !resultOpen && !tutorialOpen &&
                 (inferenceOnboarding == null || !inferenceOnboarding.IsActive) &&
                 !inference.IsBoardOpen && !inferenceQuizOpen && Time.timeScale > 0)
             {
@@ -259,7 +259,16 @@ public sealed class StageJourneyUI : MonoBehaviour
     }
 
     public static string StageName(int stage) => stage == 1 ? "Propositional Logic" : stage == 2 ? "Truth Table" : "Rules of Inference";
-    public static string FormatTime(float seconds) { int total = Mathf.CeilToInt(Mathf.Max(0, seconds)); return (total / 60).ToString("00") + ":" + (total % 60).ToString("00"); }
+    static int formattedSecond = int.MinValue;
+    static string formattedTime;
+    public static string FormatTime(float seconds)
+    {
+        int total = Mathf.CeilToInt(Mathf.Max(0, seconds));
+        if (total == formattedSecond) return formattedTime;
+        formattedSecond = total;
+        formattedTime = (total / 60).ToString("00") + ":" + (total % 60).ToString("00");
+        return formattedTime;
+    }
 
     private void BuildHud()
     {
@@ -389,11 +398,11 @@ public sealed class StageJourneyUI : MonoBehaviour
         WorldStageAudio.PlayStageCompletion();
     }
 
-    public void ShowFailure(int stage, string summary, UnityEngine.Events.UnityAction retry)
+    public void ShowFailure(int stage, string summary, UnityEngine.Events.UnityAction retry, bool playTimeoutSound = true)
     {
         if (resultOpen) return;
-        ShowResult(stage, "TIME TO TRY AGAIN", summary, stage == 1 ? "START OVER" : "RESTART STAGE", retry);
-        StagePresentation.Failed(modal.gameObject, stage, stage == 1 && propositionalClock != null ? (UnityEngine.Events.UnityAction)propositionalClock.OnMiddleActionClicked : retry);
+        ShowResult(stage, "TIME TO TRY AGAIN", "The countdown has ended.", stage == 1 ? "START OVER" : "RESTART STAGE", retry);
+        StagePresentation.Failed(modal.gameObject, stage, stage == 1 && propositionalClock != null ? (UnityEngine.Events.UnityAction)propositionalClock.OnMiddleActionClicked : retry, playTimeoutSound);
     }
 
     private void ShowResult(int stage, string title, string summary, string action, UnityEngine.Events.UnityAction callback)

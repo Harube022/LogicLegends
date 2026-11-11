@@ -17,6 +17,7 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
     [SerializeField] private GameObject leaveConfirmation;
     [SerializeField] private Button confirmLeave, cancelLeave;
     [SerializeField] private TMP_Text[] slots;
+    private Button[] kickButtons;
     [SerializeField] private TMP_InputField inviteInput;
     [SerializeField] private Button host, joinChoice, join, copy, ready, start, leave, back, cancelJoin;
     private MultiplayerLobbyService service;
@@ -116,6 +117,7 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         cancelLeave.onClick.AddListener(CancelLeave);
         back.onClick.AddListener(Back);
         cancelJoin.onClick.AddListener(ShowChoices);
+        EnsureKickButtons();
         overlay.SetActive(false);
         EnsureBriefing();
     }
@@ -202,13 +204,22 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         code.text = PhotonNetwork.CurrentRoom.Name;
         var players = PhotonNetwork.PlayerList.OrderBy(p => p.ActorNumber).ToArray();
         count.text = players.Length + " / 4 PLAYERS";
+        bool canKick = PhotonNetwork.IsMasterClient && service.RoomState == LobbyRules.Waiting && !service.Busy;
         for (int i = 0; i < slots.Length; i++)
         {
-            if (i >= players.Length) { slots[i].text = "OPEN SLOT\nWaiting for an adventurer..."; slots[i].color = new Color(.45f, .36f, .25f); continue; }
+            if (i >= players.Length)
+            {
+                slots[i].text = "OPEN SLOT\nWaiting for an adventurer..."; slots[i].color = new Color(.45f, .36f, .25f);
+                SetKickVisible(i, false); SetSlotWidth(i, false); continue;
+            }
             var player = players[i];
-            slots[i].text = LobbyRules.DisplayName(player) + "\n" + (player.IsMasterClient ? "HOST · " : "") +
-                (player.IsLocal ? "YOU · " : "") + (player.IsInactive ? "RECONNECTING" : LobbyRules.IsReady(player) ? "READY" : "NOT READY");
+            bool showKick = canKick && !player.IsLocal && !player.IsInactive;
+            slots[i].text = LobbyRules.DisplayName(player) + "\n" + (showKick
+                ? (LobbyRules.IsReady(player) ? "READY" : "NOT READY")
+                : (player.IsMasterClient ? "HOST · " : "") + (player.IsLocal ? "YOU · " : "") +
+                  (player.IsInactive ? "RECONNECTING" : LobbyRules.IsReady(player) ? "READY" : "NOT READY"));
             slots[i].color = StageUITheme.ReadingInk;
+            SetKickVisible(i, showKick); SetSlotWidth(i, showKick);
         }
         ready.interactable = !service.Starting && !service.Busy;
         ready.GetComponentInChildren<TMP_Text>().text = LobbyRules.IsReady(PhotonNetwork.LocalPlayer) ? "NOT READY" : "READY";
@@ -293,5 +304,61 @@ public sealed class MultiplayerLobbyUI : MonoBehaviour
         var button=MultiplayerUIArt.Action(name,parent,label,x,y,x,y,green,red);
         MultiplayerUIArt.StandardAction(button,width);
         return button;
+    }
+    private void EnsureKickButtons()
+    {
+        if (slots == null || slots.Length == 0) return;
+        if (kickButtons == null || kickButtons.Length != slots.Length) kickButtons = new Button[slots.Length];
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i] == null) continue;
+            var parent = slots[i].transform.parent;
+            if (kickButtons[i] == null)
+            {
+                var button = MultiplayerUIArt.Action("KickPlayer" + (i + 1), parent, "KICK", .84f, .5f, .84f, .5f, red: true);
+                var rect = (RectTransform)button.transform;
+                rect.sizeDelta = new Vector2(132, 52);
+                button.image.pixelsPerUnitMultiplier = 4.5f;
+                var label = button.GetComponentInChildren<TMP_Text>();
+                label.fontSizeMin = 16; label.fontSizeMax = 20;
+                int slotIndex = i;
+                button.onClick.AddListener(() => KickSlot(slotIndex));
+                kickButtons[i] = button;
+            }
+            PositionKickButton(i);
+            kickButtons[i].gameObject.SetActive(false);
+        }
+    }
+    private void PositionKickButton(int index)
+    {
+        if (kickButtons == null || index < 0 || index >= kickButtons.Length || kickButtons[index] == null || slots[index] == null) return;
+        var slot = slots[index].rectTransform;
+        var rect = (RectTransform)kickButtons[index].transform;
+        float y = (slot.anchorMin.y + slot.anchorMax.y) * .5f;
+        rect.anchorMin = rect.anchorMax = new Vector2(.84f, y);
+        rect.pivot = new Vector2(.5f, .5f);
+        rect.anchoredPosition = Vector2.zero;
+    }
+    private void SetKickVisible(int index, bool visible)
+    {
+        if (kickButtons == null || index < 0 || index >= kickButtons.Length || kickButtons[index] == null) return;
+        kickButtons[index].gameObject.SetActive(visible);
+        if (visible) PositionKickButton(index);
+    }
+    private void SetSlotWidth(int index, bool reserveKickSpace)
+    {
+        if (slots == null || index < 0 || index >= slots.Length || slots[index] == null) return;
+        var rect = slots[index].rectTransform;
+        rect.anchorMin = new Vector2(.09f, rect.anchorMin.y);
+        rect.anchorMax = new Vector2(reserveKickSpace ? .68f : .91f, rect.anchorMax.y);
+        slots[index].enableAutoSizing = reserveKickSpace;
+        if (reserveKickSpace) { slots[index].fontSizeMin = 16; slots[index].fontSizeMax = 22; }
+    }
+    private void KickSlot(int index)
+    {
+        if (service == null || !service.InLobby || !PhotonNetwork.IsMasterClient || service.RoomState != LobbyRules.Waiting) return;
+        var players = PhotonNetwork.PlayerList.OrderBy(p => p.ActorNumber).ToArray();
+        if (index < 0 || index >= players.Length || players[index].IsLocal) return;
+        service.KickPlayer(players[index].ActorNumber);
     }
 }

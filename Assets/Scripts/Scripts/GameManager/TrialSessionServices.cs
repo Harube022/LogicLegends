@@ -1,13 +1,26 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Firebase.Auth;
+using System;
+using System.Threading.Tasks;
 
 /// <summary>Refreshes account-bound services across scene loads and account switches.</summary>
 [DefaultExecutionOrder(-32000)]
 public sealed class TrialSessionServices : MonoBehaviour
 {
-    FirebaseAuth auth;
-    volatile bool authChanged;
+    static string acceptedUid;
+    static float nextCheck;
+    static bool checking;
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void Reset() { acceptedUid = null; nextCheck = 0; checking = false; }
+    internal static void AcceptAccount(string uid)
+    {
+#if UNITY_EDITOR
+        if (TrialBackendClient.ValidationTransport != null) return;
+#endif
+        acceptedUid = uid;
+        nextCheck = Time.realtimeSinceStartup + 15f;
+    }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Create()
     {
@@ -15,12 +28,11 @@ public sealed class TrialSessionServices : MonoBehaviour
         go.AddComponent<TrialSessionServices>();
     }
     void OnEnable() { SceneManager.sceneLoaded += SceneLoaded; }
-    void OnDisable() { SceneManager.sceneLoaded -= SceneLoaded; if (auth != null) auth.StateChanged -= AuthChanged; }
-    void AuthChanged(object sender, System.EventArgs args) { authChanged = true; }
+    void OnDisable() { SceneManager.sceneLoaded -= SceneLoaded; }
     void SceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (mode != LoadSceneMode.Single) return;
-        AdminAuthorization.Refresh(); TrialRewards.SceneLoaded();
+        TrialRewards.SceneLoaded();
         if (TrialRewards.CurrentTrial > 0)
         {
             var admin = FindFirstObjectByType<AdminDebugController>(FindObjectsInactive.Include);
@@ -33,9 +45,63 @@ public sealed class TrialSessionServices : MonoBehaviour
     }
     void Update()
     {
-        if (FirebaseManager.IsReady && auth == null)
-        { auth = FirebaseAuth.DefaultInstance; auth.StateChanged += AuthChanged; }
-        if (authChanged) { authChanged = false; AdminAuthorization.Refresh(); }
-        AdminAuthorization.Tick(); TrialRewards.Tick();
+        string uid = TrialBackendClient.UserId;
+        if (acceptedUid != null && acceptedUid != uid)
+        {
+            acceptedUid = null;
+            AdminAuthorization.Refresh();
+            if (SceneManager.GetActiveScene().name != "Main Menu")
+                ReturnToLogin("Your account session changed. Please sign in again.");
+        }
+        if (Application.isFocused && acceptedUid != null && Time.realtimeSinceStartup >= nextCheck && !checking)
+            CheckInBackground();
+        AdminAuthorization.Tick();
+        TrialRewards.Tick();
+    }
+
+    void OnApplicationFocus(bool focused)
+    {
+        if (focused && acceptedUid != null && Time.realtimeSinceStartup + 90f >= nextCheck && !checking)
+            CheckInBackground();
+    }
+
+    static async void CheckInBackground()
+    {
+        checking = true;
+        nextCheck = Time.realtimeSinceStartup + 30f;
+        try { await RequireAccess(); }
+        catch (Exception) { }
+        finally { checking = false; }
+    }
+
+    internal static async Task<TrialBackendClient.Access> RequireAccess()
+    {
+        string uid = TrialBackendClient.UserId;
+        try
+        {
+            var access = await AdminAuthorization.Verify();
+            AcceptAccount(access.uid);
+            return access;
+        }
+        catch (TrialBackendClient.AccountException error) when (error.AccessDenied)
+        {
+            if (uid != null && uid == TrialBackendClient.UserId && FirebaseManager.IsReady)
+            {
+                acceptedUid = null;
+                FirebaseAuth.DefaultInstance.SignOut();
+                ReturnToLogin(error.Message);
+            }
+            throw;
+        }
+    }
+
+    static void ReturnToLogin(string message)
+    {
+        AdminAuthorization.RememberDenial(message);
+        if (Photon.Pun.PhotonNetwork.InRoom || Photon.Pun.PhotonNetwork.IsConnected)
+            MultiplayerLobbyService.Instance?.LeaveLobby();
+        if (SceneManager.GetActiveScene().name == "Main Menu") return;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("Main Menu");
     }
 }

@@ -106,7 +106,7 @@ public sealed class DirectProofsWorldGuidance : MonoBehaviour
             new Vector3(.5f,0,0), new Vector3(0,-.6f,0), new Vector3(-.5f,0,0), new Vector3(-.16f,0,0) };
         arrowMesh.triangles = new[] { 0,1,2,0,2,6,5,3,4 }; arrowMesh.RecalculateNormals(); arrowMesh.RecalculateBounds();
         var shader = Shader.Find("Universal Render Pipeline/Unlit");
-        yellow = new Material(shader) { name = "Direct Proofs Guidance Yellow" }; yellow.SetColor("_BaseColor", new Color(1,.86f,.08f));
+        yellow = GuidanceArrowGlow.NewYellowMaterial("Direct Proofs Guidance Yellow");
         outline = new Material(shader) { name = "Direct Proofs Arrow Outline" }; outline.SetColor("_BaseColor", new Color(.12f,.085f,.02f));
         Arrows = new Transform[3];
         for (int i = 0; i < Arrows.Length; i++)
@@ -125,6 +125,7 @@ public sealed class DirectProofsWorldGuidance : MonoBehaviour
         item.GetComponent<MeshFilter>().sharedMesh = arrowMesh;
         var renderer = item.GetComponent<MeshRenderer>(); renderer.sharedMaterial = material;
         renderer.shadowCastingMode = ShadowCastingMode.Off; renderer.receiveShadows = false;
+        if (material == yellow) GuidanceArrowGlow.Attach(item);
     }
 
     public bool HasSelection()

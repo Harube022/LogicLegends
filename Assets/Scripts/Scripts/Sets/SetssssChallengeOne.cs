@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -386,7 +387,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
 
     private void TickTimer()
     {
-        if (!started || complete || gameOverTriggered || Time.deltaTime <= 0f ||
+        if (SoloStageLoader.IsLoading || !started || complete || gameOverTriggered || Time.deltaTime <= 0f ||
             presentation != null && presentation.IsIntroductionOpen) return;
         timeRemaining = Mathf.Max(0f, timeRemaining - Time.deltaTime);
         UpdateTimerDisplay();
@@ -948,6 +949,9 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
     private RectTransform actionSafeArea;
     private readonly List<RectTransform> actionControls = new List<RectTransform>();
     private readonly List<RectTransform> visibleActions = new List<RectTransform>();
+    private readonly List<Rect> blockedActionBounds = new List<Rect>();
+    private readonly Vector2[] actionPositions = new Vector2[4];
+    private readonly Vector3[] actionControlCorners = new Vector3[4];
 
     private void ConfigureActionArtwork()
     {
@@ -989,35 +993,47 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         for (int i = 0; i < visibleActions.Count; i++)
         {
             float x = stack ? 0f : (i - (visibleActions.Count - 1) * .5f) * 296f;
-            visibleActions[i].anchoredPosition = new Vector2(x, stack ? i * 100f : 0);
+            actionPositions[i] = new Vector2(x, stack ? i * 100f : 0);
         }
         float contextY = visibleActions.Count == 0 ? 0 : stack ? visibleActions.Count * 100f : 100f;
-        foreach (var button in new[] { pickUpBlockButton, returnBlockButton })
-            if (button != null && button.gameObject.activeInHierarchy)
-            {
-                var rect = (RectTransform)button.transform;
-                rect.anchoredPosition = new Vector2(0, contextY); visibleActions.Add(rect);
-            }
+        AddContextAction(pickUpBlockButton, contextY);
+        AddContextAction(returnBlockButton, contextY);
+        if (visibleActions.Count == 0) return;
+
+        blockedActionBounds.Clear();
+        foreach (var control in actionControls)
+            if (control != null && control.gameObject.activeInHierarchy)
+                blockedActionBounds.Add(SetssssHudView.RelativeBounds(control, actionSafeArea, actionControlCorners));
+
+        Rect area = actionSafeArea.rect;
         float bottom = 24f;
         for (int pass = 0; pass < 8; pass++)
         {
             float next = bottom;
-            foreach (var action in visibleActions)
+            for (int i = 0; i < visibleActions.Count; i++)
             {
-                var position = action.anchoredPosition;
-                var candidate = new Rect(actionSafeArea.rect.center.x + position.x - action.rect.width * .5f,
-                    actionSafeArea.rect.yMin + position.y + bottom, action.rect.width, action.rect.height);
-                foreach (var control in actionControls)
-                {
-                    if (control == null || !control.gameObject.activeInHierarchy) continue;
-                    Rect blocked = SetssssHudView.RelativeBounds(control, actionSafeArea);
-                    if (candidate.Overlaps(blocked)) next = Mathf.Max(next, blocked.yMax - actionSafeArea.rect.yMin + 12f - position.y);
-                }
+                Vector2 position = actionPositions[i];
+                Rect action = visibleActions[i].rect;
+                var candidate = new Rect(area.center.x + position.x - action.width * .5f,
+                    area.yMin + position.y + bottom, action.width, action.height);
+                foreach (var blocked in blockedActionBounds)
+                    if (candidate.Overlaps(blocked)) next = Mathf.Max(next, blocked.yMax - area.yMin + 12f - position.y);
             }
             if (Mathf.Approximately(next, bottom)) break;
             bottom = next;
         }
-        foreach (var action in visibleActions) action.anchoredPosition += Vector2.up * bottom;
+        for (int i = 0; i < visibleActions.Count; i++)
+        {
+            Vector2 position = actionPositions[i] + Vector2.up * bottom;
+            if (visibleActions[i].anchoredPosition != position) visibleActions[i].anchoredPosition = position;
+        }
+    }
+
+    private void AddContextAction(Button button, float y)
+    {
+        if (button == null || !button.gameObject.activeInHierarchy) return;
+        actionPositions[visibleActions.Count] = new Vector2(0, y);
+        visibleActions.Add((RectTransform)button.transform);
     }
 
     private static void SetVisible(Button button, bool visible)
@@ -1352,6 +1368,7 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         }
         PlacementReview review = ReviewIncorrectPlacement();
         bool correct = !review.missingRequired && review.incorrectBlocks.Count == 0;
+        RecordTrialAnswer(correct);
         hintCheckRevision++;
         hintNeedsCorrection = !correct;
         foreach (GrabbableObject block in AnswerBlocks())
@@ -1370,6 +1387,28 @@ public sealed partial class SetssssChallengeOne : MonoBehaviour
         ClearAllErrorIndicators();
         hud?.Notice.Hide();
         StartCoroutine(Advance());
+    }
+
+    private void RecordTrialAnswer(bool correct)
+    {
+        string expected;
+        if (challengeNumber == 5 && activeComplement != null)
+            expected = "U \\ " + activeComplement.setName + " = {" + string.Join(", ", activeComplement.universe.Except(activeComplement.selected)) + "}";
+        else if (activeCondition != null)
+        {
+            var a = new HashSet<string>(activeCondition.setA);
+            var b = new HashSet<string>(activeCondition.setB);
+            expected = string.Join("; ", a.Union(b).Select(value => value + "=" +
+                (a.Contains(value) && b.Contains(value) ? "A ∩ B" : a.Contains(value) ? "A − B" : "B − A")));
+        }
+        else expected = "Place every element in its correct set region.";
+        string submitted = string.Join("; ", AnswerBlocks().Select(block =>
+        {
+            int value = GetBlockNumber(block);
+            return value + "=" + (TryGetMainVennRegion(PlacementPoint(block), out SetZone zone) ? zone.ToString() : "Outside");
+        }));
+        TrialRewards.RecordAnswer(7, "sets7-" + Guid.NewGuid().ToString("N"),
+            "sets7-c" + challengeNumber + "-q" + conditionIndex, CurrentProblem, expected, submitted, correct);
     }
 
     private IEnumerator Advance()

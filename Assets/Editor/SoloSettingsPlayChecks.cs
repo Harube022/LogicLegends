@@ -138,25 +138,27 @@ public static class SoloSettingsPlayChecks
             menu.OpenPause(); yield return null;
             Check(Time.timeScale == 0 && !look.enabled && pause.gameObject.activeInHierarchy, trial + ": Settings pauses time and camera");
             Check(panel.transform.Find("SettingsFrame/Footer/LogOut/Label").GetComponent<TMP_Text>().text == "MAIN MENU", trial + ": Main Menu replaces Log Out");
-            Check(!panel.GetComponentsInChildren<TMP_Text>(true).Any(t => new[] { "RESOLUTION QUALITY", "EDGE SMOOTHING", "BLOOM", "INVERT VERTICAL LOOK", "CAMERA SHAKE", "REDUCED CAMERA MOTION" }.Contains(t.text)), trial + ": removed controls absent");
+            Check(!panel.GetComponentsInChildren<TMP_Text>(true).Any(t => new[] { "RESOLUTION QUALITY", "EDGE SMOOTHING", "LIGHTING QUALITY", "MOTION BLUR", "INVERT VERTICAL LOOK", "CAMERA SHAKE", "REDUCED CAMERA MOTION" }.Contains(t.text)), trial + ": removed controls absent");
             var frame = panel.transform.Find("SettingsFrame");
             CheckSteadyFixture(trial);
             if (trial == 1)
             {
                 var lowPipeline = QualitySettings.renderPipeline as UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset;
-                Check(lowPipeline != null && Mathf.Approximately(lowPipeline.renderScale, .8f) && lowPipeline.shadowDistance == 0 && lowPipeline.msaaSampleCount == 1, "Android baseline uses 80 percent world resolution and no real-time shadow range");
-                Check(!lowPipeline.supportsCameraDepthTexture && !lowPipeline.supportsCameraOpaqueTexture && !lowPipeline.supportsHDR && !lowPipeline.supportsAdditionalLightShadows, "Android baseline avoids depth, opaque, HDR and additional shadow passes");
-                var renderer = Resources.Load<UnityEngine.Rendering.Universal.UniversalRendererData>("Settings/SoloRenderer0");
-                Check(renderer.rendererFeatures.Count == 0, "Android baseline has no screen-space ambient occlusion feature");
-                Check(lowPipeline.additionalLightsRenderingMode == UnityEngine.Rendering.Universal.LightRenderingMode.PerPixel && lowPipeline.maxAdditionalLightsCount == 4, "Low lighting renders local lamp pools per pixel with a four-light budget");
-                CheckUnlitFixture();
+                float lowScale = Mathf.Min(1f, 720f / Mathf.Min(Screen.width, Screen.height));
+                Check(lowPipeline != null && Mathf.Approximately(lowPipeline.renderScale, lowScale) && lowPipeline.shadowDistance == 0 &&
+                    lowPipeline.msaaSampleCount == 1 && QualitySettings.globalTextureMipmapLimit == 3,
+                    "Low uses 720p render scale, lower texture mips and no real-time shadows");
+                Check(!lowPipeline.supportsCameraDepthTexture && !lowPipeline.supportsCameraOpaqueTexture &&
+                    !lowPipeline.supportsHDR && !lowPipeline.supportsAdditionalLightShadows, "Low avoids unnecessary render passes");
                 var audioOnly = SoloGameSettings.Current.Copy(); audioOnly.music = .55f; SoloGameSettings.Apply(audioOnly);
                 Check(QualitySettings.renderPipeline == lowPipeline, "audio changes reuse the current render pipeline");
-                foreach (var choice in new[] { "LOW", "MEDIUM", "HIGH" })
+                var presets = new[] { "LOW", "MEDIUM", "HIGH" };
+                for (int tier = 0; tier < presets.Length; tier++)
                 {
-                    int shadow = panel.Draft.shadowQuality, lighting = panel.Draft.lightingQuality;
-                    frame.Find("GRAPHICSPage/Display/GRAPHICSQUALITY/Control/" + choice).GetComponent<Button>().onClick.Invoke();
-                    Check(panel.Draft.shadowQuality == shadow && panel.Draft.lightingQuality == lighting, choice + " graphics selection leaves shadow and lighting quality unchanged");
+                    frame.Find("GRAPHICSPage/Display/GRAPHICSQUALITY/Control/" + presets[tier]).GetComponent<Button>().onClick.Invoke();
+                    Check(panel.Draft.textureQuality == tier && panel.Draft.specialEffects == tier &&
+                        panel.Draft.resolution == (tier == 2 ? 1080 : 720) && panel.Draft.bloom == (tier == 2),
+                        presets[tier] + " graphics preset selects its matching defaults");
                 }
                 panel.ResetDraft();
                 frame.Find("CONTROLSPage/Camera/HORIZONTALSENSITIVITY/Control").GetComponentInChildren<Slider>(true).value = 1.7f;
@@ -201,12 +203,12 @@ public static class SoloSettingsPlayChecks
                 Check(Mathf.Approximately(SoloGameSettings.Current.horizontalSensitivity, 1.7f), "saved preferences survive cache reload");
                 yield return CheckSettingsDialogs(menu, panel, canvas);
                 // Native options stay anchored to the painted dropdown control.
-                var dropdown = frame.Find("GRAPHICSPage/Effects/LIGHTINGQUALITY/Control").GetComponent<TMP_Dropdown>();
+                var dropdown = frame.Find("GRAPHICSPage/Effects/SPECIALEFFECTS/Control").GetComponent<TMP_Dropdown>();
                 dropdown.Show(); yield return new WaitForSecondsRealtime(.12f);
-                Check(dropdown.IsExpanded && !panel.GetComponentsInChildren<Transform>(true).Any(t => t.name == "Settings Dialog"), "lighting options open as an inline dropdown");
+                Check(dropdown.IsExpanded && !panel.GetComponentsInChildren<Transform>(true).Any(t => t.name == "Settings Dialog"), "effect options open as an inline dropdown");
                 Capture(canvas, "InlineDropdown");
                 var option = dropdown.GetComponentsInChildren<Toggle>().Last(); option.isOn = true;
-                Check(panel.Draft.lightingQuality == 2, "lighting dropdown selection works"); panel.Apply(); yield return null;
+                Check(panel.Draft.specialEffects == 2, "effects dropdown selection works"); panel.Apply(); yield return null;
                 Check(QualitySettings.renderPipeline != null && QualitySettings.renderPipeline.name.Contains("Runtime"), "solo pipeline is a runtime copy");
                 // Return is confirmed and goes through navigation without signing out.
                 string destination = null; TeleportManager.ValidationNavigation = value => destination = value;
@@ -249,7 +251,7 @@ public static class SoloSettingsPlayChecks
         SceneManager.SetActiveScene(active); yield return SceneManager.UnloadSceneAsync(previous);
         typeof(SoloSettingsRuntime).GetMethod("SceneLoaded", Hidden).Invoke(runtime, new object[] { active, LoadSceneMode.Single });
         yield return null; yield return null; yield return new WaitForSecondsRealtime(.1f);
-        Check(QualitySettings.renderPipeline == null || !QualitySettings.renderPipeline.name.Contains("Solo Pipeline (Runtime)"), "leaving solo restores the previous pipeline");
+        Check(QualitySettings.renderPipeline == null || !QualitySettings.renderPipeline.name.Contains("Open Archive Mobile (Solo Runtime)"), "leaving solo restores the previous pipeline");
         Check(SoloGameSettings.LookMultiplier == Vector2.one && SoloGameSettings.ZoomMultiplier == 1 && !SoloGameSettings.LeftHanded, "other modes retain their camera controls");
     }
     static GameObject Dialog(GameSettingsPanel panel) => (GameObject)typeof(GameSettingsPanel).GetField("popup", Hidden).GetValue(panel);
@@ -303,17 +305,6 @@ public static class SoloSettingsPlayChecks
         for (int i = 0; i < 3600; i++) advance.Invoke(effect, new object[] { .05f });
         Check(light.intensity == 8 && effect.CompletedEvents == 0, trial + ": fixture intensity stays steady through three simulated minutes");
         UnityEngine.Object.Destroy(root);
-    }
-    static void CheckUnlitFixture()
-    {
-        var fixture = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        var renderer = fixture.GetComponent<Renderer>();
-        var material = new Material(Shader.Find("Universal Render Pipeline/Unlit")) { name = "Torch Flame Sample" };
-        renderer.sharedMaterial = material;
-        var visuals = UnityEngine.Object.FindFirstObjectByType<SoloTrialVisuals>();
-        typeof(SoloTrialVisuals).GetMethod("LightOpaqueSurface", Hidden).Invoke(visuals, new object[] { renderer });
-        Check(renderer.sharedMaterial == material, "unlit torch flames keep their authored self-lit appearance");
-        UnityEngine.Object.Destroy(fixture); UnityEngine.Object.Destroy(material);
     }
     static void CheckTruthTableFixtures()
     {

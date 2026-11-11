@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -199,7 +200,7 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         BookStatuePresentation.SetRequired(bookStatue, isActiveAndEnabled && !GuidanceBlocksGameplay && state == TrialState.WaitingForActivation);
         if (input == null) BindInput();
         if (player == null) player = Player.LocalInstance != null ? Player.LocalInstance : FindFirstObjectByType<Player>();
-        if (timerRunning && !GuidanceBlocksGameplay)
+        if (timerRunning && !GuidanceBlocksGameplay && !SoloStageLoader.IsLoading)
         {
             float elapsed = Time.deltaTime;
             activeSeconds += elapsed;
@@ -505,9 +506,10 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         state = TrialState.Validating;
         int[] answer = new int[Current.tablets.Length];
         Array.Copy(placedTabletIds, answer, answer.Length);
-        if (Current.IsCorrect(selectedMethod, answer)) CompleteChallenge();
+        if (Current.IsCorrect(selectedMethod, answer)) { RecordTrialAnswer(true, answer); CompleteChallenge(); }
         else
         {
+            RecordTrialAnswer(false, answer);
             hintRejectedProof = HintProofArrangement;
             mistakeCount++;
             secondsLeft = Mathf.Max(0f, secondsLeft - wrongPenaltySeconds);
@@ -564,6 +566,21 @@ public sealed partial class DirectIndirectProofStageController : MonoBehaviour
         boardText.text = "CHALLENGE " + ChallengeNumber + " · QUESTION " + QuestionNumber + " COMPLETE\n" + Current.title +
             "\n\n" + Current.explanation + "\n\nThe timer is paused.";
         StartCoroutine(AdvanceChallenge());
+    }
+
+    private void RecordTrialAnswer(bool correct, int[] answer)
+    {
+        if (Current == null) return;
+        string method = selectedMethod >= 0 ? ((TrialProofMethod)selectedMethod).ToString() : "No method selected";
+        string expected = Current.kind == TrialProofKind.IdentifyMethod || Current.kind == TrialProofKind.ChooseAndArrange
+            ? Current.correctMethod + (Current.kind == TrialProofKind.ChooseAndArrange ? " — " : "") : "Accepted proof order: " +
+                string.Join(" OR ", Current.acceptedOrders.Select(o => string.Join(" → ", o.tabletIds.Select(id => Current.tablets[id].statement))));
+        if (Current.kind == TrialProofKind.ChooseAndArrange)
+            expected += string.Join(" OR ", Current.acceptedOrders.Select(o => string.Join(" → ", o.tabletIds.Select(id => Current.tablets[id].statement))));
+        string submitted = method + " — " + string.Join(" → ", answer.Select(id => id >= 0 && id < Current.tablets.Length ? Current.tablets[id].statement : "Empty"));
+        TrialRewards.RecordAnswer(5, "proof5-" + Guid.NewGuid().ToString("N"),
+            "proof5-c" + challengeIndex + "-q" + questionIndex, Current.title + "\n" + Current.problem,
+            string.IsNullOrEmpty(expected) ? Current.explanation : expected, submitted, correct);
     }
 
     private IEnumerator AdvanceChallenge()

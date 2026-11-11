@@ -110,7 +110,7 @@ namespace LogicLegends.Induction
             BookStatuePresentation.SetRequired(book, isActiveAndEnabled && Ready && State == InductionState.WaitingForBook &&
                 (help == null || !help.OnboardingPending && !help.IsOpen) && (onboarding == null || !onboarding.IsActive), bookPrompt);
             if (!Ready) return;
-            if (State == InductionState.Active && CanAct) timer.Tick(Time.deltaTime);
+            if (State == InductionState.Active && CanAct && !SoloStageLoader.IsLoading) timer.Tick(Time.deltaTime);
             RefreshTarget(); ui.Refresh();
             if (bookPrompt != null) bookPrompt.gameObject.SetActive(false);
         }
@@ -245,6 +245,7 @@ namespace LogicLegends.Induction
             string[] errors = InductionChallenges.IncorrectSlots(Challenge, slots);
             foreach (var slot in slots) slot.MarkError(errors.Contains(slot.key));
             bool correct = errors.Length == 0;
+            RecordTrialAnswer(correct);
             WorldStageAudio.PlayAnswerFeedback(correct);
             if (!correct)
             {
@@ -253,6 +254,15 @@ namespace LogicLegends.Induction
                 timer.Penalize(incorrectPenalty); ui.SetFeedback(false); return;
             }
             CompleteCurrentChallenge();
+        }
+        void RecordTrialAnswer(bool correct)
+        {
+            string expected = string.Join("; ", Challenge.answers.OrderBy(a => a.Key).Select(a =>
+                a.Key + " = " + (tablets.FirstOrDefault(t => t != null && t.Data != null && t.Data.id == a.Value)?.Data.expression ?? a.Value)));
+            string submitted = string.Join("; ", slots.Where(s => s.Tablet != null).Select(s => s.key + " = " + s.Tablet.Data.expression));
+            TrialRewards.RecordAnswer(6, "induction-" + Guid.NewGuid().ToString("N"),
+                "induction-c" + ChallengeIndex, Challenge.theorem + "\n" + Challenge.instructions,
+                expected, submitted, correct);
         }
         void CompleteCurrentChallenge()
         {
@@ -283,6 +293,7 @@ namespace LogicLegends.Induction
             if (State == InductionState.GameOver || State == InductionState.StageComplete) return;
             State = InductionState.GameOver; timer.Pause();
             Player.LocalInstance?.ToggleControl(false); GameInput.Instance?.SetGameplayInputBlocked(true);
+            TrialTimeoutAudio.Play();
             ui.ShowResult(false);
         }
         public void OpenReading(string kind)
@@ -327,6 +338,12 @@ namespace LogicLegends.Induction
         public void CloseReading()
         {
             if (!Reading) return;
+            if (!gameObject.scene.isLoaded || SceneManager.GetActiveScene() != gameObject.scene)
+            {
+                // UI roots may already be destroyed during async scene unload.
+                // Do not restore this scene's controls/time into the next trial.
+                Reading = false; BrowsingScrolls = false; pausedLook.Clear(); return;
+            }
             help?.Hide();
             boardView?.RestoreImmediately();
             Reading = false; BrowsingScrolls = false; ui.CloseReader();

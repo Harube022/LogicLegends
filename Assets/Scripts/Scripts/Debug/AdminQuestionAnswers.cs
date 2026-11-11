@@ -155,12 +155,30 @@ public sealed partial class ProofsLibraryStageController
         if(q.kind==ProofChallengeKind.SortScrolls)
             return string.Join("\n",q.scrolls.Select((scroll,i)=>"Scroll "+(char)('A'+i)+" → "+(scroll.isFormal?"Formal Proof":"Informal Proof")));
         if(q.kind==ProofChallengeKind.MissingRule)return q.expectedRule;
-        return string.Join("\n",q.acceptableOrders.First().stepIds.Select((id,i)=>(i+1)+". "+q.steps[id].statement+
-            (q.kind==ProofChallengeKind.Formalize?" — "+q.steps[id].justification:"")));
+        var order = q.acceptableOrders.First().stepIds;
+        if(q.kind==ProofChallengeKind.Formalize)return AdminFormalizeAnswer(q,null);
+        return string.Join("\n",order.Select((id,i)=>(i+1)+". "+q.steps[id].statement));
+    }
+    static string AdminFormalizeAnswer(ProofChallengeData q, ProofWorldBoardController liveBoard)
+    {
+        var slots = new StringBuilder(); var order=q.acceptableOrders.First().stepIds;
+        for(int i=0;i<order.Length;i++)
+        {
+            // Validation pairs each statement with the rule having the same ID.
+            // Include actual shuffled labels to distinguish identical Premise scrolls.
+            var step=q.steps[order[i]];
+            string statement=liveBoard!=null?liveBoard.SourceHeading(false,order[i]):"";
+            string rule=liveBoard!=null?liveBoard.SourceHeading(true,order[i]):"";
+            slots.AppendLine("Statement slot "+(i+1)+": "+(statement.Length>0?statement+" — ":"")+step.statement);
+            slots.AppendLine("Rule slot "+(i+1)+": "+(rule.Length>0?rule+" — ":"")+step.justification);
+            if(i+1<order.Length)slots.AppendLine();
+        }
+        return slots.ToString().TrimEnd();
     }
     static string AdminSolution(ProofChallengeData q)
     {
         var text = new StringBuilder(q.title + "\n" + q.context + "\n" + q.instructions + "\n\nEXPECTED SOLUTION\n");
+        if(q.kind==ProofChallengeKind.Formalize)return text.Append(AdminCurrentAnswer(q)).ToString();
         if (q.kind == ProofChallengeKind.SortScrolls)
             for (int i = 0; i < q.scrolls.Length; i++) text.AppendLine("Scroll " + (char)('A' + i) + ": " + q.scrolls[i].title + "\n" + q.scrolls[i].content + "\nPLACE AT: " + (q.scrolls[i].isFormal ? "Formal" : "Informal") + " altar\n");
         else
@@ -178,7 +196,8 @@ public sealed partial class ProofsLibraryStageController
         if (!AdminAuthorization.IsAuthorized) return;
         pages.Add(new AdminAnswerPage("Current question — Proofs Library", activeChallenge == null ?
             AdminQuestionAnswers.Current("Waiting for book activation.","—") :
-            AdminQuestionAnswers.Current(activeChallenge.instructions,AdminCurrentAnswer(activeChallenge))));
+            AdminQuestionAnswers.Current(activeChallenge.instructions,activeChallenge.kind==ProofChallengeKind.Formalize?
+                AdminFormalizeAnswer(activeChallenge,worldBoard):AdminCurrentAnswer(activeChallenge))));
         for (int c = 0; c < catalog.variantSets.Length; c++)
         {
             var text = new StringBuilder("Two distinct questions are selected per challenge for this run. SELECTED marks both; CURRENT marks the active question.\n\n");

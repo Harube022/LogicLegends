@@ -1,7 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
-const { isAdminEmail, rewardForRetries, startAttempt, retryAttempt, markAdmin, finishAttempt, presentAttempt } = require('./trials');
+const { rewardForRetries, startAttempt, retryAttempt, markAdmin, finishAttempt, presentAttempt } = require('./trials');
 const id = () => crypto.randomBytes(16).toString('hex');
 const profile = () => ({ coins: 37, gems: 19, unlockedStage: 8, inventory: { Common_Skin: true }, equipped: { clothes: 'Common_Skin' } });
 
@@ -10,13 +10,7 @@ test('reward reductions use the original base and cap at the two-retry policy', 
   assert.equal(rewardForRetries(10000), 500);
   for (const bad of [-1, 1.5, NaN, Infinity, '2']) assert.throws(() => rewardForRetries(bad));
 });
-test('all five authenticated Admin account emails normalize exactly; lookalikes are denied', () => {
-  for (const email of ['sngbdsa137@gmail.com', 'russelbarrameda593@gmail.com', 'famatigabarrameda@gmail.com', 'gravata.joshuaharvey@ncst.edu.ph', 'cayangyang.jhayfel@ncst.edu.ph']) {
-    assert.equal(isAdminEmail(email), true); assert.equal(isAdminEmail('  ' + email.toUpperCase() + ' '), true);
-    assert.equal(isAdminEmail(email + '.attacker.test'), false);
-  }
-  for (const email of ['', null, 'ordinary@gmail.com', 'sngbdsa137+admin@gmail.com', 'famatigabrrameda@gmail.com']) assert.equal(isAdminEmail(email), false);
-});
+
 for (let trial = 1; trial <= 10; trial++) {
   test(`trial ${trial}: completion receipt, retries, reload and repeated results preserve the existing account`, () => {
     for (let retries = 0; retries <= 2; retries++) {

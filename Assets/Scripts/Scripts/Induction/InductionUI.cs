@@ -158,7 +158,7 @@ namespace LogicLegends.Induction
         void ShowCatalogue(){selectedScroll=null;catalogueHint.gameObject.SetActive(true);catalogue.gameObject.SetActive(true);details.gameObject.SetActive(false);}
         public void ShowHelp(bool show)
         {
-            if(show)HideControls();statusHud.gameObject.SetActive(!show);
+            if(show)HideControls();if(statusHud!=null)statusHud.gameObject.SetActive(!show);
             SuppressNotice(show);
         }
         public void ShowControlsTutorial(bool show)
@@ -168,8 +168,8 @@ namespace LogicLegends.Induction
         }
         public void ShowBoardView(bool show)
         {
-            if(show)HideControls();BoardBackButton.gameObject.SetActive(show);statusHud.gameObject.SetActive(!show);
-            if(show)BoardBackButton.transform.SetAsLastSibling();
+            if(show)HideControls();if(BoardBackButton!=null)BoardBackButton.gameObject.SetActive(show);if(statusHud!=null)statusHud.gameObject.SetActive(!show);
+            if(show&&BoardBackButton!=null)BoardBackButton.transform.SetAsLastSibling();
             SuppressNotice(show);
         }
         public void Refresh()

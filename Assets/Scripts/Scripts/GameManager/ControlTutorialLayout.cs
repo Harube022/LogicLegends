@@ -57,6 +57,7 @@ public static class ControlTutorialLayout
         RectTransform host, RectTransform target, bool preferBottom, RectTransform[] blockers,
         RectTransform arrow)
     {
+        if (arrow != null) GuidanceArrowGlow.Attach(arrow.gameObject);
         if (panel == null || !panel.gameObject.activeSelf || host.rect.width <= 0f) return;
         bool showNext = next != null && next.gameObject.activeSelf;
         float width = Mathf.Min(620f, host.rect.width - 40f);

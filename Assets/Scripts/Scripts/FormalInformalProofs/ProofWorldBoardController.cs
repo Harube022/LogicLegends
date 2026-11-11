@@ -22,6 +22,15 @@ public sealed partial class ProofWorldBoardController : MonoBehaviour
     public int AssignedStep(int slot) => assignedSteps[slot];
     public int AssignedRule(int slot) => assignedRules[slot];
     public bool IsConfigured => challenge != null;
+    // Read-only labels for Admin solutions: option letters are shuffled independently.
+    public string SourceHeading(bool rule, int id)
+    {
+        if (challenge == null) return "";
+        var mapping = rule ? optionToRule : optionToStep;
+        var stations = rule ? ruleTablets : statementTablets;
+        int display = System.Array.IndexOf(mapping, id);
+        return display >= 0 && display < stations.Length && stations[display] != null ? stations[display].Heading : "";
+    }
 
     private void Awake() { Hide(); }
 

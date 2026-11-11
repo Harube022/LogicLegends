@@ -121,24 +121,76 @@ public static class TrialRewards
     public static bool CanRetry(int trial) { var run = Current(Store(trial)); return !changedAccounts.Contains(trial) && run != null && !run.completed && RetryCount(trial) < run.maxRetries; }
     public static int NextRetryReductionPercent(int trial) { var run = Current(Store(trial)); return run == null ? 0 : Math.Min(run.maxRetries, RetryCount(trial)+1) * run.retryReductionPercent; }
     public static string AttemptId(int trial) => Current(Store(trial))?.id;
-    public static bool HasQuizAnswer(int trial, string eventKey)
-    { var run = Current(Store(trial)); return run != null && (run.quizAnswers.Any(q => q.eventKey == eventKey) || run.serverQuizAnswers.Any(q => q.eventKey == eventKey)); }
-    public static void RecordQuizAnswer(int trial, string eventKey, string questionId, int choice, bool correct, bool practice = false)
+    public static TrialBackendClient.QuizAnswer[] Answers(int trial)
     {
-        if (practice || (trial != 2 && trial != 3) || !OwnsGameplay(trial)) return;
+        var run = Current(Store(trial));
+        if (run == null) return Array.Empty<TrialBackendClient.QuizAnswer>();
+        var answers = run.quizAnswers.Concat(run.serverQuizAnswers)
+            .GroupBy(q => q.eventKey).Select(g => g.First());
+        // Trial 2's review and accuracy are for truth-table column submissions.
+        // House-door pop quizzes only grant their separate quiz bonus.
+        if (trial == 2) answers = answers.Where(q => q.kind == "table");
+        // Trial 3's review and accuracy cover the inference challenge itself.
+        // Rule-crystal pickup quizzes grant their separate quiz bonus only.
+        if (trial == 3) answers = answers.Where(q => q.kind == "answer");
+        return answers.ToArray();
+    }
+    public static int AccuracyPercent(int trial)
+    {
+        var answers = Answers(trial);
+        if (answers.Length == 0) return 0;
+        int correct = answers.Count(q => q.correct);
+        return Mathf.FloorToInt(100f * correct / answers.Length);
+    }
+    public static void RecordAnswer(int trial, string eventKey, string questionId, string question,
+        string correctAnswer, string selectedAnswer, bool correct)
+    {
+        Record(trial, eventKey, questionId, question, correctAnswer, selectedAnswer, correct, "answer");
+    }
+    public static void RecordTableAnswer(int trial, string eventKey, string questionId, string question,
+        string correctAnswer, string selectedAnswer, bool correct)
+    {
+        Record(trial, eventKey, questionId, question, correctAnswer, selectedAnswer, correct, "table");
+    }
+    static void Record(int trial, string eventKey, string questionId, string question,
+        string correctAnswer, string selectedAnswer, bool correct, string kind)
+    {
+        if (trial < 1 || trial > TrialCatalog.Count || TrialBackendClient.UserId != null && !OwnsGameplay(trial)) return;
         var store = Store(trial); var run = Current(store);
         if (run == null || run.completed || run.status == "completed" || run.adminUsed || HasQuizAnswer(trial, eventKey)) return;
-        run.quizAnswers.Add(new TrialBackendClient.QuizAnswer { eventKey = eventKey, questionId = questionId, choice = choice, correct = correct });
+        run.quizAnswers.Add(new TrialBackendClient.QuizAnswer {
+            eventKey = eventKey, questionId = questionId, question = question,
+            correctAnswer = correctAnswer, selectedAnswer = selectedAnswer, choice = -1, correct = correct, kind = kind
+        });
+        Save(store); _ = Sync(store, run);
+    }
+    public static bool HasQuizAnswer(int trial, string eventKey)
+    { var run = Current(Store(trial)); return run != null && (run.quizAnswers.Any(q => q.eventKey == eventKey) || run.serverQuizAnswers.Any(q => q.eventKey == eventKey)); }
+    public static void RecordQuizAnswer(int trial, string eventKey, string questionId, int choice, bool correct, bool practice = false,
+        string question = null, string correctAnswer = null, string selectedAnswer = null)
+    {
+        if (practice || (trial != 2 && trial != 3)) return;
+        if (TrialBackendClient.UserId == null)
+        {
+            Record(trial, eventKey, questionId, question ?? "", correctAnswer ?? "", selectedAnswer ?? "", correct, "quiz");
+            return;
+        }
+        if (!OwnsGameplay(trial)) return;
+        var store = Store(trial); var run = Current(store);
+        if (run == null || run.completed || run.status == "completed" || run.adminUsed || HasQuizAnswer(trial, eventKey)) return;
+        run.quizAnswers.Add(new TrialBackendClient.QuizAnswer { eventKey = eventKey, questionId = questionId,
+            choice = choice, correct = correct, question = question, correctAnswer = correctAnswer, selectedAnswer = selectedAnswer, kind = "quiz" });
         Save(store); _ = Sync(store, run);
     }
     static int PendingBonus(Run run)
     {
         if (run == null || run.adminUsed) return 0;
-        var checkedKeys = new HashSet<string>(run.serverQuizAnswers.Select(q => q.eventKey));
-        int confirmed = run.serverQuizAnswers.Sum(q => q.bonus);
-        int local = run.quizAnswers.Where(q => !checkedKeys.Contains(q.eventKey) && q.correct).Count() * run.quizReward;
+        var checkedKeys = new HashSet<string>(run.serverQuizAnswers.Where(IsQuizAnswer).Select(q => q.eventKey));
+        int confirmed = run.serverQuizAnswers.Where(IsQuizAnswer).Sum(q => q.bonus);
+        int local = run.quizAnswers.Where(q => IsQuizAnswer(q) && !checkedKeys.Contains(q.eventKey) && q.correct).Count() * run.quizReward;
         return Math.Min(run.quizBonusLimit, confirmed + local);
     }
+    static bool IsQuizAnswer(TrialBackendClient.QuizAnswer answer) => answer.kind == "quiz" || answer.choice >= 0;
     public static string Breakdown(int trial, bool completed)
     {
         if (changedAccounts.Contains(trial)) return "Account changed. Start Over to earn this trial's reward.";
@@ -185,6 +237,8 @@ public static class TrialRewards
     public static async Task<bool> PrepareAdminAction()
     {
         if (!AdminAuthorization.IsAuthorized) return false;
+        try { if (!(await TrialSessionServices.RequireAccess()).admin) return false; }
+        catch (System.Exception) { return false; }
         int trial = CurrentTrial;
         var store = Store(trial); if (store == null) return false;
         var run = Current(store);
@@ -238,9 +292,44 @@ public static class TrialRewards
         {
             if (!SoloEconomyConnection.Enabled)
             {
-                // Keep earned rewards in the durable outbox until the programmer connects v2.
-                // Existing Admin exclusion still works with the current service.
-                if (run.adminUsed) await SaveLegacyAdminExclusion(store, run);
+                var legacy = new TrialBackendClient.Request { economyVersion = 1, trial = store.trial,
+                    attemptId = run.serverId ?? run.id, newAttempt = run.beginNew };
+                if (run.serverId == null)
+                {
+                    var started = await TrialBackendClient.SendAttempt("start", legacy);
+                    if (TrialBackendClient.UserId != store.uid) return;
+                    run.serverId = legacy.attemptId = started.attemptId; Apply(run, started); Save(store);
+                }
+                if (run.adminUsed && !run.serverAdminUsed && run.status != "completed")
+                {
+                    var response = await TrialBackendClient.SendAttempt("admin-used", legacy);
+                    if (TrialBackendClient.UserId != store.uid) return;
+                    Apply(run, response); Save(store);
+                }
+                while (run.acknowledgedRetries < run.retryIds.Count && run.status != "completed")
+                {
+                    legacy.operationId = run.retryIds[run.acknowledgedRetries];
+                    var response = await TrialBackendClient.SendAttempt("retry", legacy);
+                    if (TrialBackendClient.UserId != store.uid) return;
+                    Apply(run, response); run.acknowledgedRetries++; Save(store);
+                }
+                while (run.acknowledgedQuizzes < run.quizAnswers.Count && run.status != "completed")
+                {
+                    var answer = run.quizAnswers[run.acknowledgedQuizzes];
+                    legacy.eventKey = answer.eventKey; legacy.questionId = answer.questionId;
+                    legacy.answerType = answer.kind;
+                    legacy.question = answer.question; legacy.correctAnswer = answer.correctAnswer;
+                    legacy.selectedAnswer = answer.selectedAnswer; legacy.correct = answer.correct; legacy.choice = answer.choice;
+                    var response = await TrialBackendClient.SendAttempt("progress-answer", legacy);
+                    if (TrialBackendClient.UserId != store.uid) return;
+                    Apply(run, response); run.acknowledgedQuizzes++; Save(store);
+                }
+                if (run.completed && run.status != "completed")
+                {
+                    var response = await TrialBackendClient.SendAttempt("complete", legacy);
+                    if (TrialBackendClient.UserId != store.uid) return;
+                    Apply(run, response); Save(store);
+                }
                 return;
             }
             // Finish an older pending receipt before a new run replaces its server pointer.
@@ -278,7 +367,11 @@ public static class TrialRewards
             {
                 var answer = run.quizAnswers[run.acknowledgedQuizzes];
                 request.eventKey = answer.eventKey; request.questionId = answer.questionId; request.choice = answer.choice;
-                var response = await TrialBackendClient.SendAttempt("quiz-answer", request);
+                request.answerType = answer.kind;
+                request.question = answer.question; request.correctAnswer = answer.correctAnswer;
+                request.selectedAnswer = answer.selectedAnswer; request.correct = answer.correct;
+                string answerAction = request.choice >= 0 ? "quiz-answer" : "progress-answer";
+                var response = await TrialBackendClient.SendAttempt(answerAction, request);
                 if (TrialBackendClient.UserId != store.uid) return;
                 Apply(run, response); run.acknowledgedQuizzes++; Save(store);
             }

@@ -1,0 +1,970 @@
+[
+  {
+    "trial": 1,
+    "scene": "PRELIM",
+    "lights": [
+      {
+        "type": "Directional",
+        "total": 1,
+        "active": 1,
+        "shadows": 0,
+        "examples": [
+          "Directional Light"
+        ]
+      },
+      {
+        "type": "Point",
+        "total": 27,
+        "active": 27,
+        "shadows": 2,
+        "examples": [
+          "TorchLight",
+          "CandleLight",
+          "CandleLight (1)"
+        ]
+      }
+    ],
+    "directionals": [
+      {
+        "name": "Directional Light",
+        "intensity": 1.0,
+        "cullingMask": -1,
+        "rotation": "(50.00, 330.00, 0.00)",
+        "active": true
+      }
+    ],
+    "duplicateLights": [],
+    "volumes": [],
+    "postCameras": [],
+    "shaders": [
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 102,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader"
+      },
+      {
+        "shader": "Mobile/Particles/Additive",
+        "count": 1,
+        "asset": "Resources/unity_builtin_extra"
+      },
+      {
+        "shader": "Mobile/Particles/Alpha Blended",
+        "count": 1,
+        "asset": "Resources/unity_builtin_extra"
+      },
+      {
+        "shader": "Polytope Studio/PT_Vegetation_Plants_Shader",
+        "count": 1,
+        "asset": "Assets/CHEATCODE/LOWPOLYENVIRO/Lowpoly_Environments/Sources/Shaders/PT_Vegetation_Plants_Shader.shader"
+      },
+      {
+        "shader": "TextMeshPro/Mobile/Distance Field",
+        "count": 1,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader"
+      }
+    ],
+    "particles": [
+      {
+        "name": "Area_circles_blue",
+        "count": 5,
+        "automatic": 5
+      },
+      {
+        "name": "circle",
+        "count": 20,
+        "automatic": 20
+      },
+      {
+        "name": "points_large",
+        "count": 20,
+        "automatic": 20
+      },
+      {
+        "name": "points_small",
+        "count": 20,
+        "automatic": 20
+      },
+      {
+        "name": "Area_circles_blue (1)",
+        "count": 5,
+        "automatic": 5
+      },
+      {
+        "name": "Area_circles_blue (2)",
+        "count": 5,
+        "automatic": 5
+      },
+      {
+        "name": "Area_circles_blue (3)",
+        "count": 5,
+        "automatic": 5
+      }
+    ],
+    "duplicateParticles": [],
+    "scripts": [
+      {
+        "name": "AudioVolumePanel",
+        "count": 1,
+        "enabled": 0
+      },
+      {
+        "name": "PropositionalChamberLighting",
+        "count": 1,
+        "enabled": 1
+      }
+    ],
+    "renderers": 2265
+  },
+  {
+    "trial": 2,
+    "scene": "TruthTable",
+    "lights": [
+      {
+        "type": "Directional",
+        "total": 1,
+        "active": 1,
+        "shadows": 1,
+        "examples": [
+          "Directional Light"
+        ]
+      },
+      {
+        "type": "Point",
+        "total": 25,
+        "active": 25,
+        "shadows": 0,
+        "examples": [
+          "TruthTableFixtureLight"
+        ]
+      }
+    ],
+    "directionals": [
+      {
+        "name": "Directional Light",
+        "intensity": 0.82,
+        "cullingMask": -1,
+        "rotation": "(14.00, 310.00, 0.00)",
+        "active": true
+      }
+    ],
+    "duplicateLights": [],
+    "volumes": [],
+    "postCameras": [],
+    "shaders": [
+      {
+        "shader": "LogicLegends/TruthTable/GrassAndPaths",
+        "count": 1,
+        "asset": "Assets/Art/TruthTableGround/TruthTableGround.shader"
+      },
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 76,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader"
+      },
+      {
+        "shader": "Polytope Studio/PT_Vegetation_Plants_Shader",
+        "count": 1,
+        "asset": "Assets/CHEATCODE/LOWPOLYENVIRO/Lowpoly_Environments/Sources/Shaders/PT_Vegetation_Plants_Shader.shader"
+      },
+      {
+        "shader": "Universal Render Pipeline/Simple Lit",
+        "count": 1,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLit.shader"
+      },
+      {
+        "shader": "Legacy Shaders/Particles/Alpha Blended",
+        "count": 1,
+        "asset": "Resources/unity_builtin_extra"
+      },
+      {
+        "shader": "TextMeshPro/Distance Field",
+        "count": 1,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF.shader"
+      },
+      {
+        "shader": "LogicLegends/CrimsonMath/Veil",
+        "count": 1,
+        "asset": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Cinematics/VFX/CrimsonBarrier/CrimsonBarrierWall.shader"
+      },
+      {
+        "shader": "LogicLegends/CrimsonMath/Energy",
+        "count": 2,
+        "asset": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Cinematics/VFX/CrimsonBarrier/CrimsonBarrierEnergy.shader"
+      },
+      {
+        "shader": "Universal Render Pipeline/Unlit",
+        "count": 1,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Unlit.shader"
+      }
+    ],
+    "particles": [
+      {
+        "name": "CLOUDS_PS (70)",
+        "count": 1,
+        "automatic": 1
+      },
+      {
+        "name": "CLOUDS_PS (71)",
+        "count": 1,
+        "automatic": 1
+      },
+      {
+        "name": "CLOUDS_PS (72)",
+        "count": 1,
+        "automatic": 1
+      }
+    ],
+    "duplicateParticles": [],
+    "scripts": [
+      {
+        "name": "AudioVolumePanel",
+        "count": 1,
+        "enabled": 0
+      },
+      {
+        "name": "TruthTableDuskLighting",
+        "count": 1,
+        "enabled": 1
+      },
+      {
+        "name": "TruthTableColumnHologram",
+        "count": 3,
+        "enabled": 0
+      }
+    ],
+    "renderers": 2179
+  },
+  {
+    "trial": 3,
+    "scene": "RulesOfInference",
+    "lights": [
+      {
+        "type": "Directional",
+        "total": 1,
+        "active": 1,
+        "shadows": 1,
+        "examples": [
+          "Directional Light"
+        ]
+      },
+      {
+        "type": "Spot",
+        "total": 7,
+        "active": 7,
+        "shadows": 0,
+        "examples": [
+          "STREETLAMP2 (1) Warm Pool",
+          "STREETLAMP2 Warm Pool",
+          "STREETLAMP2 (11) Warm Pool",
+          "STREETLAMP2 (2) Warm Pool",
+          "STREETLAMP2 (3) Warm Pool",
+          "STREETLAMP2 (12) Warm Pool",
+          "Steady Book Accent"
+        ]
+      },
+      {
+        "type": "Point",
+        "total": 9,
+        "active": 9,
+        "shadows": 0,
+        "examples": [
+          "Rule Tower Accent 01",
+          "Rule Tower Accent 02",
+          "Rule Tower Accent 03",
+          "Rule Tower Accent 04",
+          "Rule Tower Accent 05",
+          "Rule Tower Accent 06",
+          "Rule Tower Accent 07",
+          "Rule Tower Accent 08"
+        ]
+      }
+    ],
+    "directionals": [
+      {
+        "name": "Directional Light",
+        "intensity": 1.05,
+        "cullingMask": -1,
+        "rotation": "(38.00, 315.00, 0.00)",
+        "active": true
+      }
+    ],
+    "duplicateLights": [],
+    "volumes": [],
+    "postCameras": [],
+    "shaders": [
+      {
+        "shader": "LogicLegends/Inference/StylizedMeadowAndPaths",
+        "count": 1,
+        "asset": "Assets/Art/InferenceSurfaces/InferenceMeadow.shader"
+      },
+      {
+        "shader": "LogicLegends/OpenArchive/DetailedSurface",
+        "count": 4,
+        "asset": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Art/Materials/ArchiveDetailedSurface.shader"
+      },
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 44,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader"
+      },
+      {
+        "shader": "Polytope Studio/PT_Vegetation_Plants_Shader",
+        "count": 1,
+        "asset": "Assets/CHEATCODE/LOWPOLYENVIRO/Lowpoly_Environments/Sources/Shaders/PT_Vegetation_Plants_Shader.shader"
+      },
+      {
+        "shader": "TextMeshPro/Mobile/Distance Field",
+        "count": 1,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader"
+      }
+    ],
+    "particles": [
+      {
+        "name": "InferenceSuccessParticles",
+        "count": 1,
+        "automatic": 0
+      }
+    ],
+    "duplicateParticles": [],
+    "scripts": [
+      {
+        "name": "AudioVolumePanel",
+        "count": 1,
+        "enabled": 0
+      }
+    ],
+    "renderers": 1966
+  },
+  {
+    "trial": 4,
+    "scene": "Formal vs. Informal Proofs",
+    "lights": [
+      {
+        "type": "Directional",
+        "total": 1,
+        "active": 1,
+        "shadows": 1,
+        "examples": [
+          "Directional Light"
+        ]
+      },
+      {
+        "type": "Point",
+        "total": 53,
+        "active": 14,
+        "shadows": 1,
+        "examples": [
+          "CandleLight",
+          "CandleLight (1)",
+          "CandleLight (2)",
+          "CandleLight (3)",
+          "CandleLight (4)",
+          "CandleLight (5)",
+          "CandleLight (6)",
+          "CandleLight (7)"
+        ]
+      },
+      {
+        "type": "Spot",
+        "total": 2,
+        "active": 2,
+        "shadows": 0,
+        "examples": [
+          "Board Reading Light",
+          "Book Reading Light"
+        ]
+      }
+    ],
+    "directionals": [
+      {
+        "name": "Directional Light",
+        "intensity": 0.18,
+        "cullingMask": -1,
+        "rotation": "(50.00, 330.00, 0.00)",
+        "active": true
+      }
+    ],
+    "duplicateLights": [],
+    "volumes": [],
+    "postCameras": [],
+    "shaders": [
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 46,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader"
+      },
+      {
+        "shader": "TextMeshPro/Distance Field",
+        "count": 1,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF.shader"
+      },
+      {
+        "shader": "Universal Render Pipeline/Unlit",
+        "count": 3,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Unlit.shader"
+      }
+    ],
+    "particles": [],
+    "duplicateParticles": [],
+    "scripts": [
+      {
+        "name": "AudioVolumePanel",
+        "count": 1,
+        "enabled": 0
+      }
+    ],
+    "renderers": 614
+  },
+  {
+    "trial": 5,
+    "scene": "Direct&Indirect",
+    "lights": [
+      {
+        "type": "Directional",
+        "total": 1,
+        "active": 1,
+        "shadows": 1,
+        "examples": [
+          "Directional Light"
+        ]
+      },
+      {
+        "type": "Point",
+        "total": 50,
+        "active": 12,
+        "shadows": 0,
+        "examples": [
+          "TorchLight",
+          "CandleLight",
+          "CandleLight (1)",
+          "CandleLight (2)",
+          "CandleLight (3)",
+          "CandleLight (4)",
+          "CandleLight (5)",
+          "CandleLight (6)"
+        ]
+      },
+      {
+        "type": "Spot",
+        "total": 4,
+        "active": 4,
+        "shadows": 0,
+        "examples": [
+          "Steady Board Reading Light",
+          "Steady Book Reading Light",
+          "Steady Direct Altar Light",
+          "Steady Indirect Altar Light"
+        ]
+      }
+    ],
+    "directionals": [
+      {
+        "name": "Directional Light",
+        "intensity": 0.18,
+        "cullingMask": -1,
+        "rotation": "(50.00, 330.00, 0.00)",
+        "active": true
+      }
+    ],
+    "duplicateLights": [],
+    "volumes": [],
+    "postCameras": [],
+    "shaders": [
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 45,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader"
+      },
+      {
+        "shader": "TextMeshPro/Distance Field",
+        "count": 1,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF.shader"
+      },
+      {
+        "shader": "Universal Render Pipeline/Unlit",
+        "count": 8,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Unlit.shader"
+      },
+      {
+        "shader": "TextMeshPro/Mobile/Distance Field",
+        "count": 1,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader"
+      }
+    ],
+    "particles": [],
+    "duplicateParticles": [],
+    "scripts": [
+      {
+        "name": "AudioVolumePanel",
+        "count": 1,
+        "enabled": 0
+      },
+      {
+        "name": "ChamberLightFlicker",
+        "count": 1,
+        "enabled": 1
+      }
+    ],
+    "renderers": 399
+  },
+  {
+    "trial": 6,
+    "scene": "Induction",
+    "lights": [
+      {
+        "type": "Directional",
+        "total": 1,
+        "active": 1,
+        "shadows": 1,
+        "examples": [
+          "Directional Light"
+        ]
+      },
+      {
+        "type": "Point",
+        "total": 53,
+        "active": 12,
+        "shadows": 0,
+        "examples": [
+          "Challenge 1 Seal",
+          "Challenge 2 Seal",
+          "Challenge 3 Seal",
+          "Challenge 4 Seal",
+          "Challenge 5 Seal",
+          "CandleLight",
+          "CandleLight (1)",
+          "CandleLight (2)"
+        ]
+      },
+      {
+        "type": "Spot",
+        "total": 4,
+        "active": 4,
+        "shadows": 0,
+        "examples": [
+          "Steady Board Reading Light",
+          "Steady Book Reading Light",
+          "Steady Scroll Reading Light",
+          "Steady Proof Stations Light"
+        ]
+      }
+    ],
+    "directionals": [
+      {
+        "name": "Directional Light",
+        "intensity": 0.18,
+        "cullingMask": -1,
+        "rotation": "(50.00, 330.00, 0.00)",
+        "active": true
+      }
+    ],
+    "duplicateLights": [],
+    "volumes": [],
+    "postCameras": [],
+    "shaders": [
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 38,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader"
+      },
+      {
+        "shader": "TextMeshPro/Mobile/Distance Field",
+        "count": 1,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader"
+      },
+      {
+        "shader": "TextMeshPro/Distance Field",
+        "count": 3,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF.shader"
+      }
+    ],
+    "particles": [],
+    "duplicateParticles": [],
+    "scripts": [
+      {
+        "name": "AudioVolumePanel",
+        "count": 1,
+        "enabled": 0
+      },
+      {
+        "name": "ChamberLightFlicker",
+        "count": 1,
+        "enabled": 1
+      }
+    ],
+    "renderers": 142
+  },
+  {
+    "trial": 7,
+    "scene": "Setssss",
+    "lights": [
+      {
+        "type": "Directional",
+        "total": 1,
+        "active": 1,
+        "shadows": 1,
+        "examples": [
+          "Directional Light"
+        ]
+      },
+      {
+        "type": "Spot",
+        "total": 10,
+        "active": 10,
+        "shadows": 0,
+        "examples": [
+          "STREETLAMP2 (1) Warm Pool",
+          "STREETLAMP2 Warm Pool",
+          "STREETLAMP2 (5) Warm Pool",
+          "STREETLAMP2 (2) Warm Pool",
+          "STREETLAMP2 (9) Warm Pool",
+          "STREETLAMP2 (6) Warm Pool",
+          "STREETLAMP2 (4) Warm Pool",
+          "STREETLAMP2 (3) Warm Pool"
+        ]
+      }
+    ],
+    "directionals": [
+      {
+        "name": "Directional Light",
+        "intensity": 1.05,
+        "cullingMask": -1,
+        "rotation": "(44.00, 320.00, 0.00)",
+        "active": true
+      }
+    ],
+    "duplicateLights": [],
+    "volumes": [],
+    "postCameras": [],
+    "shaders": [
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 69,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader"
+      },
+      {
+        "shader": "TextMeshPro/Distance Field",
+        "count": 12,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF.shader"
+      },
+      {
+        "shader": "LogicLegends/OpenArchive/DetailedSurface",
+        "count": 1,
+        "asset": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Art/Materials/ArchiveDetailedSurface.shader"
+      },
+      {
+        "shader": "LogicLegends/OpenArchive/TreeTimber",
+        "count": 1,
+        "asset": "Assets/FINAL_ASSETS/MAPS/REMADE/MULTIPLAYER/OPEN_ARCHIVE/Art/Materials/ArchiveTreeTimber.shader"
+      }
+    ],
+    "particles": [],
+    "duplicateParticles": [],
+    "scripts": [
+      {
+        "name": "AudioVolumePanel",
+        "count": 1,
+        "enabled": 0
+      }
+    ],
+    "renderers": 325
+  },
+  {
+    "trial": 8,
+    "scene": "Functions and Relations",
+    "lights": [
+      {
+        "type": "Directional",
+        "total": 1,
+        "active": 1,
+        "shadows": 1,
+        "examples": [
+          "Directional Light"
+        ]
+      },
+      {
+        "type": "Spot",
+        "total": 8,
+        "active": 8,
+        "shadows": 0,
+        "examples": [
+          "Warm Ground Pool"
+        ]
+      },
+      {
+        "type": "Point",
+        "total": 2,
+        "active": 2,
+        "shadows": 0,
+        "examples": [
+          "Domain Crystal Accent",
+          "Range Crystal Accent"
+        ]
+      }
+    ],
+    "directionals": [
+      {
+        "name": "Directional Light",
+        "intensity": 1.0,
+        "cullingMask": -1,
+        "rotation": "(43.00, 310.00, 0.00)",
+        "active": true
+      }
+    ],
+    "duplicateLights": [],
+    "volumes": [],
+    "postCameras": [],
+    "shaders": [
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 67,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader"
+      },
+      {
+        "shader": "TextMeshPro/Distance Field",
+        "count": 1,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF.shader"
+      },
+      {
+        "shader": "Universal Render Pipeline/Unlit",
+        "count": 5,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Unlit.shader"
+      },
+      {
+        "shader": "TextMeshPro/Mobile/Distance Field",
+        "count": 1,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader"
+      },
+      {
+        "shader": "Legacy Shaders/Particles/Alpha Blended",
+        "count": 1,
+        "asset": "Resources/unity_builtin_extra"
+      }
+    ],
+    "particles": [
+      {
+        "name": "Book Motes",
+        "count": 1,
+        "automatic": 1
+      },
+      {
+        "name": "CLOUDS_PS (70)",
+        "count": 1,
+        "automatic": 1
+      }
+    ],
+    "duplicateParticles": [],
+    "scripts": [
+      {
+        "name": "AudioVolumePanel",
+        "count": 1,
+        "enabled": 0
+      },
+      {
+        "name": "MappingChamberEnvironmentController",
+        "count": 1,
+        "enabled": 1
+      }
+    ],
+    "renderers": 310
+  },
+  {
+    "trial": 9,
+    "scene": "Graph",
+    "lights": [
+      {
+        "type": "Directional",
+        "total": 1,
+        "active": 1,
+        "shadows": 0,
+        "examples": [
+          "Directional Light"
+        ]
+      },
+      {
+        "type": "Point",
+        "total": 17,
+        "active": 11,
+        "shadows": 0,
+        "examples": [
+          "Path light 0",
+          "Path light 1",
+          "Torch warm light",
+          "Blue Crystal Pool 0",
+          "Blue Crystal Pool 1",
+          "Blue Crystal Pool 2",
+          "Blue Crystal Pool 3",
+          "Blue Crystal Pool 4"
+        ]
+      },
+      {
+        "type": "Spot",
+        "total": 8,
+        "active": 8,
+        "shadows": 0,
+        "examples": [
+          "TorchLight"
+        ]
+      }
+    ],
+    "directionals": [
+      {
+        "name": "Directional Light",
+        "intensity": 0.6,
+        "cullingMask": -1,
+        "rotation": "(50.00, 325.00, 0.00)",
+        "active": true
+      }
+    ],
+    "duplicateLights": [],
+    "volumes": [
+      {
+        "name": "Restrained Crystal Bloom",
+        "active": true,
+        "profile": "GraphCrystalBloom",
+        "overrides": [
+          "Bloom"
+        ]
+      }
+    ],
+    "postCameras": [],
+    "shaders": [
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 40,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader"
+      },
+      {
+        "shader": "TextMeshPro/Distance Field Overlay",
+        "count": 1,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF Overlay.shader"
+      },
+      {
+        "shader": "Mobile/Particles/Additive",
+        "count": 1,
+        "asset": "Resources/unity_builtin_extra"
+      },
+      {
+        "shader": "Mobile/Particles/Alpha Blended",
+        "count": 1,
+        "asset": "Resources/unity_builtin_extra"
+      },
+      {
+        "shader": "TextMeshPro/Mobile/Distance Field",
+        "count": 1,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader"
+      }
+    ],
+    "particles": [
+      {
+        "name": "Answer area circles",
+        "count": 2,
+        "automatic": 0
+      },
+      {
+        "name": "circle",
+        "count": 2,
+        "automatic": 0
+      },
+      {
+        "name": "points_large",
+        "count": 2,
+        "automatic": 0
+      },
+      {
+        "name": "points_small",
+        "count": 2,
+        "automatic": 0
+      }
+    ],
+    "duplicateParticles": [],
+    "scripts": [
+      {
+        "name": "AudioVolumePanel",
+        "count": 1,
+        "enabled": 0
+      },
+      {
+        "name": "GraphChamberAtmosphere",
+        "count": 1,
+        "enabled": 1
+      },
+      {
+        "name": "Volume",
+        "count": 1,
+        "enabled": 1
+      }
+    ],
+    "renderers": 103
+  },
+  {
+    "trial": 10,
+    "scene": "Trees",
+    "lights": [
+      {
+        "type": "Directional",
+        "total": 1,
+        "active": 1,
+        "shadows": 0,
+        "examples": [
+          "Directional Light"
+        ]
+      },
+      {
+        "type": "Point",
+        "total": 23,
+        "active": 7,
+        "shadows": 0,
+        "examples": [
+          "Warm Lamp Light",
+          "CandleLight",
+          "CandleLight (1)",
+          "CandleLight (2)",
+          "CandleLight (3)",
+          "CandleLight (4)",
+          "CandleLight (5)",
+          "CandleLight (6)"
+        ]
+      }
+    ],
+    "directionals": [
+      {
+        "name": "Directional Light",
+        "intensity": 0.16,
+        "cullingMask": -1,
+        "rotation": "(50.00, 325.00, 0.00)",
+        "active": true
+      }
+    ],
+    "duplicateLights": [],
+    "volumes": [],
+    "postCameras": [],
+    "shaders": [
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 43,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader"
+      },
+      {
+        "shader": "TextMeshPro/Mobile/Distance Field",
+        "count": 7,
+        "asset": "Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader"
+      },
+      {
+        "shader": "Universal Render Pipeline/Unlit",
+        "count": 1,
+        "asset": "Packages/com.unity.render-pipelines.universal/Shaders/Unlit.shader"
+      }
+    ],
+    "particles": [],
+    "duplicateParticles": [],
+    "scripts": [
+      {
+        "name": "AudioVolumePanel",
+        "count": 1,
+        "enabled": 0
+      }
+    ],
+    "renderers": 91
+  }
+]

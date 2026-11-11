@@ -13,6 +13,7 @@ namespace LogicLegends.Students
     {
         public static StudentNpcDirector Active { get; private set; }
         public StudentNpcCatalog Config { get; private set; }
+        public bool CatalogReady { get; private set; }
         public bool Paused { get; private set; }=true;
         public bool AllowsRunning=>state!=null&&(state.Trial==2||state.Trial==3);
         public bool HideModelsForView=>Time.timeScale<=0||GameInput.Instance!=null&&GameInput.Instance.GameplayInputBlocked;
@@ -30,6 +31,7 @@ namespace LogicLegends.Students
         Coroutine building;
         string populationKey,equipped;
         float refresh;
+        float nextSnapshot;
         bool reported;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -44,10 +46,16 @@ namespace LogicLegends.Students
             try{trial=TrialCatalog.ForScene(scene.name).Number;}catch(ArgumentException){return;}
             if(trial==1&&StageSelectionState.SelectedStage==2)return;
             foreach(var root in scene.GetRootGameObjects())if(root.GetComponent<StudentNpcDirector>()!=null)return;
-            var catalog=Resources.Load<StudentNpcCatalog>("Students/StudentNpcCatalog");
-            if(catalog==null){Debug.LogWarning("Student NPC catalog missing. Use Logic Legends/Students/Prepare and validate catalog.");return;}
             var go=new GameObject("RoamingStudents");SceneManager.MoveGameObjectToScene(go,scene);
-            var director=go.AddComponent<StudentNpcDirector>();director.Config=catalog;
+            var director=go.AddComponent<StudentNpcDirector>();director.StartCoroutine(director.LoadCatalog());
+        }
+        IEnumerator LoadCatalog()
+        {
+            // Import/integrate skin dependencies after the outgoing scene unloads,
+            // under the shared loading artwork rather than blocking sceneLoaded.
+            var request=Resources.LoadAsync<StudentNpcCatalog>("Students/StudentNpcCatalog");
+            yield return request;Config=request.asset as StudentNpcCatalog;CatalogReady=true;
+            if(Config==null)Debug.LogWarning("Student NPC catalog missing. Use Logic Legends/Students/Prepare and validate catalog.");
         }
         void Awake(){Active=this;dialogue=gameObject.AddComponent<StudentNpcDialogue>();}
         void Update()
@@ -66,6 +74,15 @@ namespace LogicLegends.Students
                 if(source==null)return;
             }
             // Stage snapshots are read-only. Some controllers initialise their bank in Start.
+            // Snapshot providers build strings/arrays; roaming does not need a new
+            // allocation-heavy puzzle snapshot on every rendered frame.
+            if (Time.unscaledTime < nextSnapshot)
+            {
+                if (Time.timeScale <= 0 || GameInput.Instance == null || GameInput.Instance.GameplayActionsBlocked ||
+                    Player.LocalInstance == null || Player.LocalInstance.IsMovementLocked) Paused = true;
+                return;
+            }
+            nextSnapshot = Time.unscaledTime + .1f;
             StudentTrialState next;
             if(!TrySnapshot(source,out next)){Paused=true;sourceComponent=null;source=null;return;}
             if(!next.Ready){Paused=true;sourceComponent=null;source=null;refresh=Time.unscaledTime+.5f;return;}

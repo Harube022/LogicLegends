@@ -533,7 +533,9 @@ public partial class TruthTableDoorInteraction : MonoBehaviour
         var puzzle = FindFirstObjectByType<DynamicLogicPuzzle>();
         int column = puzzle != null ? puzzle.RewardColumnNumber : 1;
         string eventKey = "tt-c" + stageClock.CurrentChallengeNumber + "-col" + column + "-house" + index;
-        TrialRewards.RecordQuizAnswer(2, eventKey, "tt-" + questionBank.questions.IndexOf(assignedQuestions[index]), choiceIndex, correct);
+        TrialRewards.RecordQuizAnswer(2, eventKey, "tt-" + questionBank.questions.IndexOf(assignedQuestions[index]), choiceIndex, correct,
+            false, assignedQuestions[index].prompt,
+            assignedQuestions[index].choices[assignedQuestions[index].correctChoice], assignedQuestions[index].choices[choiceIndex]);
         feedbackText.text = correct ? "Correct" : "Incorrect";
         correctAnswerText.text = correct ? "" : "Correct answer: " + assignedQuestions[index].choices[assignedQuestions[index].correctChoice];
         correctAnswerText.gameObject.SetActive(!correct);

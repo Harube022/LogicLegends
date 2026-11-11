@@ -119,7 +119,7 @@ public class LevelTimerManager : MonoBehaviour
 
     private void Update()
     {
-        if (IsTimerAdvancing)
+        if (IsTimerAdvancing && !SoloStageLoader.IsLoading)
         {
             currentTimer -= Time.deltaTime;
             savedRemainingTime = currentTimer; // Keep static backup updated constantly

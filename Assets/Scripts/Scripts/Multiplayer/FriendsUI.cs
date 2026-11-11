@@ -282,17 +282,25 @@ public sealed class FriendsUI : MonoBehaviour
             if (people.Count == 0) { Empty(section == Section.Requests ? "No pending friend requests." : section == Section.Chats ? "No conversations yet. Add a friend to start chatting." : "No friends yet. Search by Player ID to add someone."); return; }
             foreach (var person in people)
             {
-                var row = Row(listContent, person.Name + "\nID  " + ShortId(person.Id), 122);
+                var row = Row(listContent, person.Name + "\nID  " + ShortId(person.Id), 122, .40f);
                 if (section == Section.Requests)
                 {
                     RowButton(row, "ACCEPT", -252, () => Accept(person));
                     RowButton(row, "DECLINE", -12, () => Decline(person));
                 }
-                else if (section == Section.Chats) RowButton(row, "CHAT", -12, () => OpenChat(person));
                 else
                 {
-                    RowButton(row, "CHAT", -252, () => OpenChat(person));
-                    RowButton(row, "REMOVE", -12, () => Remove(person), true);
+                    if (section == Section.Chats)
+                    {
+                        SocialAction(row, "Report Player", .58f, .80f, () => GameCommunityUI.Report(overlay.transform, person.Id, person.Name), red: true);
+                        SocialAction(row, "Chat", .82f, .99f, () => OpenChat(person), green: true);
+                    }
+                    else
+                    {
+                        SocialAction(row, "Report Player", .41f, .64f, () => GameCommunityUI.Report(overlay.transform, person.Id, person.Name), red: true);
+                        SocialAction(row, "Chat", .65f, .81f, () => OpenChat(person), green: true);
+                        SocialAction(row, "Remove", .82f, .99f, () => Remove(person), red: true);
+                    }
                 }
             }
         }
@@ -319,9 +327,10 @@ public sealed class FriendsUI : MonoBehaviour
             bool isFriend = await FriendsRepository.IsFriendAsync(id);
             bool pending = !isFriend && await FriendsRepository.RequestPendingAsync(id);
             if (!Current(version)) return;
-            var row = Row(listContent, person.Name + "\nID  " + ShortId(id), 122);
-            if (isFriend) RowButton(row, "CHAT", -12, () => OpenChat(person));
-            else if (!pending) RowButton(row, "ADD", -12, () => Add(person));
+            var row = Row(listContent, person.Name + "\nID  " + ShortId(id), 122, .40f);
+            SocialAction(row, "Report Player", .41f, .68f, () => GameCommunityUI.Report(overlay.transform, person.Id, person.Name), red: true);
+            if (isFriend) SocialAction(row, "Chat", .71f, .99f, () => OpenChat(person), green: true);
+            else if (!pending) SocialAction(row, "Add", .71f, .99f, () => Add(person));
             ShowStatus(isFriend ? "Already friends." : pending ? "Friend request already sent." : "Send a friend request?");
         }
         catch (Exception error) { if (Current(version)) Failure("Couldn't search for that player. Try again.", error); }
@@ -633,6 +642,17 @@ public sealed class FriendsUI : MonoBehaviour
         var label = MultiplayerUIArt.Label("RowText", rect, value, .045f, .08f, textRight, .92f, 27, true, StageUITheme.ReadingInk);
         label.alignment = TextAlignmentOptions.MidlineLeft;
         return rect;
+    }
+
+    private static void SocialAction(Transform row, string caption, float left, float right, UnityEngine.Events.UnityAction action, bool green = false, bool red = false)
+    {
+        var button = MultiplayerUIArt.Action(caption.Replace(" ", "") + "Button", row, caption, left, .13f, right, .87f, green: green, red: red);
+        button.GetComponent<UnityEngine.UI.Image>().pixelsPerUnitMultiplier = 4.5f;
+        var label = button.GetComponentInChildren<TMP_Text>();
+        label.rectTransform.offsetMin = new Vector2(8, 6);
+        label.rectTransform.offsetMax = new Vector2(-8, -6);
+        label.fontSizeMin = 17;
+        button.onClick.AddListener(action);
     }
 
     private static Button RowButton(Transform row, string caption, float right, UnityEngine.Events.UnityAction action, bool red = false)

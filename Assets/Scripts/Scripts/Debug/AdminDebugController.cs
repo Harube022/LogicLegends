@@ -372,6 +372,23 @@ public sealed class AdminDebugController : MonoBehaviour
         adminActionPending = false;
         if (!granted || this == null || !AdminAuthorization.IsAuthorized) return;
         if (!panelOpen || clearConsumed || !challengeEligibleAtOpen) return;
+        if ((SceneManager.GetActiveScene().name == "PRELIM" || SceneManager.GetActiveScene().name == "TruthTable") &&
+            StageSelectionState.SelectedStage == 1)
+        {
+            // Clear while the admin panel still holds the gameplay pause. Closing first can
+            // resume the shared timer before QuizManager validates the active challenge.
+            QuizManager quiz = FindFirstObjectByType<QuizManager>();
+            if (quiz == null || !quiz.DebugClearCurrentChallenge())
+            {
+                clearChallengeButton.interactable = challengeEligibleAtOpen;
+                return;
+            }
+            clearConsumed = true;
+            clearChallengeButton.interactable = false;
+            clearConditionButton.interactable = false;
+            ClosePanel();
+            return;
+        }
         clearConsumed = true;
         clearChallengeButton.interactable = false;
         clearConditionButton.interactable = false;
