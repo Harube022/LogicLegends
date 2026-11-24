@@ -1,18 +1,20 @@
 using System;
 using System.Linq;
+using Photon.Pun;
 using UnityEngine;
 
 namespace LogicLegends.OpenArchive.Topics
 {
     public sealed partial class ArchiveTopicSession
     {
-        // Local testing permission comes from the build and the existing room authority, never player properties.
+        // Online test commands require both room authority and the backend-verified account role.
         public bool CanUseTopicAdmin
         {
             get
             {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-                return Application.isPlaying && Ready && IsAuthority;
+                return Application.isPlaying && Ready && IsAuthority &&
+                    (!PhotonNetwork.InRoom || AdminAuthorization.IsAuthorized);
 #else
                 return false;
 #endif

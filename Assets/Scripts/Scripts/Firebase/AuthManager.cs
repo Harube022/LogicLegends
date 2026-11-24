@@ -147,7 +147,20 @@ public class AuthManager : MonoBehaviour
 
     private void Start()
     {
+        if (FirstLaunchTerms.ShowIfNeeded(this, ResumeAfterTerms)) return;
+        StartAccountFlow();
+    }
+
+    private void StartAccountFlow()
+    {
+        if (gameObject.scene.name == "Main Menu") CommerceClient.Prewarm();
         if (!FirebaseManager.IsReady && !connectionErrorVisible) BeginAccountLoading(RetryInitialization);
+    }
+
+    private void ResumeAfterTerms()
+    {
+        StartAccountFlow();
+        FindFirstObjectByType<FirebaseManager>()?.RetryInitialization();
     }
 
     private MainMenuLoadingScreen LoadingScreen => FindFirstObjectByType<MainMenuLoadingScreen>();
@@ -243,7 +256,6 @@ public class AuthManager : MonoBehaviour
         if (gameObject.scene.name == "Main Menu")
         {
             MainMenuMobileInput.EnsureForScene(gameObject.scene);
-            CommerceClient.Prewarm();
         }
         // Hide everything the exact millisecond the scene loads.
         // This prevents the login screen from flashing while Firebase checks your saved session!
@@ -260,7 +272,7 @@ public class AuthManager : MonoBehaviour
 
     public void CheckLoginState()
     {
-        if (!FirebaseManager.IsReady || connectionErrorVisible) return;
+        if (FirstLaunchTerms.Blocks(gameObject.scene) || !FirebaseManager.IsReady || connectionErrorVisible) return;
         if (Application.internetReachability == NetworkReachability.NotReachable)
         {
             accountRetry = CheckLoginState;

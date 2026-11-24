@@ -60,6 +60,9 @@ namespace LogicLegends.OpenArchive.Topics.Editor
         static void StartChecks(bool inference,bool proofs=false,bool methods=false,bool induction=false,bool sets=false,bool mapping=false,bool graph=false,bool tree=false,bool exit=false,bool admin=false,bool learning=false,bool fairness=false,bool optional=false,bool topicBonuses=false,bool crystals=false,bool world=false,bool survival=false,bool hotbar=false,bool matchTime=false,bool teamCoordination=false,bool matchRewards=false,bool fieldEvents=false)
         {
             if(!Application.isPlaying||PhotonNetwork.InRoom||active)throw new InvalidOperationException("Run in offline Play Mode with no active room.");
+            if ((admin || learning || optional || topicBonuses || crystals || world || hotbar || matchTime || teamCoordination || matchRewards) &&
+                !AdminAuthorization.IsAuthorized)
+                throw new InvalidOperationException("Sign in with a verified Admin account and enter offline Open Archive practice before running this check.");
             fieldEventsOnly=fieldEvents;matchRewardsOnly=matchRewards;teamCoordinationOnly=teamCoordination;matchTimeOnly=matchTime;hotbarOnly=hotbar;survivalOnly=survival;worldOnly=world;crystalsOnly=crystals;topicBonusesOnly=topicBonuses;optionalRelaysOnly=optional;fairnessOnly=fairness;inferenceOnly=inference;proofsOnly=proofs;methodsOnly=methods;inductionOnly=induction;setsOnly=sets;mappingOnly=mapping;graphOnly=graph;treeOnly=tree;exitOnly=exit;adminOnly=admin;learningOnly=learning;report=new Report();peers.Clear();stack.Clear();previousSync=PhotonNetwork.AutomaticallySyncScene;previousName=PhotonNetwork.NickName;
             PhotonNetwork.AutomaticallySyncScene=false;PhotonNetwork.NickName="Archive host QA";
             session=ArchiveTopicSession.Current;if(session!=null)session.enabled=false;

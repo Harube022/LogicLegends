@@ -26,6 +26,7 @@ public class FirebaseManager : MonoBehaviour
 
     public void RetryInitialization()
     {
+        if (FirstLaunchTerms.Blocks(gameObject.scene)) return;
         if (IsReady)
         {
             OnFirebaseReady?.Invoke();
